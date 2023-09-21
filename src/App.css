@@ -1,38 +1,279 @@
-.App {
-  text-align: center;
+/* set up variable colours */
+
+:root {
+  --darkGreen: #94bb86;
+  --bgGreen: #b8d1ae;
+  --grey: #5b6057;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Reset some default styles in browsers */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  /* font-family: 'Caveat Brush', cursive;
+  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Kalam', cursive;
+  font-family: 'Moon Dance', cursive;
+  font-family: 'Nanum Brush Script', cursive; */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Set the background, font-family, and text color for the entire page */
+body {
+  color: #333;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
-.App-header {
-  background-color: #282c34;
+/* Style the landing container */
+.landing-container {
+  background-color: #b8d1ae;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
+  text-align: center;
+  padding: 0px;
+  overflow: hidden;
+}
+
+.work {
+  color: #b8d1ae;
+}
+
+.work button {
+  color: #b8d1ae;
+}
+
+/* Style the side box */
+.side-box {
+  width: 5%;
+  text-align: left;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding-top: 25px;
+  position: fixed;
+  left: 0%;
 }
 
-.App-link {
-  color: #61dafb;
+.side-box button {
+  border: none;
+  margin-bottom: 50px;
+  transform: rotate(-90deg);
+  background-color: transparent;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
-@keyframes App-logo-spin {
+
+.vertical-line{
+  border-left: 1px solid #007bff;
+  height: 200px;
+  margin-bottom: 400px;
+  margin-top: 0px;
+}
+
+.work-line{
+  border-left: 1px solid #007bff;
+  height: 200px;
+  margin-bottom: 400px;
+  margin-top: 0px;
+}
+
+
+
+/* Style the title box */
+.title-box {
+  align-self: flex-end;
+  text-align: left;
+  width: 35%;
+  padding: 150px;
+  padding-bottom: 200px;
+}
+
+.title-box h1 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #007bff;
+}
+
+.title-box p {
+  font-size: 0.9em;
+  margin-bottom: 20px;
+}
+
+/* Style the navigation box */
+.nav-box {
+  text-align: left;
+  width: 60%;
+  padding: 0%;
+}
+.nav-box.work {
+  margin-top: -50px;
+}
+.nav-box.work ul {
+  padding: 0%;
+  margin-top: -40px;
+}
+.nav-box.work ul>ul {
+  margin-left: 10px;
+}
+
+.nav-box ul {
+  list-style-type: none;
+}
+
+.nav-box li {
+  margin-top: -20px;
+  padding: 0px;
+  font-size: 250px;
+}
+
+.nav-box li a {
+  text-decoration: none;
+  color: #333;
+}
+
+.nav-box.work li a {
+  color: #b8d1ae;
+}
+
+.nav-box.work li {
+  padding: 0px !important;
+}
+
+/* .nav-box li:nth-child(2) a {
+  color: #007bff;
+}
+
+.nav-box li:nth-child(2) a:hover {
+  color: #333;
+} */
+
+/* Add hover effects */
+.side-box li a:hover,
+.nav-box li a:hover {
+  cursor: pointer;
+  color: #007bff;
+  /* You can change this color to suit your design preference */
+}
+
+/* Style the content box */
+@keyframes slideIn {
   from {
-    transform: rotate(0deg);
+    top: -20vh;
   }
   to {
-    transform: rotate(360deg);
+    top: 100vh;
   }
 }
+
+@keyframes slideInTop {
+  from {
+    top: -20vw;
+  }
+  to {
+    top: 0vh;
+  }
+}
+
+@keyframes blur {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  75% {
+    opacity: 0.5;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.nav-box  {
+  animation: blur 2s ease-out;
+  animation-delay: 0.0s;
+}
+
+.title-box {
+  position: relative;
+  animation: slideInTop 1s ease-in-out;
+  animation-delay: 0.1s;
+}
+
+.black-box {
+  position: fixed;
+  height: 160vh;
+  width: 100%;
+  background-color: #333;
+  animation: slideIn 1s ease-out;
+  top: 100vh;
+  z-index: 1;
+}
+
+.nav-box.work {
+  animation: appear 1s ease-out;
+  animation-delay: 0s;
+  z-index: 2;
+  opacity: 1;
+}
+
+.title-box.work {
+  animation: slideInWorkTitle 1s ease-out;
+  animation-delay: 0s;
+  z-index: 2;
+  opacity: 1;
+}
+
+.side-box.work {
+  animation: appear 1s ease-out;
+  animation-delay: 0s;
+  z-index: 2;
+  opacity: 1;
+}
+
+.work-box {
+  position: fixed;
+  height: 160vh;
+  width: 100%;
+  background-color: #333;
+  animation: slideInReverse 1s ease-out;
+  top: 0vh;
+  z-index: 1;
+}
+
+
+@keyframes slideInReverse {
+  from {
+    top: 100vh;
+  }
+  to {
+    top: 0vh;
+  }
+}
+
+@keyframes appear {
+  from {
+    filter: blur(10px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInWorkTitle {
+  from {
+    top: 100vh;
+  }
+  to {
+    top: 0vh;
+  }
+}
+
+
+
+
+
