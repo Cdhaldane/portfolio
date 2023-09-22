@@ -16,7 +16,7 @@ import Contact from "./pages/contact";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/portfolio",
     Component: Landing
   },
   {
