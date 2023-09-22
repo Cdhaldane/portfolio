@@ -6,11 +6,11 @@ function Landing() {
         <div className="landing-container">
             <div className='black-box'></div>
             <div className='side-box'>
-                <button>GH</button>
-                <button>LI</button>
-                <button>IG</button>
+                <a href="https://github.com/Cdhaldane">GH</a>
+                <a href="https://www.linkedin.com/in/charliehaldaneuottawa/">LI</a>
+                <a href="https://www.instagram.com/charliedhaldane/">IG</a>
                 <div className='vertical-line'></div>
-                <button>©/2023</button>
+                <a>©/2023</a>
             </div>
             <div className='title-box'>
                 <h1>CHARLIE HALDANE</h1>

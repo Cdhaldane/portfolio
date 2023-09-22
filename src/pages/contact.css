@@ -1,0 +1,43 @@
+.contact-container {
+    width: 100%;
+    padding: 10%;
+    margin-top: -50px;
+    text-align: left;
+    z-index: 2;
+    color: var(--bgGreen) !important;
+
+}
+
+.contact-container h1 {
+    font-size: 300px;
+    margin-bottom: 20px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 300;
+    animation: appear 1s ease-out 0s;
+}
+
+.contact-container>h1>span {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.contact-container p {
+    font-size: 0.8rem;
+    font-weight: 100;
+    margin-left: 1%;
+    margin-bottom: 20px;
+    animation: appear 1s ease-out 0s;
+}
+
+.contact-container>p>a {
+    color: #007bff;
+}
+
+.contact-copied {
+    animation: appear 1s ease-out 0s;
+    color: #333;
+    text-decoration: wavy underline;
+    font-size: 0.8rem !important;
+    width: 100px;
+    margin-top: 20px;
+}

@@ -6,9 +6,9 @@ function Work() {
         <div className="landing-container work">
             <div className='work-box'></div>
             <div className='side-box work'>
-                <button>HOME</button>
+                <a><Link to="/">HOME</Link></a>
                 <div className='work-line'></div>
-                <button>©/2023</button>
+                <a>©/2023</a>
             </div>
             <div className='title-box work'>
                 <h1>WORK</h1>
@@ -18,11 +18,11 @@ function Work() {
             </div>
             <div className='nav-box work'>
                 <ul>
-                    <li><Link to="/work/edusim">EDUSIM</Link></li>
+                    <li><Link to="/edusim">E<span>D</span>USIM</Link></li>
                     <ul> Full Stack</ul>
-                    <li><Link to="/about">VXNESSA</Link></li>
+                    <li><Link to="/vxnessa">VXNE<span>S</span>SA</Link></li>
                     <ul> Web Design</ul>
-                    <li><Link to="/contact">MARZ</Link></li>
+                    <li><Link to="/marz"><span>M</span>ARZ</Link></li>
                     <ul> Pipeline Developer</ul>
                 </ul>
             </div>

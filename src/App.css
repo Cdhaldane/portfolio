@@ -41,8 +41,8 @@ body {
   color: #b8d1ae;
 }
 
-.work button {
-  color: #b8d1ae;
+.work a {
+  color: #b8d1ae !important;
 }
 
 /* Style the side box */
@@ -57,12 +57,14 @@ body {
   left: 0%;
 }
 
-.side-box button {
+.side-box a {
   border: none;
   margin-bottom: 50px;
   transform: rotate(-90deg);
   background-color: transparent;
   font-family: 'IBM Plex Mono', monospace;
+  text-decoration: none;
+  color: #333;
 }
 
 
@@ -115,8 +117,14 @@ body {
   padding: 0%;
   margin-top: -40px;
 }
+.nav-box.work li a span {
+  color:#007bff;
+}
 .nav-box.work ul>ul {
   margin-left: 10px;
+}
+.nav-box.worl li a:hover {
+
 }
 
 .nav-box ul {
@@ -154,7 +162,7 @@ body {
 .side-box li a:hover,
 .nav-box li a:hover {
   cursor: pointer;
-  color: #007bff;
+  color: #007bff !important;
   /* You can change this color to suit your design preference */
 }
 
@@ -233,6 +241,11 @@ body {
   opacity: 1;
 }
 
+.black-box.about {
+  animation: slideInAbout 1s ease-out 0s;
+  top: -170vh;
+}
+
 .work-box {
   position: fixed;
   height: 160vh;
@@ -250,6 +263,15 @@ body {
   }
   to {
     top: 0vh;
+  }
+}
+
+@keyframes slideInAbout {
+  from {
+    top: 0vh;
+  }
+  to {
+    top: -170vh;
   }
 }
 

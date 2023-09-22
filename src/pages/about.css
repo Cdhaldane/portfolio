@@ -1,0 +1,189 @@
+.side-box.about {
+    z-index: 2;
+    left: 0%;
+    top: 10%;
+}
+
+.about-container {
+    width: 100%;
+    height: 100%;
+    padding: 10%;
+    text-align: left;
+    color: black;
+}
+
+.about-title {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    text-align: left !important;
+    margin-bottom: 20px;
+    width: 75%;
+    margin-top: -5vw;
+    margin-left: 100px;
+    position: relative;
+    animation: aboutTitleSlide 1s ease-in-out 0.5s, appearAbout 1s ease-out 0s;
+    opacity: 1;
+}
+
+@keyframes aboutTitleSlide {
+    from {
+        left: -900px;
+        filter: blur(10px);
+    }
+    to {
+        left: 0px;
+        filter: blur(0px);
+    }
+}
+
+@keyframes appearAbout {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.line {
+    position: absolute;
+    width: 85%;
+    height: 3px;
+    background-color: white;
+    top: 59%;
+    left: 0%;
+    z-index: 0;
+}
+
+.vertical {
+    position: absolute;
+    width: 3px;
+    height: 185vh;
+    background-color: white;
+    top: 46%;
+    left: 16%;
+    z-index: 0;
+    animation: lineSlideVertical 1s ease-out 0s;
+}
+
+.top {
+    animation: lineSlideHorizontal 1s ease-out 0s;
+    left: 9%;
+}
+
+@keyframes lineSlideVertical {
+    from {
+        top: 0%;
+    }
+    to {
+        top: 46%;
+    }
+}
+
+@keyframes lineSlideHorizontal {
+    from {
+        left: -10%;
+    }
+    to {
+        left: 9%;
+    }
+}
+
+.about-title>h1 {
+    width: 90%;
+    text-align: left;
+    font-size: 300px;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.about-title>h1::first-letter {
+    color: #007bff;
+}
+.about-title>h1::let {
+    color: #007bff;
+}
+
+
+.about-title>img {
+    width: 360px;
+    margin-left: -310px;
+    margin-top: -60px;
+    border: 3px solid white;
+    padding: 20px;
+}
+
+.about-info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-left: 100px;
+    font-weight: 300;
+    width: 50%;
+    text-align: left;
+    align-self: flex-start;
+    justify-content: flex-start;
+    animation: aboutInfoSlide 1s ease-in-out 1s, appearAbout 1s ease-out 0s;
+    border-right: none;
+    padding: 50px;
+}
+
+@keyframes aboutInfoSlide {
+    from {
+        bottom: -900px;
+        filter: blur(10px);
+    }
+    to {
+        bottom: 0px;
+        filter: blur(0px);
+    }
+}
+    
+
+.about-info>h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #007bff;
+}
+
+.about-info>p {
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 300;
+    text-align: left;
+}
+
+.about-info>h2 {
+    font-size: 40px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #007bff;
+}
+
+.about-info>ul>li {
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 300;
+    margin-left: 20px;
+}
+
+.about-info>button {
+    border: none;
+    background-color: #333;
+    color: white;
+    border-radius: 100px;
+    width: 30%;
+    padding: 20px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 20px;
+}
+
+.about-info>button:hover {
+    background-color: #007bff;
+    transition: all 0.5s ease-in-out;
+}

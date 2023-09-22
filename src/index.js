@@ -8,7 +8,11 @@ import {
 } from "react-router-dom";
 import Landing from "./pages/landing";
 import Work from "./pages/work";
-import WorkPage from "./pages/work-page";
+import Edusim from "./pages/edusim";
+import Vxnessa from "./pages/vxnessa";
+import Marz from "./pages/marz";
+import About from "./pages/about";
+import Contact from "./pages/contact";
 
 const router = createBrowserRouter([
   {
@@ -20,9 +24,25 @@ const router = createBrowserRouter([
     Component: Work
   },
   {
-    path: "work/:id",
-    Component: WorkPage
+    path: "edusim",
+    Component: Edusim
   },
+  {
+    path: "vxnessa",
+    Component: Vxnessa
+  },
+  {
+    path: "marz",
+    Component: Marz
+  },
+  {
+    path: "about",
+    Component: About
+  },
+  { 
+    path: "contact",
+    Component: Contact
+  }
 ]);
 
 createRoot(document.getElementById("root")).render(
