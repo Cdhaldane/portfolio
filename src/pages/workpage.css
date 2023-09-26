@@ -1,4 +1,5 @@
 .workpage-container {
+    background-color: white;
 }
 
 .workpage-bg {
@@ -184,18 +185,6 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 @keyframes topIn {
     from {
         transform: translateY(-100px);
@@ -204,4 +193,104 @@
     to {
         transform: translateY(0px);
     }
+}
+
+@media only screen and (max-width: 768px) {
+    .workpage-box {
+        margin-left: 30px;
+    }
+    .workpage-bg h1 {
+        font-size: 75px;
+        margin-bottom: 10px;
+    }
+    .workpage-box p {
+        font-size: 20px;
+
+    }
+    .side-box.workpage {
+        top: 4%;
+        font-size: 10px;
+    }
+
+    .workpage-info {
+        padding: 0px;
+        padding-left: 8%;
+        padding-right: 10%;
+        margin-top: 50px;
+    }
+
+    .workpage-info>h1 {
+        font-size: 1.0rem;
+        margin-left: 10px;
+    }
+
+    .workpage-info>div {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .workpage-info>div>div {
+        width: 100%;
+        margin-left: 0px;
+        margin-bottom: 20px;
+    }
+
+    .workpage-info>div>div>h3 {
+        font-size: 1.0rem;
+    }
+
+    .workpage-info>div>div>p {
+        font-size: 0.8rem;
+    }
+
+    .workpage-img {
+        width: 90%;
+        margin-left: 5%;
+        margin-top: 0%;
+        margin-bottom: 5%;
+    }
+
+    .workpage-img-p {
+        width: 80%;
+        margin-left: 10%;
+        margin-top: 0%;
+        font-size: 0.8rem;
+        margin-bottom: 50px;
+    }
+    
+    .workpage-footer {
+        width: 80%;
+        margin-left: 10%;
+        margin-top: 50px;
+        line-height: 1.5;
+    }
+
+    .workpage-footer>button {
+        padding: 20px;
+        border-radius: 5px;
+        font-size: 1.0rem;
+    }
+
+    .marz-tools {
+        display: flex;
+        flex-direction: column;
+        border: none;
+        margin-left: 0px;
+        width: inherit;
+        padding: 0px;
+        margin-right: 0px;
+    }
+
+    .marz-tools img:first-child {
+        margin-left: 10%;
+        
+    }
+
+    .marz-tools img:last-child {
+        width: 90%;
+        height: 200px;
+    }
+
+
+   
 }

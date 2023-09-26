@@ -48,7 +48,7 @@ function About() {
                     <h2>SKILLS</h2>
                     <p>React Web Development / VFX Pipelines / Team Collaboration / Agile Methodologies / Version Control / C++ / Python / User Experience Design /
                         Problem-Solving</p>
-                    <button><Link to="/CHARLIE_RESUME_5.pdf" target="_blank" download>Resume</Link></button>
+                    <button><Link to="/CHARLIE_RESUME_5.pdf" target="_blank" rel="noopener noreferrer">Resume</Link></button>
                 </div>
             </div>
         </div>

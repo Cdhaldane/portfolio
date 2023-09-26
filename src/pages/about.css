@@ -26,25 +26,7 @@
     opacity: 1;
 }
 
-@keyframes aboutTitleSlide {
-    from {
-        left: -900px;
-        filter: blur(10px);
-    }
-    to {
-        left: 0px;
-        filter: blur(0px);
-    }
-}
 
-@keyframes appearAbout {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 0;
-    }
-}
 
 .line {
     position: absolute;
@@ -72,23 +54,7 @@
     left: 9%;
 }
 
-@keyframes lineSlideVertical {
-    from {
-        top: 0%;
-    }
-    to {
-        top: 46%;
-    }
-}
 
-@keyframes lineSlideHorizontal {
-    from {
-        left: -10%;
-    }
-    to {
-        left: 9%;
-    }
-}
 
 .about-title>h1 {
     width: 90%;
@@ -101,6 +67,7 @@
 .about-title>h1::first-letter {
     color: #007bff;
 }
+
 .about-title>h1::let {
     color: #007bff;
 }
@@ -120,26 +87,17 @@
     flex-direction: column;
     margin-left: 100px;
     font-weight: 300;
-    width: 50%;
+    width: 100%;
     text-align: left;
     align-self: flex-start;
     justify-content: flex-start;
     animation: aboutInfoSlide 1s ease-in-out 1s, appearAbout 1s ease-out 0s;
     border-right: none;
     padding: 50px;
+    padding-right: 50%;
 }
 
-@keyframes aboutInfoSlide {
-    from {
-        bottom: -900px;
-        filter: blur(10px);
-    }
-    to {
-        bottom: 0px;
-        filter: blur(0px);
-    }
-}
-    
+
 
 .about-info>h1 {
     font-size: 50px;
@@ -183,7 +141,7 @@
     font-size: 20px;
 }
 
-.about-info>button>a{
+.about-info>button>a {
     color: white;
     text-decoration: none;
 }
@@ -191,4 +149,116 @@
 .about-info>button:hover {
     background-color: #007bff;
     transition: all 0.5s ease-in-out;
+}
+
+@keyframes aboutInfoSlide {
+    from {
+        bottom: -900px;
+        filter: blur(10px);
+    }
+
+    to {
+        bottom: 0px;
+        filter: blur(0px);
+    }
+}
+
+@keyframes lineSlideVertical {
+    from {
+        top: 0%;
+    }
+
+    to {
+        top: 46%;
+    }
+}
+
+@keyframes lineSlideHorizontal {
+    from {
+        left: -10%;
+    }
+
+    to {
+        left: 9%;
+    }
+}
+
+@keyframes aboutTitleSlide {
+    from {
+        left: -900px;
+        filter: blur(10px);
+    }
+
+    to {
+        left: 0px;
+        filter: blur(0px);
+    }
+}
+
+@keyframes appearAbout {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .about-title{
+        margin-left: 0px;
+        width: 100%;
+        margin-top: 50px;
+
+    }
+    .about-title h1 {
+        font-size: 100px;
+    }
+    .about-title img {
+        width: 200px;
+        margin-left: -150px;
+        margin-top: -80px;
+    }
+
+    .vertical{
+        top: 0%;
+        height: 440vw;
+        margin-bottom: 50px;
+    }
+    .top {
+        top: 300px;
+        width: 91%;
+    }
+
+    .about-info {
+        margin-left: 10px;
+        padding: 0px;
+        padding-left: 10%;
+        padding-right: 10%;
+        margin-top: 50px;
+    }
+
+    .about-info h1 {
+        font-size: 20px;
+    }
+    .about-info h2 {
+        font-size: 20px;
+    }
+    .about-info p {
+        font-size: 15px;
+    }
+    .about-info ul>li {
+        font-size: 15px;
+    }
+    .about-info button {
+        font-size: 15px;
+        width: 50%;
+        padding: 10px 10px;
+        margin-bottom: 50px;;
+    }
+
+    .landing-container {
+        flex-direction: column;
+    }
 }

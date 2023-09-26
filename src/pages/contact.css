@@ -5,7 +5,7 @@
     text-align: left;
     z-index: 2;
     color: var(--bgGreen) !important;
-
+    margin-right: -150px;
 }
 
 .contact-container h1 {
@@ -16,9 +16,29 @@
     animation: appear 1s ease-out 0s;
 }
 
-.contact-container>h1>span {
-    color: #007bff;
-    text-decoration: underline;
+
+
+.contact-title {
+    display: flex;
+    flex-direction: row;
+}
+
+.contact-title>div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact-click {
+    position: absolute;
+    transform: translateY(22px);
+    z-index: 2;
+    font-size: 10px;
+    cursor: pointer;
+    color: var(--bgGreen) !important;
+    background-color: transparent;
+
 }
 
 .contact-container p {
@@ -28,6 +48,18 @@
     margin-bottom: 20px;
     animation: appear 1s ease-out 0s;
 }
+
+.contact-container button {
+    font-size: 300px;
+    border: none;
+    border-radius: 100px;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    animation: appear 1s ease-out 0s;
+    background-color: transparent;
+}
+
 
 .contact-container>p>a {
     color: #007bff;
@@ -40,4 +72,119 @@
     font-size: 0.8rem !important;
     width: 100px;
     margin-top: 20px;
+}
+
+.contact-form {
+    width: 100%;
+    padding: 5%;
+    margin-top: -50px;
+    text-align: left;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    margin-right: 5%;
+    border-radius: 2px;
+    transition: 0.3s ease-in-out;
+    position: relative;
+    left: 1000px;
+    background-color: var(--bgGreen);
+    padding: 50px;
+    margin-left: 100px;
+}
+
+.contact-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 0px solid #007bff;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 100;
+    outline: none;
+    transition: 0.3s ease-in-out;
+}
+
+.contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    height: 300px;
+    margin-bottom: 20px;
+    border: 0px solid #007bff;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 100;
+    outline: none;
+    resize: none;
+    transition: 0.3s ease-in-out;
+}
+
+.contact-form input[type="submit"] {
+    position: relative;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 0px solid #007bff;
+    border-radius: 2px;
+    font-size: 1rem;
+    font-weight: 100;
+    outline: none;
+    font-family: 'IBM Plex Mono', monospace;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+@media only screen and (max-width: 768px) {
+    .contact-container {
+        padding: 5%;
+        margin-right: 0px;
+        margin-left: 50px;
+    }
+
+    .contact-container h1 {
+        font-size: 100px;
+        margin-bottom: 10px;
+    }
+
+    .contact-click{
+        font-size: 6px;
+        transform: translateY(7px);
+    }
+
+    .contact-container p {
+        font-size: 0.7rem;
+        margin-bottom: 10px;
+    }
+
+    .contact-container button {
+        font-size: 100px;
+    }
+
+    .contact-form {
+        margin-top: 0;
+        margin: 0 auto;
+        margin-left: 40px;
+        padding: 20px;
+        width: 85%;
+        height: 300px;
+        font-size: 0.8em !important;
+        left: 0px;
+        /* Reset the left positioning */
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        margin-bottom: 10px;
+        font-size: 0.7rem;
+    }
+
+    .contact-form button {
+        padding: 8px;
+        font-size: 0.7rem;
+    }
+
+    .landing-container {
+        flex-direction: column;
+    }
 }

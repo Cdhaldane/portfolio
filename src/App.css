@@ -22,6 +22,7 @@
 body {
   color: #333;
   font-family: 'IBM Plex Mono', monospace;
+  background-color: #b8d1ae;
 }
 
 /* Style the landing container */
@@ -52,9 +53,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 25px;
   position: fixed;
   left: 0%;
+  height: 90%;
 }
 
 .side-box a {
@@ -68,16 +69,16 @@ body {
 }
 
 
-.vertical-line{
+.vertical-line {
   border-left: 1px solid #007bff;
   height: 200px;
   margin-bottom: 400px;
   margin-top: 0px;
 }
 
-.work-line{
+.work-line {
   border-left: 1px solid #007bff;
-  height: 200px;
+  height: 90%;
   margin-bottom: 400px;
   margin-top: 0px;
 }
@@ -107,25 +108,28 @@ body {
 /* Style the navigation box */
 .nav-box {
   text-align: left;
-  width: 60%;
+  width: 65%;
   padding: 0%;
 }
+
 .nav-box.work {
   margin-top: -50px;
 }
+
 .nav-box.work ul {
   padding: 0%;
   margin-top: -40px;
 }
+
 .nav-box.work li a span {
-  color:#007bff;
+  color: #007bff;
 }
+
 .nav-box.work ul>ul {
   margin-left: 10px;
 }
-.nav-box.worl li a:hover {
 
-}
+.nav-box.worl li a:hover {}
 
 .nav-box ul {
   list-style-type: none;
@@ -134,7 +138,8 @@ body {
 .nav-box li {
   margin-top: -20px;
   padding: 0px;
-  font-size: 250px;
+  font-size: 15vw;
+  line-height: 16vw;
 }
 
 .nav-box li a {
@@ -171,6 +176,7 @@ body {
   from {
     top: -20vh;
   }
+
   to {
     top: 100vh;
   }
@@ -180,6 +186,7 @@ body {
   from {
     top: -20vw;
   }
+
   to {
     top: 0vh;
   }
@@ -190,16 +197,18 @@ body {
     opacity: 0;
     filter: blur(10px);
   }
+
   75% {
     opacity: 0.5;
     filter: blur(0px);
   }
+
   100% {
     opacity: 1;
   }
 }
 
-.nav-box  {
+.nav-box {
   animation: blur 2s ease-out;
   animation-delay: 0.0s;
 }
@@ -237,8 +246,9 @@ body {
 .side-box.work {
   animation: appear 1s ease-out;
   animation-delay: 0s;
-  z-index: 2;
+  z-index: 3;
   opacity: 1;
+  top: 10%;
 }
 
 .black-box.about {
@@ -261,6 +271,7 @@ body {
   from {
     top: 100vh;
   }
+
   to {
     top: 0vh;
   }
@@ -270,6 +281,7 @@ body {
   from {
     top: 0vh;
   }
+
   to {
     top: -170vh;
   }
@@ -280,6 +292,7 @@ body {
     filter: blur(10px);
     opacity: 0;
   }
+
   to {
     filter: blur(0px);
     opacity: 1;
@@ -290,6 +303,7 @@ body {
   from {
     top: 100vh;
   }
+
   to {
     top: 0vh;
   }
@@ -298,4 +312,39 @@ body {
 
 
 
+@media only screen and (max-width: 768px) {
 
+  .landing-container {
+    flex-direction: column;
+  }
+
+  .title-box {
+    width: 100%;
+    padding: 10%;
+    padding-bottom: 20%;
+  }
+  .nav-box>ul>li {
+    line-height: normal;
+    font-size: 85px;
+  }
+  .nav-box {
+    margin-left: 5%;
+    width: 90%;
+  }
+  
+  .nav-box.work li {
+    margin-top: 10px;
+  }
+  .nav-box.work ul>ul {
+    margin-top: -10px;
+    margin-left: 0px;
+  }
+  .side-box.work {
+    top: 10%;
+    font-size: 10px;
+  }
+  .work-line {
+    height: 100% !important;
+    margin-bottom: 300px;
+  }
+}

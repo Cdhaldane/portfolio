@@ -11,7 +11,7 @@ function WorkPage() {
         <div className="workpage-container">
             <div className="landing-container workpage">
                 <div className='black-box'></div>
-                <div className='side-box'>
+                <div className='side-box workpage'>
                     <a><Link to="/">HOME</Link></a>
                     <div className='work-line purple-line'></div>
                     <a>©/2023</a>
