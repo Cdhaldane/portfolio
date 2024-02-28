@@ -1,0 +1,181 @@
+.sidebar-container {
+  background-color: var(--dark);
+  width: var(--sidebar-width); /* 250px */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  animation: fader 0.3s ease-in-out;
+  z-index: 2;
+}
+
+.sidebar-title-container {
+  display: flex;
+  align-items: center;
+  height: 100px;
+  padding: 1.3rem;
+}
+
+.sidebar-title-container i {
+  color: white;
+  background-color: var(--secondary);
+  padding: 10px 12px;
+  border-radius: 100%;
+  cursor: pointer;
+}
+
+.sidebar-title-container i:hover {
+  background-color: var(--primary);
+  transform: scale(1.1);
+  animation: spin 0.3s ease-in-out;
+}
+
+.sidebar-title-container img {
+  width: 50px;
+  object-fit: cover;
+  margin-left: 10%;
+  cursor: pointer;
+}
+
+.sidebar-item-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 0rem 1.3rem 2rem 1.3rem;
+}
+
+.sidebar-item-portrait {
+  height: 100%;
+  justify-content: flex-start;
+  padding: 0.5rem 1.3rem;
+}
+
+.sidebar-container:not(.sidebar-collapsed) .sidebar-item-container {
+  animation: none !important;
+}
+
+.sidebar-item {
+  color: var(--light);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0px 5px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  padding: 0.4rem 0px;
+}
+
+.sidebar-item:hover {
+  background-color: var(--primary);
+  cursor: pointer;
+  color: white;
+}
+
+.sidebar-item-name {
+  margin-left: 1.2rem;
+  white-space: nowrap;
+}
+
+.sidebar-item:hover:not(.sidebar-portrait-item) .fa-solid {
+  margin-left: 1rem;
+  /* Adds 20px to the right margin when sidebar item is hovered */
+}
+
+.sidebar-item:hover:not(.sidebar-portrait-item) img {
+  margin-left: 1rem;
+  /* Adds 30px to the right margin when sidebar item is hovered */
+}
+
+.sidebar-item-title {
+  color: var(--offwhite);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.sidebar-line {
+  border-top: 1px solid var(--secondary);
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 10px !important;
+}
+
+.sidebar-collapsed .sidebar-item {
+  animation: none;
+}
+
+.sidebar-item-collapsed {
+  display: none;
+}
+
+.sidebar-portrait {
+  display: flex;
+  align-items: flex-start;
+  width: var(--sidebar-collapsed-width);
+  height: max-content;
+}
+
+.sidebar-collapsed {
+  position: absolute;
+  width: 0px !important;
+  height: 0px !important;
+  padding: 0px !important;
+  animation: fade-out 0.3s ease-in-out !important;
+}
+
+.sidebar-title-collapsed {
+  position: absolute;
+  top: -5px;
+  left: 0;
+  padding: 2rem;
+}
+
+.sidebar-title-collapsed i:hover {
+  background-color: var(--primary);
+  transform: scale(1.1);
+}
+
+.sidebar-portrait .sidebar-title-collapsed {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  padding: 0;
+  height: max-content;
+}
+
+.sidebar-portrait-item {
+  display: flex !important;
+}
+
+.sidebar-portrait-item i {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  font-size: 1.2rem;
+  height: 25px;
+  width: 25px !important;
+  object-fit: cover;
+}
+
+.sidebar-portrait > div > img {
+  width: 20%;
+  object-fit: cover;
+}
+
+/* style the scroll bar */
+.sidebar-item-container::-webkit-scrollbar {
+}
+
+.sidebar-item-container::-webkit-scrollbar-track {
+  background: var(--dark);
+}
+
+.sidebar-item-container::-webkit-scrollbar-thumb {
+  background-clip: padding-box;
+}
+
+.sidebar-item-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+  width: 3px;
+}

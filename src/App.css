@@ -4,6 +4,47 @@
   --darkGreen: #94bb86;
   --bgGreen: #b8d1ae;
   --grey: #5b6057;
+  --green: #20fc8f;
+  --dgrey: #2d2d2a;
+  --olive: #38423b;
+  --blue: #3f5e5a;
+  --ash: #9dc0bc;
+  --white: #f7f7f7;
+  --font-main: "Archivo Narrow", sans-serif;
+  --font-secondary: "Julius Sans One", sans-serif;
+  --text: #f3f3f3;
+  --blue: #527af9;
+  --black: rgb(27, 27, 27);
+  --white: white;
+  --offwhite: #f5f5f5;
+  --side-bg: #242424;
+  --bg: #121118;
+  --lightgrey: #585858;
+  --darkgrey: #252525;
+  --pink: #e900cc;
+  --green: #15af5c;
+  --red: #580000;
+  --font: "Inter", sans-serif;
+  --alt-font: "Barlow", sans-serif;
+}
+
+:root {
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --info: #17a2b8;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --light: #f8f9fa;
+  --dark: #2d2d2a;
+  --offwhite: #f5f5f5;
+  --font-main: "Archivo Narrow", sans-serif;
+  --font-secondary: "Julius Sans One", sans-serif;
+  --navbar-height: 100px;
+  --sidebar-width: 250px;
+  --sidebar-portrait-width: 80px;
+  --navbar-portrait-height: 50px;
+  --text-color: hsl(0, 0%, 100%);
 }
 
 /* Reset some default styles in browsers */
@@ -21,8 +62,57 @@
 /* Set the background, font-family, and text color for the entire page */
 body {
   color: #333;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   background-color: #b8d1ae;
+}
+
+.row {
+  display: flex;
+  flex-direction: row !important;
+  align-items: baseline;
+}
+
+.wrap {
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.blue {
+  background-color: var(--blue);
+}
+
+.transparent {
+  background-color: transparent;
+}
+
+.scroll-y {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; /* enables momentum-scrolling on iOS */
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+  width: 3px;
 }
 
 /* Style the landing container */
@@ -63,11 +153,10 @@ body {
   margin-bottom: 50px;
   transform: rotate(-90deg);
   background-color: transparent;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   text-decoration: none;
   color: #333;
 }
-
 
 .vertical-line {
   border-left: 1px solid #007bff;
@@ -82,8 +171,6 @@ body {
   margin-bottom: 400px;
   margin-top: 0px;
 }
-
-
 
 /* Style the title box */
 .title-box {
@@ -125,11 +212,12 @@ body {
   color: #007bff;
 }
 
-.nav-box.work ul>ul {
+.nav-box.work ul > ul {
   margin-left: 10px;
 }
 
-.nav-box.worl li a:hover {}
+.nav-box.worl li a:hover {
+}
 
 .nav-box ul {
   list-style-type: none;
@@ -210,7 +298,7 @@ body {
 
 .nav-box {
   animation: blur 2s ease-out;
-  animation-delay: 0.0s;
+  animation-delay: 0s;
 }
 
 .title-box {
@@ -266,7 +354,6 @@ body {
   z-index: 1;
 }
 
-
 @keyframes slideInReverse {
   from {
     top: 100vh;
@@ -309,11 +396,7 @@ body {
   }
 }
 
-
-
-
 @media only screen and (max-width: 768px) {
-
   .landing-container {
     flex-direction: column;
   }
@@ -323,7 +406,7 @@ body {
     padding: 10%;
     padding-bottom: 20%;
   }
-  .nav-box>ul>li {
+  .nav-box > ul > li {
     line-height: normal;
     font-size: 85px;
   }
@@ -331,11 +414,11 @@ body {
     margin-left: 5%;
     width: 90%;
   }
-  
+
   .nav-box.work li {
     margin-top: 10px;
   }
-  .nav-box.work ul>ul {
+  .nav-box.work ul > ul {
     margin-top: -10px;
     margin-left: 0px;
   }

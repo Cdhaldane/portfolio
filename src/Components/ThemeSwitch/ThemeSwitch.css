@@ -1,0 +1,53 @@
+.theme {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  color: var(--white);
+  margin: 1rem auto;
+}
+
+.slider-theme {
+  position: absolute;
+  width: 50%; /* Adjust as needed */
+  height: 90%; /* Adjust as needed */
+  background-color: var(--text);
+  border-radius: 20px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.slider-sun {
+  transform: translateX(3%); /* Position for light mode */
+}
+
+.slider-moon {
+  transform: translateX(97%); /* Adjust translation distance based on layout */
+}
+
+.switch {
+  position: relative; /* Position relative for absolute positioning of slider */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--side-bg);
+  border-radius: 20px;
+  height: 40px;
+}
+
+.switch i {
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 20px;
+  z-index: 1;
+  transition: padding 0.3s ease-in-out;
+  padding: 0px 30px !important;
+  color: var(--text);
+}
+
+.switch i:hover:not(.active) {
+  animation: spin 0.3s ease-in-out;
+}
+
+.active {
+  transition: padding 0.3s ease-in-out;
+  color: var(--black) !important;
+}

@@ -13,38 +13,48 @@ import Vxnessa from "./pages/vxnessa";
 import Marz from "./pages/marz";
 import About from "./pages/about";
 import Contact from "./pages/contact";
+import Chadmin from "./pages/chadmin";
+import AlertProvider from "./Components/Alert/AlertProvider";
+import Alert from "./Components/Alert/Alert";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: Landing
+    Component: Landing,
   },
   {
     path: "work",
-    Component: Work
+    Component: Work,
   },
   {
     path: "edusim",
-    Component: Edusim
+    Component: Edusim,
   },
   {
     path: "vxnessa",
-    Component: Vxnessa
+    Component: Vxnessa,
   },
   {
     path: "marz",
-    Component: Marz
+    Component: Marz,
   },
   {
     path: "about",
-    Component: About
+    Component: About,
   },
-  { 
+  {
     path: "contact",
-    Component: Contact
-  }
+    Component: Contact,
+  },
+  {
+    path: "chadmin",
+    Component: Chadmin,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <AlertProvider>
+    <Alert />
+    <RouterProvider router={router} />
+  </AlertProvider>
 );
