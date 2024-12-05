@@ -1,0 +1,34 @@
+.landing-container {
+  background-color: var(--bg-primary);
+  color: var(--bg-secondary);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  height: 100vh;
+  max-height: fit-content;
+  text-align: center;
+  padding: 0px;
+  overflow: hidden;
+}
+
+.landing-showcase-button {
+  font-size: 1.5rem;
+  border: 2px solid var(--pr);
+}
+
+.landing-showcase-button > a {
+  color: var(--bg-primary);
+  text-decoration: none;
+}
+
+.landing-showcase-button:hover > a {
+  color: var(--bg-primary);
+}
+
+@media only screen and (max-width: 768px) {
+  .landing-container {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,73 @@
+.theme-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-theme {
+  position: absolute;
+  width: 50%; /* Adjust as needed */
+  height: 100%; /* Adjust as needed */
+  background-color: var(--primary);
+  border-radius: 20px;
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-sun {
+  transform: translateX(0%); /* Position for light mode */
+}
+
+.slider-moon {
+  transform: translateX(100%); /* Adjust translation distance based on layout */
+}
+
+.switch {
+  position: relative; /* Position relative for absolute positioning of slider */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  height: 40px;
+  width: 50%;
+  min-width: 200px;
+
+  margin: 0 auto;
+}
+
+.switch i {
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+  z-index: 1;
+  transition: padding 0.3s ease-in-out;
+  color: var(--white);
+}
+
+.switch i:hover:not(.switch-active) {
+  animation: spin 1s ease-in-out forwards infinite;
+}
+
+.switch-active {
+  transition: padding 0.3s ease-in-out;
+  color: var(--bg-primary) !important;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,216 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dropdown-toggle {
+  padding: 10px 20px;
+  background-color: var(--primary);
+  color: var(--bg-primary);
+  border: 2px solid var(--bg-secondary);
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1.2em;
+  transition: background-color 0.3s ease;
+  font-weight: 800;
+  width: 95%;
+  height: 60px;
+  margin: 0px 2.5%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+  cursor: pointer;
+  background-color: var(--primary) !important;
+  color: var(--bg-primary);
+  border: 2px solid var(--primary);
+  width: 100%;
+  margin: 0px 0px;
+  margin-top: 8px;
+  border-radius: 0px;
+}
+
+.dropdown-toggle:active {
+  /* animation: button-pulse 0.3s ease; */
+}
+
+.dropdown-toggle:focus {
+  border-bottom: none;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 130%;
+  margin: 0 auto;
+  z-index: 10001;
+  width: fit-content;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--primary);
+  color: var(--bg-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-20px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  max-height: 300px;
+  z-index: 100;
+}
+
+.dropdown-menu::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 10px solid transparent;
+  border-bottom-color: var(--primary);
+}
+
+.dropdown-menu.left {
+  transform: translateX(-70%);
+}
+
+.dropdown-menu.right {
+  transform: translateX(70%);
+}
+
+.dropdown-menu.up {
+  top: auto;
+  bottom: 130%;
+}
+
+.dropdown-menu-enter {
+  opacity: 0;
+  transform: translateY(-20px);
+  visibility: visible;
+}
+
+.dropdown-menu-enter-done {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.dropdown-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 10px 20px;
+  gap: 10px;
+  color: var(--primary);
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  font-size: 1.5em;
+}
+
+.dropdown-item i {
+  font-size: 1em !important;
+  width: 20%;
+}
+
+.dropdown-item:hover i {
+  margin-left: 3%;
+}
+
+.dropdown-item:hover {
+  font-weight: 900;
+  cursor: pointer;
+  background-color: var(--primary);
+  color: var(--bg-primary) !important;
+}
+
+.dropdown-holder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-secondary);
+  background-color: var(--primary);
+  transition: all 0.3s ease;
+  z-index: 100;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dropdown-holder.open .dropdown-toggle {
+  cursor: pointer;
+  background-color: var(--primary) !important;
+  color: var(--bg-primary);
+  border: 2px solid var(--primary);
+  width: 100%;
+  margin: 0px 0px;
+  margin-top: 8px;
+  border-radius: 0px;
+}
+
+.dropdown-holder > i {
+  position: absolute;
+  right: 5%;
+  font-size: 2em;
+  padding: 2px;
+  transform: translateY(10%);
+  transition: transform 0.3s ease;
+}
+
+.checkbox-item input {
+  position: absolute;
+  opacity: 0;
+}
+
+.checkmark {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  position: relative;
+  top: 0;
+  left: 0;
+  border: 2px solid var(--secondary);
+  border-radius: 5px;
+  box-shadow: 2px 2px var(--secondary);
+  background-color: var(--bg-primary);
+  transition: all 0.3s;
+}
+
+.checkbox-item input:checked ~ .checkmark {
+  background-color: var(--primary);
+}
+
+.checkmark:after {
+  content: "";
+  width: 7px;
+  height: 15px;
+  position: absolute;
+  top: 1px;
+  left: 8px;
+  display: none;
+  border: solid var(--bg-primary);
+  border-width: 0 4px 4px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-item input:checked ~ .checkmark:after {
+  display: block;
+}
+
+@keyframes button-pulse {
+  0%,
+  100% {
+    width: 100%;
+  }
+  50% {
+    width: 95%;
+  }
+}

@@ -1,0 +1,130 @@
+.modal {
+  position: fixed !important;
+  z-index: 100000 !important;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  position: relative;
+  background-color: var(--bg-secondary);
+  padding: 20px 30px;
+  width: 80%;
+  max-width: 500px; /* Adjust width for smaller screens */
+  max-height: calc(90%) !important;
+  color: var(--white);
+  border-radius: 10px;
+  animation: appear 0.2s ease-in-out normal forwards;
+}
+
+.modal-content.extended {
+  background-color: var(--bg-primary);
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  top: -15px;
+  color: var(--light-grey);
+  font-size: 50px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: var(--white);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* .modal-content label {
+  margin-top: 10px;
+} */
+
+.modal-content button[type="submit"] {
+  /* margin-top: 20px; */
+  padding: 10px;
+  background-color: var(--primary); /* Green */
+  color: var(--bg-primary);
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1.2em;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--bg-primary);
+  color: var(--primary);
+}
+
+.modal-title {
+  margin-bottom: 10px;
+  margin-top: 5px;
+  color: var(--primary);
+  font-size: 2em;
+}
+.message-modal a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.message-modal a:hover {
+  text-decoration: underline;
+}
+
+.message-modal button {
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin: 10px auto;
+}
+
+.modal-footer button {
+  border-radius: 4px;
+  padding: 15px;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    /* overflow: scroll; */
+  }
+
+  .modal-content form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-content button[type="submit"] {
+    height: fit-content;
+    font-size: 1em;
+    padding: 10px;
+  }
+
+  .modal-title {
+    font-size: 1.5em;
+  }
+
+  .close {
+    font-size: 2.4em;
+    height: 20px !important;
+    top: 10px;
+    right: 10px;
+  }
+}

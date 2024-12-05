@@ -1,60 +1,17 @@
-import * as React from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Route,
-  Link,
-} from "react-router-dom";
-import Landing from "./pages/landing";
-import Work from "./pages/work";
-import Edusim from "./pages/edusim";
-import Vxnessa from "./pages/vxnessa";
-import Marz from "./pages/marz";
-import About from "./pages/about";
-import Contact from "./pages/contact";
-import Chadmin from "./pages/chadmin";
-import AlertProvider from "./Components/Alert/AlertProvider";
-import Alert from "./Components/Alert/Alert";
+import { HashRouter as Router } from "react-router-dom";
+import { AppProviders } from "./DevComponents/Providers/Providers";
+import Alert from "./DevComponents/Providers/Alert";
+import App from "./App";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    Component: Landing,
-  },
-  {
-    path: "work",
-    Component: Work,
-  },
-  {
-    path: "edusim",
-    Component: Edusim,
-  },
-  {
-    path: "vxnessa",
-    Component: Vxnessa,
-  },
-  {
-    path: "marz",
-    Component: Marz,
-  },
-  {
-    path: "about",
-    Component: About,
-  },
-  {
-    path: "contact",
-    Component: Contact,
-  },
-  {
-    path: "chadmin",
-    Component: Chadmin,
-  },
-]);
-
-createRoot(document.getElementById("root")).render(
-  <AlertProvider>
-    <Alert />
-    <RouterProvider router={router} />
-  </AlertProvider>
+const container = document.getElementById("root");
+const root = createRoot(container);
+root.render(
+  <Router>
+    <AppProviders>
+      <Alert />
+      <App />
+    </AppProviders>
+  </Router>
 );

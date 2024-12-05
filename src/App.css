@@ -1,50 +1,24 @@
 /* set up variable colours */
-
-:root {
-  --darkGreen: #94bb86;
-  --bgGreen: #b8d1ae;
-  --grey: #5b6057;
-  --green: #20fc8f;
-  --dgrey: #2d2d2a;
-  --olive: #38423b;
-  --blue: #3f5e5a;
-  --ash: #9dc0bc;
-  --white: #f7f7f7;
-  --font-main: "Archivo Narrow", sans-serif;
-  --font-secondary: "Julius Sans One", sans-serif;
-  --text: #f3f3f3;
-  --blue: #527af9;
-  --black: rgb(27, 27, 27);
-  --white: white;
-  --offwhite: #f5f5f5;
-  --side-bg: #242424;
-  --bg: #121118;
-  --lightgrey: #585858;
-  --darkgrey: #252525;
-  --pink: #e900cc;
-  --green: #15af5c;
-  --red: #580000;
-  --font: "Inter", sans-serif;
-  --alt-font: "Barlow", sans-serif;
-}
-
 :root {
   --primary: #007bff;
-  --secondary: #6c757d;
+  --secondary: #94bb86;
+  --bg-primary: #b8d1ae;
+  --bg-secondary: #2d2d2a;
+  --dark: #2d2d2a;
   --success: #28a745;
   --info: #17a2b8;
   --warning: #ffc107;
   --danger: #dc3545;
   --light: #f8f9fa;
-  --dark: #2d2d2a;
+  --black: rgb(27, 27, 27);
+  --white: white;
+  --light-grey: #f8f9fa;
   --offwhite: #f5f5f5;
-  --font-main: "Archivo Narrow", sans-serif;
-  --font-secondary: "Julius Sans One", sans-serif;
-  --navbar-height: 100px;
-  --sidebar-width: 250px;
-  --sidebar-portrait-width: 80px;
-  --navbar-portrait-height: 50px;
-  --text-color: hsl(0, 0%, 100%);
+  --primary-hover: #0056b3;
+  --secondary-hover: #1a1a1a;
+  --font: "Inter", sans-serif;
+  --alt-font: "Barlow", sans-serif;
+  --sideBoxWidth: 5%;
 }
 
 /* Reset some default styles in browsers */
@@ -52,18 +26,19 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  /* font-family: 'Caveat Brush', cursive;
-  font-family: 'IBM Plex Mono', monospace;
-  font-family: 'Kalam', cursive;
-  font-family: 'Moon Dance', cursive;
-  font-family: 'Nanum Brush Script', cursive; */
 }
 
 /* Set the background, font-family, and text color for the entire page */
 body {
-  color: #333;
+  color: var(--secondary);
   font-family: "IBM Plex Mono", monospace;
-  background-color: #b8d1ae;
+  background-color: var(--bg-primary);
+}
+
+.main {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .row {
@@ -115,47 +90,12 @@ body {
   width: 3px;
 }
 
-/* Style the landing container */
-.landing-container {
-  background-color: #b8d1ae;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-  padding: 0px;
-  overflow: hidden;
-}
-
 .work {
-  color: #b8d1ae;
+  color: var(--bg-primary);
 }
 
 .work a {
-  color: #b8d1ae !important;
-}
-
-/* Style the side box */
-.side-box {
-  width: 5%;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: fixed;
-  left: 0%;
-  height: 90%;
-}
-
-.side-box a {
-  border: none;
-  margin-bottom: 50px;
-  transform: rotate(-90deg);
-  background-color: transparent;
-  font-family: "IBM Plex Mono", monospace;
-  text-decoration: none;
-  color: #333;
+  color: var(--bg-primary) !important;
 }
 
 .vertical-line {
@@ -176,15 +116,16 @@ body {
 .title-box {
   align-self: flex-end;
   text-align: left;
-  width: 35%;
-  padding: 150px;
-  padding-bottom: 200px;
+  width: 40%;
+  padding-left: 10%;
+  padding-right: 5%;
+  padding-bottom: 20%;
 }
 
 .title-box h1 {
   font-size: 1.5em;
   margin-bottom: 20px;
-  color: #007bff;
+  color: var(--primary);
 }
 
 .title-box p {
@@ -194,18 +135,28 @@ body {
 
 /* Style the navigation box */
 .nav-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
   text-align: left;
   width: 65%;
+  height: 90%;
   padding: 0%;
+  margin-right: 10px;
+  animation: blur 2s ease-out;
+  animation-delay: 0s;
 }
 
 .nav-box.work {
-  margin-top: -50px;
+  margin-top: 0px;
+  overflow-y: scroll;
+  overflow-x: inherit;
 }
 
 .nav-box.work ul {
   padding: 0%;
-  margin-top: -40px;
+  margin-top: -4%;
 }
 
 .nav-box.work li a span {
@@ -227,7 +178,7 @@ body {
   margin-top: -20px;
   padding: 0px;
   font-size: 15vw;
-  line-height: 16vw;
+  line-height: 15vw;
 }
 
 .nav-box li a {
@@ -236,6 +187,7 @@ body {
 }
 
 .nav-box.work li a {
+  font-size: 0.8em;
   color: #b8d1ae;
 }
 
@@ -252,8 +204,9 @@ body {
 } */
 
 /* Add hover effects */
-.side-box li a:hover,
+.side-box a:hover,
 .nav-box li a:hover {
+  transition: all 0.3s ease;
   cursor: pointer;
   color: #007bff !important;
   /* You can change this color to suit your design preference */
@@ -296,9 +249,28 @@ body {
   }
 }
 
-.nav-box {
-  animation: blur 2s ease-out;
-  animation-delay: 0s;
+/* Style the side box */
+.side-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 5%;
+  height: 95%;
+  text-align: left;
+  position: fixed;
+  left: 0%;
+  padding-top: 50px;
+  gap: 20px;
+}
+
+.side-box a {
+  border: none;
+  transform: rotate(-90deg);
+  background-color: transparent;
+  font-family: "IBM Plex Mono", monospace;
+  text-decoration: none;
+  color: #333;
 }
 
 .title-box {
@@ -314,6 +286,21 @@ body {
   background-color: #333;
   animation: slideIn 1s ease-out;
   top: 100vh;
+  z-index: 1;
+}
+
+.black-box.about {
+  animation: slideInAbout 1s ease-out 0s;
+  top: -170vh;
+}
+
+.black-box.work {
+  position: fixed;
+  height: 160vh;
+  width: 100%;
+  background-color: #333;
+  animation: slideInReverse 1s ease-out;
+  top: 0vh;
   z-index: 1;
 }
 
@@ -336,22 +323,6 @@ body {
   animation-delay: 0s;
   z-index: 3;
   opacity: 1;
-  top: 10%;
-}
-
-.black-box.about {
-  animation: slideInAbout 1s ease-out 0s;
-  top: -170vh;
-}
-
-.work-box {
-  position: fixed;
-  height: 160vh;
-  width: 100%;
-  background-color: #333;
-  animation: slideInReverse 1s ease-out;
-  top: 0vh;
-  z-index: 1;
 }
 
 @keyframes slideInReverse {
@@ -398,23 +369,27 @@ body {
 
 @media only screen and (max-width: 768px) {
   .landing-container {
-    flex-direction: column;
+    justify-content: space-evenly;
   }
-
   .title-box {
     width: 100%;
     padding: 10%;
-    padding-bottom: 20%;
+    padding-bottom: 0%;
   }
   .nav-box > ul > li {
     line-height: normal;
-    font-size: 85px;
+    font-size: 70px;
   }
   .nav-box {
-    margin-left: 5%;
+    margin-left: 0%;
     width: 90%;
   }
 
+  .nav-box.work {
+    height: 50%;
+    overflow-y: scroll;
+    overflow-x: inherit;
+  }
   .nav-box.work li {
     margin-top: 10px;
   }
@@ -422,12 +397,16 @@ body {
     margin-top: -10px;
     margin-left: 0px;
   }
-  .side-box.work {
-    top: 10%;
+  .side-box {
     font-size: 10px;
   }
   .work-line {
     height: 100% !important;
     margin-bottom: 300px;
+  }
+  .side-box {
+    padding-top: 20px;
+    height: 98%;
+    overflow: hidden;
   }
 }

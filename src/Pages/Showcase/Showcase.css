@@ -1,0 +1,34 @@
+/* Showcase container styling */
+.showcase-container {
+  position: relative;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: 40px;
+  z-index: 1;
+}
+
+.showcase-container h1 {
+  font-size: 2.5rem;
+  color: var(--bg-pr);
+  text-align: center;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: blur 1s ease-in-out forwards 0.3s;
+}
+
+/* Showcase grid styling */
+.showcase-grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* Media query for responsiveness */
+@media (max-width: 768px) {
+  .showcase-container {
+    padding: 20px;
+  }
+
+  .component-card h2 {
+    font-size: 1.25rem;
+  }
+}

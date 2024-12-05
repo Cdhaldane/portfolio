@@ -1,0 +1,110 @@
+/* Base Button Styles */
+button {
+  border: 2px solid transparent;
+  padding: 10px 20px;
+  border-radius: 5px; /* Adjusted for a more standard look */
+  cursor: pointer;
+  font-size: 1rem; /* Adjusted for a more standard size */
+  transition: all 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  display: inline-block; /* For proper alignment */
+  text-align: center;
+  vertical-align: middle;
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+  touch-action: manipulation; /* Optimize for touch devices */
+  width: 100%;
+  font-weight: 700;
+}
+
+/* Button Hover and Focus States */
+button:hover,
+button:focus {
+  /* color: var(--primary) !important;
+  background-color: var(--white) !important;
+  border: 2px solid var(--primary) !important; */
+  text-decoration: none;
+}
+
+/* Button Active State */
+button:active {
+  background-color: var(--bg-primary); /* Even darker for active state */
+  color: var(--primary);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); /* Inner shadow for a "pressed" effect */
+}
+
+/* Disabled Button State */
+button:disabled {
+  background-color: var(--gray);
+  color: var(--gray-dark);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Button Variants */
+.button-primary {
+  background-color: var(--primary);
+}
+.button-secondary {
+  background-color: var(--secondary);
+}
+.button-success {
+  background-color: var(--success);
+}
+.button-danger {
+  background-color: var(--danger);
+}
+.button-warning {
+  background-color: var(--warning);
+}
+.button-info {
+  background-color: var(--info);
+}
+.button-light {
+  background-color: var(--light);
+  color: var(--dark);
+}
+.button-dark {
+  background-color: var(--dark);
+}
+
+/* Button Sizes */
+.button-sm {
+  padding: 5px 10px;
+  font-size: 0.875rem;
+}
+.button-lg {
+  padding: 15px 30px;
+  font-size: 1.25rem;
+}
+.button-default {
+  padding: 10px 20px;
+  font-size: 1rem;
+}
+
+/* Utility: Clearfix */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Utility: Disabled opacity for button groups or link buttons */
+.disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.button-transparent {
+  background-color: transparent !important;
+  color: var(--white);
+}
+
+.button-transparent:hover {
+  transform: scale(1.5);
+  background-color: transparent !important;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}

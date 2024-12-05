@@ -1,0 +1,269 @@
+.about-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary);
+  color: var(--bg-secondary);
+  padding: 20px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.about-title {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  left: 17%;
+  width: 100%;
+  /* animation: aboutTitleSlide 1s ease-in-out; */
+}
+
+.about-title > h1 {
+  position: relative;
+  text-align: left;
+  font-size: 15vw;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.about-title > h1::first-letter {
+  color: #007bff;
+}
+
+.about-title > img {
+  position: relative;
+  width: 20%;
+  border: 3px solid var(--dark);
+  background-color: var(--dark);
+  padding: 10px;
+}
+
+.about-info {
+  position: relative;
+  margin-top: -6%;
+  left: 15.5%;
+  display: flex;
+  flex-direction: column;
+  font-weight: 300;
+  width: 100%;
+  text-align: left;
+  align-self: flex-start;
+  justify-content: flex-start;
+  animation: aboutInfoSlide 1s ease-in-out;
+  border-right: none;
+  padding: 50px;
+  padding-right: 50%;
+  color: var(--bg-secondary);
+}
+
+.about-info > h1 {
+  font-size: 2.5vw;
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #007bff;
+}
+
+.about-info > p {
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 300;
+  text-align: left;
+}
+
+.about-info > h2 {
+  font-size: 40px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #007bff;
+}
+
+.about-info > ul > li {
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 300;
+  margin-left: 20px;
+}
+
+.resume-button {
+  border: none;
+  background-color: #333;
+  color: white;
+  width: 30%;
+  padding: 20px 20px;
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 20px;
+}
+
+.resume-button > a {
+  color: white;
+  text-decoration: none;
+}
+
+.resume-button:hover {
+  background-color: #007bff;
+  transition: all 0.5s ease-in-out;
+}
+
+.about-info > blockquote {
+  font-size: 2em;
+  font-style: italic;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.line {
+  position: absolute;
+  width: 87%;
+  height: 10px;
+  background-color: var(--dark);
+  top: 22vw;
+  left: 0%;
+  z-index: 0;
+}
+
+.vertical {
+  position: absolute;
+  width: 10px;
+  background-color: var(--dark);
+  top: 8%;
+  left: 16%;
+  z-index: 0;
+  animation: lineSlideVertical 1s ease-out 0s;
+}
+
+.top {
+  animation: lineSlideHorizontal 1s ease-out 0s;
+  left: 9%;
+}
+
+@keyframes aboutInfoSlide {
+  from {
+    bottom: -900px;
+    filter: blur(10px);
+  }
+
+  to {
+    bottom: 0px;
+    filter: blur(0px);
+  }
+}
+
+@keyframes lineSlideVertical {
+  from {
+    top: -100px;
+  }
+
+  to {
+    top: 8%;
+  }
+}
+
+@keyframes lineSlideHorizontal {
+  from {
+    left: -30%;
+  }
+
+  to {
+    left: 9%;
+  }
+}
+
+@keyframes aboutTitleSlide {
+  from {
+    left: -900px;
+    filter: blur(10px);
+  }
+
+  to {
+    left: 18%;
+    filter: blur(0px);
+  }
+}
+
+@keyframes appearAbout {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .about-title {
+    position: relative;
+    left: 7%;
+  }
+  .about-title h1 {
+  }
+  .about-title img {
+    position: absolute;
+    right: 5%;
+    top: -10px;
+    border: 2px solid var(--dark);
+    padding: 2px;
+    width: 40%;
+  }
+
+  .vertical {
+    width: 2px;
+    top: 5%;
+    left: 10%;
+  }
+  .line {
+    height: 2px;
+  }
+  .top {
+    left: 5%;
+  }
+
+  .about-info {
+    left: 0%;
+    margin-left: 0px;
+    padding: 0px;
+    padding-left: 10%;
+    padding-right: 10%;
+    margin-top: 0px;
+  }
+
+  .about-info h1 {
+    font-size: 20px;
+    width: 60%;
+  }
+  .about-info h2 {
+    font-size: 20px;
+  }
+  .about-info p {
+    font-size: 15px;
+  }
+  .about-info ul > li {
+    font-size: 15px;
+  }
+  .about-info > blockquote {
+    font-size: 1.2em;
+  }
+  .about-info button {
+    font-size: 15px;
+    width: 50%;
+    padding: 10px 10px;
+    margin-bottom: 50px;
+  }
+
+  .landing-container {
+    flex-direction: column;
+  }
+  .about-info-mobile-p {
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .about-info-mobile-p {
+    width: 100%;
+  }
+}
