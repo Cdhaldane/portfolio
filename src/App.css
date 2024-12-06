@@ -29,10 +29,13 @@
 }
 
 /* Set the background, font-family, and text color for the entire page */
+html,
 body {
   color: var(--secondary);
   font-family: "IBM Plex Mono", monospace;
   background-color: var(--bg-primary);
+  margin: 0;
+  padding: 0;
 }
 
 .main {

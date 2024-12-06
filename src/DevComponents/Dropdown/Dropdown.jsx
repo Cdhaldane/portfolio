@@ -70,7 +70,6 @@ const Dropdown = ({
       const rect = dropdownRef.current.getBoundingClientRect();
       const menuRect = dropdownMenuRef.current.getBoundingClientRect();
       const offset = rect.width / 2 - menuRect.width / 2;
-      console.log(rect, menuRect, offset);
       if (offset > 0) {
         setDropdownMenuLeftOffset(`${offset}px`);
       } else {

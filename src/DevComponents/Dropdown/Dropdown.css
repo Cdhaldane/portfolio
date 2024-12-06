@@ -65,6 +65,7 @@
   align-items: left;
   max-height: 300px;
   z-index: 100;
+  animation: dropdownGrow 0.3s ease-in-out normal forwards;
 }
 
 .dropdown-menu::after {
@@ -212,5 +213,19 @@
   }
   50% {
     width: 95%;
+  }
+}
+
+@keyframes dropdownGrow {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    scale: 1;
+    visibility: visible;
   }
 }

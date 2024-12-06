@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Card from "../../Components/Card/Card";
 import Button from "../../DevComponents/Button/Button";
 import Dropdown from "../../DevComponents/Dropdown/Dropdown";
@@ -6,11 +6,20 @@ import Input from "../../DevComponents/Input/Input";
 import ThemeSwitch from "../../DevComponents/ThemeSwitch/ThemeSwitch";
 import TimePicker from "../../DevComponents/TimePicker/TimePicker";
 import RadioGroup from "../../DevComponents/RadioGroup/RadioGroup";
+import ContextMenu from "../../DevComponents/ContextMenu/ContextMenu";
+
 import { useAlert } from "../../DevComponents/Providers/Alert";
 import "./Showcase.css";
 
 const ComponentShowcase = () => {
   const [orientation, setOrientation] = useState("horizontal");
+  const [contextMenu, setContextMenu] = useState({
+    key: 0,
+    visible: false,
+    x: 0,
+    y: 0,
+  });
+
   const alert = useAlert();
 
   const buttonString = `<Button 
@@ -46,21 +55,67 @@ const ComponentShowcase = () => {
   ]}
 />`;
 
+  const contextMenuString = `<div
+  className="context-menu-source-container"
+  onContextMenu={(e) => {
+    e.preventDefault();
+    setContextMenu({
+      key: 1,
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      circleMode: true,
+    });
+  }}
+>
+  Circle Context Menu
+</div>
+<div
+  className="context-menu-source-container"
+>
+  Normal Context Menu
+</div>
+
+<ContextMenu
+  contextMenuProps={contextMenu}
+  onRequestClose={() =>
+    setContextMenu({ ...contextMenu, visible: false })
+  }
+/>`;
+
+  const contextMenuOptions = [
+    {
+      label: "Copy",
+      onClick: () => alert.showAlert("info", "Copied!"),
+      icon: "fa-solid fa-copy",
+    },
+    {
+      label: "Paste",
+      onClick: () => alert.showAlert("info", "Pasted!"),
+      icon: "fa-solid fa-paste",
+    },
+    {
+      label: "Delete",
+      onClick: () => alert.showAlert("error", "Deleted!"),
+      icon: "fa-solid fa-trash",
+    },
+  ];
+
   return (
     <div className="showcase-container">
       <h1>Reusable React Components Showcase</h1>
       <RadioGroup
         options={[
-          { value: "horizontal", label: "Horizontal" },
-          { value: "vertical", label: "Vertical" },
+          { value: "horizontal-grid", label: "Horizontal" },
+          { value: "vertical-grid", label: "Vertical" },
         ]}
         onChange={(value) => setOrientation(value)}
+        multiSelect={false}
       />
       <div
         className={`showcase-grid ${orientation}`}
         style={{
           display: "grid",
-          gridTemplateColumns: orientation === "horizontal" ? "1fr 1fr" : "1fr",
           gap: "1rem",
         }}
       >
@@ -132,6 +187,49 @@ const ComponentShowcase = () => {
               { value: "option 2", label: "Option 2" },
               { value: "option 3", label: "Option 3" },
             ]}
+          />
+        </Card>
+
+        <Card title="Context Menu" codeSnippet={contextMenuString}>
+          <div
+            className="context-menu-source-container"
+            onContextMenu={(e) => {
+              e.preventDefault();
+              console.log(e);
+              setContextMenu({
+                key: 1,
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                circleMode: true,
+              });
+            }}
+          >
+            Circle Context Menu
+          </div>
+          <div
+            className="context-menu-source-container"
+            onContextMenu={(e) => {
+              e.preventDefault();
+
+              console.log(e);
+              setContextMenu({
+                key: 2,
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+              });
+            }}
+          >
+            Normal Context Menu
+          </div>
+
+          <ContextMenu
+            contextMenuProps={contextMenu}
+            onRequestClose={() =>
+              setContextMenu({ ...contextMenu, visible: false })
+            }
+            options={contextMenuOptions}
           />
         </Card>
       </div>
