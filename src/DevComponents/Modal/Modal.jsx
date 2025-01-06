@@ -47,7 +47,7 @@ function Modal({ isOpen, onClose, children, className, noCloseIcon }) {
             &times;
           </span>
         )}
-        {children}
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

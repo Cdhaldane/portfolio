@@ -8,12 +8,29 @@ import TimePicker from "../../DevComponents/TimePicker/TimePicker";
 import RadioGroup from "../../DevComponents/RadioGroup/RadioGroup";
 import ContextMenu from "../../DevComponents/ContextMenu/ContextMenu";
 
-import buttonCSS from "../../DevComponents/Button/Button.css";
-
 import { useAlert } from "../../DevComponents/Providers/Alert";
 import "./Showcase.css";
 
-console.log(buttonCSS);
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import buttonCSS from "!!raw-loader!../../DevComponents/Button/Button.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import inputCSS from "!!raw-loader!../../DevComponents/Input/Input.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import dropdownCSS from "!!raw-loader!../../DevComponents/Dropdown/Dropdown.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import radioGroupCSS from "!!raw-loader!../../DevComponents/RadioGroup/RadioGroup.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import contextMenuCSS from "!!raw-loader!../../DevComponents/ContextMenu/ContextMenu.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import themeSwitchCSS from "!!raw-loader!../../DevComponents/ThemeSwitch/ThemeSwitch.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import timePickerCSS from "!!raw-loader!../../DevComponents/TimePicker/TimePicker.css";
 
 const ComponentShowcase = () => {
   const [orientation, setOrientation] = useState("horizontal");
@@ -108,14 +125,14 @@ const ComponentShowcase = () => {
   return (
     <div className="showcase-container">
       <h1>Reusable React Components Showcase</h1>
-      <RadioGroup
+      {/* <RadioGroup
         options={[
           { value: "horizontal-grid", label: "Horizontal" },
           { value: "vertical-grid", label: "Vertical" },
         ]}
         onChange={(value) => setOrientation(value)}
         multiSelect={false}
-      />
+      /> */}
       <div
         className={`showcase-grid ${orientation}`}
         style={{
@@ -155,7 +172,7 @@ const ComponentShowcase = () => {
           </Button>
         </Card>
 
-        <Card title="Input" codeSnippet={inputString}>
+        <Card title="Input" codeSnippet={inputString} styleSnippet={inputCSS}>
           <Input label="Standard" />
           <Input label="Textarea" type="textarea" />
           <Input
@@ -168,7 +185,11 @@ const ComponentShowcase = () => {
           />
         </Card>
 
-        <Card title="Dropdown" codeSnippet={dropdownString}>
+        <Card
+          title="Dropdown"
+          codeSnippet={dropdownString}
+          styleSnippet={dropdownCSS}
+        >
           <Dropdown
             options={["Option 1", "Option 2", "Option 3"]}
             onClick={(s) => console.log("Selected:", s)}
@@ -178,18 +199,27 @@ const ComponentShowcase = () => {
           </Dropdown>
         </Card>
 
-        <Card title="Theme Switch" codeSnippet={`<ThemeSwitch />`}>
+        <Card
+          title="Theme Switch"
+          codeSnippet={`<ThemeSwitch />`}
+          styleSnippet={themeSwitchCSS}
+        >
           <ThemeSwitch />
         </Card>
 
         <Card
           title="TimePicker"
           codeSnippet={`<TimePicker label="Time Picker" />`}
+          styleSnippet={timePickerCSS}
         >
           <TimePicker label="Time Picker" />
         </Card>
 
-        <Card title="Radio Group" codeSnippet={radioGroupString}>
+        <Card
+          title="Radio Group"
+          codeSnippet={radioGroupString}
+          styleSnippet={radioGroupCSS}
+        >
           <RadioGroup
             options={[
               { value: "option 1", label: "Option 1" },
@@ -199,7 +229,11 @@ const ComponentShowcase = () => {
           />
         </Card>
 
-        <Card title="Context Menu" codeSnippet={contextMenuString}>
+        <Card
+          title="Context Menu"
+          codeSnippet={contextMenuString}
+          styleSnippet={contextMenuCSS}
+        >
           <div
             className="context-menu-source-container"
             onContextMenu={(e) => {
