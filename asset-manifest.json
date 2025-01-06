@@ -1,23 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.0361e36b.css",
-    "main.js": "/static/js/main.dea3652c.js",
-    "static/media/v1.gif": "/static/media/v1.94be9839925325907c94.gif",
-    "static/media/v.png": "/static/media/v.bdc0214487603b6f227c.png",
-    "static/media/editpage.png": "/static/media/editpage.6fca218b0d59893191f8.png",
-    "static/media/charlie.jpg": "/static/media/charlie.6681e9568a93415715ef.jpg",
-    "static/media/edusim.png": "/static/media/edusim.0ccf72654fd1dc4ebc44.png",
-    "static/media/marz.png": "/static/media/marz.8480910ef591afc6c8e0.png",
-    "static/media/gamelogic.png": "/static/media/gamelogic.c1974d060e81e6c85e82.png",
-    "static/media/tools2.png": "/static/media/tools2.f745238f46b2ac3f4a58.png",
-    "static/media/tools.png": "/static/media/tools.4bdd9b61e9e853aed30d.png",
-    "static/media/pipeline.png": "/static/media/pipeline.9b4880bc931a0a4dadaa.png",
+    "main.css": "/static/css/main.75276a61.css",
+    "main.js": "/static/js/main.cfce61ba.js",
     "index.html": "/index.html",
-    "main.0361e36b.css.map": "/static/css/main.0361e36b.css.map",
-    "main.dea3652c.js.map": "/static/js/main.dea3652c.js.map"
+    "main.75276a61.css.map": "/static/css/main.75276a61.css.map",
+    "main.cfce61ba.js.map": "/static/js/main.cfce61ba.js.map"
   },
   "entrypoints": [
-    "static/css/main.0361e36b.css",
-    "static/js/main.dea3652c.js"
+    "static/css/main.75276a61.css",
+    "static/js/main.cfce61ba.js"
   ]
 }
