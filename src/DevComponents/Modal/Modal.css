@@ -15,8 +15,8 @@
   position: relative;
   background-color: var(--bg-secondary);
   padding: 20px 30px;
-  width: 80%;
-  max-width: 500px; /* Adjust width for smaller screens */
+  width: 100%;
+  max-width: 1500px; /* Adjust width for smaller screens */
   max-height: calc(90%) !important;
   color: var(--white);
   border-radius: 10px;
@@ -32,10 +32,10 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: 10px;
-  top: -15px;
+  right: 6px;
+  top: -10px;
   color: var(--light-grey);
-  font-size: 50px;
+  font-size: 40px;
   font-weight: bold;
 }
 

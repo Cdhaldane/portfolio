@@ -44,6 +44,32 @@
   height: fit-content;
 }
 
+.component-card-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--secondary);
+}
+
+.component-card-header h2 {
+  width: 90%;
+}
+
+.component-card-header button {
+  background-color: var(--bg-primary) !important;
+  border: 2px solid var(--primary);
+  width: fit-content;
+  margin: 0 10px;
+  border-radius: 2px;
+  color: var(--dark);
+  text-transform: uppercase;
+}
+
+.component-card-header button:hover {
+  background-color: var(--primary) !important;
+  border: 2px solid var(--primary);
+}
+
 /* SyntaxHighlighter styling */
 .syntax-highlighter {
   border-radius: 8px;

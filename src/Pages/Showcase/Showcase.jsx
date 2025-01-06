@@ -8,8 +8,12 @@ import TimePicker from "../../DevComponents/TimePicker/TimePicker";
 import RadioGroup from "../../DevComponents/RadioGroup/RadioGroup";
 import ContextMenu from "../../DevComponents/ContextMenu/ContextMenu";
 
+import buttonCSS from "../../DevComponents/Button/Button.css";
+
 import { useAlert } from "../../DevComponents/Providers/Alert";
 import "./Showcase.css";
+
+console.log(buttonCSS);
 
 const ComponentShowcase = () => {
   const [orientation, setOrientation] = useState("horizontal");
@@ -119,7 +123,12 @@ const ComponentShowcase = () => {
           gap: "1rem",
         }}
       >
-        <Card title="Button" codeSnippet={buttonString} className="row">
+        <Card
+          title="Button"
+          codeSnippet={buttonString}
+          styleSnippet={buttonCSS}
+          className="row"
+        >
           <Button
             onClick={() => alert.showAlert("success", "Button Clicked!")}
             color="success"

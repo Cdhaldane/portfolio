@@ -1,30 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import Button from "../../DevComponents/Button/Button";
+import Modal from "../../DevComponents/Modal/Modal";
 import prism from "react-syntax-highlighter/dist/esm/styles/prism/prism";
 import "./Card.css"; // Add specific styles if needed
 
-const ReusableComponentCard = ({ title, children, codeSnippet, className }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ReusableComponentCard = ({
+  title,
+  children,
+  codeSnippet,
+  styleSnippet = "no styles",
+  className,
+}) => {
+  const [isCodeOpen, setisCodeOpen] = useState(false);
+  const [isStylingOpen, setisStylingOpen] = useState(false);
+
+  console.log(styleSnippet);
+
   return (
-    <div className="component-card">
-      <h2 onClick={() => setIsOpen(!isOpen)}>{title}</h2>
-      {isOpen && (
-        <>
-          <div className={`component-content ${className}`}>{children}</div>
-          <SyntaxHighlighter
-            language="javascript"
-            style={prism}
-            customStyle={{
-              overflowX: "hidden",
-              fontSize: "0.95rem",
-            }}
-            wrapLongLines
-          >
-            {codeSnippet}
-          </SyntaxHighlighter>
-        </>
-      )}
-    </div>
+    <>
+      <div className="component-card">
+        <div className="component-card-header">
+          <h2 onClick={() => setisCodeOpen(!isCodeOpen)}>{title}</h2>
+          <Button onClick={() => setisCodeOpen(!isCodeOpen)}>Code</Button>
+          <Button onClick={() => setisStylingOpen(!isStylingOpen)}>
+            Styling
+          </Button>
+        </div>
+        <div className={`component-content ${className}`}>{children}</div>
+      </div>
+      <Modal isOpen={isCodeOpen} onClose={() => setisCodeOpen(!isCodeOpen)}>
+        <SyntaxHighlighter
+          language="javascript"
+          style={prism}
+          customStyle={{
+            overflowX: "hidden",
+            fontSize: "0.95rem",
+          }}
+          wrapLongLines
+        >
+          {codeSnippet}
+        </SyntaxHighlighter>
+      </Modal>
+
+      <Modal
+        isOpen={isStylingOpen}
+        onClose={() => setisStylingOpen(!isStylingOpen)}
+      >
+        <SyntaxHighlighter
+          language="css"
+          style={prism}
+          customStyle={{
+            overflowX: "hidden",
+            fontSize: "0.95rem",
+          }}
+          wrapLongLines={true}
+        >
+          {styleSnippet}
+        </SyntaxHighlighter>
+      </Modal>
+    </>
   );
 };
 
