@@ -9,6 +9,7 @@
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s, box-shadow 0.3s;
+  width: 95%;
 }
 
 /* .component-card:hover {
@@ -75,4 +76,22 @@
   border-radius: 8px;
   overflow: hidden;
   margin-top: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .component-card {
+    padding: 10px;
+  }
+
+  .component-card h2 {
+    font-size: 1.2rem;
+  }
+
+  .component-card p {
+    font-size: 0.8rem;
+  }
+
+  .component-card-header button {
+    font-size: 0.8rem;
+  }
 }

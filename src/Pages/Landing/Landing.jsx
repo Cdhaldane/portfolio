@@ -11,9 +11,7 @@ const LandingPage = () => {
         <p>
           Product Designer / Webflow Developer / Framer Developer and Partner.
         </p>
-        <p>
-          Currently studying Software Engineering at the Univeristy of Ottawa
-        </p>
+        <p>Software Engineering graduate from the Univeristy of Ottawa</p>
         <Button className="landing-showcase-button">
           <Link to="/showcase">SHOWCASE</Link>
         </Button>

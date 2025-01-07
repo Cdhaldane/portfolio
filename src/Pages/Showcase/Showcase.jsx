@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ReactDOMServer, { renderToString } from "react-dom/server";
 import Card from "../../Components/Card/Card";
 import Button from "../../DevComponents/Button/Button";
 import Dropdown from "../../DevComponents/Dropdown/Dropdown";
@@ -7,6 +8,7 @@ import ThemeSwitch from "../../DevComponents/ThemeSwitch/ThemeSwitch";
 import TimePicker from "../../DevComponents/TimePicker/TimePicker";
 import RadioGroup from "../../DevComponents/RadioGroup/RadioGroup";
 import ContextMenu from "../../DevComponents/ContextMenu/ContextMenu";
+import CookieConsent from "../../DevComponents/CookieConsent/CookieConsent";
 
 import { useAlert } from "../../DevComponents/Providers/Alert";
 import "./Showcase.css";
@@ -15,22 +17,49 @@ import "./Showcase.css";
 import buttonCSS from "!!raw-loader!../../DevComponents/Button/Button.css";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
+import buttonString from "!!raw-loader!../../DevComponents/Button/Button.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
 import inputCSS from "!!raw-loader!../../DevComponents/Input/Input.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import inputString from "!!raw-loader!../../DevComponents/Input/Input.jsx";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import dropdownCSS from "!!raw-loader!../../DevComponents/Dropdown/Dropdown.css";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
+import dropdownString from "!!raw-loader!../../DevComponents/Dropdown/Dropdown.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
 import radioGroupCSS from "!!raw-loader!../../DevComponents/RadioGroup/RadioGroup.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import radioGroupString from "!!raw-loader!../../DevComponents/RadioGroup/RadioGroup.jsx";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import contextMenuCSS from "!!raw-loader!../../DevComponents/ContextMenu/ContextMenu.css";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
+import contextMenuString from "!!raw-loader!../../DevComponents/ContextMenu/ContextMenu.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
 import themeSwitchCSS from "!!raw-loader!../../DevComponents/ThemeSwitch/ThemeSwitch.css";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
+import themeSwitchString from "!!raw-loader!../../DevComponents/ThemeSwitch/ThemeSwitch.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
 import timePickerCSS from "!!raw-loader!../../DevComponents/TimePicker/TimePicker.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import timePickerString from "!!raw-loader!../../DevComponents/TimePicker/TimePicker.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import cookieConsentCSS from "!!raw-loader!../../DevComponents/CookieConsent/CookieConsent.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import cookieConsentString from "!!raw-loader!../../DevComponents/CookieConsent/CookieConsent.jsx";
 
 const ComponentShowcase = () => {
   const [orientation, setOrientation] = useState("horizontal");
@@ -40,69 +69,9 @@ const ComponentShowcase = () => {
     x: 0,
     y: 0,
   });
+  const [cookieConsent, setCookieConsent] = useState(false);
 
   const alert = useAlert();
-
-  const buttonString = `<Button 
-  onClick={() => alert.showAlert("success", "Button Clicked!")}
-  color="success"
->
-  Success
-</Button>`;
-
-  const dropdownString = `<Dropdown
-  options={['Option 1', 'Option 2', 'Option 3']}
-  onClick={s => console.log('Selected:', s)}
->
-  Dropdown Button
-</Dropdown>`;
-
-  const inputString = `<Input label="Standard" />
-<Input label="Textarea" type="textarea" />
-<Input
-  type="select"
-  options={[
-    { value: "option 1", label: "Option 1" },
-    { value: "option 2", label: "Option 2" },
-    { value: "option 3", label: "Option 3" },
-  ]}
-/>`;
-
-  const radioGroupString = `<RadioGroup
-  options={[
-    { value: "option 1", label: "Option 1" },
-    { value: "option 2", label: "Option 2" },
-    { value: "option 3", label: "Option 3" },
-  ]}
-/>`;
-
-  const contextMenuString = `<div
-  className="context-menu-source-container"
-  onContextMenu={(e) => {
-    e.preventDefault();
-    setContextMenu({
-      key: 1,
-      visible: true,
-      x: e.clientX,
-      y: e.clientY,
-      circleMode: true,
-    });
-  }}
->
-  Circle Context Menu
-</div>
-<div
-  className="context-menu-source-container"
->
-  Normal Context Menu
-</div>
-
-<ContextMenu
-  contextMenuProps={contextMenu}
-  onRequestClose={() =>
-    setContextMenu({ ...contextMenu, visible: false })
-  }
-/>`;
 
   const contextMenuOptions = [
     {
@@ -201,7 +170,7 @@ const ComponentShowcase = () => {
 
         <Card
           title="Theme Switch"
-          codeSnippet={`<ThemeSwitch />`}
+          codeSnippet={themeSwitchString}
           styleSnippet={themeSwitchCSS}
         >
           <ThemeSwitch />
@@ -209,7 +178,7 @@ const ComponentShowcase = () => {
 
         <Card
           title="TimePicker"
-          codeSnippet={`<TimePicker label="Time Picker" />`}
+          codeSnippet={timePickerString}
           styleSnippet={timePickerCSS}
         >
           <TimePicker label="Time Picker" />
@@ -255,7 +224,6 @@ const ComponentShowcase = () => {
             onContextMenu={(e) => {
               e.preventDefault();
 
-              console.log(e);
               setContextMenu({
                 key: 2,
                 visible: true,
@@ -274,6 +242,18 @@ const ComponentShowcase = () => {
             }
             options={contextMenuOptions}
           />
+        </Card>
+
+        <Card
+          title="Cookie Consent"
+          codeSnippet={cookieConsentString}
+          styleSnippet={cookieConsentCSS}
+        >
+          <Button onClick={() => setCookieConsent(!cookieConsent)}>
+            Show Cookie Consent
+          </Button>
+
+          <CookieConsent force={cookieConsent} />
         </Card>
       </div>
     </div>

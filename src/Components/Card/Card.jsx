@@ -15,8 +15,6 @@ const ReusableComponentCard = ({
   const [isCodeOpen, setisCodeOpen] = useState(false);
   const [isStylingOpen, setisStylingOpen] = useState(false);
 
-  console.log(styleSnippet);
-
   return (
     <>
       <div className="component-card">
@@ -29,13 +27,18 @@ const ReusableComponentCard = ({
         </div>
         <div className={`component-content ${className}`}>{children}</div>
       </div>
-      <Modal isOpen={isCodeOpen} onClose={() => setisCodeOpen(!isCodeOpen)}>
+      <Modal
+        isOpen={isCodeOpen}
+        onClose={() => setisCodeOpen(!isCodeOpen)}
+        title="Code"
+      >
         <SyntaxHighlighter
           language="javascript"
           style={prism}
           customStyle={{
             overflowX: "hidden",
-            fontSize: "0.95rem",
+            fontSize: window.innerWidth > 600 ? "1rem" : "0.6rem",
+            margin: "0",
           }}
           wrapLongLines
         >
@@ -46,13 +49,15 @@ const ReusableComponentCard = ({
       <Modal
         isOpen={isStylingOpen}
         onClose={() => setisStylingOpen(!isStylingOpen)}
+        title="Styling"
       >
         <SyntaxHighlighter
           language="css"
           style={prism}
           customStyle={{
             overflowX: "hidden",
-            fontSize: "0.95rem",
+            fontSize: window.innerWidth > 600 ? "1rem" : "0.6rem",
+            margin: "0",
           }}
           wrapLongLines={true}
         >
