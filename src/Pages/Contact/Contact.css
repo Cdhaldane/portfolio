@@ -72,9 +72,8 @@
 }
 
 .contact-form {
-  width: 100%;
+  width: 70%;
   padding: 5%;
-  margin-top: -50px;
   text-align: left;
   z-index: 2;
   display: flex;
@@ -82,54 +81,15 @@
   margin-right: 5%;
   border-radius: 2px;
   transition: 0.3s ease-in-out;
-  position: relative;
-  left: 1000px;
-  background-color: var(--bgGreen);
+  background-color: var(--secondary);
   padding: 50px;
-  margin-left: 100px;
+  visibility: hidden;
+  font-size: 1em;
 }
 
-.contact-form input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 0px solid #007bff;
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: 100;
-  outline: none;
-  transition: 0.3s ease-in-out;
-}
-
-.contact-form textarea {
-  width: 100%;
-  padding: 10px;
-  height: 300px;
-  margin-bottom: 20px;
-  border: 0px solid #007bff;
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: 100;
-  outline: none;
-  resize: none;
-  transition: 0.3s ease-in-out;
-}
-
-.contact-form input[type="submit"] {
-  position: relative;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 0px solid #007bff;
-  border-radius: 2px;
-  font-size: 1rem;
-  font-weight: 100;
-  outline: none;
-  font-family: "IBM Plex Mono", monospace;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: 0.3s ease-in-out;
+.contact-form.visible {
+  left: 0px;
+  visibility: visible;
 }
 
 @media only screen and (max-width: 768px) {
@@ -165,21 +125,10 @@
     margin-left: 40px;
     padding: 20px;
     width: 85%;
-    height: 300px;
+    height: fit-content;
     font-size: 0.8em !important;
     left: 0px;
     /* Reset the left positioning */
-  }
-
-  .contact-form input,
-  .contact-form textarea {
-    margin-bottom: 10px;
-    font-size: 0.7rem;
-  }
-
-  .contact-form button {
-    padding: 8px;
-    font-size: 0.7rem;
   }
 
   .landing-container {

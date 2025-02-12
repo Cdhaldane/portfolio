@@ -56,6 +56,7 @@ const Button = ({
 
   const computedStyle = {
     backgroundColor: color.startsWith("#") ? color : `var(--${color})`,
+    borderColor: color.startsWith("#") ? color : `var(--${color})`,
   };
 
   const hoverStyle = {

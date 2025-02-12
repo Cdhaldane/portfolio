@@ -42,7 +42,7 @@ const About = () => {
 
       <div className="about-container" ref={containerRef}>
         <div className="about-title" ref={aboutTitleRef}>
-          <h1>ABOUT</h1>
+          <h1 className="no-margin">ABOUT</h1>
           <img
             src={process.env.PUBLIC_URL + "/assets/charlie.jpg"}
             alt="Charlie"
@@ -78,19 +78,16 @@ const About = () => {
           </p>
           <h2>EXPERIENCE</h2>
           <ul>
-            <li>
-              Fourth-year Software Engineering Student at the University of
-              Ottawa
-            </li>
+            <li>Software Engineering Graduate from the University of Ottawa</li>
             <li>Specialized in React Web Development and VFX Pipelines</li>
             <li>
               Knowledgeable in back-end development and Database Management
             </li>
           </ul>
           <ul>
-            <li>3 years of experience in React Web Development</li>
-            <li>2 years of experience in VFX Pipelines</li>
-            <li>1 year of experience in Team Leadership</li>
+            <li>4 years of experience in React Web Development</li>
+            <li>3 years of experience in VFX Pipelines</li>
+            <li>2 year of experience in Team Leadership</li>
             <li>
               Multiple collaborative projects within and outside university
               settings

@@ -14,20 +14,23 @@ button {
   touch-action: manipulation; /* Optimize for touch devices */
   width: 100%;
   font-weight: 700;
+  background-color: var(--primary);
+  color: var(--white);
+  border: 2px solid var(--primary);
 }
 
 /* Button Hover and Focus States */
 button:hover,
 button:focus {
   /* color: var(--primary) !important;
-  background-color: var(--white) !important;
+  background-color: var(--bg-primary) !important;
   border: 2px solid var(--primary) !important; */
   text-decoration: none;
 }
 
 /* Button Active State */
 button:active {
-  background-color: var(--bg-primary); /* Even darker for active state */
+  background-color: var(--white); /* Even darker for active state */
   color: var(--primary);
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); /* Inner shadow for a "pressed" effect */
 }

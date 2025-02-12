@@ -64,22 +64,33 @@ const Input = ({
     return value; // Return the value as is if it doesn't match
   };
 
+  const validateInput = (value) => {
+    if (type === "email" && !/^\S+@\S+\.\S+$/.test(value)) {
+      alert.showAlert("error", "Invalid email format.");
+      return false;
+    }
+    if (type === "tel" && !/^\d{3}-\d{3}-\d{4}$/.test(value)) {
+      alert.showAlert(
+        "error",
+        "Phone number must be in the format 123-456-7890."
+      );
+      return false;
+    }
+    if (type === "text" && value.trim() === "") {
+      alert.showAlert("error", "Text field cannot be empty.");
+      return false;
+    }
+    return true;
+  };
+
   const handleChange = (event) => {
     let newValue = event.target.value;
-    if (newValue === "") {
-      setHasChanged(false);
-      setSuggestions([]); // Clear suggestions when input is empty
-    }
 
-    // If the input type is 'tel', format the phone number
     if (type === "tel") newValue = formatPhoneNumber(newValue);
-    if (type === "address") fetchAddressSuggestions(newValue); // Fetch suggestions for address input
+    if (type === "address") fetchAddressSuggestions(newValue);
 
     setInputValue(newValue);
-    if (onInputChange) {
-      if (type === "select") onInputChange(id, newValue);
-      else onInputChange(newValue);
-    }
+    if (onInputChange) onInputChange(newValue);
     setHasChanged(true);
   };
 
@@ -88,10 +99,12 @@ const Input = ({
   };
 
   const handleBlur = () => {
+    if (!validateInput(inputValue)) {
+      setInputValue("");
+    }
     if (!inputValue) {
       setIsActive(false);
     }
-    // Close suggestions dropdown on blur
     setTimeout(() => setSuggestions([]), 200);
   };
 
@@ -256,7 +269,7 @@ export const InputForm = ({
   onSubmit,
   id,
   children,
-  onClose,
+  onClose = () => {},
   buttonLabel,
   successMessage,
 }) => {

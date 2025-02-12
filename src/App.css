@@ -75,6 +75,13 @@ body {
   -webkit-overflow-scrolling: touch; /* enables momentum-scrolling on iOS */
 }
 
+.no-margin {
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  margin-block-start: 0px;
+  margin-block-end: 0px;
+}
+
 ::-webkit-scrollbar {
   width: 3px;
 }
@@ -274,6 +281,7 @@ body {
   font-family: "IBM Plex Mono", monospace;
   text-decoration: none;
   color: #333;
+  font-size: 2vh;
 }
 
 .title-box {
