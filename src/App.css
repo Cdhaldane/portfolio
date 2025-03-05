@@ -378,6 +378,44 @@ body {
   }
 }
 
+@keyframes growIn {
+  from {
+    scale: 0%;
+  }
+
+  to {
+    scale: 100%;
+  }
+}
+
+@keyframes shrinkOut {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes slideInTop {
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(0vh);
+  }
+}
+
+@keyframes slideOutTop {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-50vh);
+  }
+}
+
 @media only screen and (max-width: 768px) {
   .landing-container {
     justify-content: space-evenly;

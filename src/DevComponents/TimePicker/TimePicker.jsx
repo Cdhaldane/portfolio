@@ -67,6 +67,7 @@ const TimePicker = ({ label, onChange, defaultValue }) => {
   const dropdownProps = {
     direction: "down",
     className: "time-select-dropdown",
+    enableSearch: true,
   };
 
   return (

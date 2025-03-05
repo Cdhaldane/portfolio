@@ -1,0 +1,109 @@
+hr {
+    margin-bottom: .7rem;
+}
+
+/* search bar */
+
+.input-group {
+  position: relative;
+}
+
+.input-group-addon {
+  position: absolute;
+  bottom: 0px;
+}
+
+.search-bar {
+    background-color: var(--color-airis-background);
+    border: none;
+    color: var(--white);
+    outline: none;
+    cursor: pointer;
+    padding-left: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    width: 100%;
+    background: var(--color-airis-background);
+    padding: 15px;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    padding-left: 45px;
+  }
+
+input.search-bar:not(:placeholder-shown) {
+  background-color: var(--color-airis-background);
+}
+ input.search-bar:placeholder-shown {
+  background-color: var(--color-search-light-grey);
+}
+
+input.search-bar::placeholder {
+  color: var(--color-icon-light-grey)
+}
+
+input.search-bar[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.search-languages::-webkit-scrollbar {
+  width: 4px !important; /* Width of the scrollbar */
+}
+
+/* Track (background) of the scrollbar */
+.search-languages::-webkit-scrollbar-track {
+  background: var(--color-search-light-grey) !important;
+  border-radius: 10px;
+}
+
+/* Handle (thumb) of the scrollbar */
+::-webkit-scrollbar-thumb {
+  background: var(--white) !important; 
+  border-radius: 10px;
+}
+
+  /* input[type="search"]::-webkit-search-cancel-button:hover {
+    cursor: pointer;
+  }
+   */
+  /* input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    height: 1em;
+    width: 1em;
+    border-radius: 50em;
+    background: url(https://pro.fontawesome.com/releases/v5.10.0/svgs/solid/times-circle.svg) no-repeat 50% 50%;
+    background-size: contain;
+    opacity: 0;
+    pointer-events: none;
+
+  }
+   */
+  /* input[type="search"]:focus::-webkit-search-cancel-button {
+    opacity: .5;
+    pointer-events: all;
+  }
+   */
+  
+  /* .input-group {
+    display: flex;
+    background: var(--color-airis-background);
+    padding: 15px;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+  } */
+
+/*   
+  .input-group-addon {
+    margin-right: 1px;
+    cursor: pointer;
+  }  */
+  
+  .search-result {
+    margin-top: 7px;
+    font-size: 14px;
+  }
+  
+  /* search bar */

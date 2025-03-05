@@ -41,6 +41,7 @@ const Input = ({
   className,
   icon,
   options = [],
+  validate = false,
 }) => {
   const [isActive, setIsActive] = useState(propValue ? true : false);
   const [inputValue, setInputValue] = useState(propValue || "");
@@ -65,6 +66,7 @@ const Input = ({
   };
 
   const validateInput = (value) => {
+    if (!validate) return true;
     if (type === "email" && !/^\S+@\S+\.\S+$/.test(value)) {
       alert.showAlert("error", "Invalid email format.");
       return false;

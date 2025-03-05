@@ -6,9 +6,11 @@ import Dropdown from "../../DevComponents/Dropdown/Dropdown";
 import Input from "../../DevComponents/Input/Input";
 import ThemeSwitch from "../../DevComponents/ThemeSwitch/ThemeSwitch";
 import TimePicker from "../../DevComponents/TimePicker/TimePicker";
+import DatePicker from "../../DevComponents/DatePicker/DatePicker";
 import RadioGroup from "../../DevComponents/RadioGroup/RadioGroup";
 import ContextMenu from "../../DevComponents/ContextMenu/ContextMenu";
 import CookieConsent from "../../DevComponents/CookieConsent/CookieConsent";
+import VideoPlayer from "../../DevComponents/VideoPlayer/VideoPlayer";
 
 import { useAlert } from "../../DevComponents/Providers/Alert";
 import "./Showcase.css";
@@ -60,6 +62,12 @@ import cookieConsentCSS from "!!raw-loader!../../DevComponents/CookieConsent/Coo
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import cookieConsentString from "!!raw-loader!../../DevComponents/CookieConsent/CookieConsent.jsx";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import videoPlayerCSS from "!!raw-loader!../../DevComponents/VideoPlayer/VideoPlayer.css";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import videoPlayerString from "!!raw-loader!../../DevComponents/VideoPlayer/VideoPlayer.jsx";
 
 const ComponentShowcase = () => {
   const [orientation, setOrientation] = useState("horizontal");
@@ -164,7 +172,15 @@ const ComponentShowcase = () => {
             onClick={(s) => console.log("Selected:", s)}
             listType="checkbox"
           >
-            Dropdown Button
+            Dropdown Checkbox
+          </Dropdown>
+
+          <Dropdown
+            options={["Option 1", "Option 2", "Option 3"]}
+            onClick={(s) => console.log("Selected:", s)}
+            enableSearch
+          >
+            Dropdown List
           </Dropdown>
         </Card>
 
@@ -182,6 +198,10 @@ const ComponentShowcase = () => {
           styleSnippet={timePickerCSS}
         >
           <TimePicker label="Time Picker" />
+        </Card>
+
+        <Card title="DatePicker" codeSnippet="" styleSnippet="">
+          <DatePicker label="Date Picker" />
         </Card>
 
         <Card
@@ -254,6 +274,14 @@ const ComponentShowcase = () => {
           </Button>
 
           <CookieConsent force={cookieConsent} />
+        </Card>
+
+        <Card
+          title="Video Player"
+          codeSnippet={videoPlayerString}
+          styleSnippet={videoPlayerCSS}
+        >
+          <VideoPlayer videoSource="https://www.w3schools.com/tags/mov_bbb.mp4" />
         </Card>
       </div>
     </div>

@@ -1,0 +1,461 @@
+/* VideoPlayer.css */
+.video-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 89vh;
+  width: 100%;
+  margin: auto;
+  background: var(--color-absolute-black);
+  border: 3px solid var(--darkgrey) !important;
+  border-radius: 10px 10px 10px 10px;
+  transition: all 0.2s ease-in-out !important;
+  z-index: 0;
+}
+
+.video-player video {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  object-fit: cover;
+  /* transition: all 2s ease-in-out; */
+  border: none !important;
+  z-index: 4;
+  border-radius: 7px;
+}
+
+#myaudio {
+  position: absolute;
+  display: flex;
+  height: 100px !important;
+  width: 100px !important;
+  z-index: 100;
+}
+
+.video-title {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  padding-left: 20px;
+  padding-top: 20px;
+  color: white;
+  font-size: 24px;
+  z-index: 100;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9));
+  /* Grey gradient background */
+  height: 65px;
+  /* Set height to 65px */
+  opacity: 0;
+  /* Initially hide the title */
+  transition: opacity 0.3s ease;
+  /* Add transition effect for smooth appearance */
+}
+
+.video-player:hover .video-title {
+  opacity: 1;
+  /* Show the title when hovering over the video player */
+}
+
+@keyframes dropDown {
+  from {
+    transform: translateY(-5%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes goUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(-5%);
+    opacity: 0;
+  }
+}
+
+.video-title.show {
+  animation: dropDown 0.5s forwards;
+}
+
+.video-title.hide {
+  animation: goUp 0.5s forwards;
+  animation-delay: 2s;
+}
+
+/* controls */
+.controls {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  height: 85px;
+  border-radius: 0px 0px 5px 5px;
+  margin: 0 auto;
+  color: var(--white);
+  padding: 15px 20px;
+  transition: all 0.2s ease-in-out;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9));
+  z-index: 5;
+  opacity: 0;
+}
+
+.controls.show {
+  opacity: 1;
+}
+
+.controls > button {
+  background-color: transparent;
+  border-radius: 5px;
+  border: none;
+  padding: 0px 10px;
+  color: white;
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+.controls > i {
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin: 0px 10px;
+}
+
+/* video player control */
+.video-player-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.play-time-volume {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.play-pause-btn-control {
+  cursor: pointer;
+}
+
+.langauge-setting-fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* mini player icon */
+.mini-player-icon {
+  cursor: pointer;
+  font-size: 1.6rem;
+  position: relative;
+  top: 2px;
+  margin-left: 10px;
+}
+
+/* langauges option */
+
+#container .languages-menu-icon {
+  cursor: pointer;
+  margin-left: 20px;
+  position: relative;
+  top: 1px;
+  left: 0.5px;
+}
+
+.container.inactive {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-20px);
+  transition: ease-in-out 15;
+}
+
+.container.active {
+  position: absolute;
+  bottom: 5rem;
+  right: 1rem;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: ease-in-out 15;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  height: 0.5rem;
+}
+
+@media only screen and (max-width: 600px) {
+  .container.active {
+    max-height: 15vh;
+  }
+}
+
+#langauages-menu {
+  background-color: var(--color-menu-dark-grey);
+  border-radius: 10px;
+  width: 300px;
+  padding: 15px;
+}
+
+.languages-menu-icon i {
+  padding-left: 10px;
+}
+
+div.pinned-item {
+  color: var(--white);
+}
+
+.pinned-header h4 {
+  font-size: var(--font-size-h3);
+  color: var(--white);
+}
+
+.avilable-languages-header h4 {
+  font-size: var(--font-size-h3);
+  color: var(--white);
+}
+
+/* close btn for the languages menu */
+span.close-btn-menu {
+  margin-right: 0.7rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  position: relative;
+  right: 1rem;
+  z-index: 999;
+  color: var(--white);
+}
+
+span.close-btn-menu:hover {
+  color: var(--blue);
+  transform: scale(1.2);
+}
+
+.input-group-addon i {
+  color: var(--white);
+  position: relative;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+}
+
+/* close btn for the languages menu */
+
+/* ends here langauges option */
+
+/* setting */
+#controls-btn-play,
+#controls-btn-pause,
+#controls-btn-volume,
+#controls-btn-setting,
+#controls-btn-fullscreen {
+  font-size: 1.2rem;
+}
+
+.fa-volume-high {
+  font-size: 1.5rem;
+  width: 1.5rem;
+}
+
+#controls-btn-fullscreen {
+  cursor: pointer;
+}
+
+/* ends here */
+
+.timeline {
+  position: relative;
+  flex-grow: 1;
+  height: 5px;
+  border-radius: 10px;
+  background: var(--color-icon-light-grey);
+  cursor: pointer;
+}
+
+.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--blue);
+  border-radius: 10px;
+}
+
+.time-display {
+  width: 120px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.play-pause-btn-control i {
+  width: 20px;
+  text-align: left;
+}
+
+.volume-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.volume-container i {
+  cursor: pointer;
+}
+
+.volume-slider-container {
+  width: 25px;
+  text-align: center;
+}
+
+.volume-slider {
+  position: absolute;
+  height: 5px;
+  width: 80px;
+  background: var(--color-icon-light-grey);
+  text-align: right;
+  cursor: pointer;
+  top: 48px;
+  /* transform: translateX(-75%) translateY(-85px) rotate(-90deg); */
+}
+
+.settings-popup-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.settings-container > i {
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin: 0px 10px;
+}
+
+/* .settings-popup div {
+  width: 100%;
+  margin-top: 10px;
+} */
+
+.captions-label {
+  margin-bottom: 0;
+}
+
+/* Add additional styles below */
+
+.video-player::before {
+  content: "";
+  /* Required for pseudo-elements */
+  position: absolute;
+  left: 2%;
+  top: 30%;
+  bottom: 0;
+  width: 50%;
+  /* 20% width of the parent div */
+  height: 60%;
+  box-shadow: 0 0 1000px var(--color-brand-primary),
+    inset 0 0 1000px var(--color-brand-primary);
+  border-radius: 100%;
+  z-index: -3;
+}
+
+.video-player::after {
+  z-index: -2;
+  content: "";
+  /* Required for pseudo-elements */
+  border-radius: 100%;
+  position: absolute;
+  left: 2%;
+  top: 10%;
+  bottom: 0;
+  width: 50%;
+  /* 20% width of the parent div */
+  height: 60%;
+  box-shadow: 0 0 1000px var(--color-brand-secondary),
+    inset 0 0 1000px var(--color-brand-secondary);
+  /* Ensure the inner shadow has the same color */
+}
+
+.video-player-box {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.video-player-box::before {
+  content: "";
+  /* Required for pseudo-elements */
+  position: absolute;
+  left: 50%;
+  top: 35%;
+  bottom: 0;
+  width: 50%;
+  /* 20% width of the parent div */
+  height: 60%;
+  box-shadow: 0 0 1000px var(--color-brand-primary),
+    inset 0 0 1000px var(--color-brand-primary);
+  border-radius: 100%;
+  z-index: -2;
+}
+
+.video-player-box::after {
+  z-index: -2;
+  content: "";
+  /* Required for pseudo-elements */
+  border-radius: 100%;
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  bottom: 0;
+  width: 50%;
+  /* 20% width of the parent div */
+  height: 60%;
+  box-shadow: 0 0 1000px var(--color-brand-secondary),
+    inset 0 0 1000px var(--color-brand-secondary);
+  /* Ensure the inner shadow has the same color */
+}
+
+.controls-language-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 1px solid var(--white);
+  padding: 0.2rem 0.5rem;
+  margin-left: 10px;
+}
+
+/* .language-selector-container {
+  position: relative;
+  bottom: 100%;
+  transform: translateY(-5px);
+  max-height: 16rem;
+}
+
+.language-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 100%;
+  padding: 0.5rem;
+  margin: 0 1rem;
+  line-height: 1;
+} */

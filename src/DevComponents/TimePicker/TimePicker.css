@@ -32,7 +32,7 @@
   background-color: transparent;
   font-size: 2rem;
   cursor: pointer;
-  color: var(--primary);
+  color: var(--white);
   background-color: var(--bg-secondary);
   border: 1px solid var(--bg-secondary);
 }
@@ -42,11 +42,6 @@
   user-select: none; /* Prevent text selection */
   text-align: center;
   color: var(--light-grey);
-}
-
-.time-select-dropdown {
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .time-select-dropdown > .dropdown-item {

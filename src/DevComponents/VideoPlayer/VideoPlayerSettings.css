@@ -1,0 +1,99 @@
+.settings-popup {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  width: auto;
+  height: auto;
+  font-size: 0.8rem;
+  background: var(--black);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: space-between;
+  padding: 10px;
+  transition: all 0.5s ease-in-out;
+}
+
+.settings-menu-label {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.settings-menu-btn-label {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.settings-menu-btn-label button {
+  background-color: #444;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.settings-menu-btn-label button.selected {
+  background-color: #007bff;
+}
+
+.settings-menu-btn-label button:hover {
+  background-color: #555;
+}
+
+.settings-menu-label > label {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-switch.disabled {
+  opacity: 0.6;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #444;
+  border-radius: 10px;
+  position: relative;
+  margin-left: 8px;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.toggle-switch.enabled .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-switch.enabled .toggle-slider {
+  background-color: #527af9;
+  /* Blue when enabled */
+}

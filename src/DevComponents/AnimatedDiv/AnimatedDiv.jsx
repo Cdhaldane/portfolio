@@ -48,7 +48,7 @@ const AnimatedDiv = ({
       style={{
         ...(rest.style && rest.style),
         animationName: animationClass,
-        animationDuration: "0.2s",
+        animationDuration: "0.4s",
         display: displayState,
       }}
     >

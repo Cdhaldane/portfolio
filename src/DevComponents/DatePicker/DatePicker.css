@@ -1,0 +1,137 @@
+.date-picker-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+  border: 1px solid var(--light-grey);
+  padding: 15px 0px;
+  position: relative;
+  width: 100%;
+}
+
+.date-picker-button {
+  padding: 10px 20px;
+  font-size: 2rem;
+  border-radius: 5px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  width: fit-content;
+  margin: 0 auto;
+  position: relative;
+}
+
+.calendar-modal {
+  top: 100%;
+  left: 0;
+  border: 1px solid var(--light-grey);
+  border-radius: 5px;
+  padding: 10px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden !important;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendar-header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--primary);
+}
+
+.calendar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.year-view,
+.month-view {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.day-view {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 10px;
+}
+
+.year-search input {
+  background-color: var(--bg-secondary) !important;
+}
+
+.year-item,
+.month-item,
+.day-item {
+  padding: 10px;
+  border: 2px solid var(--light-grey);
+  border-radius: 5px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  text-align: center;
+}
+
+.year-item:hover,
+.month-item:hover,
+.day-item:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.year-item.selected,
+.month-item.selected,
+.day-item.selected {
+  background-color: var(--primary);
+  color: white;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  font-weight: bold;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day-item {
+  padding: 10px;
+  border: 2px solid var(--light-grey);
+  border-radius: 5px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  text-align: center;
+}
+
+.day-item:disabled {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+}
+
+.calendar-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.calendar-footer button {
+  padding: 5px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 5px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+}
