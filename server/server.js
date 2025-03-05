@@ -15,9 +15,17 @@ app.use(express.json());
 // Routes
 app.use("/api", userRoutes);
 
+// Sanitize database URL
+function sanitizeDatabaseUrl(url) {
+  if (!url) return "Not provided";
+  return url.replace(/\/\/[^:]+:[^@]+@/, "//USER:PASSWORD@");
+}
+
 // Start server
 app.listen(PORT, () => {
   console.log(
-    `Server is running on ${process.env.PSQL_DATABASE_URL}, connected to database ${process.env.PSQL_DB_NAME}`
+    `Server is running on port ${PORT}\n` +
+      `Connected to database: ${process.env.PSQL_DB_NAME}\n` +
+      `Database URL: ${sanitizeDatabaseUrl(process.env.PSQL_DATABASE_URL)}`
   );
 });

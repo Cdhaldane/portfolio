@@ -81,18 +81,29 @@ const App = () => {
     fetchUsers();
   }, []);
 
+  // Add a fake user
+  const addFakeUser = async () => {
+    try {
+      const response = await fetch("/api/users/fake", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add fake user");
+      }
+
+      const newUser = await response.json();
+      setUsers([...users, newUser]); // Update the UI with the new user
+    } catch (error) {
+      console.error("Error adding fake user:", error);
+    }
+  };
+
   return (
     <div className="main">
-      {/* <div>
-        <h1>Users</h1>
-        <ul>
-          {users.map((user) => (
-            <li key={user.id}>
-              {user.username} - {user.email}
-            </li>
-          ))}
-        </ul>
-      </div> */}
       <SideBar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -105,6 +116,17 @@ const App = () => {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/showcase" element={<Showcase />} />
       </Routes>
+      <div>
+        <h1>Users</h1>
+        <button onClick={addFakeUser}>Add fake user</button>
+        <ul>
+          {users.map((user) => (
+            <li key={user.id}>
+              {user.username} - {user.email}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
