@@ -15,6 +15,7 @@ import Edusim from "./Pages/Work/Edusim";
 import Vxnessa from "./Pages/Work/Vxnessa";
 import Marz from "./Pages/Work/Marz";
 import Timeslot from "./Pages/Work/Timeslot";
+import { faker } from "@faker-js/faker";
 
 import "./App.css";
 
@@ -84,12 +85,23 @@ const App = () => {
   // Add a fake user
   const addFakeUser = async () => {
     try {
-      const response = await fetch("/api/users/fake", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // Generate fake data
+      const fakeUser = {
+        username: faker.internet.userName(),
+        email: faker.internet.email(),
+      };
+
+      // Send the fake data in the request body
+      const response = await fetch(
+        process.env.REACT_APP_BACKEND_URL + "/api/users",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(fakeUser), // Send the fake user data
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to add fake user");

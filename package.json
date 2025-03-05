@@ -6,6 +6,7 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@emailjs/browser": "^3.11.0",
+    "@faker-js/faker": "^9.5.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.17.0",
@@ -29,6 +30,7 @@
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^3.1.1",
     "express": "^4.21.2",
+    "faker": "^6.6.6",
     "file-loader": "^6.2.0",
     "fs-extra": "^10.0.0",
     "html-webpack-plugin": "^5.5.0",
