@@ -17,5 +17,7 @@ app.use("/api", userRoutes);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(
+    `Server is running on http://localhost:${PORT}, connected to database ${process.env.PSQL_DB_NAME}`
+  );
 });
