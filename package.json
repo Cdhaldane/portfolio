@@ -19,6 +19,8 @@
     "browserslist": "^4.18.1",
     "camelcase": "^6.2.1",
     "case-sensitive-paths-webpack-plugin": "^2.4.0",
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
     "css-minimizer-webpack-plugin": "^3.2.0",
     "dashjs": "^5.0.0",
     "dotenv": "^10.0.0",
@@ -26,6 +28,7 @@
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^3.1.1",
+    "express": "^4.21.2",
     "file-loader": "^6.2.0",
     "fs-extra": "^10.0.0",
     "html-webpack-plugin": "^5.5.0",
@@ -35,6 +38,8 @@
     "jest-watch-typeahead": "^1.0.0",
     "keywords": "^0.1.2",
     "mini-css-extract-plugin": "^2.4.5",
+    "pg": "^8.13.3",
+    "pg-hstore": "^2.3.4",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-loader": "^6.2.1",
@@ -53,6 +58,7 @@
     "resolve-url-loader": "^4.0.0",
     "sass-loader": "^12.3.0",
     "semver": "^7.3.5",
+    "sequelize": "^6.37.6",
     "source-map-loader": "^3.0.0",
     "style-loader": "^3.3.1",
     "tailwindcss": "^3.0.2",
@@ -64,12 +70,13 @@
     "workbox-webpack-plugin": "^6.4.1"
   },
   "scripts": {
-    "start": "react-app-rewired start",
+    "start": "set PORT=3000 && react-scripts start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "dev": "concurrently \"nodemon server/server.js\" \"npm start\""
   },
   "eslintConfig": {
     "extends": [
@@ -93,6 +100,7 @@
     "css-loader": "^7.1.2",
     "customize-cra": "^1.0.0",
     "gh-pages": "^6.0.0",
+    "nodemon": "^3.1.9",
     "raw-loader": "^4.0.2",
     "react-app-rewired": "^2.2.1",
     "react-element-to-jsx-string": "^15.0.0",

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -58,8 +58,39 @@ const App = () => {
     );
   };
 
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    // Fetch users when the component mounts
+    async function fetchUsers() {
+      try {
+        const response = await fetch("http://localhost:5000/api/users");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        console.log(data);
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
   return (
     <div className="main">
+      {/* <div>
+        <h1>Users</h1>
+        <ul>
+          {users.map((user) => (
+            <li key={user.id}>
+              {user.username} - {user.email}
+            </li>
+          ))}
+        </ul>
+      </div> */}
       <SideBar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
