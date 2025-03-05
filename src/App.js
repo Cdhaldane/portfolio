@@ -65,7 +65,7 @@ const App = () => {
     async function fetchUsers() {
       try {
         const response = await fetch(
-          process.env.PSQL_DATABASE_URL + "/api/users"
+          process.env.REACT_APP_BACKEND_URL + "/api/users"
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
