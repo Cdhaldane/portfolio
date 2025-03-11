@@ -150,12 +150,15 @@ body {
   justify-content: space-evenly;
   align-items: center;
   text-align: left;
-  width: 70%;
+  width: 60%;
   height: 90%;
   padding: 0%;
-  margin-right: 10px;
   animation: blur 2s ease-out;
   animation-delay: 0s;
+}
+
+.nav-box ul {
+  width: 100%;
 }
 
 .nav-box.work {
@@ -187,8 +190,9 @@ body {
 .nav-box li {
   margin-top: -20px;
   padding: 0px;
-  font-size: 14vw;
-  line-height: 14vw;
+  font-size: 13vw;
+  line-height: 13vw;
+  transition: all 0.3s ease;
 }
 
 .nav-box li a {
@@ -214,12 +218,16 @@ body {
 } */
 
 /* Add hover effects */
-.side-box a:hover,
-.nav-box li a:hover {
-  transition: all 0.3s ease;
-  cursor: pointer;
-  color: #007bff !important;
+.nav-box li:hover {
+  font-size: 14vw;
+  line-height: 14vw;
+  color: #007bff;
   /* You can change this color to suit your design preference */
+}
+
+.side-box a:hover,
+.nav-box li:hover a {
+  color: #007bff;
 }
 
 /* Style the content box */

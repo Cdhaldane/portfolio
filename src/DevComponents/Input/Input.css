@@ -91,7 +91,8 @@
   display: none;
 } */
 
-.input-container.active input {
+.input-container.active input,
+.input-container.active textarea {
   /* padding-top: 1em; */
   border-color: var(--primary);
 }
@@ -128,7 +129,7 @@
 }
 
 .input-container input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px var(--bg-primary) inset;
+  -webkit-box-shadow: 0 0 0px 1000px inherit inset;
   -webkit-text-fill-color: var(--primary) !important;
 }
 
@@ -160,15 +161,6 @@
   bottom: 0;
   width: 2em;
   opacity: 0.5; /* shows Spin Buttons per default (Chrome >= 39) */
-}
-
-.input-container .react-colorful {
-  width: 100%;
-  border-radius: 5px;
-  background-color: var(--bg-primary) !important;
-  color: var(--primary) !important;
-  font-size: 1.1rem;
-  overflow: hidden;
 }
 
 .input-form {

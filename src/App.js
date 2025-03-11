@@ -10,6 +10,7 @@ import WorkPage from "./Pages/Work/Work";
 import AboutPage from "./Pages/About/About";
 import ContactPage from "./Pages/Contact/Contact";
 import Showcase from "./Pages/Showcase/Showcase";
+import InquiryPage from "./Pages/Inquiry/Inquiry";
 
 import Edusim from "./Pages/Work/Edusim";
 import Vxnessa from "./Pages/Work/Vxnessa";
@@ -53,7 +54,7 @@ const App = () => {
                 : "1px solid var(--primary)",
             }}
           ></div>
-          <a>©/2023</a>
+          <a>©/2025</a>
         </div>
       </>
     );
@@ -127,8 +128,9 @@ const App = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/showcase" element={<Showcase />} />
+        <Route path="/inquiry" element={<InquiryPage />} />
       </Routes>
-      <div>
+      {/* <div>
         <h1>Users</h1>
         <button onClick={addFakeUser}>Add fake user</button>
         <ul>
@@ -138,7 +140,7 @@ const App = () => {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

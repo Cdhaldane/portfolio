@@ -69,7 +69,7 @@ const Contact = () => {
     return (
       <div className={`contact-form ${show ? "visible" : "hidden"}`}>
         <InputForm
-          id="contact-form"
+          id="Let's Build Your Website!"
           states={formFields}
           onSubmit={handleSubmit}
           buttonLabel="Send"
@@ -83,12 +83,7 @@ const Contact = () => {
       <div className="contact-container">
         <div className="contact-title">
           <h1>H</h1>
-          <div>
-            <div onClick={handleEmail} className="contact-click">
-              click me
-            </div>
-            <button onClick={handleEmail}>e</button>
-          </div>
+          <h1>e</h1>
           <h1>l</h1>
           <h1>l</h1>
           <h1>o</h1>
