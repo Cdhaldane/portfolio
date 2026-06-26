@@ -158,7 +158,10 @@
 .sk-cell.is-in {
   opacity: 1;
   transform: none;
-  filter: blur(0);
+  /* must be `none`, not blur(0): any non-none filter keeps this element a
+     containing block for the cards' position:fixed code modals, trapping
+     them behind sibling cards. */
+  filter: none;
 }
 .sk-cell > * {
   width: 100%;

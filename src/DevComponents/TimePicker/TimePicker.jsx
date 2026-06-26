@@ -94,9 +94,7 @@ const TimePicker = ({ label, onChange, defaultValue }) => {
           {...dropdownProps}
         >
           <span className="time-select">
-            {selectedHour || (
-              <div style={{ color: "var(--light-grey" }}>00</div>
-            )}
+            {selectedHour || <span className="time-placeholder">00</span>}
           </span>
         </Dropdown>
         <span className="time-label">:</span>
@@ -110,9 +108,7 @@ const TimePicker = ({ label, onChange, defaultValue }) => {
           {...dropdownProps}
         >
           <span className="time-select">
-            {selectedMinute || (
-              <div style={{ color: "var(--light-grey" }}>00</div>
-            )}
+            {selectedMinute || <span className="time-placeholder">00</span>}
           </span>
         </Dropdown>
         <span className="time-label">:</span>
@@ -126,9 +122,7 @@ const TimePicker = ({ label, onChange, defaultValue }) => {
           {...dropdownProps}
         >
           <span className="time-select">
-            {selectedSecond || (
-              <div style={{ color: "var(--light-grey" }}>00</div>
-            )}
+            {selectedSecond || <span className="time-placeholder">00</span>}
           </span>
         </Dropdown>
       </div>

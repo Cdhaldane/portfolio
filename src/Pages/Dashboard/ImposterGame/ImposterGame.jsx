@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { CATEGORIES } from "./words";
 import "./ImposterGame.css";
@@ -13,7 +13,7 @@ const randInt = (n) => Math.floor(Math.random() * n);
 const ImposterGame = () => {
   const [phase, setPhase] = useState("setup"); // setup | reveal | play
   const [players, setPlayers] = useState(["", "", ""]);
-  const [categoryId, setCategoryId] = useState(CATEGORIES[0].id);
+  const [selectedIds, setSelectedIds] = useState([CATEGORIES[0].id]);
   const [hintEnabled, setHintEnabled] = useState(true);
   const [error, setError] = useState("");
 
@@ -25,10 +25,19 @@ const ImposterGame = () => {
   // end-of-round disclosure
   const [busted, setBusted] = useState(false);
 
-  const category = useMemo(
-    () => CATEGORIES.find((c) => c.id === categoryId) ?? CATEGORIES[0],
-    [categoryId]
-  );
+  const allSelected = selectedIds.length === CATEGORIES.length;
+
+  const toggleCategory = (id) => {
+    setError("");
+    setSelectedIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
+    );
+  };
+
+  const toggleAll = () => {
+    setError("");
+    setSelectedIds(allSelected ? [] : CATEGORIES.map((c) => c.id));
+  };
 
   const updatePlayer = (idx, value) =>
     setPlayers((p) => p.map((n, i) => (i === idx ? value : n)));
@@ -40,7 +49,7 @@ const ImposterGame = () => {
     setPlayers((p) => (p.length <= 1 ? p : p.filter((_, i) => i !== idx)));
 
   const dealRound = useCallback(
-    (roster, cat) => {
+    (roster, cats) => {
       const n = roster.length;
       const allImposter = Math.random() < ALL_IMPOSTER_CHANCE;
       const imposters = new Set();
@@ -50,6 +59,9 @@ const ImposterGame = () => {
         imposters.add(randInt(n));
       }
 
+      // Each round draws from a random one of the selected datasets, so the
+      // category shown to players stays a meaningful, single clue.
+      const cat = cats[randInt(cats.length)];
       const word = cat.words[randInt(cat.words.length)];
       // Decoy hint: a different in-theme word so the imposter can bluff.
       let hint = "";
@@ -61,6 +73,7 @@ const ImposterGame = () => {
 
       return {
         roster,
+        cats,
         categoryName: cat.name,
         categoryIcon: cat.icon,
         word,
@@ -83,8 +96,13 @@ const ImposterGame = () => {
       setError("Agent callsigns must be unique.");
       return;
     }
+    const chosen = CATEGORIES.filter((c) => selectedIds.includes(c.id));
+    if (chosen.length === 0) {
+      setError("Select at least one dataset.");
+      return;
+    }
     setError("");
-    setRound(dealRound(roster, category));
+    setRound(dealRound(roster, chosen));
     setCurrent(0);
     setShowRole(false);
     setBusted(false);
@@ -103,7 +121,7 @@ const ImposterGame = () => {
 
   const newRound = () => {
     if (!round) return;
-    setRound(dealRound(round.roster, category));
+    setRound(dealRound(round.roster, round.cats));
     setCurrent(0);
     setShowRole(false);
     setBusted(false);
@@ -168,21 +186,38 @@ const ImposterGame = () => {
           <section className="imp-panel">
             <header className="imp-panel-head">
               <span className="imp-led imp-led--cyan" />
-              <h2>DATASET</h2>
-              <span className="imp-count">{CATEGORIES.length} BANKS</span>
+              <h2>DATASETS</h2>
+              <span className="imp-count">
+                {selectedIds.length} / {CATEGORIES.length} ACTIVE
+              </span>
+              <button
+                className="imp-selectall"
+                onClick={toggleAll}
+                type="button"
+              >
+                <i className={`fa-solid ${allSelected ? "fa-xmark" : "fa-check-double"}`} />
+                {allSelected ? "CLEAR" : "ALL"}
+              </button>
             </header>
 
             <div className="imp-cats">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  className={`imp-cat ${c.id === categoryId ? "is-active" : ""}`}
-                  onClick={() => setCategoryId(c.id)}
-                >
-                  <i className={`fa-solid ${c.icon}`} />
-                  <span>{c.name}</span>
-                </button>
-              ))}
+              {CATEGORIES.map((c) => {
+                const on = selectedIds.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    className={`imp-cat ${on ? "is-active" : ""}`}
+                    onClick={() => toggleCategory(c.id)}
+                    aria-pressed={on}
+                  >
+                    <span className="imp-cat-check" aria-hidden="true">
+                      <i className="fa-solid fa-check" />
+                    </span>
+                    <i className={`fa-solid ${c.icon}`} />
+                    <span>{c.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 

@@ -24,7 +24,7 @@
   font-size: 1em;
   right: 5px;
   top: 3px;
-  color: var(--light-grey);
+  color: var(--primary);
 }
 
 .time-select {
@@ -43,7 +43,12 @@
   font-size: 1.5rem;
   user-select: none; /* Prevent text selection */
   text-align: center;
-  color: var(--light-grey);
+  color: var(--text);
+}
+
+/* placeholder shown before a value is picked — muted but legible */
+.time-placeholder {
+  color: color-mix(in srgb, var(--text) 45%, transparent);
 }
 
 .time-select-dropdown > .dropdown-item {

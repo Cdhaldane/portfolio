@@ -17,6 +17,15 @@ const NODES = [
     to: "/dashboard/imposter",
     status: "online",
   },
+  {
+    id: "crossword",
+    name: "Mini Crossword",
+    tag: "PUZZLE · DAILY",
+    icon: "fa-table-cells",
+    desc: "A new 5×5 mini every day, NYT-style. Beat the clock, fill the grid, come back tomorrow.",
+    to: "/dashboard/crossword",
+    status: "online",
+  },
 ];
 
 const Dashboard = () => {

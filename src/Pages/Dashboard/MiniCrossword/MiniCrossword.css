@@ -1,0 +1,505 @@
+/* ============================================================
+   MINI // CROSSWORD — self-contained cyberpunk terminal.
+   Namespaced under .xw so nothing leaks to the rest of the site.
+   ============================================================ */
+
+.xw {
+  --bg: #05070d;
+  --bg-2: #0a0f1a;
+  --panel: rgba(14, 22, 38, 0.72);
+  --panel-line: rgba(0, 240, 255, 0.18);
+  --grid: rgba(0, 240, 255, 0.05);
+  --cyan: #22f0ff;
+  --magenta: #ff2bd6;
+  --amber: #ffb000;
+  --green: #38ff9c;
+  --text: #d7f7ff;
+  --text-dim: #6f8aa3;
+  --danger: #ff3b5c;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #0e1a33 0%, var(--bg) 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 64px;
+}
+
+.xw::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 80%);
+  z-index: 0;
+}
+
+.xw-shell {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  margin-top: 12px;
+  background: linear-gradient(180deg, rgba(10, 16, 28, 0.9), rgba(6, 10, 18, 0.92));
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 30px 80px -30px rgba(0, 240, 255, 0.25),
+    inset 0 0 60px rgba(0, 240, 255, 0.03);
+  overflow: hidden;
+}
+
+.xw-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  z-index: 3;
+}
+
+.xw-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--cyan);
+  z-index: 4;
+  filter: drop-shadow(0 0 6px var(--cyan));
+}
+.xw-corner--tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+.xw-corner--tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+.xw-corner--bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+.xw-corner--br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+/* ---- title bar ---- */
+.xw-titlebar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.xw-back {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  color: var(--cyan);
+  text-decoration: none;
+  background: rgba(0, 240, 255, 0.04);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+.xw-back:hover {
+  background: rgba(0, 240, 255, 0.14);
+  transform: translateX(-2px);
+  box-shadow: 0 0 14px rgba(34, 240, 255, 0.4);
+}
+.xw-titlebar-text { flex: 1; min-width: 0; }
+.xw-titlebar-text h1 {
+  font-size: clamp(1.05rem, 4vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-shadow: 0 0 18px rgba(34, 240, 255, 0.35);
+}
+.xw-titlebar-text h1 span { color: var(--magenta); margin: 0 1px; }
+.xw-titlebar-text > span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.xw-timer {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  text-shadow: 0 0 10px rgba(56, 255, 156, 0.4);
+}
+
+.xw-body {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- active clue banner ---- */
+.xw-clue-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  background: rgba(34, 240, 255, 0.06);
+  color: var(--text);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  min-height: 54px;
+}
+.xw-clue-arrow {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  flex-shrink: 0;
+  color: var(--cyan);
+  background: rgba(0, 0, 0, 0.25);
+  transition: background 0.18s ease;
+}
+.xw-clue-arrow:hover { background: rgba(34, 240, 255, 0.18); }
+.xw-clue-bar-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 6px;
+  font-size: 0.98rem;
+  line-height: 1.3;
+  font-family: "Inter", sans-serif;
+}
+.xw-clue-bar-text em {
+  font-style: normal;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.24em;
+  color: var(--cyan);
+}
+
+/* ---- grid ---- */
+.xw-grid-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  outline: none;
+}
+.xw-hidden-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  padding: 0;
+  pointer-events: none;
+  left: 50%;
+  top: 50%;
+}
+.xw-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  width: min(100%, 340px);
+  aspect-ratio: 1 / 1;
+  padding: 3px;
+  background: var(--panel-line);
+  border: 2px solid var(--cyan);
+  border-radius: 6px;
+  box-shadow: 0 0 26px rgba(34, 240, 255, 0.25);
+}
+.xw-cell {
+  position: relative;
+  background: rgba(6, 12, 22, 0.96);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.xw-cell--block {
+  background: #02040a;
+  cursor: default;
+}
+.xw-cell-num {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.5rem;
+  line-height: 1;
+  color: var(--text-dim);
+}
+.xw-cell-letter {
+  font-size: clamp(1.1rem, 5.5vw, 1.7rem);
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+}
+.xw-cell.is-word {
+  background: rgba(34, 240, 255, 0.12);
+}
+.xw-cell.is-word .xw-cell-num { color: var(--cyan); }
+.xw-cell.is-sel {
+  background: rgba(255, 43, 214, 0.28);
+  box-shadow: inset 0 0 0 2px var(--magenta), 0 0 16px rgba(255, 43, 214, 0.4);
+}
+.xw-cell.is-sel .xw-cell-num { color: #fff; }
+.xw-cell.is-wrong .xw-cell-letter {
+  color: var(--danger);
+  text-shadow: 0 0 10px rgba(255, 59, 92, 0.6);
+}
+.xw-cell.is-wrong::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 46%, var(--danger) 47%, var(--danger) 53%, transparent 54%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ---- toolbar ---- */
+.xw-toolbar {
+  display: flex;
+  gap: 8px;
+}
+.xw-tool {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 8px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.xw-tool:hover:not(:disabled) {
+  color: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px rgba(34, 240, 255, 0.25);
+}
+.xw-tool:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ---- clue lists ---- */
+.xw-clues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.xw-clue-head {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.xw-clue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.xw-clue-item {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.xw-clue-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+.xw-clue-item.is-active {
+  background: rgba(34, 240, 255, 0.1);
+  border-left-color: var(--cyan);
+  color: var(--text);
+}
+.xw-clue-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--cyan);
+  flex-shrink: 0;
+  min-width: 16px;
+}
+
+/* ---- win overlay ---- */
+.xw-win {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 4, 10, 0.78);
+  backdrop-filter: blur(6px);
+  animation: xw-fade 0.3s ease;
+}
+.xw-win-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 26px;
+  border: 1px solid var(--cyan);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(34, 240, 255, 0.16), transparent 70%),
+    rgba(8, 14, 26, 0.96);
+  box-shadow: 0 0 50px rgba(34, 240, 255, 0.35);
+  animation: xw-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.xw-win-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--amber);
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 176, 0, 0.4);
+  border-radius: 4px;
+}
+.xw-win-title {
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  margin: 4px 0 0;
+  letter-spacing: 0.04em;
+}
+.xw-win-time {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--green);
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.xw-win-sub {
+  font-family: "Inter", sans-serif;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  margin: 0;
+}
+.xw-win-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+.xw-win-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 9px;
+  border: 0;
+  background: linear-gradient(135deg, var(--cyan), var(--magenta));
+  color: #04060a;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.xw-win-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.xw-win-btn--alt {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+}
+
+/* ---- glitch text (reused from imposter aesthetic) ---- */
+.xw-glitch { position: relative; color: var(--text); }
+.xw-glitch::before,
+.xw-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.xw-glitch::before {
+  color: var(--cyan);
+  animation: xw-glitch-x 2.6s infinite linear alternate;
+  clip-path: inset(0 0 55% 0);
+}
+.xw-glitch::after {
+  color: var(--magenta);
+  animation: xw-glitch-y 3.1s infinite linear alternate;
+  clip-path: inset(55% 0 0 0);
+}
+@keyframes xw-glitch-x {
+  0%, 92%, 100% { transform: translate(0, 0); }
+  93% { transform: translate(-2px, -1px); }
+  96% { transform: translate(2px, 1px); }
+}
+@keyframes xw-glitch-y {
+  0%, 90%, 100% { transform: translate(0, 0); }
+  91% { transform: translate(2px, 1px); }
+  95% { transform: translate(-2px, -1px); }
+}
+@keyframes xw-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes xw-pop {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 520px) {
+  .xw-shell { padding: 16px; }
+  .xw-clues { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xw-win,
+  .xw-win-card { animation: none; }
+  .xw-glitch::before,
+  .xw-glitch::after { display: none; }
+  .xw-cell { transition: none; }
+}

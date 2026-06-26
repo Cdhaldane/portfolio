@@ -3,6 +3,21 @@
 // SES, etc.) using credentials kept in Vercel env vars. No OAuth to expire.
 const nodemailer = require("nodemailer");
 
+// Local dev fallback: an unlinked `vercel dev` doesn't inject `.env.local`
+// into functions. If the SMTP vars aren't already in the environment, load
+// them from the project-root .env.local. No-op in production (Vercel provides
+// the vars there, and this file isn't deployed), so the guard stays false.
+if (!process.env.SMTP_HOST) {
+  try {
+    const path = require("path");
+    require("dotenv").config({
+      path: path.resolve(__dirname, "../.env.local"),
+    });
+  } catch (_) {
+    /* dotenv not available / file missing — fall through to the normal guard */
+  }
+}
+
 // Reuse the transport across warm invocations instead of rebuilding per request.
 let transport;
 function getTransport() {

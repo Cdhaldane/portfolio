@@ -17,6 +17,9 @@ const Dashboard = lazy(() => import("./Pages/Dashboard/Dashboard"));
 const ImposterGame = lazy(() =>
   import("./Pages/Dashboard/ImposterGame/ImposterGame")
 );
+const MiniCrossword = lazy(() =>
+  import("./Pages/Dashboard/MiniCrossword/MiniCrossword")
+);
 const Services = lazy(() => import("./Pages/Services/Services"));
 const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
@@ -43,6 +46,7 @@ const App = () => {
           <Route path="/dashboard" element={<DashboardGate />}>
             <Route index element={<Dashboard />} />
             <Route path="imposter" element={<ImposterGame />} />
+            <Route path="crossword" element={<MiniCrossword />} />
           </Route>
         </Routes>
       </Suspense>
