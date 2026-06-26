@@ -19,7 +19,6 @@ import "./CookieConsent.css"; // Make sure to create a corresponding CSS file
 
 const CookieConsent = ({ force }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const isLocalHost = window.location.hostname == "localhost";
 
   useEffect(() => {
     const consent = localStorage.getItem("cookieConsent");

@@ -1,0 +1,173 @@
+/* ============================================================
+   AppSidebar — the reusable left rail (HOME, scroll-progress spine,
+   ring, socials, copyright). Self-contained tokens so it renders
+   identically on every route, independent of the page's palette.
+   ============================================================ */
+
+.ab-rail {
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --paper: #eef2e9;
+  --line: rgba(26, 26, 23, 0.12);
+  --blue: #2f6bff;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 88px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+  background: rgba(238, 242, 233, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-right: 1px solid var(--line);
+}
+
+[data-theme="dark"] .ab-rail {
+  --ink: #eef2e9;
+  --ink-soft: #a7ab9d;
+  --paper: #121310;
+  --line: rgba(238, 242, 233, 0.14);
+  --blue: #6e93ff;
+  --sage: #8fbf7a;
+  --accent: #ff7a5c;
+  background: rgba(18, 19, 16, 0.55);
+}
+
+/* HOME link */
+.ab-rail-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.ab-rail-home i {
+  transition: transform 0.3s ease;
+}
+.ab-rail-home:hover {
+  color: var(--blue);
+}
+.ab-rail-home:hover i {
+  transform: translateX(-4px);
+}
+
+/* monogram shown on the home page in place of the HOME link */
+.ab-rail-mark {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+/* the filling spine */
+.ab-rail-progress {
+  position: relative;
+  flex: 1;
+  width: 3px;
+  margin: 24px 0;
+}
+.ab-rail-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--line);
+}
+.ab-rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(var(--blue), var(--sage), var(--accent));
+  transform: scaleY(var(--progress, 0));
+  transform-origin: top;
+}
+.ab-rail-thumb {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--progress, 0) * 100%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--blue);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.18),
+    0 0 14px 2px rgba(47, 107, 255, 0.6);
+}
+
+/* bottom cluster: ring + socials + copyright */
+.ab-rail-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* circular progress ring */
+.ab-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    var(--blue) calc(var(--progress, 0) * 360deg),
+    var(--line) 0
+  );
+}
+.ab-ring-hole {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.ab-rail-social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.ab-rail-social a {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.ab-rail-social a:hover {
+  color: var(--blue);
+  transform: scale(1.12);
+}
+
+.ab-rail-copy {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  writing-mode: vertical-rl;
+}
+
+@media (max-width: 768px) {
+  .ab-rail {
+    display: none;
+  }
+}

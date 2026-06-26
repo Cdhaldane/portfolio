@@ -9,16 +9,37 @@ const InquiryPage = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you can send the form data to an API or email service
-    console.log("Form Submitted:", formData);
-    setSubmitted(true);
+    setError("");
+    setSending(true);
+    try {
+      const response = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.projectDetails,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Something went wrong.");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Failed to send. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -54,7 +75,10 @@ const InquiryPage = () => {
             required
           ></textarea>
 
-          <button type="submit">Send Inquiry</button>
+          {error && <p className="error-message">{error}</p>}
+          <button type="submit" disabled={sending}>
+            {sending ? "Sending…" : "Send Inquiry"}
+          </button>
         </form>
       )}
     </div>

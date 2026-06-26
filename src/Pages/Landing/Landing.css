@@ -1,62 +1,279 @@
-.landing-container {
-  background-color: var(--bg-primary);
-  color: var(--bg-secondary);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+/* ============================================================
+   Landing — kinetic hero matching the About design language.
+   Theme-aware (keys off the global --text / --bg-primary / --primary
+   tokens) so it flips with the site-wide dark mode.
+   ============================================================ */
+
+.lp {
+  --paper: #eef2e9;
+  --ink: #1a1a17;
+  --blue: #2f6bff;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+  --line-soft: rgba(26, 26, 23, 0.1);
+
+  position: relative;
   min-height: 100vh;
-  height: 100vh;
-  max-height: fit-content;
-  text-align: center;
-  padding: 0px;
+  width: 100%;
+  padding: 10vh 6vw 8vh 8%;
+  display: flex;
+  align-items: center;
   overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Space Grotesk", "Inter", sans-serif;
 }
 
-.landing-buttons {
+/* Dark theme — mirror the About page's deep paper canvas. */
+[data-theme="dark"] .lp {
+  --paper: #121310;
+  --ink: #eef2e9;
+  --blue: #6e93ff;
+  --line-soft: rgba(238, 242, 233, 0.12);
+}
+
+/* ---------- ambient background ---------- */
+.lp-aurora {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  filter: blur(70px);
+  opacity: 0.8;
+}
+.lp-aurora .blob {
+  position: absolute;
+  width: 44vw;
+  height: 44vw;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+}
+.lp-aurora .b1 {
+  background: radial-gradient(circle, rgba(47, 107, 255, 0.5), transparent 70%);
+  top: -8%;
+  left: 18%;
+  animation: lpFloat1 18s ease-in-out infinite;
+}
+.lp-aurora .b2 {
+  background: radial-gradient(circle, rgba(111, 154, 94, 0.55), transparent 70%);
+  bottom: -18%;
+  left: 5%;
+  animation: lpFloat2 22s ease-in-out infinite;
+}
+.lp-aurora .b3 {
+  background: radial-gradient(circle, rgba(255, 93, 59, 0.4), transparent 70%);
+  top: 20%;
+  right: 6%;
+  animation: lpFloat3 20s ease-in-out infinite;
+}
+@keyframes lpFloat1 {
+  50% { transform: translate(6vw, 5vh) scale(1.12); }
+}
+@keyframes lpFloat2 {
+  50% { transform: translate(-4vw, -5vh) scale(1.1); }
+}
+@keyframes lpFloat3 {
+  50% { transform: translate(-6vw, 6vh) scale(0.92); }
+}
+
+[data-theme="dark"] .lp-aurora {
+  opacity: 0.5;
+}
+[data-theme="dark"] .lp-aurora .blob {
+  mix-blend-mode: screen;
+}
+
+.lp-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    340px circle at var(--mx, 30%) var(--my, 40%),
+    rgba(255, 255, 255, 0.45),
+    transparent 60%
+  );
+}
+[data-theme="dark"] .lp-spotlight {
+  background: radial-gradient(
+    340px circle at var(--mx, 30%) var(--my, 40%),
+    rgba(255, 255, 255, 0.06),
+    transparent 60%
+  );
+}
+
+.lp-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 30% 45%, #000, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 30% 45%, #000, transparent 78%);
+  opacity: 0.4;
+}
+
+/* ---------- hero content ---------- */
+.lp-hero {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+}
+
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.75;
+  margin-bottom: 1.6rem;
+}
+.lp-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(255, 93, 59, 0.5);
+  animation: lpPulse 2s ease-out infinite;
+}
+@keyframes lpPulse {
+  to { box-shadow: 0 0 0 12px rgba(255, 93, 59, 0); }
+}
+
+/* kinetic name */
+.lp-name {
+  margin: 0 0 1.8rem;
+  font-size: clamp(3rem, 12vw, 11rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+.lp-word {
+  display: block;
+}
+.lp-letter {
+  display: inline-block;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(0.9em) rotate(6deg);
+  animation: lpLetterIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.3s ease;
+}
+.lp-word:last-child .lp-letter {
+  background: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.lp-letter:hover {
+  transform: translateY(-0.06em) rotate(-3deg) scale(1.04);
+}
+@keyframes lpLetterIn {
+  to { opacity: 1; transform: none; }
+}
+
+.lp-tagline {
+  max-width: 52ch;
+  font-family: "Inter", sans-serif;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.6;
+  opacity: 0.78;
+  margin-bottom: 3rem;
+}
+
+/* ---------- nav ---------- */
+.lp-nav {
   display: flex;
   flex-direction: column;
+  max-width: 560px;
+  border-top: 1px solid var(--line-soft);
+}
+.lp-nav-item {
+  position: relative;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0px;
-  margin: 0px;
-  gap: 20px;
-}
-
-.landing-buttons ul {
-  width: 100%;
-  padding: 10px;
-  margin: 0px;
-}
-
-.landing-buttons ul li {
-  padding: 10px;
-  margin: 0px;
-}
-
-.landing-button {
-  font-size: 1.5rem;
-  border: 2px solid var(--pr);
-}
-
-.landing-button > a {
-  color: var(--bg-primary);
+  gap: 1.2rem;
+  padding: 1.05rem 1.2rem;
   text-decoration: none;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-soft);
+  overflow: hidden;
+  isolation: isolate;
+}
+.lp-nav-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, var(--blue), var(--blue));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-nav-item:hover .lp-nav-fill {
+  transform: scaleX(1);
+}
+.lp-nav-index {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  opacity: 0.5;
+  transition: color 0.35s ease, opacity 0.35s ease;
+}
+.lp-nav-label {
+  flex: 1;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transform: translateX(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s ease;
+}
+.lp-nav-arrow {
+  font-size: 1.1rem;
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.35s ease;
+}
+.lp-nav-item:hover .lp-nav-index,
+.lp-nav-item:hover .lp-nav-label,
+.lp-nav-item:hover .lp-nav-arrow {
+  color: #fff;
+}
+.lp-nav-item:hover .lp-nav-index {
+  opacity: 0.8;
+}
+.lp-nav-item:hover .lp-nav-label {
+  transform: translateX(10px);
+}
+.lp-nav-item:hover .lp-nav-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.landing-button:hover {
-  color: var(--bg-primary) !important;
-  scale: 1.01;
-}
-
-.landing-button.inquiry {
-  background-color: var(--black) !important;
-  color: var(--bg-primary) !important;
-  padding: 10px 20px;
-}
-
+/* ---------- responsive ---------- */
 @media only screen and (max-width: 768px) {
-  .landing-container {
-    flex-direction: column;
+  .lp {
+    padding: 12vh 8vw 8vh 14vw;
+    align-items: flex-start;
+  }
+  .lp-tagline {
+    margin-bottom: 2rem;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .lp *,
+  .lp *::before,
+  .lp *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .lp-letter {
+    opacity: 1;
+    transform: none;
   }
 }

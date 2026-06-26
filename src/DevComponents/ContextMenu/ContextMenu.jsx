@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom";
 import AnimatedDiv from "../AnimatedDiv/AnimatedDiv";
-import PropTypes from "prop-types";
 import "./ContextMenu.css";
 
 let oldKey;

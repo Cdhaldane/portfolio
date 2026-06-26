@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import Dropdown from "../Dropdown/Dropdown";
+import React, { useEffect, useState } from "react";
 import Modal from "../Modal/Modal";
 import Input from "../Input/Input"; // Importing the Input component
 import AnimatedDiv from "../AnimatedDiv/AnimatedDiv";
@@ -32,7 +31,7 @@ const DatePicker = ({ label, onChange = () => {}, defaultValue }) => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [enterAnimation, setEnterAnimation] = useState("slideInLeft");
-  const [exitAnimation, setExitAnimation] = useState("slideOutRight");
+  const [exitAnimation] = useState("slideOutRight");
 
   // Open the calendar
   const openCalendar = () => {

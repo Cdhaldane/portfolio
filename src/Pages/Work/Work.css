@@ -1,0 +1,293 @@
+/* ============================================================
+   Work — portfolio gallery with a cursor-following preview.
+   Shares the site design language; scoped under .wk.
+   ============================================================ */
+
+.wk {
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --paper: #eef2e9;
+  --line: rgba(26, 26, 23, 0.14);
+  --blue: #2f6bff;
+  --accent: #ff5d3b;
+
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 12vh 6vw 8vh 88px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  overflow: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+[data-theme="dark"] .wk {
+  --ink: #eef2e9;
+  --ink-soft: #a7ab9d;
+  --paper: #121310;
+  --line: rgba(238, 242, 233, 0.16);
+  --blue: #6e93ff;
+  --accent: #ff7a5c;
+}
+
+@media (max-width: 768px) {
+  .wk {
+    padding: 10vh 7vw 6vh;
+  }
+}
+
+/* ---------- ambient ---------- */
+.wk-aurora {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  filter: blur(80px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.wk-aurora .blob {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+}
+.wk-aurora .b1 {
+  background: radial-gradient(circle, rgba(47, 107, 255, 0.45), transparent 70%);
+  top: -12%;
+  right: 6%;
+  animation: wkFloat1 20s ease-in-out infinite;
+}
+.wk-aurora .b2 {
+  background: radial-gradient(circle, rgba(255, 93, 59, 0.32), transparent 70%);
+  bottom: -18%;
+  left: 4%;
+  animation: wkFloat2 24s ease-in-out infinite;
+}
+@keyframes wkFloat1 {
+  50% { transform: translate(-5vw, 5vh) scale(1.1); }
+}
+@keyframes wkFloat2 {
+  50% { transform: translate(5vw, -4vh) scale(1.12); }
+}
+[data-theme="dark"] .wk-aurora {
+  opacity: 0.45;
+}
+[data-theme="dark"] .wk-aurora .blob {
+  mix-blend-mode: screen;
+}
+
+/* ---------- hero ---------- */
+.wk-hero {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto 5rem;
+}
+.wk-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 1.4rem;
+}
+.wk-eyebrow .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(255, 93, 59, 0.5);
+  animation: wkPulse 2s ease-out infinite;
+}
+@keyframes wkPulse {
+  to { box-shadow: 0 0 0 12px rgba(255, 93, 59, 0); }
+}
+.wk-title {
+  font-size: clamp(3.5rem, 16vw, 13rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  margin: 0 0 1.6rem;
+  display: flex;
+}
+.wk-letter {
+  display: inline-block;
+  background: linear-gradient(180deg, var(--ink), var(--ink-soft));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  transform: translateY(0.9em) rotate(6deg);
+  animation: wkLetterIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes wkLetterIn {
+  to { opacity: 1; transform: none; }
+}
+.wk-lead {
+  max-width: 54ch;
+  font-family: "Inter", sans-serif;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* ---------- project list ---------- */
+.wk-list {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+}
+.wk-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  padding: 2.2rem 1rem;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+  isolation: isolate;
+  transition: padding-left 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.35s ease;
+}
+.wk-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--proj, var(--blue));
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wk-item:hover {
+  padding-left: 1.75rem;
+}
+.wk-item:hover::before {
+  transform: scaleY(1);
+}
+.wk-item-index {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: color 0.35s ease;
+}
+.wk-item:hover .wk-item-index {
+  color: var(--proj, var(--blue));
+}
+.wk-item-name {
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wk-item:hover .wk-item-name {
+  color: var(--proj, var(--blue));
+}
+.wk-item-meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  text-align: right;
+}
+.wk-item-arrow {
+  font-size: 1.2rem;
+  color: var(--proj, var(--blue));
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wk-item:hover .wk-item-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* inline thumbnail — hidden on desktop (the cursor preview takes over),
+   shown on touch / small screens */
+.wk-item-thumb {
+  display: none;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+/* ---------- floating cursor preview ---------- */
+.wk-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.wk-preview-inner {
+  position: relative;
+  width: 360px;
+  aspect-ratio: 16 / 10;
+  transform: translate(28px, -50%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px var(--proj, transparent);
+  will-change: transform, opacity;
+}
+.wk-preview-inner img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+/* Pointers that can't hover (touch): drop the floating preview, show thumbs */
+@media (hover: none), (max-width: 768px) {
+  .wk-preview {
+    display: none;
+  }
+  .wk-item {
+    grid-template-columns: auto 1fr;
+    grid-auto-flow: row;
+    gap: 0.6rem 1.5rem;
+  }
+  .wk-item-meta {
+    grid-column: 2;
+    text-align: left;
+  }
+  .wk-item-arrow {
+    display: none;
+  }
+  .wk-item-thumb {
+    display: block;
+    margin-top: 0.8rem;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .wk *,
+  .wk *::before,
+  .wk *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .wk-letter {
+    opacity: 1;
+    transform: none;
+  }
+}

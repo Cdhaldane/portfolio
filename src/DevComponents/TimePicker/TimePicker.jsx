@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import Input from "../Input/Input"; // Importing the Input component
 import Dropdown from "../Dropdown/Dropdown";
 import "./TimePicker.css"; // Importing the CSS file for styling
 
@@ -25,7 +24,7 @@ const TimePicker = ({ label, onChange, defaultValue }) => {
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
   const [selectedSecond, setSelectedSecond] = useState("");
-  const [timeWidth, setTimeWidth] = useState("100%"); // State variable to store the width of the time picker
+  const [timeWidth] = useState("100%"); // State variable to store the width of the time picker
   const timeRef = useRef(null);
 
   useEffect(() => {

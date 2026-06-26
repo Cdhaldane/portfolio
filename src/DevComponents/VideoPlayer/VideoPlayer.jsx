@@ -1,7 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import Spinner from "../Spinner/Spinner";
+import React, { useState, useRef, useEffect } from "react";
 import { useEventListener } from "../../Utils";
-import AvailableLanguages from "./AvailableLanguages/AvailableLanguages";
 import ToolTip from "../ToolTip/ToolTip";
 import VideoPlayerSettings from "./VideoPlayerSettings";
 
@@ -22,7 +20,6 @@ const VideoPlayer = ({ videoSource }) => {
   const [resolution, setResolution] = useState("1080p");
   const [isFullScreen, setFullscreen] = useState(false);
   const [isCursorVisible, setIsCursorVisible] = useState(true);
-  const [spinner, setSpinner] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
 
   const mouseMoveTimer = useRef(null);

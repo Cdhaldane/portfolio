@@ -4,29 +4,65 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="description" content="Charlie" />
+  <meta name="theme-color" content="#2d2d2a" />
+  <meta name="description"
+    content="Charlie Haldane builds fast, well-designed websites and web apps for businesses in Peterborough, Ontario. React, Webflow & full-stack development." />
+
+  <link rel="icon" href="%PUBLIC_URL%/C_Logo.png" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/C_Logo.png" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <link rel="canonical" href="https://charliehaldane.ca/" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/1/19/C_Logo.png">
   <link
-    href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=IBM+Plex+Mono:wght@700&family=Kalam&family=Luxurious+Roman&family=Moon+Dance&family=Nanum+Brush+Script&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800;900&family=Kalam&family=Luxurious+Roman&family=Moon+Dance&family=Nanum+Brush+Script&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <title>Charlie Haldane</title>
+  <title>Charlie Haldane — Web Developer in Peterborough, Ontario</title>
+
+  <!-- Set the colour theme before first paint to avoid a flash of the wrong theme -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("isDarkMode");
+        var dark = stored !== null
+          ? JSON.parse(stored)
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <!-- Local business structured data for search engines -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "Charlie Haldane Web Development",
+      "description": "Web design and development for businesses in Peterborough, Ontario.",
+      "url": "https://charliehaldane.ca",
+      "areaServed": {
+        "@type": "City",
+        "name": "Peterborough",
+        "containedInPlace": { "@type": "State", "name": "Ontario" }
+      },
+      "founder": { "@type": "Person", "name": "Charlie Haldane" },
+      "knowsAbout": ["Web Development", "React", "Webflow", "UI/UX Design", "Full Stack Development"],
+      "sameAs": [
+        "https://github.com/Cdhaldane",
+        "https://www.linkedin.com/in/charliehaldaneuottawa/",
+        "https://www.instagram.com/charliedhaldane/"
+      ]
+    }
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
-  </script>
   <script src="https://kit.fontawesome.com/4249438ee7.js" crossorigin="anonymous"></script>
-  <script type="text/javascript">
-    (function () {
-      emailjs.init("g49oHx9bZd0NTtYal");
-    })();
-  </script>
-
 </body>
 
 </html>

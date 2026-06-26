@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import ReactDOMServer, { renderToString } from "react-dom/server";
+import React, { useState } from "react";
+import Seo from "../../Components/Seo/Seo";
 import Card from "../../Components/Card/Card";
 import Button from "../../DevComponents/Button/Button";
 import Dropdown from "../../DevComponents/Dropdown/Dropdown";
@@ -70,7 +70,7 @@ import videoPlayerCSS from "!!raw-loader!../../DevComponents/VideoPlayer/VideoPl
 import videoPlayerString from "!!raw-loader!../../DevComponents/VideoPlayer/VideoPlayer.jsx";
 
 const ComponentShowcase = () => {
-  const [orientation, setOrientation] = useState("horizontal");
+  const [orientation] = useState("horizontal");
   const [contextMenu, setContextMenu] = useState({
     key: 0,
     visible: false,
@@ -101,15 +101,20 @@ const ComponentShowcase = () => {
 
   return (
     <div className="showcase-container">
-      <h1>Reusable React Components Showcase</h1>
-      {/* <RadioGroup
-        options={[
-          { value: "horizontal-grid", label: "Horizontal" },
-          { value: "vertical-grid", label: "Vertical" },
-        ]}
-        onChange={(value) => setOrientation(value)}
-        multiSelect={false}
-      /> */}
+      <Seo
+        title="Component Library"
+        path="/showcase"
+        description="A custom React component library by Charlie Haldane — buttons, inputs, date/time pickers, a video player, context menus and more, each with live demos and source."
+      />
+      <header className="showcase-intro">
+        <h1>Component Library</h1>
+        <p>
+          A hand-built collection of reusable React components I use across
+          client projects — fully custom, dependency-light, accessible and
+          themeable. Each card below is a live, interactive demo; expand it to
+          view the source and styles.
+        </p>
+      </header>
       <div
         className={`showcase-grid ${orientation}`}
         style={{
@@ -169,7 +174,7 @@ const ComponentShowcase = () => {
         >
           <Dropdown
             options={["Option 1", "Option 2", "Option 3"]}
-            onClick={(s) => console.log("Selected:", s)}
+            onClick={(s) => alert.showAlert("info", `Selected: ${s}`)}
             listType="checkbox"
           >
             Dropdown Checkbox
@@ -177,7 +182,7 @@ const ComponentShowcase = () => {
 
           <Dropdown
             options={["Option 1", "Option 2", "Option 3"]}
-            onClick={(s) => console.log("Selected:", s)}
+            onClick={(s) => alert.showAlert("info", `Selected: ${s}`)}
             enableSearch
           >
             Dropdown List
@@ -227,7 +232,6 @@ const ComponentShowcase = () => {
             className="context-menu-source-container"
             onContextMenu={(e) => {
               e.preventDefault();
-              console.log(e);
               setContextMenu({
                 key: 1,
                 visible: true,

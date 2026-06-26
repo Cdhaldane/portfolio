@@ -8,7 +8,7 @@ const ToolTip = ({
   delay = 200,
   style,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [, setIsVisible] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
 
   const handleMouseEnter = () => {

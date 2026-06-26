@@ -1,152 +1,391 @@
-.contact-container {
+/* ============================================================
+   Contact — new design philosophy + Material ("Google") motion:
+   floating-label fields, center-out focus underlines, click ripples,
+   a morphing send button, and staggered reveals.
+   ============================================================ */
+
+.cf {
+  --paper: #eef2e9;
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --card: #ffffff;
+  --line: rgba(26, 26, 23, 0.14);
+  --blue: #2f6bff;
+  --blue-deep: #1741c9;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+  --success: #1faa59;
+  /* Material standard + emphasized easing */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emph: cubic-bezier(0.2, 0, 0, 1);
+
+  position: relative;
+  min-height: 100vh;
   width: 100%;
-  padding: 5%;
-  margin-top: -50px;
-  text-align: left;
-  color: var(--bgGreen) !important;
-  margin-right: -150px;
-  margin-left: var(--sideBoxWidth);
-}
-
-.contact-container h1 {
-  font-size: 300px;
-  margin-bottom: 20px;
-  font-family: "Quicksand", sans-serif;
-  font-weight: 300;
-  animation: appear 1s ease-out 0s;
-}
-
-.contact-title {
+  padding: 8vh 6vw 8vh 8%;
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  z-index: 0;
+  align-items: center;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Space Grotesk", "Inter", sans-serif;
 }
 
-.contact-title > div {
+[data-theme="dark"] .cf {
+  --paper: #121310;
+  --ink: #eef2e9;
+  --ink-soft: #a7ab9d;
+  --card: #1b1d18;
+  --line: rgba(238, 242, 233, 0.16);
+  --blue: #6e93ff;
+  --blue-deep: #3f6fff;
+}
+
+/* ---------- ambient background ---------- */
+.cf-aurora {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  filter: blur(70px);
+  opacity: 0.75;
+}
+.cf-aurora .blob {
+  position: absolute;
+  width: 42vw;
+  height: 42vw;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+}
+.cf-aurora .b1 {
+  background: radial-gradient(circle, rgba(47, 107, 255, 0.5), transparent 70%);
+  top: -10%;
+  right: 10%;
+  animation: cfFloat1 18s ease-in-out infinite;
+}
+.cf-aurora .b2 {
+  background: radial-gradient(circle, rgba(111, 154, 94, 0.5), transparent 70%);
+  bottom: -16%;
+  right: 26%;
+  animation: cfFloat2 22s ease-in-out infinite;
+}
+.cf-aurora .b3 {
+  background: radial-gradient(circle, rgba(255, 93, 59, 0.38), transparent 70%);
+  top: 30%;
+  left: 6%;
+  animation: cfFloat3 20s ease-in-out infinite;
+}
+@keyframes cfFloat1 {
+  50% { transform: translate(-6vw, 6vh) scale(1.12); }
+}
+@keyframes cfFloat2 {
+  50% { transform: translate(5vw, -5vh) scale(1.1); }
+}
+@keyframes cfFloat3 {
+  50% { transform: translate(6vw, 5vh) scale(0.92); }
+}
+[data-theme="dark"] .cf-aurora {
+  opacity: 0.5;
+}
+[data-theme="dark"] .cf-aurora .blob {
+  mix-blend-mode: screen;
+}
+
+.cf-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 70% 50%, #000, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 70% 50%, #000, transparent 78%);
+  opacity: 0.35;
+}
+
+/* ---------- layout ---------- */
+.cf-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5%;
+  align-items: center;
+}
+
+/* ---------- intro ---------- */
+.cf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.75;
+  margin-bottom: 1.4rem;
+}
+.cf-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(31, 170, 89, 0.5);
+  animation: cfPulse 2s ease-out infinite;
+}
+@keyframes cfPulse {
+  to { box-shadow: 0 0 0 12px rgba(31, 170, 89, 0); }
+}
+
+.cf-title {
+  margin: 0 0 1.6rem;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+.cf-space {
+  display: inline-block;
+}
+.cf-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.8em) rotate(6deg);
+  animation: cfLetterIn 0.85s var(--ease-emph) forwards;
+  background: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@keyframes cfLetterIn {
+  to { opacity: 1; transform: none; }
+}
+
+.cf-lead {
+  max-width: 42ch;
+  font-family: "Inter", sans-serif;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.6;
+  opacity: 0.78;
+  margin-bottom: 2rem;
+}
+
+/* email copy chip — with ripple */
+.cf-email {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.cf-email:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+.cf-email i {
+  color: var(--blue);
+}
+.cf-email-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success);
+  font-size: 0.85rem;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.cf-email-copied.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ---------- form card (Material elevation) ---------- */
+.cf-card {
   display: flex;
   flex-direction: column;
+  gap: 1.4rem;
+  padding: 2.6rem;
+  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 50px rgba(26, 26, 23, 0.12);
+}
+.cf-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+
+/* honeypot — visually removed but still in the DOM for bots to trip on */
+.cf-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Material floating-label text field */
+.cf-field {
+  position: relative;
+}
+.cf-input {
+  width: 100%;
+  padding: 1.5rem 0.2rem 0.6rem;
+  border: none;
+  border-bottom: 2px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s var(--ease);
+}
+.cf-input::placeholder {
+  color: transparent;
+}
+.cf-label {
+  position: absolute;
+  left: 0.2rem;
+  top: 1.4rem;
+  color: var(--ink-soft);
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.2s var(--ease-emph), color 0.2s var(--ease);
+}
+/* float the label up when focused or filled */
+.cf-input:focus ~ .cf-label,
+.cf-input:not(:placeholder-shown) ~ .cf-label {
+  transform: translateY(-1.35rem) scale(0.78);
+  color: var(--blue);
+}
+/* center-out underline that grows on focus — the Material signature */
+.cf-underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--sage));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.35s var(--ease-emph);
+}
+.cf-input:focus ~ .cf-underline {
+  transform: scaleX(1);
+}
+
+/* ---------- morphing send button ---------- */
+.cf-send {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.contact-click {
-  position: absolute;
-  transform: translateY(22px);
-  z-index: 2;
-  font-size: 10px;
-  cursor: pointer;
-  color: var(--bgGreen) !important;
-  background-color: transparent;
-}
-
-.contact-container p {
-  font-size: 0.8rem;
-  font-weight: 100;
-  margin-left: 1%;
-  margin-bottom: 20px;
-  animation: appear 1s ease-out 0s;
-}
-
-.contact-container button {
-  font-size: 300px;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+  padding: 1rem 1.5rem;
   border: none;
   border-radius: 100px;
-  color: #007bff;
-  text-decoration: underline;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
   cursor: pointer;
-  animation: appear 1s ease-out 0s;
-  background-color: transparent;
+  box-shadow: 0 8px 22px rgba(26, 26, 23, 0.25);
+  transition: background 0.4s var(--ease), transform 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
+}
+.cf-send:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: var(--blue);
+  box-shadow: 0 14px 32px rgba(47, 107, 255, 0.4);
+}
+.cf-send:disabled {
+  cursor: progress;
+}
+.cf-send.is-sent {
+  background: var(--success);
+  box-shadow: 0 14px 32px rgba(31, 170, 89, 0.4);
+}
+.cf-send.is-error {
+  background: var(--accent);
+}
+.cf-send-icon {
+  display: inline-flex;
+  transition: transform 0.4s var(--ease-emph);
+}
+.cf-send:hover:not(:disabled) .cf-send-icon {
+  transform: translateX(4px) rotate(8deg);
 }
 
-.contact-container > p > a {
-  color: #007bff;
+/* Material ripple (used by .cf-send and .cf-email) */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: rgba(255, 255, 255, 0.45);
+  animation: rippleOut 0.6s var(--ease) forwards;
+  pointer-events: none;
+}
+.cf-email .ripple {
+  background: rgba(47, 107, 255, 0.22);
+}
+@keyframes rippleOut {
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
 }
 
-.contact-copied {
-  animation: appear 1s ease-out 0s;
-  color: #333;
-  text-decoration: wavy underline;
-  font-size: 0.8rem !important;
-  width: 100px;
-  margin-top: 20px;
+/* ---------- responsive ---------- */
+@media only screen and (max-width: 900px) {
+  .cf-inner {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
 }
-
-.contact-form {
-  width: 70%;
-  padding: 5%;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  margin-right: 5%;
-  background-color: var(--white);
-  padding: 50px;
-  font-size: 1em;
-
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.contact-form.visible {
-  left: 0px;
-  visibility: visible;
-}
-
-.contact-form input,
-.contact-form textarea {
-  background-color: var(--light-grey);
-}
-
-.contact-form label {
-  color: var(--dark) !important;
-}
-
-.contact-form button:hover {
-  background-color: var(--primary-hover) !important;
-  color: var(--white) !important;
-}
-
 @media only screen and (max-width: 768px) {
-  .contact-container {
-    padding: 5%;
-    margin-right: 0px;
-    margin-left: 50px;
+  .cf {
+    padding: 12vh 7vw 8vh 7vw;
+    align-items: flex-start;
   }
-
-  .contact-container h1 {
-    font-size: 100px;
-    margin-bottom: 10px;
+  .cf-card {
+    padding: 1.8rem;
   }
+}
 
-  .contact-click {
-    font-size: 6px;
-    transform: translateY(7px);
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cf *,
+  .cf *::before,
+  .cf *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
-
-  .contact-container p {
-    font-size: 0.7rem;
-    margin-bottom: 10px;
-  }
-
-  .contact-container button {
-    padding: 0px;
-    font-size: 100px;
-  }
-
-  .contact-form {
-    margin-top: 0;
-    margin: 0 auto;
-    margin-left: 40px;
-    padding: 20px;
-    width: 85%;
-    height: fit-content;
-    font-size: 0.8em !important;
-    left: 0px;
-    /* Reset the left positioning */
-  }
-
-  .landing-container {
-    flex-direction: column;
+  .cf-letter {
+    opacity: 1;
+    transform: none;
   }
 }

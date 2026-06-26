@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { isReadable } from "../../Utils";
 import "./ThemeSwitch.css";
 
 /**
@@ -18,10 +17,21 @@ import "./ThemeSwitch.css";
  * - JSX for rendering the theme switch with icons for light and dark modes.
  */
 
-function ThemeSwitch({ className = "", organization }) {
-  const [isDarkMode, setIsDarkMode] = useState(
-    JSON.parse(localStorage.getItem("isDarkMode")) || false
+/**
+ * Resolve the starting theme: an explicit stored choice wins; otherwise fall
+ * back to the OS-level colour-scheme preference.
+ */
+const getInitialDarkMode = () => {
+  const stored = localStorage.getItem("isDarkMode");
+  if (stored !== null) return JSON.parse(stored);
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-color-scheme: dark)").matches
   );
+};
+
+function ThemeSwitch({ className = "", organization }) {
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const sunRef = useRef(null);
   const moonRef = useRef(null);
   const location = useLocation();
@@ -37,16 +47,21 @@ function ThemeSwitch({ className = "", organization }) {
       document.body.classList.remove("light-mode");
     }
 
+    // The data-theme attribute on <html> is the single source of truth that all
+    // CSS variables key off of (see App.css / About.css).
+    document.documentElement.setAttribute(
+      "data-theme",
+      isDarkMode ? "dark" : "light"
+    );
+
     localStorage.setItem("isDarkMode", isDarkMode);
 
     if (!organization) return;
 
-    const isHomePage = location.pathname.includes("home");
 
     const defaultLightPrimary = "#4b4b4b";
     const defaultDarkPrimary = "#88f188";
     const defaultSecondary = "#ee8484";
-    const backgroundColor = isDarkMode ? "#2d2d2a" : "#fdfdfd";
 
     const primaryColor = organization.org_settings?.primaryColor
       ? organization.org_settings.primaryColor
@@ -105,7 +120,11 @@ export default ThemeSwitch;
  * Initialize Theme on App Load
  */
 export const initializeTheme = () => {
-  const isDarkMode = JSON.parse(localStorage.getItem("isDarkMode")) || false;
+  const isDarkMode = getInitialDarkMode();
+  document.documentElement.setAttribute(
+    "data-theme",
+    isDarkMode ? "dark" : "light"
+  );
   if (isDarkMode) {
     document.body.classList.remove("light-mode");
   } else {

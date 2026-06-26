@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useId } from "react";
-import { useDidMountEffect } from "../../Utils";
+import React, { useState, useEffect } from "react";
 import "./AnimatedDiv.css";
 
 /**

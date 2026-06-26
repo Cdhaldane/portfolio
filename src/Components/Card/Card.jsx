@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import Button from "../../DevComponents/Button/Button";
 import Modal from "../../DevComponents/Modal/Modal";
