@@ -24,13 +24,13 @@
   font-size: 0.5em;
   top: 2%;
   right: 1px;
-  background-color: var(--bg-primary);
+  background-color: var(--offwhite);
   width: 70px;
-  border-radius: 0 5px 5px 0;
+  border-radius: 0 10px 10px 0;
   height: 96%;
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.1s ease-in-out;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,7 +39,8 @@
 .input-submit-button:hover,
 .input-submit-button:active,
 .input-submit-button:focus {
-  background-color: var(--bg-primary) !important;
+  background-color: var(--offwhite) !important;
+  color: var(--primary-hover);
 }
 
 .input-container .icon {
@@ -51,15 +52,16 @@
 .input-container textarea,
 .input-container select {
   padding: 20px 0 7px 10px;
-  border: 2px solid var(--light-grey);
-  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
   font-size: 16px;
   height: 100% !important;
-  background-color: var(--bg-primary);
-  color: var(--primary) !important;
+  background-color: var(--offwhite);
+  color: var(--text) !important;
   font-size: 1.2em;
   overflow: hidden;
-  transition: border-color 0.3s ease-in-out;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input-container textarea {
@@ -72,7 +74,7 @@
 
 .input-container select {
   padding: 15px 10px 15px 5px;
-  color: var(--light-grey) !important;
+  color: var(--text) !important;
   font-weight: 600;
 }
 
@@ -113,8 +115,17 @@
 
 .input-container:focus,
 .input-container input:focus,
-.input-container textarea:focus {
+.input-container textarea:focus,
+.input-container select:focus {
   outline: none;
+}
+
+.input-container input:focus-visible,
+.input-container textarea:focus-visible,
+.input-container select:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .input-container textarea:hover,
@@ -130,12 +141,12 @@
 
 .input-container input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px inherit inset;
-  -webkit-text-fill-color: var(--primary) !important;
+  -webkit-text-fill-color: var(--text) !important;
 }
 
 .input-container.has-suggestions input {
   border-bottom: none;
-  border-radius: 5px 5px 0 0 !important;
+  border-radius: 10px 10px 0 0 !important;
 }
 
 .changed:not(.active) input:required,
@@ -202,9 +213,9 @@
 .input-suggestions-dropdown {
   position: absolute;
   top: 100%;
-  border: 1px solid var(--primary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   border-top: none;
-  border-radius: 0px 0px 5px 5px;
+  border-radius: 0px 0px 14px 14px;
   list-style: none;
   max-height: 150px;
   overflow-y: scroll;
@@ -214,20 +225,29 @@
   padding-inline-start: 0px;
   margin-block-start: 0px;
   margin-block-end: 0px;
+  background-color: var(--offwhite);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
   animation: cascade-down 0.3s ease-in-out;
 }
 
 .input-suggestion-item {
   padding: 0em 0.5em;
   height: 40px !important;
-  background-color: var(--bg-primary);
-  color: var(--primary);
+  display: flex;
+  align-items: center;
+  background-color: var(--offwhite);
+  color: var(--text);
   cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .input-suggestion-item:nth-of-type(odd) {
-  background-color: var(--bg-secondary);
+  background-color: color-mix(in srgb, var(--text) 5%, var(--offwhite));
+}
+
+.input-suggestion-item:hover {
+  background-color: var(--primary);
+  color: #fff;
 }
 
 @media screen and (max-width: 768px) {

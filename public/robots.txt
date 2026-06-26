@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /dashboard
-Disallow: /inquiry
 
 Sitemap: https://charliehaldane.ca/sitemap.xml

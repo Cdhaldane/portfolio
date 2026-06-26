@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Spinner from "./DevComponents/Spinner/Spinner";
 import ThemeSwitch from "./DevComponents/ThemeSwitch/ThemeSwitch";
 import AppSidebar from "./Components/AppSidebar/AppSidebar";
+import DashboardGate from "./Pages/Dashboard/DashboardGate";
 
 import "./App.css";
 
@@ -12,7 +13,6 @@ const WorkPage = lazy(() => import("./Pages/Work/Work"));
 const AboutPage = lazy(() => import("./Pages/About/About"));
 const ContactPage = lazy(() => import("./Pages/Contact/Contact"));
 const Showcase = lazy(() => import("./Pages/Showcase/Showcase"));
-const InquiryPage = lazy(() => import("./Pages/Inquiry/Inquiry"));
 const Dashboard = lazy(() => import("./Pages/Dashboard/Dashboard"));
 const ImposterGame = lazy(() =>
   import("./Pages/Dashboard/ImposterGame/ImposterGame")
@@ -40,9 +40,10 @@ const App = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/showcase" element={<Showcase />} />
-          <Route path="/inquiry" element={<InquiryPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/imposter" element={<ImposterGame />} />
+          <Route path="/dashboard" element={<DashboardGate />}>
+            <Route index element={<Dashboard />} />
+            <Route path="imposter" element={<ImposterGame />} />
+          </Route>
         </Routes>
       </Suspense>
     </div>

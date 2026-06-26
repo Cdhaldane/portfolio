@@ -2,23 +2,25 @@
   position: absolute !important;
   z-index: 1000;
   background-color: var(--primary) !important;
-  color: var(--bg-secondary) !important;
-  border-radius: 5px;
+  color: #fff !important;
+  border-radius: 14px;
   margin: 0;
   display: none;
   list-style: none;
-  /* box-shadow: 0 2px 5px var(--primary); */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
   animation: contextGrow 0.3s ease-in-out normal forwards;
   transition: left 0.3s ease-in-out, top 0.3s ease-in-out;
   opacity: 0;
-  border: 2px solid var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  overflow: hidden;
 }
 
 .context-menu-option {
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: all 0.3s ease-in-out;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .context-menu-option > span {
@@ -38,11 +40,11 @@
 
 .context-menu-option:last-child,
 .context-menu-option:last-child > i {
-  border-radius: 0px 0px 0px 2px;
+  border-radius: 0px 0px 0px 10px;
 }
 .context-menu-option:first-child,
 .context-menu-option:first-child > i {
-  border-radius: 2px 0px 0px 0px;
+  border-radius: 10px 0px 0px 0px;
 }
 
 .context-menu-option.circle {
@@ -53,11 +55,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: transform 0.2s;
   font-size: 1em;
-  border: 2px solid var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
 }
 .context-menu-option.circle > i {
   display: flex;
@@ -81,11 +83,11 @@
 
 .context-menu-source-container {
   display: inline-block;
-  color: var(--bg-secondary);
+  color: #fff;
   padding: 5px 10px;
-  border: 2px solid var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   background-color: var(--primary);
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: default;
 }
 

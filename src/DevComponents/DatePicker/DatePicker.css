@@ -1,9 +1,10 @@
 .date-picker-container {
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-secondary);
-  border-radius: 5px;
-  border: 1px solid var(--light-grey);
+  background-color: var(--offwhite);
+  color: var(--text);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   padding: 15px 0px;
   position: relative;
   width: 100%;
@@ -12,22 +13,38 @@
 .date-picker-button {
   padding: 10px 20px;
   font-size: 2rem;
-  border-radius: 5px;
-  background-color: var(--bg-secondary);
+  border-radius: 10px;
+  background-color: var(--offwhite);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   cursor: pointer;
   width: fit-content;
   margin: 0 auto;
   position: relative;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.date-picker-button:hover {
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.date-picker-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .calendar-modal {
   top: 100%;
   left: 0;
-  border: 1px solid var(--light-grey);
-  border-radius: 5px;
+  background-color: var(--offwhite);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 14px;
   padding: 10px;
   z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
   overflow-x: hidden !important;
 }
 
@@ -43,6 +60,18 @@
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--primary);
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.calendar-header button:hover {
+  color: var(--primary-hover);
+}
+
+.calendar-header button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .calendar-body {
@@ -66,32 +95,45 @@
 }
 
 .year-search input {
-  background-color: var(--bg-secondary) !important;
+  background-color: var(--offwhite) !important;
+  color: var(--text) !important;
 }
 
 .year-item,
 .month-item,
 .day-item {
   padding: 10px;
-  border: 2px solid var(--light-grey);
-  border-radius: 5px;
-  background-color: var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  background-color: var(--offwhite);
+  color: var(--text);
   cursor: pointer;
   text-align: center;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .year-item:hover,
 .month-item:hover,
 .day-item:hover {
-  background-color: var(--primary);
-  color: white;
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  color: var(--text);
+}
+
+.year-item:focus-visible,
+.month-item:focus-visible,
+.day-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .year-item.selected,
 .month-item.selected,
 .day-item.selected {
   background-color: var(--primary);
-  color: white;
+  border-color: var(--primary);
+  color: #fff;
 }
 
 .weekdays {
@@ -99,6 +141,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
   font-weight: bold;
+  color: var(--text);
 }
 
 .days-grid {
@@ -109,9 +152,10 @@
 
 .day-item {
   padding: 10px;
-  border: 2px solid var(--light-grey);
-  border-radius: 5px;
-  background-color: var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  background-color: var(--offwhite);
+  color: var(--text);
   cursor: pointer;
   text-align: center;
 }
@@ -130,8 +174,21 @@
 
 .calendar-footer button {
   padding: 5px 10px;
-  border: 1px solid var(--light-grey);
-  border-radius: 5px;
-  background-color: var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  background-color: var(--offwhite);
+  color: var(--text);
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.calendar-footer button:hover {
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.calendar-footer button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }

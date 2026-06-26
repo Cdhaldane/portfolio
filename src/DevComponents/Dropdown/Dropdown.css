@@ -10,12 +10,11 @@
 .dropdown-toggle {
   padding: 10px 20px;
   background-color: var(--primary);
-  color: var(--bg-primary);
-  border: 2px solid var(--bg-secondary);
+  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 10px;
   font-size: 1.2em;
-  transition: background-color 0.3s ease;
   font-weight: 800;
   width: 95%;
   height: 60px;
@@ -24,19 +23,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .dropdown-toggle:hover,
 .dropdown-toggle:focus {
   cursor: pointer;
-  background-color: var(--primary) !important;
-  color: var(--bg-primary);
-  border: 2px solid var(--primary);
+  background-color: var(--primary-hover) !important;
+  color: #fff;
+  border: 1px solid var(--primary);
   width: 100%;
   margin: 0px 0px;
   margin-top: 8px;
   border-radius: 0px;
+}
+
+.dropdown-toggle:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .dropdown-toggle:active {
@@ -53,9 +59,11 @@
   margin: 0 auto;
   z-index: 10001;
   width: fit-content;
-  background-color: var(--bg-primary);
-  border: 3px solid var(--primary);
-  color: var(--bg-primary);
+  background-color: var(--offwhite);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  color: var(--text);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-20px);
@@ -66,7 +74,7 @@
   max-height: 300px;
   z-index: 1000;
   animation: dropdownGrow 0.3s ease-in-out normal forwards;
-  overflow-y: scroll;
+  overflow: hidden auto;
 }
 
 .caret-up {
@@ -110,10 +118,11 @@
   align-items: center;
   padding: 10px 20px;
   gap: 10px;
-  color: var(--white);
-  background-color: var(--bg-secondary);
+  color: var(--text);
+  background-color: var(--offwhite);
   text-decoration: none;
-  transition: background-color 0.3s ease;
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease;
   font-size: 1.5em;
 }
 
@@ -130,7 +139,12 @@
   font-weight: 900;
   cursor: pointer;
   background-color: var(--primary);
-  color: var(--bg-primary) !important;
+  color: #fff !important;
+}
+
+.dropdown-item.selected {
+  background-color: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--text);
 }
 
 .dropdown-holder {
@@ -138,13 +152,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--bg-secondary);
+  color: #fff;
   background-color: var(--primary);
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   z-index: 100;
   width: 100%;
   min-height: 40px;
-  border-radius: 5px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   padding: 2px;
 }
@@ -152,8 +167,8 @@
 .dropdown-holder.open .dropdown-toggle {
   cursor: pointer;
   background-color: var(--primary) !important;
-  color: var(--bg-primary);
-  border: 2px solid var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary);
   width: 100%;
   margin: 0px 0px;
   margin-top: 8px;
@@ -181,15 +196,15 @@
   position: relative;
   top: 0;
   left: 0;
-  border: 2px solid var(--secondary);
-  border-radius: 5px;
-  box-shadow: 2px 2px var(--secondary);
-  background-color: var(--bg-primary);
-  transition: all 0.3s;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  background-color: var(--offwhite);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .checkbox-item input:checked ~ .checkmark {
   background-color: var(--primary);
+  border-color: var(--primary);
 }
 
 .checkmark:after {
@@ -200,7 +215,7 @@
   top: 1px;
   left: 8px;
   display: none;
-  border: solid var(--bg-primary);
+  border: solid #fff;
   border-width: 0 4px 4px 0;
   transform: rotate(45deg);
 }
@@ -211,17 +226,17 @@
 
 .dropdown-search {
   display: flex;
-  background-color: var(--bg-secondary);
+  background-color: var(--offwhite);
   max-width: 220px !important;
 }
 
 .dropdown-search-input input {
   border: none;
-  border-bottom: 2px solid var(--light-grey);
-  color: var(--white) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  color: var(--text) !important;
   font-size: 1.3rem;
   border-radius: 0;
-  background-color: var(--bg-secondary) !important;
+  background-color: var(--offwhite) !important;
 }
 
 @keyframes button-pulse {

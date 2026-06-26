@@ -1,6 +1,5 @@
 {
   "name": "portfolio",
-  "homepage": "https://charliehaldane.ca/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -80,8 +79,9 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "dev:api": "vercel dev",
+    "server": "nodemon server/server.js",
+    "server:start": "node server/server.js",
     "dev": "concurrently \"nodemon server/server.js\" \"npm start\""
   },
   "eslintConfig": {
@@ -105,7 +105,6 @@
   "devDependencies": {
     "css-loader": "^7.1.2",
     "customize-cra": "^1.0.0",
-    "gh-pages": "^6.0.0",
     "nodemon": "^3.1.9",
     "raw-loader": "^4.0.2",
     "react-app-rewired": "^2.2.1",
