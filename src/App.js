@@ -20,6 +20,8 @@ const ImposterGame = lazy(() =>
 const MiniCrossword = lazy(() =>
   import("./Pages/Dashboard/MiniCrossword/MiniCrossword")
 );
+const Wavelength = lazy(() => import("./Pages/Dashboard/Wavelength/Wavelength"));
+const Fishbowl = lazy(() => import("./Pages/Dashboard/Fishbowl/Fishbowl"));
 const Services = lazy(() => import("./Pages/Services/Services"));
 const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
@@ -47,6 +49,8 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="imposter" element={<ImposterGame />} />
             <Route path="crossword" element={<MiniCrossword />} />
+            <Route path="wavelength" element={<Wavelength />} />
+            <Route path="fishbowl" element={<Fishbowl />} />
           </Route>
         </Routes>
       </Suspense>

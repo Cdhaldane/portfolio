@@ -26,6 +26,24 @@ const NODES = [
     to: "/dashboard/crossword",
     status: "online",
   },
+  {
+    id: "wavelength",
+    name: "Wavelength",
+    tag: "PARTY · LOCAL",
+    icon: "fa-wave-square",
+    desc: "Telepathy on a dial. The psychic clues a hidden target; the team turns the spectrum to match.",
+    to: "/dashboard/wavelength",
+    status: "online",
+  },
+  {
+    id: "fishbowl",
+    name: "Fishbowl",
+    tag: "PARTY · LOCAL",
+    icon: "fa-comments",
+    desc: "One bowl, three rounds — describe, one word, charades. Two teams race the clock to clear it.",
+    to: "/dashboard/fishbowl",
+    status: "online",
+  },
 ];
 
 const Dashboard = () => {

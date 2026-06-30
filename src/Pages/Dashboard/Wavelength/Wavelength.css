@@ -1,0 +1,575 @@
+/* ============================================================
+   WAVELENGTH — self-contained cyberpunk terminal.
+   Namespaced under .wv so nothing leaks to the rest of the site.
+   Shares the OPS//CONSOLE visual language with the other nodes.
+   ============================================================ */
+
+.wv {
+  --bg: #05070d;
+  --bg-2: #0a0f1a;
+  --panel: rgba(14, 22, 38, 0.72);
+  --panel-line: rgba(0, 240, 255, 0.18);
+  --grid: rgba(0, 240, 255, 0.05);
+  --cyan: #22f0ff;
+  --magenta: #ff2bd6;
+  --amber: #ffb000;
+  --green: #38ff9c;
+  --text: #d7f7ff;
+  --text-dim: #6f8aa3;
+  --danger: #ff3b5c;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #0e1a33 0%, var(--bg) 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 64px;
+}
+
+.wv::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 80%);
+  z-index: 0;
+}
+
+.wv-shell {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin-top: 12px;
+  background: linear-gradient(180deg, rgba(10, 16, 28, 0.9), rgba(6, 10, 18, 0.92));
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 30px 80px -30px rgba(0, 240, 255, 0.25),
+    inset 0 0 60px rgba(0, 240, 255, 0.03);
+  overflow: hidden;
+}
+
+.wv-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  z-index: 3;
+}
+
+.wv-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--cyan);
+  z-index: 4;
+  filter: drop-shadow(0 0 6px var(--cyan));
+}
+.wv-corner--tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+.wv-corner--tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+.wv-corner--bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+.wv-corner--br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+/* ---- title bar ---- */
+.wv-titlebar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.wv-back {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  color: var(--cyan);
+  text-decoration: none;
+  background: rgba(0, 240, 255, 0.04);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+.wv-back:hover {
+  background: rgba(0, 240, 255, 0.14);
+  transform: translateX(-2px);
+  box-shadow: 0 0 14px rgba(34, 240, 255, 0.4);
+}
+.wv-titlebar-text { flex: 1; min-width: 0; }
+.wv-titlebar-text h1 {
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin: 0;
+  text-shadow: 0 0 18px rgba(34, 240, 255, 0.35);
+}
+.wv-titlebar-text span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  color: var(--text-dim);
+}
+.wv-status {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.wv-body {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* status LEDs */
+.wv-led {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--magenta);
+  box-shadow: 0 0 10px var(--magenta);
+  animation: wv-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.wv-led--cyan { background: var(--green); box-shadow: 0 0 10px var(--green); }
+@keyframes wv-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---- panels ---- */
+.wv-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  padding: 16px;
+}
+.wv-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.wv-panel-head h2 {
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+.wv-count {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+/* ---- roster inputs ---- */
+.wv-roster { display: flex; flex-direction: column; gap: 8px; }
+.wv-input-row { display: flex; align-items: center; gap: 8px; }
+.wv-input-idx {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--cyan);
+  width: 22px;
+  flex-shrink: 0;
+}
+.wv-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--panel-line);
+  border-radius: 7px;
+  padding: 11px 13px;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.wv-input::placeholder { color: var(--text-dim); letter-spacing: 0.14em; }
+.wv-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan), 0 0 16px rgba(34, 240, 255, 0.25);
+}
+.wv-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--panel-line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.wv-icon-btn:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
+.wv-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.wv-add {
+  margin-top: 12px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--panel-line);
+  border-radius: 7px;
+  padding: 10px;
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.wv-add:hover:not(:disabled) { background: rgba(34, 240, 255, 0.06); border-color: var(--cyan); }
+.wv-add:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ---- how-to panel ---- */
+.wv-howto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.wv-howto p { margin: 0; }
+.wv-howto strong { color: var(--cyan); font-family: "IBM Plex Mono", monospace; }
+.wv-howto em { color: var(--text); font-style: normal; }
+
+.wv-error {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--danger);
+  margin: -4px 0 0;
+}
+
+/* ---- primary action button ---- */
+.wv-deploy {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--cyan), var(--magenta));
+  color: #04060a;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow: 0 0 26px rgba(34, 240, 255, 0.35);
+}
+.wv-deploy:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 0 36px rgba(255, 43, 214, 0.45); }
+.wv-deploy:active { transform: translateY(0); }
+.wv-deploy--alt {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  box-shadow: inset 0 0 18px rgba(34, 240, 255, 0.12);
+}
+.wv-deploy--alt:hover { box-shadow: 0 0 22px rgba(34, 240, 255, 0.4); }
+
+.wv-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid var(--panel-line);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.wv-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+.wv-actions { display: flex; gap: 10px; }
+.wv-actions .wv-deploy { flex: 1; }
+
+/* ---- psychic reveal card ---- */
+.wv-reveal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 320px;
+  padding: 28px;
+  border-radius: 14px;
+  border: 1px solid var(--panel-line);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(34, 240, 255, 0.1), transparent 70%),
+    rgba(8, 14, 26, 0.95);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.wv-reveal-card:hover { box-shadow: 0 0 30px rgba(34, 240, 255, 0.25); transform: translateY(-2px); }
+.wv-card-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.34em;
+  color: var(--amber);
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 176, 0, 0.4);
+  border-radius: 4px;
+}
+.wv-card-glyph {
+  font-size: 2.6rem;
+  color: var(--cyan);
+  filter: drop-shadow(0 0 12px var(--cyan));
+  opacity: 0.85;
+}
+.wv-reveal-card h3 {
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.wv-reveal-card p {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--cyan);
+  margin: 0;
+}
+.wv-card-hint-line {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+/* ---- spectrum poles ---- */
+.wv-poles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.wv-pole {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: clamp(0.82rem, 3.4vw, 1.05rem);
+  letter-spacing: 0.04em;
+  max-width: 44%;
+}
+.wv-pole--l { color: var(--cyan); }
+.wv-pole--r { color: var(--magenta); text-align: right; justify-content: flex-end; }
+.wv-pole-tick {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  opacity: 0.4;
+}
+
+.wv-clue-display {
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+  margin: -4px 0 0;
+}
+.wv-clue-display strong {
+  color: var(--text);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+
+/* ---- the dial ---- */
+.wv-dial {
+  width: 100%;
+  height: auto;
+  display: block;
+  touch-action: none;
+}
+.wv-dial.is-interactive { cursor: grab; }
+.wv-dial.is-interactive:active { cursor: grabbing; }
+.wv-dial:focus-visible { outline: none; }
+.wv-dial.is-interactive:focus-visible .wv-hub {
+  stroke: var(--cyan);
+  stroke-width: 2;
+}
+
+.wv-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 22;
+  stroke-linecap: round;
+}
+
+/* scoring bands fade + bloom in on reveal */
+.wv-bands { opacity: 0; transition: opacity 0.5s ease 0.1s; }
+.wv-dial.is-revealed .wv-bands { opacity: 1; }
+.wv-dial.is-reduced .wv-bands { transition: none; }
+
+.wv-band2 { fill: none; stroke: var(--amber); stroke-width: 22; opacity: 0.85; }
+.wv-band3 { fill: none; stroke: var(--cyan); stroke-width: 22; }
+.wv-band4 {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 22;
+  filter: drop-shadow(0 0 8px var(--green));
+}
+
+.wv-hub {
+  fill: var(--bg-2);
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+}
+.wv-needle line {
+  stroke: var(--text);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(215, 247, 255, 0.6));
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wv-needle circle {
+  fill: var(--text);
+  filter: drop-shadow(0 0 6px rgba(215, 247, 255, 0.7));
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wv-dial.is-interactive .wv-needle line,
+.wv-dial.is-interactive .wv-needle circle,
+.wv-dial.is-reduced .wv-needle line,
+.wv-dial.is-reduced .wv-needle circle { transition: none; }
+
+.wv-target-note {
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin: 0;
+}
+.wv-target-note i { color: var(--cyan); margin-right: 6px; }
+
+.wv-clue-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.wv-clue-label em { font-style: normal; opacity: 0.7; }
+.wv-clue-input { text-transform: uppercase; }
+
+/* ---- reveal score ---- */
+.wv-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-line);
+}
+.wv-score.is-hit {
+  border-color: var(--green);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(56, 255, 156, 0.14), transparent 70%);
+}
+.wv-score.is-miss {
+  border-color: var(--danger);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 59, 92, 0.12), transparent 70%);
+}
+.wv-score-val {
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1;
+}
+.wv-score.is-hit .wv-score-val { color: var(--green); text-shadow: 0 0 24px rgba(56, 255, 156, 0.5); }
+.wv-score.is-miss .wv-score-val { color: var(--danger); }
+.wv-score-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+}
+
+.wv-tally { display: flex; gap: 10px; }
+.wv-tally-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+}
+.wv-tally-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.wv-tally-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+}
+
+@media (max-width: 520px) {
+  .wv-shell { padding: 16px; }
+  .wv-actions { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wv-led { animation: none; }
+  .wv-bands,
+  .wv-needle line,
+  .wv-needle circle { transition: none; }
+}
