@@ -4,6 +4,7 @@ import Spinner from "./DevComponents/Spinner/Spinner";
 import ThemeSwitch from "./DevComponents/ThemeSwitch/ThemeSwitch";
 import AppSidebar from "./Components/AppSidebar/AppSidebar";
 import DashboardGate from "./Pages/Dashboard/DashboardGate";
+import CommandPalette from "./Components/CommandPalette/CommandPalette";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -38,6 +39,7 @@ const App = () => {
       <AppSidebar />
       <Analytics />
       <SpeedInsights />
+      <CommandPalette />
       <Suspense fallback={<Spinner />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />

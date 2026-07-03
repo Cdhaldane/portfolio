@@ -89,6 +89,14 @@ function ThemeSwitch({ className = "", organization }) {
     }
   }, [isDarkMode, organization, location.pathname]);
 
+  // Stay in sync when the theme is flipped elsewhere (e.g. the ⌘K command
+  // palette), which updates storage then dispatches a "themechange" event.
+  useEffect(() => {
+    const sync = () => setIsDarkMode(getInitialDarkMode());
+    window.addEventListener("themechange", sync);
+    return () => window.removeEventListener("themechange", sync);
+  }, []);
+
   return (
     <div className={`theme-switch ${className}`}>
       <label className="switch">
