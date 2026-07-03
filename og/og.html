@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Reuse the fonts already embedded for the résumé (base64, offline). -->
+<link rel="stylesheet" href="../resume/fonts.css">
+<style>
+  :root {
+    --ink: #1a1a17;
+    --ink-soft: #4a4a44;
+    --paper: #eef2e9;
+    --blue: #2f6bff;
+    --blue-deep: #1741c9;
+    --sage: #6f9a5e;
+    --accent: #ff5d3b;
+    --grad: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  .og {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 100% 0%, #f5f8f1 0%, var(--paper) 55%),
+      var(--paper);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    padding: 84px 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .og-bar { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: var(--grad); }
+  .og-orb {
+    position: absolute; top: -140px; right: -120px;
+    width: 460px; height: 460px; border-radius: 50%;
+    background: var(--grad); opacity: 0.16; filter: blur(4px);
+  }
+  .og-eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 22px; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--blue-deep); margin-bottom: 26px;
+  }
+  .og-name {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700; font-size: 128px; line-height: 0.92; letter-spacing: -0.03em;
+  }
+  .og-name .grad {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .og-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500; font-size: 40px; color: var(--blue-deep); margin-top: 26px;
+  }
+  .og-tag { font-size: 27px; line-height: 1.4; color: var(--ink-soft); margin-top: 16px; max-width: 30ch; }
+  .og-foot {
+    position: absolute; left: 88px; bottom: 64px;
+    display: flex; align-items: center; gap: 16px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  .og-foot .tick { width: 44px; height: 4px; border-radius: 4px; background: var(--grad); }
+</style>
+</head>
+<body>
+  <div class="og">
+    <span class="og-bar"></span>
+    <span class="og-orb"></span>
+    <div class="og-eyebrow">charliehaldane.ca</div>
+    <h1 class="og-name">Charlie<br><span class="grad">Haldane</span></h1>
+    <div class="og-title">Software Engineer · Full-Stack · React</div>
+    <div class="og-tag">Fast, expressive web experiences — Peterborough, Ontario.</div>
+    <div class="og-foot"><span class="tick"></span> Portfolio &amp; Work</div>
+  </div>
+</body>
+</html>
