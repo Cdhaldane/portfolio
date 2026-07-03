@@ -6,6 +6,7 @@
     "@babel/core": "^7.16.0",
     "@emailjs/browser": "^3.11.0",
     "@faker-js/faker": "^9.5.1",
+    "@neondatabase/serverless": "^1.1.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.17.0",
@@ -77,7 +78,7 @@
     "workbox-webpack-plugin": "^6.4.1"
   },
   "scripts": {
-    "start": "set PORT=3000 && react-scripts start",
+    "start": "set PORT=3030 && react-scripts start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
