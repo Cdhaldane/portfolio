@@ -1,0 +1,181 @@
+.nf {
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --paper: #eef2e9;
+  --paper-2: #e3e9da;
+  --line: rgba(26, 26, 23, 0.12);
+  --blue: #2f6bff;
+  --blue-deep: #1741c9;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+  --grad: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 48px 24px 64px;
+  background:
+    radial-gradient(130% 90% at 50% -10%, #f4f7f0 0%, var(--paper) 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: "Inter", system-ui, sans-serif;
+  text-align: center;
+}
+
+.nf-aurora {
+  position: absolute;
+  top: -18%;
+  left: 50%;
+  width: 620px;
+  max-width: 90vw;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(47, 107, 255, 0.16),
+    rgba(111, 154, 94, 0.1) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: nf-drift 14s ease-in-out infinite;
+}
+
+.nf-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 620px;
+}
+
+.nf-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2vw, 18px);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(6rem, 22vw, 14rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+.nf-digit {
+  color: var(--ink);
+  text-shadow: 0 20px 60px rgba(26, 26, 23, 0.12);
+}
+.nf-orb {
+  position: relative;
+  width: 0.74em;
+  height: 0.74em;
+  border-radius: 50%;
+  background: var(--grad);
+  box-shadow: 0 18px 50px -12px rgba(47, 107, 255, 0.5);
+  animation: nf-float 6s ease-in-out infinite;
+}
+.nf-orb-ring {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  mix-blend-mode: overlay;
+}
+
+.nf-kicker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  color: var(--blue-deep);
+  margin: 8px 0 0;
+}
+.nf-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin: 0;
+}
+.nf-sub {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 0;
+}
+
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.nf-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 500;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.nf-btn:hover {
+  transform: translateY(-2px);
+}
+.nf-btn--primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  box-shadow: 0 12px 30px -10px rgba(47, 107, 255, 0.6);
+}
+.nf-btn--primary:hover {
+  background: var(--blue-deep);
+  border-color: var(--blue-deep);
+  box-shadow: 0 16px 36px -10px rgba(23, 65, 201, 0.6);
+}
+.nf-btn--ghost {
+  border-color: transparent;
+  color: var(--ink-soft);
+}
+.nf-btn--ghost:hover {
+  color: var(--ink);
+}
+
+.nf-foot {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  right: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+@keyframes nf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes nf-drift {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(24px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-orb,
+  .nf-aurora { animation: none; }
+  .nf-btn:hover { transform: none; }
+}

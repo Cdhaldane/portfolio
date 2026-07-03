@@ -11,6 +11,8 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "babel-jest": "^27.4.2",
     "babel-loader": "^8.2.3",
     "babel-plugin-named-asset-import": "^0.3.8",
@@ -80,9 +82,7 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "dev:api": "vercel dev",
-    "server": "nodemon server/server.js",
-    "server:start": "node server/server.js",
-    "dev": "concurrently \"nodemon server/server.js\" \"npm start\""
+    "dev": "vercel dev"
   },
   "eslintConfig": {
     "extends": [
@@ -109,6 +109,7 @@
     "raw-loader": "^4.0.2",
     "react-app-rewired": "^2.2.1",
     "react-element-to-jsx-string": "^15.0.0",
+    "react-scripts": "^5.0.1",
     "style-loader": "^4.0.0"
   },
   "jest": {

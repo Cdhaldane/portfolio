@@ -4,6 +4,8 @@ import Spinner from "./DevComponents/Spinner/Spinner";
 import ThemeSwitch from "./DevComponents/ThemeSwitch/ThemeSwitch";
 import AppSidebar from "./Components/AppSidebar/AppSidebar";
 import DashboardGate from "./Pages/Dashboard/DashboardGate";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import "./App.css";
 
@@ -27,12 +29,15 @@ const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
 const Marz = lazy(() => import("./Pages/Work/Marz"));
 const Timeslot = lazy(() => import("./Pages/Work/Timeslot"));
+const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
 
 const App = () => {
   return (
     <div className="main">
       <ThemeSwitch className="global-theme" />
       <AppSidebar />
+      <Analytics />
+      <SpeedInsights />
       <Suspense fallback={<Spinner />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -52,6 +57,7 @@ const App = () => {
             <Route path="wavelength" element={<Wavelength />} />
             <Route path="fishbowl" element={<Fishbowl />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </div>
