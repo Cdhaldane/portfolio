@@ -31,6 +31,7 @@ const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
 const Marz = lazy(() => import("./Pages/Work/Marz"));
 const Timeslot = lazy(() => import("./Pages/Work/Timeslot"));
 const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
+const Guestbook = lazy(() => import("./Pages/Guestbook/Guestbook"));
 
 const App = () => {
   return (
@@ -52,6 +53,7 @@ const App = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/showcase" element={<Showcase />} />
+          <Route path="/guestbook" element={<Guestbook />} />
           <Route path="/dashboard" element={<DashboardGate />}>
             <Route index element={<Dashboard />} />
             <Route path="imposter" element={<ImposterGame />} />

@@ -55,6 +55,7 @@ const CommandPalette = () => {
       { id: "services", section: "Navigate", icon: "fa-briefcase", title: "Services", keywords: "hire freelance offerings", run: () => navigate("/services") },
       { id: "showcase", section: "Navigate", icon: "fa-shapes", title: "Showcase", keywords: "components demos", run: () => navigate("/showcase") },
       { id: "contact", section: "Navigate", icon: "fa-paper-plane", title: "Contact", keywords: "email get in touch hire message", run: () => navigate("/contact") },
+      { id: "guestbook", section: "Navigate", icon: "fa-pen-nib", title: "Guestbook", keywords: "sign wall note leave message visitors", run: () => navigate("/guestbook") },
 
       { id: "theme", section: "Actions", icon: "fa-circle-half-stroke", title: "Toggle light / dark", keywords: "theme dark light mode appearance", keepOpen: true, run: toggleTheme },
       { id: "resume", section: "Actions", icon: "fa-file-lines", title: "View résumé (PDF)", keywords: "cv download hire", run: () => window.open("/CHARLIE_RESUME_5.pdf", "_blank", "noopener,noreferrer") },
