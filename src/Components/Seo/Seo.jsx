@@ -4,7 +4,7 @@ const SITE_URL = "https://charliehaldane.ca";
 const DEFAULT_TITLE = "Charlie Haldane — Web Developer in Peterborough, Ontario";
 const DEFAULT_DESCRIPTION =
   "Charlie Haldane builds fast, well-designed websites and web apps for businesses in Peterborough, Ontario. React, Webflow & full-stack development.";
-const DEFAULT_IMAGE = `${SITE_URL}/C_Logo.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 /**
  * Per-page SEO + social metadata.

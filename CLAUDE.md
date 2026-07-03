@@ -109,9 +109,21 @@ orchestrated.
 
 ## 6. Roadmap
 
-- Roll the token set + type system out to Landing, Work, and Contact for a
-  consistent system.
+**Done**
+
+- ✅ Token set + type system rolled out across Landing, Work, Contact, and
+  Services — every page shares the palette, Space Grotesk/Inter/mono, and
+  dark-mode (`data-theme`) tokens.
+- ✅ Reusable `<Reveal>` (IntersectionObserver entrance) and `<ScrollProgress>`
+  (rAF-throttled `--progress` bar) live in `src/Components/`.
+
+**Next**
+
+- Promote the per-page token blocks to a single `:root` set — they're currently
+  redeclared per page (`.lp`, `.wk`, `.nf`, `.gb`, `.wr`…). One source of truth
+  would DRY it up (the shared components already read `--blue`/`--sage`/etc.).
 - Consider promoting Lenis to the app root once nested scroll containers
   (e.g. the Work list) are reconciled with `data-lenis-prevent`.
-- Build a small reusable `<Reveal>` and `<ScrollProgress>` so the patterns
-  aren't re-implemented per page.
+- Per-*route* social previews: OG tags are static in `index.html` (crawler-safe)
+  with a branded `og-image.png`. True per-page cards need prerendering
+  (react-snap) or SSR, since crawlers don't execute the client-side Helmet tags.
