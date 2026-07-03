@@ -1,0 +1,210 @@
+.wr {
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --paper: #eef2e9;
+  --paper-2: #e3e9da;
+  --card: rgba(255, 255, 255, 0.6);
+  --line: rgba(26, 26, 23, 0.12);
+  --blue: #2f6bff;
+  --blue-deep: #1741c9;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+  --grad: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 70% at 0% 0%, #f4f7f0 0%, var(--paper) 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: "Inter", system-ui, sans-serif;
+  padding: clamp(48px, 9vw, 96px) 24px 96px;
+}
+
+.wr-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.wr--post .wr-inner {
+  max-width: 680px;
+}
+
+/* ---- header ---- */
+.wr-head {
+  margin-bottom: 40px;
+}
+.wr-kicker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+.wr-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 7vw, 3.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  margin: 10px 0 12px;
+  text-wrap: balance;
+}
+.wr-sub {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 52ch;
+  margin: 0;
+}
+
+/* ---- post list ---- */
+.wr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.wr-card {
+  display: block;
+  padding: 22px 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.wr-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(47, 107, 255, 0.4);
+  box-shadow: 0 24px 50px -28px rgba(47, 107, 255, 0.45);
+}
+.wr-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.wr-dot {
+  opacity: 0.5;
+}
+.wr-card-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+.wr-card-excerpt {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+.wr-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.wr-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+  background: rgba(47, 107, 255, 0.09);
+  border: 1px solid rgba(47, 107, 255, 0.16);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* ---- single post ---- */
+.wr-back {
+  display: inline-block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--blue-deep);
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+.wr-back:hover {
+  text-decoration: underline;
+}
+.wr-post-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.9rem, 5.5vw, 2.8rem);
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  margin: 8px 0 12px;
+  text-wrap: balance;
+}
+
+/* ---- prose ---- */
+.wr-prose {
+  margin-top: 28px;
+  font-size: 1.06rem;
+  line-height: 1.72;
+  color: #26261f;
+}
+.wr-prose h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  margin: 2em 0 0.6em;
+  color: var(--ink);
+}
+.wr-prose p {
+  margin: 0 0 1.15em;
+}
+.wr-prose a {
+  color: var(--blue-deep);
+}
+.wr-prose code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.86em;
+  background: rgba(26, 26, 23, 0.07);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+.wr-pre {
+  background: #14140f;
+  color: #e9e9df;
+  border-radius: 12px;
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 0 0 1.4em;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.5);
+}
+.wr-pre code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  white-space: pre;
+}
+
+.wr-post-foot {
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.wr-missing {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+}
+.wr-missing a {
+  color: var(--blue-deep);
+}

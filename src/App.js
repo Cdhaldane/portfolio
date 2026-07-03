@@ -32,6 +32,8 @@ const Marz = lazy(() => import("./Pages/Work/Marz"));
 const Timeslot = lazy(() => import("./Pages/Work/Timeslot"));
 const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
 const Guestbook = lazy(() => import("./Pages/Guestbook/Guestbook"));
+const Writing = lazy(() => import("./Pages/Writing/Writing"));
+const Post = lazy(() => import("./Pages/Writing/Post"));
 
 const App = () => {
   return (
@@ -54,6 +56,8 @@ const App = () => {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/showcase" element={<Showcase />} />
           <Route path="/guestbook" element={<Guestbook />} />
+          <Route path="/writing" element={<Writing />} />
+          <Route path="/writing/:slug" element={<Post />} />
           <Route path="/dashboard" element={<DashboardGate />}>
             <Route index element={<Dashboard />} />
             <Route path="imposter" element={<ImposterGame />} />
