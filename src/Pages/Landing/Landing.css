@@ -1,13 +1,38 @@
 /* ============================================================
    Landing — kinetic hero matching the About design language.
-   Theme-aware (keys off the global --text / --bg-primary / --primary
-   tokens) so it flips with the site-wide dark mode.
+   Theme-aware (keys off the global data-theme attribute) so it
+   flips with the site-wide dark mode.
+
+   Showcase techniques used here:
+   · @property-registered custom properties — the nav wipe fill and
+     its text recolor are driven by ONE transitioned variable
+   · cursor-following mask-image "x-ray" that swaps the name for a
+     wireframe twin under the pointer
+   · animated conic-gradient border (eyebrow pill)
+   · :has() relational styling (sibling dimming on nav + letters)
+   · SVG feTurbulence film grain, masked infinite marquee,
+     vertical writing-mode meta rail
    ============================================================ */
+
+/* Registered properties: the browser can interpolate these, so a
+   plain `transition: --fill` tweens a raw number that transform,
+   clip-path and anything else can derive from in lockstep. */
+@property --fill {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --lp-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
 
 .lp {
   --paper: #eef2e9;
   --ink: #1a1a17;
   --blue: #2f6bff;
+  --blue-deep: #1741c9;
   --sage: #6f9a5e;
   --accent: #ff5d3b;
   --line-soft: rgba(26, 26, 23, 0.1);
@@ -29,7 +54,13 @@
   --paper: #121310;
   --ink: #eef2e9;
   --blue: #6e93ff;
+  --blue-deep: #3f6fff;
   --line-soft: rgba(238, 242, 233, 0.12);
+}
+
+.lp ::selection {
+  background: var(--blue);
+  color: var(--paper);
 }
 
 /* ---------- ambient background ---------- */
@@ -113,6 +144,21 @@
   opacity: 0.4;
 }
 
+/* Film grain — SVG turbulence inlined as a data URI, blended over
+   everything at low strength so surfaces read as printed paper. */
+.lp-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+[data-theme="dark"] .lp-grain {
+  opacity: 0.25;
+}
+
 /* ---------- hero content ---------- */
 .lp-hero {
   position: relative;
@@ -120,16 +166,50 @@
   max-width: 1100px;
 }
 
+/* Eyebrow — glass pill with a rotating conic-gradient border. The
+   1px ring is the ::before's padding, carved out by mask-composite,
+   and --lp-angle (a registered <angle>) spins the gradient. */
 .lp-eyebrow {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  padding: 0.55em 1.15em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   font-size: 0.82rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink);
-  opacity: 0.75;
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.8rem;
+}
+[data-theme="dark"] .lp-eyebrow {
+  background: rgba(255, 255, 255, 0.05);
+}
+.lp-eyebrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--lp-angle),
+    var(--blue),
+    var(--sage),
+    var(--accent),
+    var(--blue)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: lpSpin 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes lpSpin {
+  to { --lp-angle: 360deg; }
 }
 .lp-dot {
   width: 9px;
@@ -143,9 +223,17 @@
   to { box-shadow: 0 0 0 12px rgba(255, 93, 59, 0); }
 }
 
-/* kinetic name */
-.lp-name {
+/* ---------- kinetic name + cursor x-ray ---------- */
+.lp-name-wrap {
+  position: relative;
   margin: 0 0 1.8rem;
+}
+
+/* Shared metrics so the solid layer and its wireframe twin overlap
+   glyph-for-glyph. */
+.lp-name,
+.lp-name-ghost {
+  margin: 0;
   font-size: clamp(3rem, 12vw, 11rem);
   font-weight: 700;
   line-height: 0.9;
@@ -154,25 +242,82 @@
 .lp-word {
   display: block;
 }
-.lp-letter {
+.lp-letter,
+.lp-letter-in {
   display: inline-block;
-  color: var(--ink);
+}
+
+/* The solid name gets a HOLE cut where the cursor is… */
+.lp-name {
+  mask-image: radial-gradient(
+    circle at var(--nx, -999px) var(--ny, -999px),
+    transparent 0,
+    transparent 88px,
+    #000 136px
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at var(--nx, -999px) var(--ny, -999px),
+    transparent 0,
+    transparent 88px,
+    #000 136px
+  );
+}
+
+/* …and the wireframe twin is only visible INSIDE that hole, so the
+   type appears to x-ray into its outlines under the pointer. */
+.lp-name-ghost {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--blue);
+  mask-image: radial-gradient(
+    circle at var(--nx, -999px) var(--ny, -999px),
+    #000 0,
+    #000 88px,
+    transparent 136px
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at var(--nx, -999px) var(--ny, -999px),
+    #000 0,
+    #000 88px,
+    transparent 136px
+  );
+}
+.lp-name-ghost .lp-word:last-child {
+  -webkit-text-stroke-color: var(--accent);
+}
+
+/* Entrance choreography — solid layer only. */
+.lp-name .lp-letter {
   opacity: 0;
   transform: translateY(0.9em) rotate(6deg);
   animation: lpLetterIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: transform 0.3s ease;
 }
-.lp-word:last-child .lp-letter {
+@keyframes lpLetterIn {
+  to { opacity: 1; transform: none; }
+}
+
+/* Hover lives on the INNER span: `animation-fill-mode: forwards`
+   pins the outer span's transform, so a nested element is what
+   keeps the per-letter hover alive after the entrance finishes. */
+.lp-letter-in {
+  color: var(--ink);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease;
+}
+.lp-name .lp-word:last-child .lp-letter-in {
   background: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.lp-letter:hover {
-  transform: translateY(-0.06em) rotate(-3deg) scale(1.04);
+.lp-letter:hover .lp-letter-in {
+  transform: translateY(-0.08em) rotate(-4deg) scale(1.06);
 }
-@keyframes lpLetterIn {
-  to { opacity: 1; transform: none; }
+/* :has() — hovering one letter softens all its siblings. */
+.lp-name:has(.lp-letter:hover) .lp-letter:not(:hover) .lp-letter-in {
+  opacity: 0.45;
 }
 
 .lp-tagline {
@@ -182,6 +327,7 @@
   line-height: 1.6;
   opacity: 0.78;
   margin-bottom: 3rem;
+  text-wrap: balance;
 }
 
 /* ---------- nav ---------- */
@@ -202,24 +348,32 @@
   border-bottom: 1px solid var(--line-soft);
   overflow: hidden;
   isolation: isolate;
+  /* One registered variable drives the whole hover: the fill's
+     scaleX AND the white text's clip-path both read --fill, so the
+     recolor edge rides the wipe edge pixel-perfectly. */
+  --fill: 0;
+  transition: --fill 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease;
+}
+.lp-nav-item:hover {
+  --fill: 1;
+}
+/* :has() — dim the rows you're NOT choosing. */
+.lp-nav:has(.lp-nav-item:hover) .lp-nav-item:not(:hover) {
+  opacity: 0.38;
 }
 .lp-nav-fill {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, var(--blue), var(--blue));
-  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--blue), var(--blue-deep));
+  transform: scaleX(var(--fill));
   transform-origin: left;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.lp-nav-item:hover .lp-nav-fill {
-  transform: scaleX(1);
 }
 .lp-nav-index {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
   opacity: 0.5;
-  transition: color 0.35s ease, opacity 0.35s ease;
 }
 .lp-nav-label {
   flex: 1;
@@ -227,22 +381,13 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   transform: translateX(0);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .lp-nav-arrow {
   font-size: 1.1rem;
   opacity: 0;
   transform: translateX(-12px);
-  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    color 0.35s ease;
-}
-.lp-nav-item:hover .lp-nav-index,
-.lp-nav-item:hover .lp-nav-label,
-.lp-nav-item:hover .lp-nav-arrow {
-  color: #fff;
-}
-.lp-nav-item:hover .lp-nav-index {
-  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .lp-nav-item:hover .lp-nav-label {
   transform: translateX(10px);
@@ -252,10 +397,106 @@
   transform: translateX(0);
 }
 
+/* The white twin row — identical layout, clipped to the filled
+   region. Its hover transforms come from the same :hover rules
+   above, so both copies move as one. */
+.lp-nav-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.05rem 1.2rem;
+  color: #fff;
+  pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--fill, 0) * 100%) 0 0);
+}
+.lp-nav-ghost .lp-nav-index {
+  opacity: 0.85;
+}
+.lp-nav-ghost .lp-nav-arrow {
+  color: #fff;
+}
+
+/* ---------- vertical meta rail ---------- */
+.lp-meta {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 1.8rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.lp-meta-txt {
+  writing-mode: vertical-rl;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  opacity: 0.5;
+}
+.lp-meta-rule {
+  width: 1px;
+  height: 64px;
+  background: var(--line-soft);
+}
+
+/* ---------- skills marquee ---------- */
+.lp-ticker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--line-soft);
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.lp-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: lpTicker 30s linear infinite;
+}
+.lp-ticker:hover .lp-ticker-track {
+  animation-play-state: paused;
+}
+@keyframes lpTicker {
+  to { transform: translateX(-50%); }
+}
+.lp-ticker-group {
+  display: flex;
+}
+.lp-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  white-space: nowrap;
+  opacity: 0.6;
+}
+.lp-ticker-item em {
+  font-style: normal;
+  color: var(--accent);
+  margin: 0 1.6rem;
+  opacity: 0.9;
+}
+
 /* ---------- responsive ---------- */
+@media only screen and (max-width: 1100px) {
+  .lp-meta {
+    display: none;
+  }
+}
 @media only screen and (max-width: 768px) {
   .lp {
-    padding: 12vh 8vw 8vh 14vw;
+    padding: 12vh 8vw 14vh 14vw;
     align-items: flex-start;
   }
   .lp-tagline {
@@ -272,8 +513,17 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .lp-letter {
+  .lp-name .lp-letter {
     opacity: 1;
     transform: none;
+  }
+  /* JS never sets --nx/--ny under reduced motion; drop the mask
+     machinery entirely so the name is plain, static type. */
+  .lp-name {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .lp-name-ghost {
+    display: none;
   }
 }

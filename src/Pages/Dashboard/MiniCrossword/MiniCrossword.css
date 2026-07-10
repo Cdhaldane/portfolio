@@ -207,16 +207,25 @@
   justify-content: center;
   outline: none;
 }
+/* Visually hidden but still focusable so soft keyboards open. Kept in-flow
+   near the grid (not off-screen) so focusing never scrolls the page, and at
+   16px so iOS Safari does not zoom on focus. */
 .xw-hidden-input {
   position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-  border: 0;
-  padding: 0;
-  pointer-events: none;
   left: 50%;
   top: 50%;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  font-size: 16px;
+  color: transparent;
+  background: transparent;
+  caret-color: transparent;
+  outline: none;
+  opacity: 0;
+  z-index: -1;
 }
 .xw-grid {
   display: grid;

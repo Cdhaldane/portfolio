@@ -11,6 +11,10 @@ import "./MiniCrossword.css";
 
 const SIZE = 5;
 const STORE_KEY = "xw-progress-v1";
+// Sentinel kept in the hidden input so a backspace on a mobile soft keyboard
+// (which fires an `input` event, not a usable `keydown`) always has a character
+// to delete — letting us detect the deletion when the value goes empty.
+const SENTINEL = " ";
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia &&
@@ -197,7 +201,11 @@ const MiniCrossword = () => {
     r >= 0 && r < SIZE && c >= 0 && c < SIZE && meta[r] && meta[r][c];
 
   const focusHidden = () => {
-    if (hiddenInput.current) hiddenInput.current.focus({ preventScroll: true });
+    if (hiddenInput.current) {
+      hiddenInput.current.focus({ preventScroll: true });
+      // keep the caret after the sentinel so the next backspace deletes it
+      hiddenInput.current.value = SENTINEL;
+    }
   };
 
   const selectCell = (r, c) => {
@@ -357,6 +365,29 @@ const MiniCrossword = () => {
     [applyLetter, deleteLetter, moveSel, goToWord, showWin]
   );
 
+  // Soft-keyboard path: mobile keyboards often fire `keydown` with key
+  // "Unidentified" and deliver the character via the `input` event instead.
+  // We read that here. Desktop letter/backspace keydowns call preventDefault,
+  // so the input value never changes and this handler doesn't double-fire.
+  const handleInput = useCallback(
+    (e) => {
+      if (showWin) {
+        e.target.value = SENTINEL;
+        return;
+      }
+      const v = e.target.value;
+      if (v.length === 0) {
+        // the sentinel was deleted -> backspace
+        deleteLetter();
+      } else {
+        const letters = v.replace(/[^a-zA-Z]/g, "");
+        if (letters) applyLetter(letters[letters.length - 1].toUpperCase());
+      }
+      e.target.value = SENTINEL; // reset for the next keystroke
+    },
+    [applyLetter, deleteLetter, showWin]
+  );
+
   useEffect(() => {
     focusHidden();
   }, []);
@@ -497,20 +528,24 @@ const MiniCrossword = () => {
           <div
             className="xw-grid-wrap"
             role="grid"
-            tabIndex={0}
-            onKeyDown={onKeyDown}
+            onClick={focusHidden}
           >
-            {/* hidden input keeps mobile keyboards up */}
+            {/* Real (visually hidden) input drives both the mobile soft
+                keyboard and physical keyboards. onKeyDown handles control keys
+                + desktop letters; onInput handles mobile character entry. */}
             <input
               ref={hiddenInput}
               className="xw-hidden-input"
-              aria-hidden="true"
+              type="text"
+              inputMode="text"
+              enterKeyHint="next"
+              aria-label="Crossword letter entry"
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="characters"
               spellCheck="false"
-              value=""
-              onChange={() => {}}
+              defaultValue={SENTINEL}
+              onInput={handleInput}
               onKeyDown={onKeyDown}
             />
             <div className="xw-grid">
