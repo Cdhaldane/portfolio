@@ -44,6 +44,15 @@ const NODES = [
     to: "/dashboard/fishbowl",
     status: "online",
   },
+  {
+    id: "reckoning",
+    name: "Dead Reckoning",
+    tag: "TRIVIA · DAILY",
+    icon: "fa-map-location-dot",
+    desc: "Two pins on a map — a birth and a death. Name the famous life between them. 3 dossiers a day, global leaderboard.",
+    to: "/dashboard/reckoning",
+    status: "online",
+  },
 ];
 
 const Dashboard = () => {

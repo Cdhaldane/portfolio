@@ -25,6 +25,9 @@ const MiniCrossword = lazy(() =>
 );
 const Wavelength = lazy(() => import("./Pages/Dashboard/Wavelength/Wavelength"));
 const Fishbowl = lazy(() => import("./Pages/Dashboard/Fishbowl/Fishbowl"));
+const DeadReckoning = lazy(() =>
+  import("./Pages/Dashboard/DeadReckoning/DeadReckoning")
+);
 const Services = lazy(() => import("./Pages/Services/Services"));
 const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
@@ -64,6 +67,7 @@ const App = () => {
             <Route path="crossword" element={<MiniCrossword />} />
             <Route path="wavelength" element={<Wavelength />} />
             <Route path="fishbowl" element={<Fishbowl />} />
+            <Route path="reckoning" element={<DeadReckoning />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
