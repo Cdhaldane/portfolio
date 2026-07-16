@@ -209,6 +209,9 @@
 
 /* ---- map ---- */
 .dr-map {
+  --z: 1;
+  --tx: 0px;
+  --ty: 0px;
   position: relative;
   z-index: 5;
   border: 1px solid var(--panel-line);
@@ -217,11 +220,52 @@
     radial-gradient(80% 120% at 50% 0%, rgba(0, 240, 255, 0.06), transparent 60%),
     rgba(3, 6, 12, 0.7);
   overflow: hidden;
+  touch-action: pan-y; /* JS flips to none while zoomed in */
+}
+.dr-map.is-zoomed { cursor: grab; }
+.dr-map.is-zoomed:active { cursor: grabbing; }
+.dr-map-world {
+  transform-origin: 0 0;
+  /* no will-change: the browser must re-rasterize the SVG at the new scale
+     once a zoom gesture settles, or the land goes blurry */
+  transform: translate(var(--tx), var(--ty)) scale(var(--z));
+  position: relative;
 }
 .dr-map svg {
   display: block;
   width: 100%;
   height: auto;
+}
+.dr-map-zoom {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 6;
+}
+.dr-map-zoom button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--panel-line);
+  border-radius: 7px;
+  background: rgba(4, 8, 16, 0.85);
+  color: var(--cyan);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.dr-map-zoom button:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: 0 0 12px rgba(34, 240, 255, 0.35);
+}
+.dr-map-zoom button:disabled {
+  color: var(--text-dim);
+  opacity: 0.5;
+  cursor: default;
 }
 .dr-land {
   fill: rgba(0, 240, 255, 0.08);
@@ -243,10 +287,11 @@
   to { stroke-dashoffset: -11; }
 }
 
-/* pins are HTML overlays so labels stay readable at any width */
+/* pins are HTML overlays so labels stay readable at any width; the inverse
+   scale keeps them a constant screen size while the map zooms under them */
 .dr-pin {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--z, 1)));
   pointer-events: none;
 }
 .dr-pin-dot {
@@ -697,8 +742,20 @@
 
 /* ---- responsive ---- */
 @media (max-width: 720px) {
-  .dr { padding: 12px 8px 48px; }
-  .dr-shell { padding: 16px 12px; }
+  /* full-bleed console: the shell becomes the screen */
+  .dr { padding: 0; }
+  .dr-shell {
+    margin-top: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 14px 12px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .dr-shell > .dr-foot { margin-top: auto; padding-bottom: 4px; }
   .dr-final { grid-template-columns: 1fr; }
   .dr-status { flex-wrap: wrap; gap: 10px; }
   .dr-pin-label { font-size: 0.54rem; padding: 2px 5px; }

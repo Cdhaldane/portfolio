@@ -74,9 +74,166 @@ const persistDaily = (day, state) => {
 
 /* ---------------- map ---------------- */
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 8;
+
 const MapPanel = ({ person, revealed, reduce }) => {
   const b = project(person.born.lat, person.born.lng);
   const d = project(person.died.lat, person.died.lng);
+
+  // ---- zoom & pan ----
+  // The view lives in a ref and is written to CSS variables inside a rAF so
+  // wheel/drag stays off the React render path (see CLAUDE.md motion rules).
+  const mapRef = useRef(null);
+  const view = useRef({ z: 1, tx: 0, ty: 0 });
+  const raf = useRef(0);
+  const pointers = useRef(new Map());
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  const applyView = useCallback(() => {
+    const el = mapRef.current;
+    if (!el) return;
+    const { z, tx, ty } = view.current;
+    el.style.setProperty("--z", z);
+    el.style.setProperty("--tx", `${tx}px`);
+    el.style.setProperty("--ty", `${ty}px`);
+    // single-finger vertical page scroll stays native until we're zoomed in
+    el.style.touchAction = z > 1 ? "none" : "pan-y";
+  }, []);
+
+  const scheduleView = useCallback(() => {
+    if (raf.current) return;
+    raf.current = requestAnimationFrame(() => {
+      raf.current = 0;
+      applyView();
+    });
+  }, [applyView]);
+
+  const clampView = useCallback(() => {
+    const el = mapRef.current;
+    if (!el) return;
+    const v = view.current;
+    v.tx = Math.min(0, Math.max(el.clientWidth * (1 - v.z), v.tx));
+    v.ty = Math.min(0, Math.max(el.clientHeight * (1 - v.z), v.ty));
+  }, []);
+
+  const zoomAt = useCallback(
+    (mx, my, factor) => {
+      const v = view.current;
+      const nz = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, v.z * factor));
+      if (nz === v.z) return;
+      // keep the point under the cursor fixed while the scale changes
+      v.tx = mx - ((mx - v.tx) * nz) / v.z;
+      v.ty = my - ((my - v.ty) * nz) / v.z;
+      v.z = nz;
+      clampView();
+      scheduleView();
+      setZoomLevel(nz);
+    },
+    [clampView, scheduleView]
+  );
+
+  // The +/− buttons zoom toward the midpoint of the two pins (that's what the
+  // player is squinting at), falling back to the viewport center when the
+  // pair wraps the antimeridian.
+  const zoomCenter = (factor) => {
+    const el = mapRef.current;
+    if (!el) return;
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    let px = w / 2;
+    let py = h / 2;
+    if (Math.abs(b.x - d.x) <= MAP_W / 2) {
+      const v = view.current;
+      const scale = w / MAP_W; // world div == map element at z=1
+      px = ((b.x + d.x) / 2) * scale * v.z + v.tx;
+      py = ((b.y + d.y) / 2) * scale * v.z + v.ty;
+      px = Math.max(0, Math.min(w, px));
+      py = Math.max(0, Math.min(h, py));
+    }
+    zoomAt(px, py, factor);
+  };
+
+  const resetView = useCallback(() => {
+    view.current = { z: 1, tx: 0, ty: 0 };
+    pointers.current.clear();
+    setZoomLevel(1);
+    applyView();
+  }, [applyView]);
+
+  // fresh dossier -> fresh framing
+  useEffect(() => {
+    resetView();
+  }, [person, resetView]);
+
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+
+  // wheel needs preventDefault, so it can't be a passive React handler
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el) return undefined;
+    const onWheel = (e) => {
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.3 : 1 / 1.3);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [zoomAt]);
+
+  const onPointerDown = (e) => {
+    if (e.target.closest(".dr-map-zoom")) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e) => {
+    const pts = pointers.current;
+    const prev = pts.get(e.pointerId);
+    if (!prev) return;
+    const v = view.current;
+    if (pts.size === 1) {
+      // drag to pan (only meaningful when zoomed in)
+      if (v.z > 1) {
+        v.tx += e.clientX - prev.x;
+        v.ty += e.clientY - prev.y;
+        clampView();
+        scheduleView();
+      }
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    } else if (pts.size === 2) {
+      // pinch: zoom by the distance ratio around the midpoint, pan with it
+      const [a, c] = [...pts.entries()].map(([id, p]) =>
+        id === e.pointerId ? { x: e.clientX, y: e.clientY, prev: p } : { ...p, prev: p }
+      );
+      const prevDist = Math.hypot(a.prev.x - c.prev.x, a.prev.y - c.prev.y);
+      const dist = Math.hypot(a.x - c.x, a.y - c.y);
+      const r = e.currentTarget.getBoundingClientRect();
+      const mid = { x: (a.x + c.x) / 2 - r.left, y: (a.y + c.y) / 2 - r.top };
+      const prevMid = {
+        x: (a.prev.x + c.prev.x) / 2 - r.left,
+        y: (a.prev.y + c.prev.y) / 2 - r.top,
+      };
+      v.tx += mid.x - prevMid.x;
+      v.ty += mid.y - prevMid.y;
+      if (prevDist > 0) zoomAt(mid.x, mid.y, dist / prevDist);
+      else {
+        clampView();
+        scheduleView();
+      }
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const onPointerEnd = (e) => {
+    pointers.current.delete(e.pointerId);
+  };
+
+  const onDoubleClick = (e) => {
+    if (e.target.closest(".dr-map-zoom")) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, 2);
+  };
   const samePlace = Math.abs(b.x - d.x) < 6 && Math.abs(b.y - d.y) < 6;
   // Skip the connector when the pair wraps the antimeridian — a line dragged
   // across the whole map reads as noise, not a route.
@@ -124,32 +281,69 @@ const MapPanel = ({ person, revealed, reduce }) => {
   );
 
   return (
-    <div className="dr-map" aria-label="World map with birth and death locations">
-      <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} preserveAspectRatio="xMidYMid meet">
-        <path className="dr-land" d={LAND_PATH} />
-        {arc && <path className="dr-arc" d={arc} />}
-      </svg>
-      {samePlace ? (
-        <>
-          {pin(person, b, "born", " is-above")}
-          <div
-            className="dr-pin dr-pin--died dr-pin--stacked"
-            style={{ left: pct(d.x, MAP_W), top: pct(d.y, MAP_H) }}
-          >
-            <span className="dr-pin-dot" />
-            <span className={`dr-pin-label is-below${d.x > MAP_W * 0.8 ? " is-left" : ""}`}>
-              <em>DIED</em>
-              {person.died.date}
-              {revealed && <i>{person.died.place}</i>}
-            </span>
-          </div>
-        </>
-      ) : (
-        <>
-          {pin(person, b, "born")}
-          {pin(person, d, "died")}
-        </>
-      )}
+    <div
+      ref={mapRef}
+      className={`dr-map${zoomLevel > 1 ? " is-zoomed" : ""}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      onDoubleClick={onDoubleClick}
+      aria-label="World map with birth and death locations"
+    >
+      <div className="dr-map-world">
+        <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} preserveAspectRatio="xMidYMid meet">
+          <path className="dr-land" d={LAND_PATH} />
+          {arc && <path className="dr-arc" d={arc} />}
+        </svg>
+        {samePlace ? (
+          <>
+            {pin(person, b, "born", " is-above")}
+            <div
+              className="dr-pin dr-pin--died dr-pin--stacked"
+              style={{ left: pct(d.x, MAP_W), top: pct(d.y, MAP_H) }}
+            >
+              <span className="dr-pin-dot" />
+              <span className={`dr-pin-label is-below${d.x > MAP_W * 0.8 ? " is-left" : ""}`}>
+                <em>DIED</em>
+                {person.died.date}
+                {revealed && <i>{person.died.place}</i>}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            {pin(person, b, "born")}
+            {pin(person, d, "died")}
+          </>
+        )}
+      </div>
+      <div className="dr-map-zoom">
+        <button
+          type="button"
+          aria-label="Zoom in"
+          disabled={zoomLevel >= MAX_ZOOM}
+          onClick={() => zoomCenter(1.6)}
+        >
+          <i className="fa-solid fa-plus" />
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom out"
+          disabled={zoomLevel <= MIN_ZOOM}
+          onClick={() => zoomCenter(1 / 1.6)}
+        >
+          <i className="fa-solid fa-minus" />
+        </button>
+        <button
+          type="button"
+          aria-label="Reset view"
+          disabled={zoomLevel <= MIN_ZOOM}
+          onClick={resetView}
+        >
+          <i className="fa-solid fa-crosshairs" />
+        </button>
+      </div>
     </div>
   );
 };
