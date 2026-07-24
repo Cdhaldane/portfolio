@@ -7,8 +7,8 @@
 //          that (a) match the same cleaned merchant name and (b) are still
 //          at the 'uncategorized' default — never overwrites a category the
 //          user set deliberately elsewhere.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 const CATEGORY_MAX = 40;
 const LIST_DEFAULT_LIMIT = 200;

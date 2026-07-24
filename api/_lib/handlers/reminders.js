@@ -15,12 +15,12 @@
 // ?dryRun=1 returns what WOULD be sent without sending — same auth.
 const { createClerkClient } = require("@clerk/backend");
 const nodemailer = require("nodemailer");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { getSql, ensureTables } = require("../budget-db");
 
 if (!process.env.CRON_SECRET) {
   try {
     require("dotenv").config({
-      path: require("path").resolve(__dirname, "../../.env.local"),
+      path: require("path").resolve(__dirname, "../../../.env.local"),
     });
   } catch (_) {
     /* dotenv/file missing — the 503 below handles it */

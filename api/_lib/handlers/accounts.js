@@ -5,8 +5,8 @@
 //         both it and the free-text label are checked against PAN-shaped
 //         digit runs so a full card number can never land in the DB, even
 //         by accident — this app's security story depends on that being true.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 const BANKS = ["amex", "td", "triangle", "other"];
 const LABEL_MAX = 60;

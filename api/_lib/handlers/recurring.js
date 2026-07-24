@@ -9,8 +9,8 @@
 //   POST   -> { label, category, amountCents, dueDay?, startMonth?, onCard?, paidFrom? }
 //   PATCH  -> { id, ...same fields..., endMonth? }  partial update
 //   DELETE -> ?id=N  remove entirely (PATCH endMonth to stop-but-keep-history)
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 const LABEL_MAX = 60;
 const CATEGORY_MAX = 40;

@@ -2,7 +2,7 @@
 // Smoke test for the Budgetter auth chain: verifies the Clerk session token
 // and the allowlist, then echoes who you are. Every future /api/budget/*
 // endpoint follows this exact shape: requireUser() first, data second.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
+const { requireUser, sendAuthError } = require("../budget-auth");
 
 module.exports = async (req, res) => {
   if (req.method !== "GET") {

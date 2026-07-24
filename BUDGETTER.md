@@ -61,9 +61,14 @@ Secrets live in `.env.local` (dev) and Vercel env vars (prod):
   Transactions, Monthly — all kept mounted with bidirectional refresh wiring
   (imports and category edits refresh the dashboard; dashboard mutations
   refresh the list).
-- **API:** Vercel serverless functions in `api/budget/*`, sharing
+- **API:** ONE Vercel serverless function — `api/budget/[action].js` — that
+  dispatches to per-route handlers in `api/_lib/handlers/` (Hobby plan caps
+  deployments at 12 functions and counts files, so the ten budget routes
+  share a single dynamic function; URLs are unchanged). Handlers share
   `api/_lib/budget-auth.js` (auth), `budget-db.js` (Neon client + schema),
   `budget-normalize.js` (validation/cleanup/categorization — pure, unit-tested).
+  New budget endpoints = new handler file + one line in the dispatcher map,
+  NOT a new file directly under `api/`.
 - **DB:** Neon Postgres (same instance as the guestbook), tables prefixed
   `budget_`.
 

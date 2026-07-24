@@ -10,8 +10,8 @@
 //   POST   -> { label, amountCents, cadence, startMonth? }
 //   PATCH  -> { id, ...same fields..., endMonth? }
 //   DELETE -> ?id=N
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 const LABEL_MAX = 60;
 const AMOUNT_MAX = 100_000_000;

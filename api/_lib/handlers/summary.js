@@ -4,8 +4,8 @@
 // and how many charges are still uncategorized. All scoped to the verified
 // caller; aggregation happens in SQL so the payload stays small no matter
 // how many transactions accumulate.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 module.exports = async (req, res) => {
   let userId;

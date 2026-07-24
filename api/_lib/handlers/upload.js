@@ -14,8 +14,8 @@
 // rules table. accountId is re-checked against the caller's own accounts on
 // every request; there is no path from one user's upload into another
 // user's data.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables, accountBelongsToUser } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables, accountBelongsToUser } = require("../budget-db");
 const {
   MAX_ROWS_PER_UPLOAD,
   FILENAME_MAX,
@@ -23,7 +23,7 @@ const {
   cleanMerchant,
   dedupHash,
   categoryFor,
-} = require("../_lib/budget-normalize");
+} = require("../budget-normalize");
 
 module.exports = async (req, res) => {
   let userId;

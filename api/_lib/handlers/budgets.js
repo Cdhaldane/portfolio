@@ -3,8 +3,8 @@
 // PUT -> upsert one: { category, monthlyCents }. monthlyCents of 0 (or null)
 //        deletes the budget — "no budget" is the absence of a row, so the
 //        dashboard never has to disambiguate 0 from unset.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
 
 const CATEGORY_MAX = 40;
 const MONTHLY_CENTS_MAX = 100_000_000; // $1M/month is safely beyond sane

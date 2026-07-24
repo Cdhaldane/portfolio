@@ -3,9 +3,9 @@
 // their own rules first, then the built-in defaults (same categoryFor the
 // ingest path uses, so a re-upload and a backfill can never disagree). Rows
 // the user already categorized by hand are never touched.
-const { requireUser, sendAuthError } = require("../_lib/budget-auth");
-const { getSql, ensureTables } = require("../_lib/budget-db");
-const { categoryFor } = require("../_lib/budget-normalize");
+const { requireUser, sendAuthError } = require("../budget-auth");
+const { getSql, ensureTables } = require("../budget-db");
+const { categoryFor } = require("../budget-normalize");
 
 module.exports = async (req, res) => {
   let userId;
