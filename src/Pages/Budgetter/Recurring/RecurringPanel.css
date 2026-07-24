@@ -1,0 +1,376 @@
+/* Reads tokens from the ancestor .bud page wrapper. */
+
+.rec {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.rec-h {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0 0 6px;
+}
+
+.rec-h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.rec-sub {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 52ch;
+  margin: 0;
+}
+
+.rec-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.rec-total-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.rec-total-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.rec-total-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* "billed to my card" — listed here for reminders, but excluded from all
+   dashboard math because the statement charges already count. */
+.rec-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.rec-oncard {
+  color: var(--ink-soft);
+  background: none;
+  border: 1px dashed var(--line);
+}
+
+/* "Paid from" account chip — neutral fill so it reads as metadata, not a
+   category. */
+.rec-from {
+  color: var(--ink-soft);
+  background: rgba(26, 26, 23, 0.07);
+}
+
+[data-theme="dark"] .rec-from {
+  background: rgba(238, 242, 233, 0.09);
+}
+
+/* Income variants (IncomePanel shares this stylesheet). */
+.rec-total--income .rec-total-value {
+  color: var(--good-text);
+}
+
+.rec-cat--income {
+  color: var(--ink-soft);
+  background: rgba(111, 154, 94, 0.12);
+}
+
+/* Stack the two Monthly-tab panels with breathing room. */
+.bud-monthly {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 40px;
+}
+
+/* ---- add form ---- */
+.rec-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.rec-add input,
+.rec-add select,
+.rec-edit input,
+.rec-edit select {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.rec-add select option,
+.rec-edit select option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .rec-add input,
+[data-theme="dark"] .rec-add select,
+[data-theme="dark"] .rec-edit input,
+[data-theme="dark"] .rec-edit select {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .rec-add select option,
+[data-theme="dark"] .rec-edit select option {
+  background: #1d1f1a;
+}
+
+.rec-add input:first-child {
+  flex: 1 1 200px;
+}
+
+.rec-input-amount {
+  width: 110px;
+}
+
+.rec-input-day {
+  width: 80px;
+}
+
+.rec-input-from {
+  flex: 1 1 150px;
+  max-width: 240px;
+}
+
+/* ---- buttons ---- */
+.rec-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rec-btn:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.rec-btn--primary {
+  color: #fff;
+  background: var(--blue);
+  border: none;
+}
+
+.rec-btn--primary:hover {
+  background: var(--blue-deep);
+  color: #fff;
+}
+
+.rec-btn--danger:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rec-error {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin: 0;
+}
+
+.rec-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  margin: 0;
+}
+
+/* ---- list ---- */
+.rec-list {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rec-row {
+  display: grid;
+  grid-template-columns: 1fr auto 110px auto;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.rec-row:last-child {
+  border-bottom: none;
+}
+
+.rec-row.is-ended {
+  opacity: 0.55;
+}
+
+.rec-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rec-label {
+  font-weight: 500;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-cat {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--blue-deep);
+  background: rgba(47, 107, 255, 0.1);
+  border-radius: 999px;
+  padding: 3px 9px;
+  flex: none;
+}
+
+.rec-due {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.rec-amount {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rec-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.rec-edit {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rec-edit input:first-child {
+  flex: 1 1 160px;
+}
+
+.rec-ended-h {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+}
+
+/* ---- upcoming ---- */
+.rec-upcoming {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.rec-up-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 110px;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.rec-up-row:first-of-type {
+  border-top: none;
+}
+
+.rec-up-when {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--blue-deep);
+}
+
+.rec-up-label {
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .rec-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "main amount" "due actions";
+    row-gap: 6px;
+  }
+  .rec-main {
+    grid-area: main;
+  }
+  .rec-amount {
+    grid-area: amount;
+  }
+  .rec-due {
+    grid-area: due;
+  }
+  .rec-actions {
+    grid-area: actions;
+    justify-self: end;
+  }
+}

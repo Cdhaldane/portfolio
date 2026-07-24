@@ -37,6 +37,15 @@ const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
 const Guestbook = lazy(() => import("./Pages/Guestbook/Guestbook"));
 const Writing = lazy(() => import("./Pages/Writing/Writing"));
 const Post = lazy(() => import("./Pages/Writing/Post"));
+// Lazy so the Clerk SDK only loads for visitors who actually hit /budgetter.
+const BudgetGate = lazy(() => import("./Pages/Budgetter/BudgetGate"));
+const Budgetter = lazy(() => import("./Pages/Budgetter/Budgetter"));
+// Dev-only design preview (mock data, no auth) — dead-code eliminated from
+// production builds by the NODE_ENV check at the route below.
+const BudgetPreview =
+  process.env.NODE_ENV === "development"
+    ? lazy(() => import("./Pages/Budgetter/DevPreview"))
+    : null;
 
 const App = () => {
   return (
@@ -69,6 +78,12 @@ const App = () => {
             <Route path="fishbowl" element={<Fishbowl />} />
             <Route path="reckoning" element={<DeadReckoning />} />
           </Route>
+          <Route path="/budgetter" element={<BudgetGate />}>
+            <Route index element={<Budgetter />} />
+          </Route>
+          {BudgetPreview && (
+            <Route path="/budgetter-preview" element={<BudgetPreview />} />
+          )}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

@@ -1,0 +1,384 @@
+/* Reads --ink/--paper/--blue/--good-text/--bad-text etc. from the ancestor
+   .bud page wrapper. */
+
+/* ---- filters row ---- */
+.txl-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.txl-search {
+  flex: 1 1 220px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+
+.txl-catfilter {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 14px;
+}
+
+.txl-catfilter option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .txl-search,
+[data-theme="dark"] .txl-catfilter {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .txl-catfilter option {
+  background: #1d1f1a;
+}
+
+.txl-export {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--blue-deep);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.txl-export:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.txl-export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.txl-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+}
+
+.txl-error {
+  color: var(--bad-text);
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+
+.txl-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.txl-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 130px 170px 100px;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.txl-row:last-child {
+  border-bottom: none;
+}
+
+.txl-row--head {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .txl-row--head {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.txl-date {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.txl-merchant {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txl-account {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txl-col-amount {
+  text-align: right;
+}
+
+.txl-amount {
+  text-align: right;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.txl-amount--credit {
+  color: var(--good-text);
+}
+
+.txl-badge {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--blue-deep);
+  background: rgba(47, 107, 255, 0.1);
+  border: none;
+  border-radius: 999px;
+  padding: 5px 10px;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txl-badge:hover {
+  background: rgba(47, 107, 255, 0.18);
+}
+
+.txl-badge--empty {
+  color: var(--ink-soft);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .txl-badge--empty {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.txl-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.txl-edit input[type="text"],
+.txl-edit input:not([type]) {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.82rem;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .txl-edit input {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.txl-edit-future {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.txl-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.txl-edit-actions button {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--ink-soft);
+}
+
+.txl-edit-actions button:first-child {
+  color: #fff;
+  background: var(--blue);
+  border: none;
+}
+
+.txl-hint {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin: 16px 0 0;
+}
+
+.txl-more {
+  display: block;
+  margin: 20px auto 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--blue-deep);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
+.txl-more:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+@media (max-width: 720px) {
+  .txl-row {
+    grid-template-columns: 90px 1fr 90px;
+    grid-template-areas:
+      "date merchant amount"
+      "cat cat cat"
+      "acct acct acct";
+    row-gap: 4px;
+  }
+  /* Hide the header visually but keep the columnheaders in the
+     accessibility tree (display:none would remove them for screen readers
+     while role="table" still declares a 5-column table). */
+  .txl-row--head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .txl-date {
+    grid-area: date;
+  }
+  .txl-merchant {
+    grid-area: merchant;
+  }
+  .txl-amount {
+    grid-area: amount;
+  }
+  .txl-category {
+    grid-area: cat;
+  }
+  .txl-account {
+    grid-area: acct;
+    font-size: 0.74rem;
+  }
+}
+
+/* ---- split / exclude ---- */
+.txl-amount-btn {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.txl-amount-btn:hover {
+  background: rgba(47, 107, 255, 0.08);
+}
+
+.txl-pct {
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  color: var(--blue-deep);
+  background: rgba(47, 107, 255, 0.1);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.txl-row--excluded .txl-merchant,
+.txl-row--excluded .txl-amount-btn {
+  text-decoration: line-through;
+  color: var(--ink-soft);
+}
+
+.txl-row--excluded .txl-pct {
+  text-decoration: none;
+}
+
+.txl-split {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0 2px;
+}
+
+.txl-split-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.txl-split-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.txl-split-btn {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.txl-split-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.txl-split-btn.is-active {
+  color: #fff;
+  background: var(--blue);
+  border-color: var(--blue);
+}

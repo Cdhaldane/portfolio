@@ -1,0 +1,131 @@
+/*
+ * Budgetter ambient background — three fixed layers, cheapest rendering:
+ *   grid  — static graph paper (a ledger, for a ledger app), masked so it
+ *           dissolves before it can fight the charts
+ *   blobs — the signature blue→sage→coral aurora, transform-only drift
+ *   grain — static noise wash for surface tactility
+ * Blob colors are literal rgba (each carries its own alpha); dark theme swaps
+ * the blend from multiply (pigment on paper) to screen (light on a dark room)
+ * and brightens the hues, mirroring the About page's aurora.
+ */
+.bud-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ---- ledger grid ---- */
+.bud-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(26, 26, 23, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 26, 23, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(
+    115% 85% at 50% 0%,
+    #000 25%,
+    transparent 76%
+  );
+  mask-image: radial-gradient(115% 85% at 50% 0%, #000 25%, transparent 76%);
+}
+
+[data-theme="dark"] .bud-bg-grid {
+  background-image:
+    linear-gradient(rgba(238, 242, 233, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(238, 242, 233, 0.05) 1px, transparent 1px);
+}
+
+/* ---- aurora ---- */
+/* Blur sits on each blob (not a wrapper) so the compositor can move the
+   cached filtered layer instead of re-blurring every frame. */
+.bud-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(52px);
+  mix-blend-mode: multiply;
+  will-change: transform;
+}
+
+.bud-bg-blob--blue {
+  width: clamp(360px, 46vw, 760px);
+  height: clamp(360px, 46vw, 760px);
+  top: -14%;
+  right: -10%;
+  background: radial-gradient(circle, rgba(47, 107, 255, 0.4), transparent 68%);
+  animation: budDriftA 26s ease-in-out infinite;
+}
+
+.bud-bg-blob--sage {
+  width: clamp(360px, 46vw, 760px);
+  height: clamp(360px, 46vw, 760px);
+  bottom: -18%;
+  left: -12%;
+  background: radial-gradient(circle, rgba(111, 154, 94, 0.45), transparent 68%);
+  animation: budDriftB 32s ease-in-out infinite;
+}
+
+.bud-bg-blob--coral {
+  width: clamp(240px, 28vw, 460px);
+  height: clamp(240px, 28vw, 460px);
+  top: 42%;
+  left: -8%;
+  background: radial-gradient(circle, rgba(255, 93, 59, 0.28), transparent 68%);
+  animation: budDriftC 23s ease-in-out infinite;
+}
+
+[data-theme="dark"] .bud-bg-blob {
+  mix-blend-mode: screen;
+}
+
+[data-theme="dark"] .bud-bg-blob--blue {
+  background: radial-gradient(circle, rgba(110, 147, 255, 0.3), transparent 68%);
+}
+
+[data-theme="dark"] .bud-bg-blob--sage {
+  background: radial-gradient(circle, rgba(143, 191, 122, 0.24), transparent 68%);
+}
+
+[data-theme="dark"] .bud-bg-blob--coral {
+  background: radial-gradient(circle, rgba(255, 122, 92, 0.18), transparent 68%);
+}
+
+@keyframes budDriftA {
+  50% {
+    transform: translate(-5vw, 6vh) scale(1.1);
+  }
+}
+
+@keyframes budDriftB {
+  50% {
+    transform: translate(6vw, -5vh) scale(1.08);
+  }
+}
+
+@keyframes budDriftC {
+  50% {
+    transform: translate(4vw, -7vh) scale(0.92);
+  }
+}
+
+/* ---- grain ---- */
+.bud-bg-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.05;
+}
+
+[data-theme="dark"] .bud-bg-grain {
+  opacity: 0.06;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bud-bg-blob {
+    animation: none;
+    will-change: auto;
+  }
+}

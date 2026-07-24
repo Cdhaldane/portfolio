@@ -2,6 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "CI=false npm run build",
   "outputDirectory": "build",
+  "crons": [
+    { "path": "/api/budget/reminders", "schedule": "0 12 * * *" }
+  ],
   "rewrites": [
     { "source": "/((?!api/|.*\\.).*)", "destination": "/index.html" }
   ],

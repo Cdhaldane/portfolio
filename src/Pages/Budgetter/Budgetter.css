@@ -1,0 +1,287 @@
+.bud {
+  --ink: #1a1a17;
+  --ink-soft: #4a4a44;
+  --paper: #eef2e9;
+  --card: rgba(255, 255, 255, 0.6);
+  --line: rgba(26, 26, 23, 0.12);
+  --blue: #2f6bff;
+  --blue-deep: #1741c9;
+  --sage: #6f9a5e;
+  --accent: #ff5d3b;
+  --grad: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
+  /* Status TEXT tokens — raw --accent/--sage fail WCAG for small text on
+     the light paper (2.7:1 / 2.9:1); these pass 4.5:1 in both themes. */
+  --good-text: #3e6b34;
+  --bad-text: #b23a1a;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 70% at 100% 0%, #f4f7f0 0%, var(--paper) 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: "Inter", system-ui, sans-serif;
+  padding: clamp(48px, 9vw, 96px) 24px 96px;
+}
+
+[data-theme="dark"] .bud {
+  --paper: #121310;
+  --ink: #eef2e9;
+  --ink-soft: #b9bfb0;
+  --card: rgba(255, 255, 255, 0.06);
+  --line: rgba(238, 242, 233, 0.12);
+  --blue: #6e93ff;
+  --blue-deep: #3f6fff;
+  --good-text: #97c283;
+  --bad-text: #ff8a68;
+  background:
+    radial-gradient(120% 70% at 100% 0%, #181a15 0%, var(--paper) 55%),
+    var(--paper);
+}
+
+/*
+ * Custom select chevron. The native one is drawn flush against the right
+ * edge and can't be repositioned, so replace it with an inline SVG inset
+ * from the border. Two constraints on the per-panel select rules:
+ *   - they must set background-color, NOT the `background` shorthand,
+ *     or they'd reset this background-image;
+ *   - :not([multiple]) bumps specificity to (0,2,1) so the padding-right
+ *     reserving room for the chevron beats their `padding` shorthands.
+ */
+.bud select:not([multiple]) {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%231a1a17' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+}
+
+[data-theme="dark"] .bud select:not([multiple]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23eef2e9' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.bud-inner {
+  /* Above the fixed .bud-bg ambient layer. */
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  animation: bud-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bud-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- header ---- */
+.bud-kicker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+  margin: 0;
+}
+
+.bud-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 7vw, 3.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  margin: 10px 0 12px;
+  text-wrap: balance;
+}
+
+.bud-sub {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 32px;
+}
+
+.bud code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85em;
+  color: var(--blue-deep);
+  word-break: break-all;
+}
+
+/* ---- API status card ---- */
+.bud-status {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  margin-bottom: 40px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 24px 60px -32px rgba(26, 26, 23, 0.3);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.bud-status p {
+  margin: 0;
+  flex: 1 1 260px;
+}
+
+.bud-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  align-self: center;
+  flex: none;
+}
+
+.bud-status--checking .bud-status-dot {
+  animation: bud-pulse 1.1s ease-in-out infinite;
+}
+
+.bud-status--ok .bud-status-dot {
+  background: var(--sage);
+  box-shadow: 0 0 0 4px rgba(111, 154, 94, 0.18);
+}
+
+.bud-status--denied .bud-status-dot,
+.bud-status--unauthenticated .bud-status-dot,
+.bud-status--unconfigured .bud-status-dot,
+.bud-status--offline .bud-status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(255, 93, 59, 0.16);
+}
+
+@keyframes bud-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.bud-status--compact {
+  padding: 10px 16px;
+  margin-bottom: 24px;
+  font-size: 0.82rem;
+}
+
+.bud-status--compact p {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.bud-retry {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--blue-deep);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bud-retry:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* ---- tabs ---- */
+.bud-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+  /* Four tabs don't quite fit a phone — scroll the row, never the page. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bud-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.bud-tab {
+  flex: none;
+  white-space: nowrap;
+}
+
+.bud-tab {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px 12px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition:
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bud-tab + .bud-tab {
+  margin-left: 18px;
+}
+
+.bud-tab:hover {
+  color: var(--ink);
+}
+
+.bud-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--blue);
+}
+
+/* ---- sign out ---- */
+.bud-signout {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  margin-top: 18px;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bud-signout:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bud-inner {
+    animation: none;
+  }
+  .bud-status--checking .bud-status-dot {
+    animation: none;
+  }
+}

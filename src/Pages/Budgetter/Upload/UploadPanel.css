@@ -1,0 +1,420 @@
+/* Structural styles only — reads --ink/--paper/--blue/etc. from the
+   ancestor .bud page wrapper (Budgetter.css), so no tokens are redeclared. */
+
+.upl {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.upl-step {
+  padding: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: upl-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes upl-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upl-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--blue-deep);
+  margin: 0 0 6px;
+}
+
+.upl-step--done .upl-num {
+  color: var(--good-text);
+  font-size: 1rem;
+}
+
+.upl-h {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0 0 10px;
+}
+
+.upl-hint {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  max-width: 60ch;
+}
+
+/*
+ * Selects need a SOLID background, not the glass-card translucency used
+ * elsewhere: an open <select>'s option list renders as its own native
+ * surface that doesn't composite an author's alpha-transparent background
+ * against the page behind it. Left translucent, the popup falls back to a
+ * plain white surface while the text color still follows --ink (light in
+ * dark mode) — which is exactly how you get white-on-white. Setting color +
+ * background explicitly on `option` too, since some engines only honour
+ * <select>'s own styling for the closed box, not the popup list.
+ */
+.upl-select,
+.upl-newaccount select,
+.upl-newaccount input {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.upl-select option,
+.upl-newaccount select option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .upl-select,
+[data-theme="dark"] .upl-newaccount select,
+[data-theme="dark"] .upl-newaccount input {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .upl-select option,
+[data-theme="dark"] .upl-newaccount select option {
+  color: var(--ink);
+  background: #1d1f1a;
+}
+
+.upl-select {
+  width: 100%;
+  max-width: 360px;
+}
+
+.upl-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--blue-deep);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.upl-link:hover {
+  color: var(--blue);
+}
+
+.upl-newaccount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.upl-newaccount input[type="text"] {
+  flex: 1 1 160px;
+}
+
+.upl-newaccount button {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #fff;
+  background: var(--blue);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.upl-newaccount button:hover {
+  background: var(--blue-deep);
+}
+
+.upl-newaccount button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+input[type="file"] {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.upl-error {
+  font-size: 0.85rem;
+  color: var(--bad-text);
+  margin: 10px 0 0;
+}
+
+/* ---- column mapping ---- */
+.upl-mapping-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.upl-mapping-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.upl-mapping-row span {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  flex: 1 1 auto;
+}
+
+.upl-mapping-row select {
+  flex: 1 1 220px;
+  max-width: 320px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.upl-mapping-row select option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .upl-mapping-row select {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .upl-mapping-row select option {
+  color: var(--ink);
+  background: #1d1f1a;
+}
+
+.upl-flip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+
+/* ---- pdf statement review ---- */
+.upl-checks {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.upl-check--ok {
+  color: var(--good-text);
+}
+
+.upl-check--bad {
+  color: var(--bad-text);
+}
+
+.upl-pdftable-wrap {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.upl-pdftable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.upl-pdftable th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--paper-2);
+  padding: 10px 12px;
+}
+
+.upl-pdftable td {
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.upl-pdftable td:first-child,
+.upl-pdftable td:last-child {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.upl-pdftable td:last-child {
+  text-align: right;
+}
+
+.upl-amount--credit {
+  color: var(--good-text);
+}
+
+/* ---- review summary ---- */
+.upl-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.upl-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.upl-summary-item strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.upl-summary-item span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.upl-summary-item--new {
+  border-color: var(--sage);
+  background: rgba(111, 154, 94, 0.08);
+}
+
+.upl-summary-item--new strong {
+  color: var(--good-text);
+}
+
+.upl-rejected {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+/* ---- mapping diagnostic (shown when every row fails to parse) ---- */
+.upl-diagnostic {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 93, 59, 0.06);
+}
+
+.upl-diagnostic-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+
+.upl-diagnostic-row:first-of-type {
+  border-top: none;
+}
+
+.upl-diagnostic-row code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+/* ---- actions ---- */
+.upl-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.upl-primary,
+.upl-secondary {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.upl-primary {
+  color: #fff;
+  background: var(--blue);
+  border: none;
+}
+
+.upl-primary:hover:not(:disabled) {
+  background: var(--blue-deep);
+}
+
+.upl-primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.upl-secondary {
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+}
+
+.upl-secondary:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upl-step {
+    animation: none;
+  }
+}

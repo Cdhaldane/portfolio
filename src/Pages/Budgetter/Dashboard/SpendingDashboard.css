@@ -1,0 +1,897 @@
+/* Reads --ink/--paper/--blue/etc. from the ancestor .bud page wrapper.
+   Status text tokens are chart-local and WCAG-checked against the card
+   surfaces in both modes (see the dataviz validation in the build notes):
+   light  #3e6b34 5.97:1 · #b23a1a 5.70:1
+   dark   #97c283 7.98:1 · #ff8a68 7.00:1 */
+
+.bdb {
+  --good-text: #3e6b34;
+  --bad-text: #b23a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme="dark"] .bdb {
+  --good-text: #97c283;
+  --bad-text: #ff8a68;
+}
+
+/* Refetch keeps the frame: hold the previous render at reduced opacity. */
+.bdb.is-refreshing {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.bdb-loading,
+.bdb-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+}
+
+.bdb-empty p {
+  margin: 0 0 12px;
+}
+
+/* ---- cards ---- */
+.bdb-card {
+  padding: 20px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.bdb-h {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 16px;
+}
+
+.bdb-h-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.bdb-sub {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+
+.bdb-error {
+  font-size: 0.82rem;
+  color: var(--bad-text);
+  margin: 8px 0 0;
+}
+
+/* ---- KPI tiles ---- */
+.bdb-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.bdb-tile {
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.bdb-tile-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
+.bdb-tile-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.8rem;
+  line-height: 1.05;
+  margin: 0 0 6px;
+}
+
+.bdb-tile-value.is-good {
+  color: var(--good-text);
+}
+
+.bdb-tile-value.is-bad {
+  color: var(--bad-text);
+}
+
+.bdb-tile-sub {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.bdb-tile-delta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+}
+
+.bdb-tile-delta.is-bad {
+  color: var(--bad-text);
+}
+
+.bdb-tile-delta.is-good {
+  color: var(--good-text);
+}
+
+.bdb-spark {
+  display: block;
+  width: 96px;
+  height: 28px;
+  overflow: visible;
+}
+
+.bdb-spark-line {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-opacity: 0.45;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.bdb-spark-dot {
+  fill: var(--blue);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+/* ---- controls row ---- */
+.bdb-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Period picker — same state as clicking a chart bar, shaped like the
+   Months/Years pill beside it. Solid background (not glass) for the same
+   native-popup reason documented in UploadPanel.css. */
+.bdb-period-select {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.bdb-period-select option {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .bdb-period-select {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .bdb-period-select option {
+  background: #1d1f1a;
+}
+
+.bdb-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.bdb-toggle-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bdb-toggle-btn.is-active {
+  color: #fff;
+  background: var(--blue);
+}
+
+/* ---- error banner (refresh failed after data loaded) ---- */
+.bdb-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--bad-text);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--bad-text);
+}
+
+/* ---- card head + legend ---- */
+.bdb-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bdb-legend {
+  display: flex;
+  gap: 14px;
+}
+
+.bdb-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.bdb-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.bdb-swatch--card {
+  background: var(--blue);
+}
+
+.bdb-swatch--fixed {
+  background: var(--blue-deep);
+}
+
+/* Income legend key mirrors the benchmark tick: a short ink line, not a
+   filled block — it's a reference mark, not a series fill. */
+.bdb-swatch--income {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  opacity: 0.75;
+  align-self: center;
+}
+
+/* ---- bar chart ---- */
+/* On narrow screens the chart scrolls in its own container instead of
+   scaling its 720px viewBox down to illegible ~4px text. chartinner is the
+   tooltip's positioning context so % coords track the SVG, not the
+   scrollport. */
+.bdb-chartwrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bdb-chartinner {
+  position: relative;
+  min-width: 640px;
+}
+
+.bdb-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bdb-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.bdb-axis {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.bdb-tick {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: end;
+}
+
+.bdb-xlabel {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: middle;
+}
+
+/* Stacked segments: card spend in --blue, fixed costs in --blue-deep (two
+   steps of one ramp). Unselected bars de-emphasize via fill-opacity but
+   keep a full-opacity 1px stroke so every mark stays >=3:1 perceivable
+   (WCAG 1.4.11) — the outline defines the object even when the fill is
+   recessive. */
+.bdb-seg {
+  stroke-width: 1;
+  fill-opacity: 0.45;
+  transition: fill-opacity 0.2s ease;
+}
+
+.bdb-seg--card {
+  fill: var(--blue);
+  stroke: var(--blue);
+}
+
+.bdb-seg--fixed {
+  fill: var(--blue-deep);
+  stroke: var(--blue-deep);
+}
+
+.bdb-chart g.is-selected .bdb-seg {
+  fill-opacity: 1;
+}
+
+.bdb-chart g:hover:not(.is-selected) .bdb-seg {
+  fill-opacity: 0.72;
+}
+
+/* Income benchmark tick — neutral ink so it reads as a reference line, not
+   a third data series; slightly wider than the bar so it stays visible when
+   spend covers it exactly. */
+.bdb-income-tick {
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0.75;
+}
+
+.bdb-hit {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.bdb-hit:focus-visible {
+  stroke: var(--blue);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.bdb-bar-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--ink);
+  text-anchor: middle;
+}
+
+.bdb-tip {
+  position: absolute;
+  transform: translate(-50%, -110%);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+.bdb-tip strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+}
+
+.bdb-tip span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+
+.bdb-tip-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Line keys, not boxes — a short stroke of the series color. */
+.bdb-tip-key {
+  display: inline-block;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.bdb-tip-key--card {
+  background: #6e93ff;
+}
+
+.bdb-tip-key--fixed {
+  background: #9db9ff;
+}
+
+.bdb-tip-key--income,
+.bdb-tip-key--saved {
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* ---- two-column lower grid ---- */
+.bdb-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 840px) {
+  .bdb-grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- category breakdown ---- */
+.bdb-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bdb-cat {
+  display: grid;
+  grid-template-columns: minmax(100px, 150px) 1fr 64px 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.bdb-cat-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bdb-cat-name.is-muted {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.bdb-cat-bar {
+  display: block;
+  height: 12px;
+}
+
+.bdb-cat-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--blue);
+  border-radius: 0 4px 4px 0;
+}
+
+.bdb-cat-fill.is-muted {
+  background: var(--ink-soft);
+  opacity: 0.35;
+}
+
+.bdb-cat-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.bdb-cat-pct {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+/* ---- category drill-down ---- */
+.bdb-cat--btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.bdb-cat--btn:hover,
+.bdb-cat--btn.is-open {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+[data-theme="dark"] .bdb-cat--btn:hover,
+[data-theme="dark"] .bdb-cat--btn.is-open {
+  background: rgba(110, 147, 255, 0.1);
+}
+
+.bdb-cat-caret {
+  display: inline-block;
+  width: 14px;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+
+.bdb-drill {
+  margin: 6px 0 10px 14px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--line);
+}
+
+.bdb-drill-row {
+  display: grid;
+  grid-template-columns: 68px 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 0.82rem;
+}
+
+.bdb-drill-date {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.bdb-drill-merchant {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bdb-drill-amount {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bdb-drill-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 4px 0;
+}
+
+.bdb-drill-all {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--blue-deep);
+  background: none;
+  border: none;
+  padding: 6px 0 0;
+  cursor: pointer;
+}
+
+.bdb-drill-all:hover {
+  color: var(--blue);
+}
+
+/* ---- budgets ---- */
+.bdb-budgets {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.bdb-budget-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bdb-budget-nums {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.bdb-budget-nums:hover {
+  color: var(--blue);
+}
+
+/* Meter: track is a lighter step of the same blue ramp; the fill carries
+   state (blue in-budget, coral over) and over-state always ships with the
+   "▲ $X over budget" text below — never color alone. */
+.bdb-meter {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(47, 107, 255, 0.14);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .bdb-meter {
+  background: rgba(110, 147, 255, 0.16);
+}
+
+.bdb-meter-fill {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  border-radius: 0 5px 5px 0;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bdb-meter-fill.is-over {
+  background: var(--accent);
+}
+
+.bdb-over {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--bad-text);
+  margin: 6px 0 0;
+}
+
+.bdb-budget-edit {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.bdb-budget-edit input,
+.bdb-budget-new input,
+.bdb-budget-new select {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  width: 110px;
+}
+
+.bdb-budget-new select {
+  width: auto;
+}
+
+.bdb-budget-new select option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .bdb-budget-edit input,
+[data-theme="dark"] .bdb-budget-new input,
+[data-theme="dark"] .bdb-budget-new select {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] .bdb-budget-new select option {
+  background: #1d1f1a;
+}
+
+.bdb-budget-edit button {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.bdb-budget-edit button:first-of-type {
+  color: #fff;
+  background: var(--blue);
+  border: none;
+}
+
+.bdb-budget-new {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bdb-planned {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin: 14px 0 0;
+}
+
+/* ---- insights ---- */
+.bdb-insight-block {
+  margin-bottom: 16px;
+}
+
+.bdb-insight-block:last-child {
+  margin-bottom: 0;
+}
+
+.bdb-insight-h {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+
+.bdb-insight-row {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  margin: 0 0 6px;
+}
+
+.bdb-insight-row.is-bad {
+  color: var(--bad-text);
+}
+
+.bdb-insight-row.is-good {
+  color: var(--good-text);
+}
+
+.bdb-sub-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+}
+
+.bdb-sub-row:first-of-type {
+  border-top: none;
+}
+
+.bdb-sub-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- shared chip button ---- */
+.bdb-chip {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #fff;
+  background: var(--blue);
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bdb-chip:hover:not(:disabled) {
+  background: var(--blue-deep);
+}
+
+.bdb-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bdb-chip--small {
+  font-size: 0.72rem;
+  padding: 5px 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bdb-meter-fill {
+    transition: none;
+  }
+  .bdb-seg {
+    transition: none;
+  }
+}
+
+/* ---- statement freshness chips ---- */
+.bdb-fresh {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bdb-fresh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bdb-fresh-chip:hover {
+  border-color: var(--blue);
+}
+
+.bdb-fresh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  flex: none;
+}
+
+.bdb-fresh-chip.is-fresh .bdb-fresh-dot {
+  background: var(--sage);
+}
+
+/* Stale/empty state carries words ("nothing since…"), never color alone. */
+.bdb-fresh-chip.is-stale,
+.bdb-fresh-chip.is-empty {
+  color: var(--bad-text);
+  border-color: var(--bad-text);
+}
+
+.bdb-fresh-chip.is-stale .bdb-fresh-dot,
+.bdb-fresh-chip.is-empty .bdb-fresh-dot {
+  background: var(--accent);
+}
+
+/* ---- drill rows: excluded / split ---- */
+.bdb-drill-row.is-excluded .bdb-drill-amount,
+.bdb-drill-row.is-excluded .bdb-drill-merchant {
+  text-decoration: line-through;
+  color: var(--ink-soft);
+}
+
+.bdb-drill-flag {
+  font-family: "IBM Plex Mono", monospace;
+  font-style: normal;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
