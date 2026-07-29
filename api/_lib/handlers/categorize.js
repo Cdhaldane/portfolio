@@ -1,10 +1,11 @@
 // Vercel serverless function — POST /api/budget/categorize
-// Backfills categories for the caller's existing *uncategorized* rows using
-// their own rules first, then the built-in defaults (same categoryFor the
-// ingest path uses, so a re-upload and a backfill can never disagree). Rows
-// the user already categorized by hand are never touched.
+// Backfills categories for the household's existing *uncategorized* rows
+// using the household's own rules first, then the built-in defaults (same
+// categoryFor the ingest path uses, so a re-upload and a backfill can never
+// disagree). Rows anyone already categorized by hand are never touched.
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 const { categoryFor } = require("../budget-normalize");
 
 module.exports = async (req, res) => {
@@ -27,19 +28,20 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     // Longest pattern first — same deterministic order as upload.js, so a
     // backfill and a re-upload can never categorize the same merchant
     // differently.
     const rules = await sql`
       SELECT pattern, category FROM budget_category_rules
-       WHERE user_id = ${userId}
+       WHERE household_id = ${household.id}
        ORDER BY length(pattern) DESC, pattern ASC
     `;
     const rows = await sql`
       SELECT id, merchant_clean
         FROM budget_transactions
-       WHERE user_id = ${userId} AND category = 'uncategorized'
+       WHERE household_id = ${household.id} AND category = 'uncategorized'
     `;
 
     const changes = rows
@@ -52,7 +54,7 @@ module.exports = async (req, res) => {
         changes.map(
           (c) => sql`
             UPDATE budget_transactions SET category = ${c.category}
-             WHERE id = ${c.id} AND user_id = ${userId}
+             WHERE id = ${c.id} AND household_id = ${household.id}
             RETURNING id
           `
         )

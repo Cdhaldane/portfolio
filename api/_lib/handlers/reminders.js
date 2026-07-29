@@ -7,8 +7,9 @@
 // Fail closed: no CRON_SECRET configured -> 503, wrong/missing bearer -> 401.
 //
 // For every ACTIVE recurring item with a due_day landing exactly
-// REMINDER_DAYS_AHEAD days from now (default 3), the owning user gets ONE
-// grouped email listing that day's bills. Running daily + exact-day match =
+// REMINDER_DAYS_AHEAD days from now (default 3), EVERY CURRENT MEMBER of the
+// owning household gets ONE grouped email listing that day's bills — a
+// shared ledger means a shared heads-up. Running daily + exact-day match =
 // naturally idempotent, no sent-log table needed. Recipient addresses come
 // from Clerk (the only place emails live — the budget DB stores none).
 //
@@ -16,6 +17,7 @@
 const { createClerkClient } = require("@clerk/backend");
 const nodemailer = require("nodemailer");
 const { getSql, ensureTables } = require("../budget-db");
+const { activeMemberIds } = require("../budget-household");
 
 if (!process.env.CRON_SECRET) {
   try {
@@ -123,31 +125,46 @@ module.exports = async (req, res) => {
     await ensureTables(sql);
     const target = reminderTarget();
 
-    // All users' active due-dated bills — cron runs for the whole app.
+    // Every household's active due-dated bills — cron runs for the whole app.
     const items = await sql`
-      SELECT user_id, label, category, amount_cents, due_day, paid_from, on_card
+      SELECT household_id, label, category, amount_cents, due_day, paid_from, on_card
         FROM budget_recurring
        WHERE due_day IS NOT NULL
          AND start_month <= ${target.monthKey}
          AND (end_month IS NULL OR end_month >= ${target.monthKey})
     `;
 
-    const byUser = new Map();
+    const byHousehold = new Map();
     for (const item of items) {
       if (!target.matches(item.due_day)) continue;
-      const list = byUser.get(item.user_id) || [];
+      const list = byHousehold.get(item.household_id) || [];
       list.push(item);
-      byUser.set(item.user_id, list);
+      byHousehold.set(item.household_id, list);
     }
 
-    if (byUser.size === 0) {
+    if (byHousehold.size === 0) {
       return res.status(200).json({ ok: true, sent: 0, due: 0, target: target.label });
+    }
+
+    // Fan each household's bill list out to everyone currently in it. One
+    // recipient per email (no shared To: header) so nobody's address is
+    // disclosed to the other members.
+    const recipients = [];
+    for (const [householdId, bills] of byHousehold) {
+      const members = await activeMemberIds(sql, householdId);
+      if (!members.length) {
+        console.warn(`Reminders: household ${householdId} has bills but no active members.`);
+        continue;
+      }
+      for (const userId of members) {
+        recipients.push([userId, bills]);
+      }
     }
 
     const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
     const results = [];
 
-    for (const [userId, bills] of byUser) {
+    for (const [userId, bills] of recipients) {
       let email = null;
       try {
         const user = await clerk.users.getUser(userId);
@@ -163,16 +180,18 @@ module.exports = async (req, res) => {
         continue;
       }
 
-      bills.sort((a, b) => b.amount_cents - a.amount_cents);
-      const total = bills.reduce((s, b) => s + b.amount_cents, 0);
-      const lines = bills.map(
+      // Sorted COPY: the same bills array is shared by every member of the
+      // household, so it must not be mutated in place here.
+      const sorted = [...bills].sort((a, b) => b.amount_cents - a.amount_cents);
+      const total = sorted.reduce((s, b) => s + b.amount_cents, 0);
+      const lines = sorted.map(
         (b) =>
           `  • ${b.label} — ${fmtMoney(b.amount_cents)}` +
           (b.paid_from ? ` (from ${b.paid_from})` : b.on_card ? " (on your card)" : "")
       );
-      const plural = bills.length === 1 ? "bill is" : `${bills.length} bills are`;
+      const plural = sorted.length === 1 ? "bill is" : `${sorted.length} bills are`;
       const subject = `Budgetter: ${
-        bills.length === 1 ? bills[0].label : `${bills.length} bills`
+        sorted.length === 1 ? sorted[0].label : `${sorted.length} bills`
       } due ${target.label}`;
       const text = [
         `Heads up — the following ${plural} due on ${target.label}:`,
@@ -185,7 +204,7 @@ module.exports = async (req, res) => {
       ].join("\n");
 
       if (dryRun) {
-        results.push({ userId, sent: false, dryRun: true, subject, bills: bills.length });
+        results.push({ userId, sent: false, dryRun: true, subject, bills: sorted.length });
         continue;
       }
 
@@ -196,7 +215,7 @@ module.exports = async (req, res) => {
           subject,
           text,
         });
-        results.push({ userId, sent: true, bills: bills.length });
+        results.push({ userId, sent: true, bills: sorted.length });
       } catch (err) {
         console.error(`Reminders: send failed for ${userId}:`, err.message);
         results.push({ userId, sent: false, reason: "send failed" });

@@ -11,11 +11,16 @@
 // Trust boundary: the client sends only postedDate/merchantRaw/amountCents.
 // merchant_clean, category, and dedup_hash are always derived server-side —
 // a client can't forge a hash to bypass dedup, or a category to bypass the
-// rules table. accountId is re-checked against the caller's own accounts on
-// every request; there is no path from one user's upload into another
-// user's data.
+// rules table. accountId is re-checked against the caller's own HOUSEHOLD on
+// every request; there is no path from one household's upload into another
+// household's data.
+//
+// Dedup is household-wide and salted with household.hashScope (the owner's
+// user id), NOT the uploader's — so either member can upload the same
+// statement and the second one dedupes instead of double-importing.
 const { requireUser, sendAuthError } = require("../budget-auth");
-const { getSql, ensureTables, accountBelongsToUser } = require("../budget-db");
+const { getSql, ensureTables, accountInHousehold } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 const {
   MAX_ROWS_PER_UPLOAD,
   FILENAME_MAX,
@@ -45,12 +50,13 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     const accountId = parseInt(req.body?.accountId, 10);
     if (!Number.isInteger(accountId)) {
       return res.status(400).json({ error: "A valid accountId is required." });
     }
-    if (!(await accountBelongsToUser(sql, accountId, userId))) {
+    if (!(await accountInHousehold(sql, accountId, household.id))) {
       return res.status(404).json({ error: "No such account." });
     }
 
@@ -86,7 +92,7 @@ module.exports = async (req, res) => {
       const occurrence = occurrenceCounter.get(tupleKey) || 0;
       occurrenceCounter.set(tupleKey, occurrence + 1);
       const hash = dedupHash(
-        userId,
+        household.hashScope,
         accountId,
         result.postedDate,
         result.amountCents,
@@ -111,7 +117,7 @@ module.exports = async (req, res) => {
     // regardless of Postgres row order; categorize.js uses the same order.
     const rules = await sql`
       SELECT pattern, category FROM budget_category_rules
-       WHERE user_id = ${userId}
+       WHERE household_id = ${household.id}
        ORDER BY length(pattern) DESC, pattern ASC
     `;
     const uniqueRows = Array.from(seen.values()).map((row) => ({
@@ -122,7 +128,7 @@ module.exports = async (req, res) => {
     // 4. Split against what's already stored for this account.
     const existing = await sql`
       SELECT dedup_hash FROM budget_transactions
-       WHERE user_id = ${userId} AND account_id = ${accountId}
+       WHERE household_id = ${household.id} AND account_id = ${accountId}
     `;
     const existingHashes = new Set(existing.map((r) => r.dedup_hash));
     const toInsert = uniqueRows.filter((r) => !existingHashes.has(r.hash));
@@ -146,15 +152,18 @@ module.exports = async (req, res) => {
 
     // Commit: record the batch, then bulk-insert via one transaction() call
     // (a single HTTP round trip) rather than one request per row. The DB's
-    // own UNIQUE(user_id, dedup_hash) + ON CONFLICT DO NOTHING is the actual
-    // source of truth for what gets inserted — safe even if a concurrent
-    // upload raced this one for the same rows; the pre-check above is only
-    // an optimization, not what's trusted.
+    // own UNIQUE(household_id, dedup_hash) + ON CONFLICT DO NOTHING is the
+    // actual source of truth for what gets inserted — safe even if the other
+    // member raced this upload with the same statement; the pre-check above
+    // is only an optimization, not what's trusted.
+    //
+    // user_id on both tables records WHO uploaded (attribution); household_id
+    // is what every read filters on.
     const [batch] = await sql`
       INSERT INTO budget_upload_batches
-        (user_id, account_id, filename, row_count, inserted_count, duplicate_count, rejected_count)
+        (user_id, household_id, account_id, filename, row_count, inserted_count, duplicate_count, rejected_count)
       VALUES
-        (${userId}, ${accountId}, ${filename || null}, ${rawRows.length}, ${toInsert.length}, ${duplicateCount}, ${rejectedCount})
+        (${userId}, ${household.id}, ${accountId}, ${filename || null}, ${rawRows.length}, ${toInsert.length}, ${duplicateCount}, ${rejectedCount})
       RETURNING id
     `;
 
@@ -164,10 +173,10 @@ module.exports = async (req, res) => {
         toInsert.map(
           (row) => sql`
             INSERT INTO budget_transactions
-              (user_id, account_id, batch_id, posted_date, merchant_raw, merchant_clean, amount_cents, category, dedup_hash)
+              (user_id, household_id, account_id, batch_id, posted_date, merchant_raw, merchant_clean, amount_cents, category, dedup_hash)
             VALUES
-              (${userId}, ${accountId}, ${batch.id}, ${row.postedDate}, ${row.merchantRaw}, ${row.merchantClean}, ${row.amountCents}, ${row.category}, ${row.hash})
-            ON CONFLICT (user_id, dedup_hash) DO NOTHING
+              (${userId}, ${household.id}, ${accountId}, ${batch.id}, ${row.postedDate}, ${row.merchantRaw}, ${row.merchantClean}, ${row.amountCents}, ${row.category}, ${row.hash})
+            ON CONFLICT (household_id, dedup_hash) DO NOTHING
             RETURNING id
           `
         )
@@ -183,7 +192,7 @@ module.exports = async (req, res) => {
         UPDATE budget_upload_batches
            SET inserted_count = ${insertedCount},
                duplicate_count = ${duplicateCount + (toInsert.length - insertedCount)}
-         WHERE id = ${batch.id} AND user_id = ${userId}
+         WHERE id = ${batch.id} AND household_id = ${household.id}
       `;
     }
 

@@ -12,6 +12,7 @@
 //   DELETE -> ?id=N
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 
 const LABEL_MAX = 60;
 const AMOUNT_MAX = 100_000_000;
@@ -39,12 +40,13 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     if (req.method === "GET") {
       const income = await sql`
         SELECT id, label, amount_cents, cadence, start_month, end_month
           FROM budget_income
-         WHERE user_id = ${userId}
+         WHERE household_id = ${household.id}
          ORDER BY amount_cents DESC, label ASC
       `;
       return res.status(200).json({ configured: true, income });
@@ -70,8 +72,8 @@ module.exports = async (req, res) => {
       }
 
       const [item] = await sql`
-        INSERT INTO budget_income (user_id, label, amount_cents, cadence, start_month)
-        VALUES (${userId}, ${label}, ${amountCents}, ${cadence}, ${startMonth})
+        INSERT INTO budget_income (user_id, household_id, label, amount_cents, cadence, start_month)
+        VALUES (${userId}, ${household.id}, ${label}, ${amountCents}, ${cadence}, ${startMonth})
         RETURNING id, label, amount_cents, cadence, start_month, end_month
       `;
       return res.status(201).json({ ok: true, item });
@@ -85,7 +87,7 @@ module.exports = async (req, res) => {
       const existing = await sql`
         SELECT id, label, amount_cents, cadence, start_month, end_month
           FROM budget_income
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
       `;
       if (!existing.length) return res.status(404).json({ error: "No such source." });
       const cur = existing[0];
@@ -123,7 +125,7 @@ module.exports = async (req, res) => {
         UPDATE budget_income
            SET label = ${label}, amount_cents = ${amountCents}, cadence = ${cadence},
                start_month = ${startMonth}, end_month = ${endMonth}
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
         RETURNING id, label, amount_cents, cadence, start_month, end_month
       `;
       return res.status(200).json({ ok: true, item });
@@ -136,7 +138,7 @@ module.exports = async (req, res) => {
       }
       const deleted = await sql`
         DELETE FROM budget_income
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
         RETURNING id
       `;
       if (!deleted.length) return res.status(404).json({ error: "No such source." });

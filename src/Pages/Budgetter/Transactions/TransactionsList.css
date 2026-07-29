@@ -131,12 +131,31 @@
   white-space: nowrap;
 }
 
+/* Stacks: card label, then (shared households only) who imported the row.
+   Each line truncates on its own, which is why the label is wrapped in a
+   span rather than left as a bare text node. */
 .txl-account {
   color: var(--ink-soft);
   font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.txl-account-name,
+.txl-addedby {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.txl-addedby {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
 }
 
 .txl-col-amount {

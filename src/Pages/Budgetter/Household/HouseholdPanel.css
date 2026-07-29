@@ -1,0 +1,433 @@
+/* Reads tokens from the ancestor .bud page wrapper. */
+
+.hh {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hh-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hh-kicker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+  margin: 0 0 6px;
+}
+
+.hh-h {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  margin: 0 0 8px;
+}
+
+.hh-h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.hh-sub {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 58ch;
+  margin: 0;
+}
+
+.hh-role {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  flex: none;
+}
+
+.hh-role--owner {
+  color: var(--blue-deep);
+  border-color: color-mix(in srgb, var(--blue) 45%, transparent);
+}
+
+/* ---- surfaces ---- */
+.hh-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.hh-empty,
+.hh-hint {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 12px 0 0;
+}
+
+.hh-notice,
+.hh-error {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.hh-notice {
+  color: var(--good-text);
+}
+
+.hh-error {
+  color: var(--bad-text);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ---- buttons ---- */
+.hh-btn {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  flex: none;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hh-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--blue-deep);
+}
+
+.hh-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.hh-btn--primary {
+  color: #fff;
+  background: linear-gradient(120deg, var(--blue), var(--blue-deep));
+  border-color: transparent;
+}
+
+.hh-btn--primary:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.06);
+}
+
+.hh-btn--quiet {
+  color: var(--ink-soft);
+}
+
+.hh-btn--danger:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--bad-text);
+}
+
+.hh-inline {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--line);
+  padding: 0 0 1px;
+  cursor: pointer;
+}
+
+.hh-inline:hover {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* ---- inputs ---- */
+.hh input,
+.hh select {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 12px;
+  min-width: 0;
+}
+
+.hh input:focus-visible,
+.hh select:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.hh-rename,
+.hh-inviteform {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.hh-rename {
+  margin-top: 0;
+}
+
+.hh-rename input,
+.hh-inviteform input {
+  flex: 1 1 200px;
+}
+
+/* ---- people ---- */
+.hh-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hh-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.hh-person:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+
+.hh-avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue), var(--sage));
+}
+
+.hh-person-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hh-person-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.hh-you,
+.hh-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 400;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.hh-you {
+  color: var(--blue-deep);
+  border-color: color-mix(in srgb, var(--blue) 40%, transparent);
+}
+
+.hh-person-meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.hh-person-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+/* ---- invite code reveal ---- */
+.hh-code {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px dashed color-mix(in srgb, var(--blue) 45%, var(--line));
+  border-radius: 14px;
+}
+
+.hh-code-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.hh-code-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  letter-spacing: 0.14em;
+  color: var(--blue-deep);
+  /* Selectable for people who prefer to copy it by hand. */
+  user-select: all;
+}
+
+.hh-code-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hh-code-meta {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 52ch;
+}
+
+.hh-invites {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.hh-invites li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+
+.hh-invite-label {
+  flex: 1 1 140px;
+  font-size: 0.9rem;
+}
+
+.hh-invite-meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+/* ---- card ownership + spend ---- */
+.hh-cards,
+.hh-spend {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.hh-cards li,
+.hh-spend li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.hh-card-label {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.94rem;
+}
+
+.hh-last4 {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.hh-cards select {
+  flex: none;
+  max-width: 46%;
+}
+
+.hh-spend-name {
+  flex: 1 1 auto;
+  font-size: 0.94rem;
+}
+
+.hh-spend-latest {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.hh-spend-window {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  min-width: 96px;
+  text-align: right;
+}
+
+@media (max-width: 620px) {
+  .hh-person {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .hh-person-actions {
+    width: 100%;
+    padding-left: 48px;
+  }
+  .hh-cards li,
+  .hh-spend li {
+    flex-wrap: wrap;
+  }
+  .hh-cards select {
+    max-width: 100%;
+    width: 100%;
+  }
+  .hh-spend-window {
+    text-align: left;
+    min-width: 0;
+  }
+}

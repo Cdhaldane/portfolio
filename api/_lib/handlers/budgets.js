@@ -1,10 +1,12 @@
 // Vercel serverless function — GET/PUT /api/budget/budgets
-// GET -> the caller's per-category monthly budgets.
+// GET -> the household's per-category monthly budgets (shared by every
+//        member — a budget is a household agreement, not a personal one).
 // PUT -> upsert one: { category, monthlyCents }. monthlyCents of 0 (or null)
 //        deletes the budget — "no budget" is the absence of a row, so the
 //        dashboard never has to disambiguate 0 from unset.
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 
 const CATEGORY_MAX = 40;
 const MONTHLY_CENTS_MAX = 100_000_000; // $1M/month is safely beyond sane
@@ -27,12 +29,13 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     if (req.method === "GET") {
       const budgets = await sql`
         SELECT category, monthly_cents
           FROM budget_budgets
-         WHERE user_id = ${userId}
+         WHERE household_id = ${household.id}
          ORDER BY category ASC
       `;
       return res.status(200).json({ configured: true, budgets });
@@ -53,15 +56,15 @@ module.exports = async (req, res) => {
       if (monthlyCents === 0) {
         await sql`
           DELETE FROM budget_budgets
-           WHERE user_id = ${userId} AND category = ${category}
+           WHERE household_id = ${household.id} AND category = ${category}
         `;
         return res.status(200).json({ ok: true, removed: true, category });
       }
 
       const [budget] = await sql`
-        INSERT INTO budget_budgets (user_id, category, monthly_cents)
-        VALUES (${userId}, ${category}, ${monthlyCents})
-        ON CONFLICT (user_id, category) DO UPDATE SET monthly_cents = EXCLUDED.monthly_cents
+        INSERT INTO budget_budgets (user_id, household_id, category, monthly_cents)
+        VALUES (${userId}, ${household.id}, ${category}, ${monthlyCents})
+        ON CONFLICT (household_id, category) DO UPDATE SET monthly_cents = EXCLUDED.monthly_cents
         RETURNING category, monthly_cents
       `;
       return res.status(200).json({ ok: true, budget });

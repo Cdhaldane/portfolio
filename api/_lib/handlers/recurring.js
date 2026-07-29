@@ -11,6 +11,7 @@
 //   DELETE -> ?id=N  remove entirely (PATCH endMonth to stop-but-keep-history)
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 
 const LABEL_MAX = 60;
 const CATEGORY_MAX = 40;
@@ -42,12 +43,13 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     if (req.method === "GET") {
       const recurring = await sql`
         SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
           FROM budget_recurring
-         WHERE user_id = ${userId}
+         WHERE household_id = ${household.id}
          ORDER BY amount_cents DESC, label ASC
       `;
       return res.status(200).json({ configured: true, recurring });
@@ -83,8 +85,8 @@ module.exports = async (req, res) => {
       }
 
       const [item] = await sql`
-        INSERT INTO budget_recurring (user_id, label, category, amount_cents, due_day, start_month, on_card, paid_from)
-        VALUES (${userId}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${onCard}, ${paidFrom})
+        INSERT INTO budget_recurring (user_id, household_id, label, category, amount_cents, due_day, start_month, on_card, paid_from)
+        VALUES (${userId}, ${household.id}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${onCard}, ${paidFrom})
         RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
       `;
       return res.status(201).json({ ok: true, item });
@@ -98,7 +100,7 @@ module.exports = async (req, res) => {
       const existing = await sql`
         SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
           FROM budget_recurring
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
       `;
       if (!existing.length) return res.status(404).json({ error: "No such item." });
       const cur = existing[0];
@@ -159,7 +161,7 @@ module.exports = async (req, res) => {
            SET label = ${label}, category = ${category}, amount_cents = ${amountCents},
                due_day = ${dueDay}, start_month = ${startMonth}, end_month = ${endMonth},
                on_card = ${onCard}, paid_from = ${paidFrom}
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
         RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
       `;
       return res.status(200).json({ ok: true, item });
@@ -172,7 +174,7 @@ module.exports = async (req, res) => {
       }
       const deleted = await sql`
         DELETE FROM budget_recurring
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
         RETURNING id
       `;
       if (!deleted.length) return res.status(404).json({ error: "No such item." });

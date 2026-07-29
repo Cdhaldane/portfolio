@@ -6,11 +6,12 @@ import UploadPanel from "./Upload/UploadPanel";
 import TransactionsList from "./Transactions/TransactionsList";
 import RecurringPanel from "./Recurring/RecurringPanel";
 import IncomePanel from "./Recurring/IncomePanel";
+import HouseholdPanel from "./Household/HouseholdPanel";
 import BudBackground from "./BudBackground";
 import "./Budgetter.css";
 
 /*
- * /budgetter — Dashboard · Upload · Transactions · Monthly.
+ * /budgetter — Dashboard · Upload · Transactions · Monthly · Household.
  *
  * All tabs stay mounted (toggled via `hidden`) so each keeps its state when
  * you flip between them. Refresh wiring is intentionally BIdirectional:
@@ -18,6 +19,12 @@ import "./Budgetter.css";
  *   - a category edit in the list bumps refreshToken (dashboard refetches)
  *   - a dashboard mutation (auto-categorize) refreshes the list
  *   - a Monthly-payments change bumps refreshToken (dashboard refetches)
+ *   - a household change (join, card reassignment) refreshes everything,
+ *     because a join means you're looking at a different ledger entirely
+ *
+ * The household fetch lives HERE rather than in HouseholdPanel because the
+ * Transactions list needs the same member names to render "added by" — one
+ * request, one source of truth.
  *
  * fetchJson wraps the Clerk token so SpendingDashboard never touches Clerk
  * hooks directly — the dev-only preview route renders it with a mock.
@@ -28,6 +35,7 @@ const Budgetter = () => {
   const [check, setCheck] = useState({ state: "checking" });
   const [tab, setTab] = useState("dashboard");
   const [refreshToken, setRefreshToken] = useState(0);
+  const [household, setHousehold] = useState({ data: null, loading: true, error: "" });
   const listRef = useRef(null);
 
   const fetchJson = useCallback(
@@ -45,9 +53,31 @@ const Budgetter = () => {
     return setCheck({ state: "unauthenticated" });
   }, [fetchJson]);
 
+  const loadHousehold = useCallback(async () => {
+    setHousehold((prev) => ({ ...prev, loading: true, error: "" }));
+    const { res, data } = await fetchJson("/api/budget/household");
+    if (!res.ok || !data) {
+      return setHousehold({
+        data: null,
+        loading: false,
+        error:
+          res.status === 0
+            ? "Couldn't reach the API — check your connection and retry."
+            : data?.error || "Couldn't load the household.",
+      });
+    }
+    return setHousehold({ data, loading: false, error: "" });
+  }, [fetchJson]);
+
   useEffect(() => {
     runCheck();
   }, [runCheck]);
+
+  // Only worth fetching once the auth chain is known good — an unallowlisted
+  // session would just collect a second 403.
+  useEffect(() => {
+    if (check.state === "ok") loadHousehold();
+  }, [check.state, loadHousehold]);
 
   const identity =
     user?.primaryEmailAddress?.emailAddress || user?.fullName || "you";
@@ -60,6 +90,12 @@ const Budgetter = () => {
     setTab("dashboard");
   };
 
+  // A household change can swap the whole ledger under us.
+  const onHouseholdMutate = () => {
+    refreshDashboard();
+    listRef.current?.refresh();
+  };
+
   return (
     <div className="bud">
       <BudBackground />
@@ -68,7 +104,14 @@ const Budgetter = () => {
           <p className="bud-kicker">Private / Budgetter</p>
           <h1 className="bud-title">Spending, watched.</h1>
           <p className="bud-sub">
-            Signed in as <strong>{identity}</strong>.
+            Signed in as <strong>{identity}</strong>
+            {household.data?.household?.name && (
+              <>
+                {" · "}
+                <strong>{household.data.household.name}</strong>
+              </>
+            )}
+            .
           </p>
         </header>
 
@@ -116,6 +159,7 @@ const Budgetter = () => {
             ["upload", "Upload"],
             ["transactions", "Transactions"],
             ["monthly", "Monthly"],
+            ["household", "Household"],
           ].map(([key, label]) => (
             <button
               key={key}
@@ -144,11 +188,25 @@ const Budgetter = () => {
           <UploadPanel onImported={onImported} />
         </div>
         <div hidden={tab !== "transactions"}>
-          <TransactionsList ref={listRef} onMutate={refreshDashboard} />
+          <TransactionsList
+            ref={listRef}
+            onMutate={refreshDashboard}
+            members={household.data?.members}
+            youUserId={household.data?.you?.userId}
+          />
         </div>
         <div hidden={tab !== "monthly"} className="bud-monthly">
           <IncomePanel onMutate={refreshDashboard} />
           <RecurringPanel onMutate={refreshDashboard} />
+        </div>
+        <div hidden={tab !== "household"}>
+          <HouseholdPanel
+            data={household.data}
+            loading={household.loading}
+            error={household.error}
+            onReload={loadHousehold}
+            onMutate={onHouseholdMutate}
+          />
         </div>
 
         <button type="button" className="bud-signout" onClick={() => signOut()}>

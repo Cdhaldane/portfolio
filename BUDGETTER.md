@@ -2,7 +2,8 @@
 
 > A private spending tracker at `/budgetter`: upload credit-card statements,
 > see where the money goes, keep fixed monthly bills in the same picture, and
-> stay under self-set budgets. Invite-only (~5 people), security-first, and —
+> stay under self-set budgets. Shared per **household**, so a couple works
+> from one set of numbers. Invite-only (~5 people), security-first, and —
 > because it lives on a portfolio site — built to the same visual bar as the
 > public pages.
 
@@ -37,6 +38,24 @@ sign-ups are **disabled** in Clerk, accounts are created by hand, and a
 fail-closed env allowlist (`BUDGET_ALLOWED_USER_IDS`) means even a Clerk
 misconfiguration admits no one. There is deliberately no self-serve anything.
 
+**Households.** Money is rarely a solo activity, so the unit of ownership is
+a *household*, not a person: one shared ledger with one or more members, all
+of whom can read and write everything in it. Two people in a household see
+identical numbers — there is no per-member private view, by design.
+
+Joining is deliberately two-locked. Being allowlisted gets you *into
+Budgetter* (with your own empty household); an **invite code** minted by a
+household owner is what gets you into *their* household. Codes are single
+use, expire in 7 days, and are stored only as a sha256 hash — the plaintext
+is shown to the inviter once and can never be looked up again. Nobody has to
+copy Clerk user ids around, and a leaked database row is not redeemable.
+
+A join never merges or discards data: if the joiner's own household already
+holds transactions, cards, bills, income or budgets, the join is refused with
+an explanation instead of orphaning them. Removal is a soft `removed_at`, so
+a departed member's imports and edits stay in the ledger, still credited to
+them by name.
+
 ## 3. Security model
 
 The React route is cosmetic; **the API is the security boundary.**
@@ -45,7 +64,9 @@ The React route is cosmetic; **the API is the security boundary.**
 |---|---|
 | Identity | Clerk session JWT, verified server-side (`@clerk/backend.verifyToken`) with `authorizedParties` pinned to this site's origins |
 | Authorization | Fail-closed user-id allowlist checked in `requireUser()` — empty list = nobody |
-| Tenancy | Every table carries `user_id`; every query filters by the verified caller's id — no cross-user query exists |
+| Tenancy | Every table carries `household_id`; every query filters by the household `resolveHousehold()` derives from the verified caller. A caller can never name a household — no request field is ever used as a tenancy key |
+| Attribution | `user_id` survives on every table as "which member created this row" (never a filter). Departed members keep resolving to a name |
+| Invites | Single-use, 7-day, sha256-hashed codes; owner-only to mint or revoke, capped at 5 live at once. Redeeming still requires a verified, allowlisted session |
 | Data minimization | Only date / merchant / amount / last-4 are stored. Full card numbers are actively rejected (PAN-shaped input refused); raw statement files are parsed in the browser and never uploaded |
 | Ingest hygiene | Server re-validates every row (dates, integer cents, length caps); `merchant_clean`, `category`, `dedup_hash` are always derived server-side, never trusted from the client |
 | Discoverability | `noindex,nofollow`, `robots.txt` disallow, unlinked from all public nav |
@@ -57,37 +78,82 @@ Secrets live in `.env.local` (dev) and Vercel env vars (prod):
 ## 4. Architecture
 
 - **Frontend:** CRA SPA. `/budgetter` is a lazy chunk behind `BudgetGate`
-  (Clerk `<SignIn>`, theme-aware). Four tabs — Dashboard, Upload,
-  Transactions, Monthly — all kept mounted with bidirectional refresh wiring
-  (imports and category edits refresh the dashboard; dashboard mutations
-  refresh the list).
+  (Clerk `<SignIn>`, theme-aware). Five tabs — Dashboard, Upload,
+  Transactions, Monthly, Household — all kept mounted with bidirectional
+  refresh wiring (imports and category edits refresh the dashboard; dashboard
+  mutations refresh the list; a household join refreshes everything, since
+  it swaps the whole ledger). The `/api/budget/household` fetch lives in
+  `Budgetter.jsx` rather than in the panel, because the Transactions list
+  needs the same member names to render "added by" — one request, one source
+  of truth.
 - **API:** ONE Vercel serverless function — `api/budget/[action].js` — that
   dispatches to per-route handlers in `api/_lib/handlers/` (Hobby plan caps
-  deployments at 12 functions and counts files, so the ten budget routes
+  deployments at 12 functions and counts files, so the eleven budget routes
   share a single dynamic function; URLs are unchanged). Handlers share
-  `api/_lib/budget-auth.js` (auth), `budget-db.js` (Neon client + schema),
-  `budget-normalize.js` (validation/cleanup/categorization — pure, unit-tested).
-  New budget endpoints = new handler file + one line in the dispatcher map,
-  NOT a new file directly under `api/`.
+  `api/_lib/budget-auth.js` (auth), `budget-household.js` (tenancy: resolve /
+  invite / join / remove), `budget-invite.js` (pure code minting + hashing),
+  `budget-db.js` (Neon client + schema), `budget-normalize.js`
+  (validation/cleanup/categorization — pure). The pure modules are unit-tested
+  via `npm run test:api` (node's built-in runner — CRA's jest only collects
+  tests under `src/`). New budget endpoints = new handler file + one line in
+  the dispatcher map, NOT a new file directly under `api/`.
+- **Handler shape:** `requireUser()` (identity + allowlist, no DB) →
+  `getSql()` → `ensureTables()` → `resolveHousehold()` → data. Auth stays
+  first so an unauthenticated caller learns nothing about server config.
+  ⚠️ In a handler that delegates to sub-functions, `await` them inside the
+  try — a bare `return handler(...)` lets rejections escape the catch, and
+  expected refusals (bad invite code, not the owner) arrive as rejections.
 - **DB:** Neon Postgres (same instance as the guestbook), tables prefixed
   `budget_`.
 
 ### Data model
 
+Every table below carries `household_id` (the tenancy key, NOT NULL) and
+`user_id` (attribution: who created the row).
+
 ```
-budget_accounts        user_id, bank, label, last4
-budget_upload_batches  user_id, account_id, filename, row/inserted/duplicate/rejected counts
-budget_transactions    user_id, account_id, batch_id, posted_date,
+budget_meta            key -> value          (schema_version, migration gate)
+budget_households      owner_user_id UNIQUE, name
+budget_household_members  household_id, user_id, role, display_name,
+                       joined_at, removed_at
+                       UNIQUE(household_id, user_id) + partial UNIQUE(user_id)
+                       WHERE removed_at IS NULL  — one ACTIVE household each
+budget_household_invites  household_id, code_hash UNIQUE, label, created_by,
+                       expires_at, redeemed_by, redeemed_at
+budget_accounts        bank, label, last4, member_user_id (whose card)
+budget_upload_batches  account_id, filename, row/inserted/duplicate/rejected counts
+budget_transactions    account_id, batch_id, posted_date,
                        merchant_raw, merchant_clean, amount_cents,
-                       category, dedup_hash  UNIQUE(user_id, dedup_hash)
-budget_category_rules  user_id, pattern -> category   (user overrides)
-budget_budgets         user_id, category, monthly_cents
-budget_recurring       user_id, label, category, amount_cents, due_day,
+                       category, dedup_hash  UNIQUE(household_id, dedup_hash)
+budget_category_rules  pattern -> category   UNIQUE(household_id, pattern)
+budget_budgets         category, monthly_cents  UNIQUE(household_id, category)
+budget_recurring       label, category, amount_cents, due_day,
                        start_month, end_month, on_card, paid_from
                                               (fixed monthly payments)
-budget_income          user_id, label, amount_cents, cadence,
+budget_income          label, amount_cents, cadence,
                        start_month, end_month        (paycheques etc.)
 ```
+
+⚠️ **Two different questions about "whose":** `budget_accounts.member_user_id`
+is *whose card it is* and drives spend-per-person; `user_id` is *who typed it
+in*. One member can import everything and the per-person split still comes
+out right. Don't conflate them.
+
+⚠️ **Hash scope invariant:** `dedup_hash` is salted with the household
+**owner's** user id (`household.hashScope`), never the caller's. For every
+pre-household row the two were the same value, so historical hashes stay
+valid — and both members uploading the same statement now produce the same
+hash, so the second upload dedupes instead of double-importing. Never salt it
+with the uploader's id.
+
+Schema migrations are gated on `budget_meta.schema_version` (currently 2) so a
+cold start pays one cheap `SELECT` instead of replaying ~25 idempotent
+DDL/backfill statements against Neon. The household migration backfills
+`household_id` from the owner map, swaps the three per-user UNIQUE
+constraints for per-household unique indexes, then sets `NOT NULL` — and
+skips the `NOT NULL` step with a logged warning if any row somehow lacks a
+household, because a stray NULL makes a row *invisible* (filters are
+`household_id = N`) rather than visible to the wrong household.
 
 Conventions: **integer cents everywhere** (positive = charge, negative =
 credit); month keys are `"YYYY-MM"` strings (compare lexicographically);
@@ -119,10 +185,11 @@ summary aggregation multiplies by it (`ROUND(amount_cents * count_pct /
 `REMINDER_TZ`) hits `/api/budget/reminders`, authenticated by `CRON_SECRET`
 as a Bearer token (fail closed: unset secret = 503). Bills whose `due_day`
 lands exactly `REMINDER_DAYS_AHEAD` days out (month-end clamped) are grouped
-into one plain-text email per user via the same Brevo SMTP the contact form
-uses; recipient addresses come from Clerk at send time — the budget DB never
-stores emails. Daily run + exact-day match = idempotent without a sent-log.
-`?dryRun=1` previews without sending.
+per household and sent to **every current member** — one email each, one
+recipient per message so nobody's address is disclosed to the others — via
+the same Brevo SMTP the contact form uses; recipient addresses come from
+Clerk at send time, the budget DB never stores emails. Daily run + exact-day
+match = idempotent without a sent-log. `?dryRun=1` previews without sending.
 
 ### Ingest pipeline
 
@@ -146,7 +213,15 @@ re-uploads. Change it only deliberately.
 
 ## 5. Feature matrix (current)
 
-- ✅ Auth gate + allowlisted API (9 endpoints, all fail closed)
+- ✅ Auth gate + allowlisted API (11 endpoints, all fail closed)
+- ✅ Households: one shared ledger per household, invite-code joining
+  (single-use, 7-day, hash-only storage), member list with display names,
+  owner-only invite/revoke/remove, soft removal that preserves attribution
+- ✅ Attribution: every row records the member who created it; the
+  Transactions list shows "… added this" and filters by member (both hidden
+  in a solo household), and the CSV export carries an `AddedBy` column
+- ✅ Per-person view: cards are assigned to a member (`member_user_id`), so
+  spend-per-person is correct no matter who uploaded the statement
 - ✅ CSV upload: Amex format verified against a real statement (41/41 rows);
   generic column-mapping UI for any other bank; dry-run review before commit
 - ✅ PDF upload: Canadian Tire / Triangle Mastercard statements parsed
@@ -173,8 +248,8 @@ re-uploads. Change it only deliberately.
   (formula-injection-safe, includes counted amounts)
 - ✅ Statement freshness chips: per-account "data through …" /
   "nothing since …" on the dashboard, click-through to Upload
-- ✅ Bill reminder emails: daily cron, grouped per user, N days before each
-  due date (see the reminders section above)
+- ✅ Bill reminder emails: daily cron, grouped per household and sent to every
+  member, N days before each due date (see the reminders section above)
 - ✅ Design: dataviz-method charts (single-hue magnitude palette, validated
   contrast in both themes), reduced-motion paths, mobile fallbacks,
   dev-only `/budgetter-preview` harness with mock data for design review
@@ -205,29 +280,60 @@ computationally (script-checked, not eyeballed):
 - The Triangle PDF parser is layout-based (section headings + "Total …"
   cross-checks). A statement redesign breaks it loudly — totals mismatch or
   zero rows — never silently.
-- No income tracking; "safe to spend" math is out of scope for now.
+- "Safe to spend / left this month" math is still out of scope (income
+  tracking itself is done — see the feature matrix).
 - No category-rules management UI (rules are created via apply-to-future;
   a wrong rule currently needs a DB edit — planned below).
 - Summary endpoint aggregates per merchant per month; fine at personal scale,
   needs windowing if a user ever has thousands of distinct merchants.
 - Budgets are monthly-only by design.
+- **Household visibility is all-or-nothing.** A member sees every
+  transaction, bill and income source in the household. There is no private
+  category or hidden card — if that's ever wanted, it's a real feature, not a
+  config flag.
+- **No household merge.** Two households with data can't be combined; the
+  join is refused rather than guessing. One side has to start empty.
+- Only the *owner* can invite, revoke or remove, and ownership can't be
+  transferred — deliberate while the app is this small, but it does mean the
+  owner's Clerk account is a single point of administration.
+- `resolveHousehold()` costs one extra indexed round trip per request. Fine at
+  this scale; it's the obvious thing to cache (short TTL) if it ever matters.
 
 ## 8. Roadmap
 
-1. **Rules manager** — list/edit/delete `budget_category_rules` (removes the
+1. **Transaction notes + "flag for review"** — the natural next household
+   feature: one member flags a mystery charge, the other answers it inline.
+   A `note` column, a `needs_review` flag, and a dashboard tile counting them.
+2. **Rules manager** — list/edit/delete `budget_category_rules` (removes the
    only unrecoverable-via-UI state in the app).
-2. **TD parser** verified against a real export (same treatment the Amex
+3. **Activity log** — who changed what, when. Cheap now that every row
+   records its author; the value is in mutations (deleted a bill, edited an
+   amount), which aren't currently recorded anywhere.
+4. **TD parser** verified against a real export (same treatment the Amex
    format got). ~~Triangle~~ done via PDF import (statement-verified).
-3. OFX/QFX import (richer than CSV, includes bank transaction ids —
+5. OFX/QFX import (richer than CSV, includes bank transaction ids —
    would also make dedup exact instead of heuristic).
-4. Income + "left to spend this month" once statements include deposits.
-5. Per-account filtering surfaced in the dashboard (API already supports it).
-6. Plaid/Flinks connection — **only if** manual monthly uploads become a
+6. "Left to spend this month" — income and fixed costs are both modelled now,
+   so this is mostly assembly plus a day-pro-rated pace indicator.
+7. Per-account (and now per-member) filtering surfaced in the dashboard; the
+   API already supports both.
+8. Plaid/Flinks connection — **only if** manual monthly uploads become a
    chore; explicitly a liability trade, feature-flagged, TD first.
 
 ---
 
 *Maintenance notes: schema changes go in `budget-db.js` `ensureTables()`
-(idempotent `CREATE TABLE IF NOT EXISTS` — additive only; column changes need
-manual `ALTER TABLE` against Neon). Every new endpoint starts with
-`requireUser()` and a `user_id` filter; no exceptions.*
+(idempotent `CREATE TABLE IF NOT EXISTS`). Anything beyond an additive column
+— backfills, constraint swaps, `NOT NULL` — goes in a version-gated migration
+function like `migrateToHouseholds()` with `SCHEMA_VERSION` bumped, so it runs
+once per database instead of on every cold start. Every new endpoint starts
+with `requireUser()`, then `resolveHousehold()`, then filters by
+`household_id`; no exceptions. Writes also stamp `user_id` with the acting
+member for attribution.*
+
+*Testing: `npm run test:api` covers the pure server helpers. The household
+migration and every handler were additionally verified end-to-end against a
+throwaway local Postgres seeded with pre-household data (backfill correctness,
+constraint swap, cross-household dedup isolation, tenancy isolation before a
+join, identical numbers after one, cross-member re-upload dedup, reminder
+fan-out, and access loss on removal).*

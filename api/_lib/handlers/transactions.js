@@ -1,14 +1,18 @@
 // Vercel serverless function — GET/PATCH /api/budget/transactions
-// GET   -> paginated list for the caller, optionally scoped to one account
-//          (ownership of that account is not re-checked here beyond the
-//          user_id filter — a mismatched accountId just returns nothing).
+// GET   -> paginated list for the caller's household, optionally scoped to
+//          one account or one member (ownership of that account is not
+//          re-checked here beyond the household_id filter — a mismatched
+//          accountId just returns nothing). Each row carries `added_by` (the
+//          member who imported or created it) so a shared ledger can say who
+//          did what.
 // PATCH -> set one transaction's category. With applyToFuture, also upserts
-//          a category_rule and backfills the caller's OTHER transactions
+//          a category_rule and backfills the household's OTHER transactions
 //          that (a) match the same cleaned merchant name and (b) are still
-//          at the 'uncategorized' default — never overwrites a category the
-//          user set deliberately elsewhere.
+//          at the 'uncategorized' default — never overwrites a category
+//          someone set deliberately elsewhere.
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 
 const CATEGORY_MAX = 40;
 const LIST_DEFAULT_LIMIT = 200;
@@ -32,6 +36,7 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     if (req.method === "GET") {
       const limit = Math.min(
@@ -49,6 +54,9 @@ module.exports = async (req, res) => {
       const q = String(req.query?.q || "").trim().slice(0, 80);
       const category = String(req.query?.category || "").trim().slice(0, CATEGORY_MAX);
       const qLike = q ? `%${q.replace(/[\\%_]/g, "\\$&").toUpperCase()}%` : null;
+      // "Show me only the rows Sarah added." Unknown ids simply match
+      // nothing — the household filter is what enforces access.
+      const addedBy = String(req.query?.addedBy || "").trim().slice(0, 80) || null;
 
       // Period scoping for dashboard drill-downs: month=YYYY-MM or
       // year=YYYY (month wins). Expressed as a [from, to) date range so the
@@ -79,13 +87,17 @@ module.exports = async (req, res) => {
       const rows = await sql`
         SELECT t.id, t.account_id, a.label AS account_label,
                to_char(t.posted_date, 'YYYY-MM-DD') AS posted_date,
-               t.merchant_clean, t.amount_cents, t.category, t.count_pct, t.created_at
+               t.merchant_clean, t.amount_cents, t.category, t.count_pct, t.created_at,
+               t.user_id AS added_by, m.display_name AS added_by_name
           FROM budget_transactions t
           JOIN budget_accounts a ON a.id = t.account_id
-         WHERE t.user_id = ${userId}
+          LEFT JOIN budget_household_members m
+                 ON m.household_id = t.household_id AND m.user_id = t.user_id
+         WHERE t.household_id = ${household.id}
            AND (${accountId}::int IS NULL OR t.account_id = ${accountId})
            AND (${qLike}::text IS NULL OR t.merchant_clean LIKE ${qLike})
            AND (${category || null}::text IS NULL OR t.category = ${category})
+           AND (${addedBy}::text IS NULL OR t.user_id = ${addedBy})
            AND (${from}::date IS NULL OR t.posted_date >= ${from})
            AND (${to}::date IS NULL OR t.posted_date < ${to})
          ORDER BY t.posted_date DESC, t.id DESC
@@ -134,7 +146,7 @@ module.exports = async (req, res) => {
         UPDATE budget_transactions
            SET category = COALESCE(${hasCategory ? category : null}, category),
                count_pct = COALESCE(${hasCountPct ? countPct : null}::int, count_pct)
-         WHERE id = ${id} AND user_id = ${userId}
+         WHERE id = ${id} AND household_id = ${household.id}
          RETURNING id, merchant_clean, category, count_pct
       `;
       if (!updated.length) {
@@ -149,15 +161,17 @@ module.exports = async (req, res) => {
       // applyToFuture only makes sense on a category change.
       if (applyToFuture && hasCategory && tx.merchant_clean) {
         const pattern = tx.merchant_clean;
+        // Rules are household-wide: a rule either member creates applies to
+        // every future import, whoever uploads it.
         await sql`
-          INSERT INTO budget_category_rules (user_id, pattern, category)
-          VALUES (${userId}, ${pattern}, ${category})
-          ON CONFLICT (user_id, pattern) DO UPDATE SET category = EXCLUDED.category
+          INSERT INTO budget_category_rules (user_id, household_id, pattern, category)
+          VALUES (${userId}, ${household.id}, ${pattern}, ${category})
+          ON CONFLICT (household_id, pattern) DO UPDATE SET category = EXCLUDED.category
         `;
 
         const candidates = await sql`
           SELECT id, merchant_clean FROM budget_transactions
-           WHERE user_id = ${userId} AND category = 'uncategorized' AND id != ${id}
+           WHERE household_id = ${household.id} AND category = 'uncategorized' AND id != ${id}
         `;
         const matchIds = candidates
           .filter((c) => c.merchant_clean.includes(pattern))
@@ -168,7 +182,7 @@ module.exports = async (req, res) => {
             matchIds.map(
               (matchId) => sql`
                 UPDATE budget_transactions SET category = ${category}
-                 WHERE id = ${matchId} AND user_id = ${userId}
+                 WHERE id = ${matchId} AND household_id = ${household.id}
                 RETURNING id
               `
             )

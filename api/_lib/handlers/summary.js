@@ -1,11 +1,12 @@
 // Vercel serverless function — GET /api/budget/summary
 // One round-trip for everything the dashboard needs: spend per month per
-// category (charges only — credits/payments excluded), the user's budgets,
-// and how many charges are still uncategorized. All scoped to the verified
-// caller; aggregation happens in SQL so the payload stays small no matter
-// how many transactions accumulate.
+// category (charges only — credits/payments excluded), the household's
+// budgets, and how many charges are still uncategorized. All scoped to the
+// household resolved from the verified caller; aggregation happens in SQL so
+// the payload stays small no matter how many transactions accumulate.
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
+const { resolveHousehold } = require("../budget-household");
 
 module.exports = async (req, res) => {
   let userId;
@@ -35,6 +36,7 @@ module.exports = async (req, res) => {
 
   try {
     await ensureTables(sql);
+    const household = await resolveHousehold(sql, userId);
 
     // Amounts are weighted by count_pct (100 = full, 50 = split, 0 =
     // excluded) so reimbursed/shared charges don't distort totals.
@@ -44,7 +46,7 @@ module.exports = async (req, res) => {
              SUM(ROUND(amount_cents * count_pct / 100.0))::int AS spend_cents,
              COUNT(*) FILTER (WHERE count_pct > 0)::int AS tx_count
         FROM budget_transactions
-       WHERE user_id = ${userId} AND amount_cents > 0
+       WHERE household_id = ${household.id} AND amount_cents > 0
        GROUP BY 1, 2
       HAVING SUM(ROUND(amount_cents * count_pct / 100.0)) > 0
        ORDER BY 1 ASC
@@ -59,7 +61,7 @@ module.exports = async (req, res) => {
              SUM(ROUND(amount_cents * count_pct / 100.0))::int AS spend_cents,
              COUNT(*) FILTER (WHERE count_pct > 0)::int AS tx_count
         FROM budget_transactions
-       WHERE user_id = ${userId} AND amount_cents > 0
+       WHERE household_id = ${household.id} AND amount_cents > 0
        GROUP BY 1, 2
       HAVING SUM(ROUND(amount_cents * count_pct / 100.0)) > 0
        ORDER BY 1 ASC
@@ -68,28 +70,28 @@ module.exports = async (req, res) => {
     const budgets = await sql`
       SELECT category, monthly_cents
         FROM budget_budgets
-       WHERE user_id = ${userId}
+       WHERE household_id = ${household.id}
        ORDER BY category ASC
     `;
 
     const recurring = await sql`
       SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card
         FROM budget_recurring
-       WHERE user_id = ${userId}
+       WHERE household_id = ${household.id}
        ORDER BY amount_cents DESC, label ASC
     `;
 
     const income = await sql`
       SELECT id, label, amount_cents, cadence, start_month, end_month
         FROM budget_income
-       WHERE user_id = ${userId}
+       WHERE household_id = ${household.id}
        ORDER BY amount_cents DESC, label ASC
     `;
 
     const [{ count: uncategorizedCount }] = await sql`
       SELECT COUNT(*)::int AS count
         FROM budget_transactions
-       WHERE user_id = ${userId} AND category = 'uncategorized'
+       WHERE household_id = ${household.id} AND category = 'uncategorized'
          AND amount_cents > 0 AND count_pct > 0
     `;
 
@@ -100,8 +102,8 @@ module.exports = async (req, res) => {
              COUNT(t.id)::int AS tx_count
         FROM budget_accounts a
         LEFT JOIN budget_transactions t
-          ON t.account_id = a.id AND t.user_id = a.user_id
-       WHERE a.user_id = ${userId}
+          ON t.account_id = a.id AND t.household_id = a.household_id
+       WHERE a.household_id = ${household.id}
        GROUP BY a.id, a.label, a.bank
        ORDER BY a.label ASC
     `;

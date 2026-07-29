@@ -3,12 +3,14 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { budgetFetch } from "../api";
 import { CATEGORIES as CATEGORY_SUGGESTIONS } from "../categories";
+import { activeMembers, memberLabel, labelForUserId } from "../members";
 import "./TransactionsList.css";
 
 const PAGE_SIZE = 100;
@@ -44,11 +46,15 @@ const csvCell = (value) => {
 };
 
 /*
- * Transaction table with inline category editing, merchant search, a
- * category filter, and CSV export. Exposes refresh() via ref; calls
+ * Transaction table with inline category editing, merchant search, category
+ * and member filters, and CSV export. Exposes refresh() via ref; calls
  * onMutate after a category edit so the dashboard's summary refetches.
+ *
+ * `members` comes from the shared household fetch in Budgetter. When more
+ * than one person is in the household, every row gains an "added by" credit
+ * and a per-member filter appears; solo households never see either.
  */
-const TransactionsList = forwardRef(({ onMutate }, ref) => {
+const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
   const { getToken } = useAuth();
   const [rows, setRows] = useState([]);
   const [configured, setConfigured] = useState(true);
@@ -58,6 +64,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
 
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
+  const [addedBy, setAddedBy] = useState("");
   const [exporting, setExporting] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -69,22 +76,27 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
   const [splitId, setSplitId] = useState(null);
   const [splitSaving, setSplitSaving] = useState(false);
 
+  // Attribution UI only earns its space in a shared household.
+  const memberList = useMemo(() => activeMembers(members || []), [members]);
+  const shared = memberList.length > 1;
+
   // Monotonic sequence: a response only applies if no newer load() started
   // after it — kills the refresh()-vs-Load-more race (stale page appended
   // onto a fresh page 0, duplicate keys).
   const loadSeq = useRef(0);
-  const filtersRef = useRef({ q: "", category: "" });
-  filtersRef.current = { q, category };
+  const filtersRef = useRef({ q: "", category: "", addedBy: "" });
+  filtersRef.current = { q, category, addedBy };
 
   const load = useCallback(
     async (offset = 0) => {
       const seq = ++loadSeq.current;
       setLoading(true);
       setError("");
-      const { q: fq, category: fc } = filtersRef.current;
+      const { q: fq, category: fc, addedBy: fa } = filtersRef.current;
       const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
       if (fq) params.set("q", fq);
       if (fc) params.set("category", fc);
+      if (fa) params.set("addedBy", fa);
       const { res, data } = await budgetFetch(
         getToken,
         `/api/budget/transactions?${params}`
@@ -110,7 +122,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
   useEffect(() => {
     const t = setTimeout(() => load(0), q ? 350 : 0);
     return () => clearTimeout(t);
-  }, [load, q, category]);
+  }, [load, q, category, addedBy]);
 
   useImperativeHandle(
     ref,
@@ -134,6 +146,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
       const params = new URLSearchParams({ limit: String(EXPORT_PAGE), offset: String(offset) });
       if (q) params.set("q", q);
       if (category) params.set("category", category);
+      if (addedBy) params.set("addedBy", addedBy);
       const { res, data } = await budgetFetch(getToken, `/api/budget/transactions?${params}`);
       if (!res.ok || !data) break;
       all.push(...data.transactions);
@@ -142,7 +155,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
     }
     setExporting(false);
     if (!all.length) return;
-    const header = "Date,Merchant,Account,Category,Amount,CountedPct,CountedAmount";
+    const header = "Date,Merchant,Account,Category,Amount,CountedPct,CountedAmount,AddedBy";
     const lines = all.map((r) => {
       const pct = r.count_pct ?? 100;
       return [
@@ -153,6 +166,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
         (r.amount_cents / 100).toFixed(2),
         String(pct),
         (Math.round((r.amount_cents * pct) / 100) / 100).toFixed(2),
+        csvCell(r.added_by_name || labelForUserId(r.added_by, memberList, youUserId)),
       ].join(",");
     });
     const blob = new Blob([`${header}\n${lines.join("\n")}\n`], { type: "text/csv" });
@@ -214,7 +228,7 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
     }
   };
 
-  const hasFilters = Boolean(q || category);
+  const hasFilters = Boolean(q || category || addedBy);
 
   if (!configured) {
     return (
@@ -249,6 +263,21 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
             </option>
           ))}
         </select>
+        {shared && (
+          <select
+            className="txl-catfilter"
+            value={addedBy}
+            onChange={(e) => setAddedBy(e.target.value)}
+            aria-label="Filter by who added it"
+          >
+            <option value="">Anyone added</option>
+            {memberList.map((m) => (
+              <option key={m.userId} value={m.userId}>
+                {memberLabel(m, youUserId)}
+              </option>
+            ))}
+          </select>
+        )}
         <button
           type="button"
           className="txl-export"
@@ -305,7 +334,12 @@ const TransactionsList = forwardRef(({ onMutate }, ref) => {
                   {row.merchant_clean}
                 </span>
                 <span role="cell" className="txl-account">
-                  {row.account_label}
+                  <span className="txl-account-name">{row.account_label}</span>
+                  {shared && row.added_by && (
+                    <span className="txl-addedby">
+                      {labelForUserId(row.added_by, memberList, youUserId)} added this
+                    </span>
+                  )}
                 </span>
                 <span role="cell" className="txl-category">
                   {editingId === row.id ? (
