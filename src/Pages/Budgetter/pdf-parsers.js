@@ -34,11 +34,24 @@ const MONTH_RE = "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)";
 // keeps reference numbers ("STEAMGAMES.COM 4259522") out of the amount slot.
 const AMOUNT_RE = "(-?\\(?\\$?[\\d,]{1,10}\\.\\d{2}\\)?)";
 
-const PERIOD_RE = new RegExp(
-  `for the period:?\\s*([a-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})\\s+to\\s+([a-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})`,
-  "i"
-);
+const PERIOD_SPAN = `([a-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})\\s+to\\s+([a-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})`;
+// Triangle: "For the period: June 5, 2026 to July 4, 2026"
+const PERIOD_RE = new RegExp(`for the period:?\\s*${PERIOD_SPAN}`, "i");
+// TD: "STATEMENT PERIOD: May 28, 2026 to June 29, 2026" — also the marker
+// that distinguishes a TD statement from a Triangle one.
+const TD_PERIOD_RE = new RegExp(`statement period:?\\s*${PERIOD_SPAN}`, "i");
 const STATEMENT_DATE_RE = /statement date:?\s*([a-z]+)\s+(\d{1,2}),?\s*(\d{4})/i;
+
+const periodFromSpan = (m) => {
+  const sm = MONTH_NUM[m[1].slice(0, 3).toLowerCase()];
+  const em = MONTH_NUM[m[4].slice(0, 3).toLowerCase()];
+  if (!sm || !em) return null;
+  return {
+    startMonth: sm, startYear: Number(m[3]),
+    endMonth: em, endYear: Number(m[6]),
+    label: `${m[1]} ${m[2]}, ${m[3]} – ${m[4]} ${m[5]}, ${m[6]}`,
+  };
+};
 
 // Full row: both dates + description + the first amount-shaped token.
 // Anything after the amount is ignored — pdf text extraction can merge the
@@ -93,15 +106,8 @@ function parsePeriod(texts) {
   for (const t of texts) {
     const m = t.match(PERIOD_RE);
     if (m) {
-      const sm = MONTH_NUM[m[1].slice(0, 3).toLowerCase()];
-      const em = MONTH_NUM[m[4].slice(0, 3).toLowerCase()];
-      if (sm && em) {
-        return {
-          startMonth: sm, startYear: Number(m[3]),
-          endMonth: em, endYear: Number(m[6]),
-          label: `${m[1]} ${m[2]}, ${m[3]} – ${m[4]} ${m[5]}, ${m[6]}`,
-        };
-      }
+      const period = periodFromSpan(m);
+      if (period) return period;
     }
   }
   // Older statements sometimes only carry "Statement date: July 4, 2026" —
@@ -316,4 +322,199 @@ export function parseTriangleStatement(lines) {
     }));
 
   return { ok: true, rows, period, checks, sections: sums };
+}
+
+/**
+ * Parse a TD credit-card statement. Verified against a real June 2026
+ * First Class Travel statement. TD's layout differs from Triangle's:
+ *
+ * - No section headings — one transactions table flows across pages
+ *   (columns at x≈47/95 dates, x≈140 description, amount right-aligned),
+ *   ending at "TOTAL NEW BALANCE". Payments are negative rows inline.
+ * - Wrapped description fragments print at exactly the description
+ *   column's x — a far stronger continuation signal than text shape, so
+ *   when geometry is available it replaces the uppercase heuristic
+ *   (page headers like "TD FIRST CLASS TRAVEL CARD" are uppercase and
+ *   would otherwise qualify).
+ * - The right-hand "CALCULATING YOUR BALANCE" box states Purchases &
+ *   Other Charges and Payments & Credits — collected in a pre-pass
+ *   (those lines can merge onto row lines) and cross-checked against
+ *   the parsed sums.
+ */
+export function parseTdStatement(lines) {
+  const norm = lines.map((l) =>
+    typeof l === "string"
+      ? { text: cleanLine(l), first: cleanLine(l), firstX: null, segments: null }
+      : {
+          text: cleanLine(l.text),
+          first: cleanLine(l.segments?.[0]?.text ?? l.text),
+          firstX: l.segments?.[0]?.x ?? null,
+          segments: l.segments || null,
+        }
+  );
+
+  let period = null;
+  let statedPurchases = null;
+  let statedPayments = null;
+  for (const { text } of norm) {
+    if (!period) {
+      const m = text.match(TD_PERIOD_RE);
+      if (m) period = periodFromSpan(m);
+    }
+    const p = text.match(/purchases\s*&\s*other charges\s+\$?([\d,]{1,10}\.\d{2})/i);
+    if (p) statedPurchases = parseAmountToCents(p[1]);
+    const c = text.match(/payments\s*&\s*credits\s+-?\$?([\d,]{1,10}\.\d{2})/i);
+    if (c) statedPayments = -parseAmountToCents(c[1]); // printed positive, rows are negative
+  }
+  if (!period) {
+    return {
+      ok: false,
+      error: "Couldn't find the statement period in this PDF — it doesn't look like a TD statement.",
+    };
+  }
+
+  // x of the segment where a row's description starts.
+  const descXFor = (segments, desc) => {
+    if (!segments || !desc) return null;
+    const head = desc.slice(0, Math.min(8, desc.length));
+    return segments.find((s) => cleanLine(s.text).startsWith(head))?.x ?? null;
+  };
+  const CONTINUATION_STOP_TD = /^(td |transaction|posting|date|activity|amount|total|previous|statement|new balance|continued)/i;
+
+  const rows = [];
+  let purchases = 0;
+  let payments = 0;
+  let lastRow = null;
+  let lastRowJoins = 0;
+  let lastDescX = null;
+  let openRow = null;
+  let tableX = null;
+  let done = false;
+
+  const record = (row) => {
+    rows.push(row);
+    if (row.amountCents < 0) payments += row.amountCents;
+    else purchases += row.amountCents;
+    lastRow = row;
+    lastRowJoins = 0;
+  };
+
+  for (const { text, first, firstX, segments } of norm) {
+    if (done || !text) continue;
+
+    if (/^total new balance\b/i.test(text)) {
+      done = true; // everything after is offers / agreement changes
+      continue;
+    }
+
+    // Right-hand info boxes interleave between rows and their wrapped
+    // fragments; skip them without touching continuation state (stated
+    // totals were already collected in the pre-pass above).
+    if (tableX != null && firstX != null && firstX > tableX + 250) continue;
+
+    const full = text.match(TX_FULL);
+    if (full) {
+      const row = makeRow(full[1], full[2], full[5], full[6], period);
+      if (row) {
+        record(row);
+        lastDescX = descXFor(segments, full[5]);
+        if (firstX != null) tableX = firstX;
+      } else {
+        lastRow = null;
+      }
+      openRow = null;
+      continue;
+    }
+
+    const startOnly = text.match(TX_START);
+    if (startOnly) {
+      openRow = { monthName: startOnly[1], day: startOnly[2], desc: startOnly[5] };
+      lastRow = null;
+      lastDescX = descXFor(segments, startOnly[5]);
+      if (firstX != null) tableX = firstX;
+      continue;
+    }
+
+    // A wrapped fragment sits at the description column's x. Without
+    // geometry (string fixtures), fall back to the uppercase heuristic.
+    const looksLikeFragment =
+      first &&
+      first.length <= 40 &&
+      !CONTINUATION_STOP_TD.test(first) &&
+      (firstX != null && lastDescX != null
+        ? Math.abs(firstX - lastDescX) <= 12
+        : CONTINUATION_RE.test(first));
+
+    if (openRow) {
+      const tail = text.match(AMOUNT_TAIL);
+      if (tail && (tail[1] === "" || looksLikeFragment)) {
+        const row = makeRow(
+          openRow.monthName,
+          openRow.day,
+          `${openRow.desc} ${tail[1]}`.trim(),
+          tail[2],
+          period
+        );
+        if (row) record(row);
+        openRow = null;
+        continue;
+      }
+      openRow = null;
+    }
+
+    if (lastRow && lastRowJoins < 2 && looksLikeFragment) {
+      lastRow.merchantRaw = `${lastRow.merchantRaw} ${first}`;
+      lastRow._preview = previewMerchant(lastRow.merchantRaw);
+      lastRowJoins += 1;
+      continue;
+    }
+
+    lastRow = null;
+  }
+
+  if (!rows.length) {
+    return {
+      ok: false,
+      error:
+        "Found the statement period but no transactions — if this TD statement looks different from usual, the parser needs updating.",
+    };
+  }
+
+  const checks = [];
+  if (statedPurchases != null) {
+    checks.push({
+      key: "purchases",
+      label: "Purchases & other charges",
+      statedCents: statedPurchases,
+      parsedCents: purchases,
+      ok: statedPurchases === purchases,
+    });
+  }
+  if (statedPayments != null) {
+    checks.push({
+      key: "payments",
+      label: "Payments & credits",
+      statedCents: statedPayments,
+      parsedCents: payments,
+      ok: statedPayments === payments,
+    });
+  }
+
+  return { ok: true, rows, period, checks, sections: { purchases, payments } };
+}
+
+/**
+ * Detect which bank produced a statement PDF and parse accordingly.
+ * Triangle prints "For the period: … to …"; TD prints
+ * "STATEMENT PERIOD: … to …".
+ */
+export function parseStatementPdf(lines) {
+  const texts = lines.map((l) => cleanLine(typeof l === "string" ? l : l.text));
+  if (texts.some((t) => PERIOD_RE.test(t))) return parseTriangleStatement(lines);
+  if (texts.some((t) => TD_PERIOD_RE.test(t))) return parseTdStatement(lines);
+  return {
+    ok: false,
+    error:
+      "Couldn't recognize this PDF — Canadian Tire (Triangle) and TD statements are supported so far.",
+  };
 }

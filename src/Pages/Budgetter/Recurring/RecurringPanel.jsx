@@ -26,6 +26,7 @@ const EMPTY_FORM = {
   dueDay: "",
   onCard: false,
   paidFrom: "",
+  startMonth: "",
 };
 
 const ordinal = (n) => {
@@ -125,6 +126,7 @@ const RecurringPanel = ({ onMutate }) => {
         dueDay: form.dueDay ? Number(form.dueDay) : null,
         onCard: form.onCard,
         paidFrom: form.paidFrom.trim() || null,
+        startMonth: form.startMonth || undefined,
       }),
     });
     setBusy(false);
@@ -146,6 +148,7 @@ const RecurringPanel = ({ onMutate }) => {
       dueDay: item.due_day ? String(item.due_day) : "",
       onCard: Boolean(item.on_card),
       paidFrom: item.paid_from || "",
+      startMonth: item.start_month || "",
     });
   };
 
@@ -167,6 +170,7 @@ const RecurringPanel = ({ onMutate }) => {
         dueDay: editForm.dueDay ? Number(editForm.dueDay) : null,
         onCard: editForm.onCard,
         paidFrom: editForm.paidFrom.trim() || null,
+        startMonth: editForm.startMonth || undefined,
       }),
     });
     setBusy(false);
@@ -262,6 +266,13 @@ const RecurringPanel = ({ onMutate }) => {
               value={editForm.paidFrom}
               onChange={(e) => setEditForm((f) => ({ ...f, paidFrom: e.target.value }))}
             />
+            <input
+              type="month"
+              className="rec-input-month"
+              title="Since when you've been paying this — backdating fills earlier months on the dashboard"
+              value={editForm.startMonth}
+              onChange={(e) => setEditForm((f) => ({ ...f, startMonth: e.target.value }))}
+            />
             <label className="rec-check">
               <input
                 type="checkbox"
@@ -303,6 +314,7 @@ const RecurringPanel = ({ onMutate }) => {
             </div>
             <span className="rec-due">
               {item.due_day ? `due the ${ordinal(item.due_day)}` : " "}
+              {item.start_month < thisMonth ? ` · since ${item.start_month}` : ""}
               {isEnded && item.end_month ? ` · ended ${item.end_month}` : ""}
             </span>
             <span className="rec-amount">{fmtMoneyExact(item.amount_cents)}</span>
@@ -403,6 +415,13 @@ const RecurringPanel = ({ onMutate }) => {
             <option key={p} value={p} />
           ))}
         </datalist>
+        <input
+          type="month"
+          className="rec-input-month"
+          title='Since when — backdate (e.g. 2026-04) and the dashboard fills those months too. Blank = this month.'
+          value={form.startMonth}
+          onChange={(e) => setForm((f) => ({ ...f, startMonth: e.target.value }))}
+        />
         <label
           className="rec-check"
           title="Tick this if the bill is charged to a card you upload statements for — it'll be listed and reminded about, but only the statement charges count, so nothing double-counts"

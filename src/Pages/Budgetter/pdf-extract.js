@@ -17,6 +17,11 @@ const SEGMENT_GAP = 15;
 export function linesFromItems(items) {
   const placed = items
     .filter((it) => it.str && it.str.trim())
+    // Drop rotated text (transform [a,b,c,d] with b/c non-zero): banks print
+    // vertical print-run IDs along the page margins, and at the wrong y one
+    // of those can merge into a transaction row's date cell (seen on a real
+    // TD statement). Table content is always axis-aligned.
+    .filter((it) => Math.abs(it.transform[1]) < 0.01 && Math.abs(it.transform[2]) < 0.01)
     .map((it) => ({
       text: it.str,
       x: it.transform[4],

@@ -62,6 +62,7 @@ const CommandPalette = () => {
       { id: "resume", section: "Actions", icon: "fa-file-lines", title: "View résumé (PDF)", keywords: "cv download hire", run: () => window.open("/CHARLIE_RESUME_5.pdf", "_blank", "noopener,noreferrer") },
       { id: "github", section: "Actions", icon: "fa-code", title: "GitHub", keywords: "code repos source open", run: () => window.open("https://github.com/Cdhaldane", "_blank", "noopener,noreferrer") },
       { id: "ops", section: "Actions", icon: "fa-terminal", title: "Open the ops console", hint: "hidden", keywords: "dashboard games secret imposter crossword wavelength fishbowl", run: () => navigate("/dashboard") },
+      { id: "budgetter", section: "Actions", icon: "fa-coins", title: "Open Budgetter", hint: "private", keywords: "budget budgetter spending money finance statements transactions tracker", run: () => navigate("/budgetter") },
     ],
     [navigate]
   );

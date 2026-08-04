@@ -4,7 +4,7 @@
 // descriptions with the amount on either visual line, the Sport Chek
 // re-itemization table, and the interest-rate table whose first row starts
 // with the word "Purchases".
-import { parseTriangleStatement } from "./pdf-parsers";
+import { parseTriangleStatement, parseTdStatement, parseStatementPdf } from "./pdf-parsers";
 
 const seg = (text, x) => ({ x, text });
 
@@ -191,5 +191,130 @@ describe("parseTriangleStatement", () => {
       "Total purchases $0.00",
     ]);
     expect(empty.ok).toBe(false);
+  });
+});
+
+// Fixtures mirror a real June 2026 TD First Class Travel statement: one
+// table flowing across pages with no section headings, page headers between
+// row runs, right-hand info boxes (sometimes merged onto row lines), and
+// the "CALCULATING YOUR BALANCE" box carrying the stated totals.
+describe("parseTdStatement", () => {
+  const row = (dates, desc, amount, extra = []) => ({
+    text: `${dates[0]} ${dates[1]} ${desc} ${amount}${extra.length ? " " + extra.map((s) => s.text).join(" ") : ""}`,
+    segments: [
+      seg(dates[0], 47),
+      seg(dates[1], 95),
+      seg(desc, 140),
+      seg(amount, 320),
+      ...extra,
+    ],
+  });
+  const frag = (text) => ({ text, segments: [seg(text, 140)] });
+  const sidebar = (text) => ({ text, segments: [seg(text, 361)] });
+
+  const TD_LINES = [
+    { text: "TD FIRST CLASS TRAVEL CARD", segments: [seg("TD FIRST CLASS TRAVEL CARD", 47)] },
+    "STATEMENT DATE: June 29, 2026 1 OF 5",
+    "STATEMENT PERIOD: May 28, 2026 to June 29, 2026",
+    { text: "TRANSACTION POSTING", segments: [seg("TRANSACTION POSTING", 49)] },
+    { text: "DATE DATE ACTIVITY DESCRIPTION AMOUNT($)", segments: [seg("DATE", 49), seg("DATE", 97), seg("ACTIVITY DESCRIPTION", 140), seg("AMOUNT($)", 309)] },
+    { text: "PREVIOUS STATEMENT BALANCE $607.64", segments: [seg("PREVIOUS STATEMENT BALANCE", 140), seg("$607.64", 314)] },
+    // row with the info column merged onto its visual line
+    row(["MAY 26", "MAY 28"], "SUBWAY 14653 PETERBOROUGH", "$11.02", [seg("Credit Limit", 361), seg("$6,000", 553)]),
+    // wrapped description, info-box lines interleaved between
+    row(["MAY 29", "JUN 1"], "WAL-MART SUPERCENTER#3071", "$64.12"),
+    sidebar("The estimated time to pay your New Balance in full"),
+    frag("PETERBOROUGH"),
+    row(["MAY 29", "JUN 1"], "PAYMENT - THANK YOU", "-$634.99"),
+    // mixed-case merchant, single-digit day
+    row(["JUN 1", "JUN 2"], "TheChildrensPlace3260 PETERBOROUGH", "$15.73"),
+    row(["JUN 9", "JUN 10"], "PULSE PHYSIOTHERAPY ON NORTH", "$90.00"),
+    frag("VANCOU"),
+    // stated totals in the right-hand box
+    sidebar("CALCULATING YOUR BALANCE"),
+    { text: "Payments & Credits $2,086.91", segments: [seg("Payments & Credits", 371), seg("$2,086.91", 538)] },
+    { text: "Purchases & Other Charges $180.87", segments: [seg("Purchases & Other Charges", 371), seg("$180.87", 542)] },
+    { text: "Continued", segments: [seg("Continued", 311)] },
+    // next page header — must NOT be swallowed as a description fragment
+    { text: "TD FIRST CLASS TRAVEL CARD", segments: [seg("TD FIRST CLASS TRAVEL CARD", 47)] },
+    row(["JUN 26", "JUN 29"], "PAYMENT - THANK YOU", "-$1,451.92"),
+    { text: "TOTAL NEW BALANCE $449.55", segments: [seg("TOTAL NEW BALANCE", 140), seg("$449.55", 320)] },
+    // post-table offer pages: nothing below may become a row
+    row(["JUN 30", "JUN 30"], "SHOULD NOT APPEAR", "$99.99"),
+  ];
+
+  const result = parseTdStatement(TD_LINES);
+
+  it("parses the statement", () => {
+    expect(result.ok).toBe(true);
+  });
+
+  it("finds the rows and stops at TOTAL NEW BALANCE", () => {
+    expect(result.rows).toHaveLength(6);
+    expect(result.rows.some((r) => r.merchantRaw.includes("SHOULD NOT APPEAR"))).toBe(false);
+  });
+
+  it("uses the transaction date with the period's year", () => {
+    expect(result.rows[0].postedDate).toBe("2026-05-26");
+    expect(result.rows[3].postedDate).toBe("2026-06-01");
+  });
+
+  it("keeps payments as negative amounts", () => {
+    const payments = result.rows.filter((r) => r.amountCents < 0);
+    expect(payments.map((r) => r.amountCents)).toEqual([-63499, -145192]);
+  });
+
+  it("joins wrapped fragments by description-column x, across info-box lines", () => {
+    const walmart = result.rows.find((r) => r.merchantRaw.startsWith("WAL-MART"));
+    expect(walmart.merchantRaw).toBe("WAL-MART SUPERCENTER#3071 PETERBOROUGH");
+    const pulse = result.rows.find((r) => r.merchantRaw.startsWith("PULSE"));
+    expect(pulse.merchantRaw).toBe("PULSE PHYSIOTHERAPY ON NORTH VANCOU");
+  });
+
+  it("never appends a page header as a description fragment", () => {
+    expect(result.rows.some((r) => r.merchantRaw.includes("TRAVEL CARD"))).toBe(false);
+  });
+
+  it("ignores the previous-balance pseudo-row and merged info-column text", () => {
+    expect(result.rows.some((r) => /607\.?64/.test(r.merchantRaw))).toBe(false);
+    const subway = result.rows.find((r) => r.merchantRaw.startsWith("SUBWAY"));
+    expect(subway.merchantRaw).toBe("SUBWAY 14653 PETERBOROUGH");
+    expect(subway.amountCents).toBe(1102);
+  });
+
+  it("cross-checks both stated totals", () => {
+    const purchases = result.checks.find((c) => c.key === "purchases");
+    const payments = result.checks.find((c) => c.key === "payments");
+    expect(purchases).toEqual(expect.objectContaining({ statedCents: 18087, parsedCents: 18087, ok: true }));
+    expect(payments).toEqual(expect.objectContaining({ statedCents: -208691, parsedCents: -208691, ok: true }));
+  });
+});
+
+describe("parseStatementPdf (bank detection)", () => {
+  it("routes Triangle statements by their period line", () => {
+    const r = parseStatementPdf([
+      "For the period: June 5, 2026 to July 4, 2026",
+      "Purchases",
+      "Jun 06 Jun 08 COSTCO WHOLESALE W591 119.83",
+      "Total purchases $119.83",
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.rows[0].merchantRaw).toBe("COSTCO WHOLESALE W591");
+  });
+
+  it("routes TD statements by their period line", () => {
+    const r = parseStatementPdf([
+      "STATEMENT PERIOD: May 28, 2026 to June 29, 2026",
+      "MAY 26 MAY 28 SUBWAY 14653 PETERBOROUGH $11.02",
+      "TOTAL NEW BALANCE $11.02",
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.rows[0].merchantRaw).toBe("SUBWAY 14653 PETERBOROUGH");
+  });
+
+  it("rejects PDFs from unknown banks", () => {
+    const r = parseStatementPdf(["Some Other Bank", "Jan 01 Jan 02 THING 5.00"]);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/recognize/i);
   });
 });

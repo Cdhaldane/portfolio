@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { budgetFetch } from "../api";
 import { parseCsvFile, applyMapping, MAPPING_FIELDS } from "../parsers";
-import { parseTriangleStatement } from "../pdf-parsers";
+import { parseStatementPdf } from "../pdf-parsers";
 import { fmtMoneyExact } from "../format";
 import "./UploadPanel.css";
 
@@ -102,9 +102,9 @@ const UploadPanel = ({ onImported }) => {
     setParsed(null);
     setPdfInfo(null);
 
-    // Canadian Tire / Triangle only offers statements as PDF — parse it
-    // client-side (pdf.js, lazily loaded) into the same rows the CSV path
-    // produces. The raw file still never leaves the browser.
+    // Statement PDFs (Canadian Tire / Triangle, TD) are parsed client-side
+    // (pdf.js, lazily loaded) into the same rows the CSV path produces. The
+    // raw file still never leaves the browser.
     if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
       if (file.size > MAX_PDF_BYTES) {
         setFileError("That PDF is bigger than a statement should be — double check it.");
@@ -113,11 +113,9 @@ const UploadPanel = ({ onImported }) => {
       try {
         const { extractPdfLines } = await import("../pdf-extract");
         const lines = await extractPdfLines(new Uint8Array(await file.arrayBuffer()));
-        const result = parseTriangleStatement(lines);
+        const result = parseStatementPdf(lines);
         if (!result.ok) {
-          setFileError(
-            `${result.error} Only Canadian Tire (Triangle) statement PDFs are supported so far — for other banks, export a CSV instead.`
-          );
+          setFileError(`${result.error} For unsupported banks, export a CSV instead.`);
           return;
         }
         setFileName(file.name);
@@ -309,9 +307,9 @@ const UploadPanel = ({ onImported }) => {
         <h2 className="upl-h">Upload a statement</h2>
         <p className="upl-hint">
           CSV exported from your bank's statement page — or, for Canadian Tire
-          / Triangle, the PDF statement itself. Either way the file is parsed
-          right here in your browser and never sent to the server; only the
-          rows you confirm are.
+          / Triangle and TD, the PDF statement itself. Either way the file is
+          parsed right here in your browser and never sent to the server; only
+          the rows you confirm are.
         </p>
         <input
           ref={fileInputRef}

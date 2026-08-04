@@ -224,10 +224,11 @@ re-uploads. Change it only deliberately.
   spend-per-person is correct no matter who uploaded the statement
 - ✅ CSV upload: Amex format verified against a real statement (41/41 rows);
   generic column-mapping UI for any other bank; dry-run review before commit
-- ✅ PDF upload: Canadian Tire / Triangle Mastercard statements parsed
-  in-browser (pdf.js), verified against a real July 2026 statement; section
-  totals cross-checked against the statement's own so layout drift fails
-  loudly instead of importing garbage
+- ✅ PDF upload: Canadian Tire / Triangle and TD statements parsed
+  in-browser (pdf.js) with bank auto-detection, each verified against real
+  statements; stated totals (section totals / "CALCULATING YOUR BALANCE")
+  cross-checked against parsed sums so layout drift fails loudly instead of
+  importing garbage
 - ✅ Auto-categorization: ~95 built-in rules + personal overrides + backfill
 - ✅ Dashboard: KPI tiles (latest month + delta + sparkline, fixed monthly,
   average, uncategorized), stacked card+fixed bar chart (12 months / years),
@@ -275,11 +276,11 @@ computationally (script-checked, not eyeballed):
 ## 7. Known limitations / deliberate scope cuts
 
 - The TD CSV layout is still an unverified guess — the mapping-confirmation
-  step is the safety net until a real export is seen. (Triangle is handled
-  via its PDF statements instead; Amex is verified.)
-- The Triangle PDF parser is layout-based (section headings + "Total …"
-  cross-checks). A statement redesign breaks it loudly — totals mismatch or
-  zero rows — never silently.
+  step is the safety net until a real export is seen. (Triangle and TD are
+  handled via their PDF statements instead; Amex CSV is verified.)
+- The PDF parsers are layout-based (Triangle: section headings + "Total …"
+  lines; TD: row shape + the balance box). A statement redesign breaks them
+  loudly — totals mismatch or zero rows — never silently.
 - "Safe to spend / left this month" math is still out of scope (income
   tracking itself is done — see the feature matrix).
 - No category-rules management UI (rules are created via apply-to-future;
@@ -309,8 +310,9 @@ computationally (script-checked, not eyeballed):
 3. **Activity log** — who changed what, when. Cheap now that every row
    records its author; the value is in mutations (deleted a bill, edited an
    amount), which aren't currently recorded anywhere.
-4. **TD parser** verified against a real export (same treatment the Amex
-   format got). ~~Triangle~~ done via PDF import (statement-verified).
+4. ~~TD + Triangle parsers~~ — both done via PDF import, verified against
+   real statements (TD June 2026, Triangle June+July 2026). TD *CSV* mapping
+   remains unverified but is covered by the manual-mapping fallback.
 5. OFX/QFX import (richer than CSV, includes bank transaction ids —
    would also make dedup exact instead of heuristic).
 6. "Left to spend this month" — income and fixed costs are both modelled now,

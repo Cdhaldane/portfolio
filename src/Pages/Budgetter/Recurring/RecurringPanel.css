@@ -75,10 +75,10 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.82rem;
   color: var(--ink-soft);
   cursor: pointer;
   padding: 0 4px;
+  white-space: nowrap;
 }
 
 .rec-oncard {
