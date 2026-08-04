@@ -6,7 +6,11 @@
 // and there's no cron job to break.
 //
 //   GET    -> list all items (active and ended)
-//   POST   -> { label, category, amountCents, dueDay?, startMonth?, onCard?, paidFrom? }
+//   POST   -> { label, category, amountCents, dueDay?, startMonth?, endMonth?,
+//              onCard?, paidFrom? }
+//              endMonth on create is for a cost with a KNOWN finish — a car
+//              loan's last payment, a 12-month contract — so the dashboard
+//              stops counting it on its own with nothing to remember later.
 //   PATCH  -> { id, ...same fields..., endMonth? }  partial update
 //   DELETE -> ?id=N  remove entirely (PATCH endMonth to stop-but-keep-history)
 const { requireUser, sendAuthError } = require("../budget-auth");
@@ -61,6 +65,10 @@ module.exports = async (req, res) => {
       const amountCents = Number(req.body?.amountCents);
       const dueDay = req.body?.dueDay == null ? null : Number(req.body.dueDay);
       const startMonth = String(req.body?.startMonth || currentMonth());
+      const endMonth =
+        req.body?.endMonth == null || req.body.endMonth === ""
+          ? null
+          : String(req.body.endMonth);
       const onCard = req.body?.onCard === true;
       const paidFrom =
         req.body?.paidFrom == null ? null : String(req.body.paidFrom).trim() || null;
@@ -80,13 +88,16 @@ module.exports = async (req, res) => {
       if (dueDay != null && (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31)) {
         return res.status(400).json({ error: "Due day must be between 1 and 31." });
       }
-      if (!MONTH_RE.test(startMonth)) {
-        return res.status(400).json({ error: "Start month must be YYYY-MM." });
+      if (!MONTH_RE.test(startMonth) || (endMonth != null && !MONTH_RE.test(endMonth))) {
+        return res.status(400).json({ error: "Months must be YYYY-MM." });
+      }
+      if (endMonth != null && endMonth < startMonth) {
+        return res.status(400).json({ error: "End month can't be before the start month." });
       }
 
       const [item] = await sql`
-        INSERT INTO budget_recurring (user_id, household_id, label, category, amount_cents, due_day, start_month, on_card, paid_from)
-        VALUES (${userId}, ${household.id}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${onCard}, ${paidFrom})
+        INSERT INTO budget_recurring (user_id, household_id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from)
+        VALUES (${userId}, ${household.id}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${endMonth}, ${onCard}, ${paidFrom})
         RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
       `;
       return res.status(201).json({ ok: true, item });

@@ -19,7 +19,7 @@ import "./RecurringPanel.css";
  * window model as monthly payments: "End" stops it going forward, history
  * stays correct. Shares RecurringPanel.css (.rec-*).
  */
-const EMPTY_FORM = { label: "", amount: "", cadence: "weekly" };
+const EMPTY_FORM = { label: "", amount: "", cadence: "weekly", startMonth: "" };
 
 const cadenceLabel = (value) =>
   CADENCES.find((c) => c.value === value)?.label || value;
@@ -75,6 +75,7 @@ const IncomePanel = ({ onMutate }) => {
         label: form.label.trim(),
         amountCents,
         cadence: form.cadence,
+        startMonth: form.startMonth || undefined,
       }),
     });
     setBusy(false);
@@ -93,6 +94,7 @@ const IncomePanel = ({ onMutate }) => {
       label: item.label,
       amount: String(item.amount_cents / 100),
       cadence: item.cadence,
+      startMonth: item.start_month || "",
     });
   };
 
@@ -111,6 +113,7 @@ const IncomePanel = ({ onMutate }) => {
         label: editForm.label.trim(),
         amountCents,
         cadence: editForm.cadence,
+        startMonth: editForm.startMonth || undefined,
       }),
     });
     setBusy(false);
@@ -186,6 +189,13 @@ const IncomePanel = ({ onMutate }) => {
                 </option>
               ))}
             </select>
+            <input
+              type="month"
+              className="rec-input-month"
+              title="Since when this income has been coming in — backdating fills earlier months' savings"
+              value={editForm.startMonth}
+              onChange={(e) => setEditForm((f) => ({ ...f, startMonth: e.target.value }))}
+            />
             <div className="rec-actions">
               <button
                 type="button"
@@ -209,7 +219,8 @@ const IncomePanel = ({ onMutate }) => {
               </span>
             </div>
             <span className="rec-due">
-              {isEnded && item.end_month ? `ended ${item.end_month}` : " "}
+              {item.start_month < thisMonth ? `since ${item.start_month}` : ""}
+              {isEnded && item.end_month ? ` · ended ${item.end_month}` : " "}
             </span>
             <span className="rec-amount">≈ {fmtMoney(monthlyIncomeCents(item))}/mo</span>
             <div className="rec-actions">
@@ -282,6 +293,13 @@ const IncomePanel = ({ onMutate }) => {
             </option>
           ))}
         </select>
+        <input
+          type="month"
+          className="rec-input-month"
+          title="Since when — backdate (e.g. 2026-04) and past months' savings fill in. Blank = this month."
+          value={form.startMonth}
+          onChange={(e) => setForm((f) => ({ ...f, startMonth: e.target.value }))}
+        />
         <button type="submit" className="rec-btn rec-btn--primary" disabled={busy}>
           Add
         </button>

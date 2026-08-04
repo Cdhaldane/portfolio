@@ -374,3 +374,10 @@
     justify-self: end;
   }
 }
+
+/* "Since" month picker — backdating fills earlier months on the dashboard. */
+.rec-input-month {
+  width: 150px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+}

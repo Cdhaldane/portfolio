@@ -16,6 +16,7 @@ const handlers = {
   categorize: require("../_lib/handlers/categorize.js"),
   recurring: require("../_lib/handlers/recurring.js"),
   income: require("../_lib/handlers/income.js"),
+  plans: require("../_lib/handlers/plans.js"),
   household: require("../_lib/handlers/household.js"),
   reminders: require("../_lib/handlers/reminders.js"),
 };

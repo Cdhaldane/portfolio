@@ -78,17 +78,19 @@ Secrets live in `.env.local` (dev) and Vercel env vars (prod):
 ## 4. Architecture
 
 - **Frontend:** CRA SPA. `/budgetter` is a lazy chunk behind `BudgetGate`
-  (Clerk `<SignIn>`, theme-aware). Five tabs — Dashboard, Upload,
-  Transactions, Monthly, Household — all kept mounted with bidirectional
-  refresh wiring (imports and category edits refresh the dashboard; dashboard
-  mutations refresh the list; a household join refreshes everything, since
+  (Clerk `<SignIn>`, theme-aware). Six tabs — Dashboard, Upload,
+  Transactions, Monthly, Afford, Household — all kept mounted with
+  bidirectional refresh wiring (imports and category edits refresh the
+  dashboard; dashboard mutations refresh the list; the Afford planner pushing
+  a purchase into Monthly payments refreshes both the dashboard and the
+  already-mounted Monthly list; a household join refreshes everything, since
   it swaps the whole ledger). The `/api/budget/household` fetch lives in
   `Budgetter.jsx` rather than in the panel, because the Transactions list
   needs the same member names to render "added by" — one request, one source
   of truth.
 - **API:** ONE Vercel serverless function — `api/budget/[action].js` — that
   dispatches to per-route handlers in `api/_lib/handlers/` (Hobby plan caps
-  deployments at 12 functions and counts files, so the eleven budget routes
+  deployments at 12 functions and counts files, so the twelve budget routes
   share a single dynamic function; URLs are unchanged). Handlers share
   `api/_lib/budget-auth.js` (auth), `budget-household.js` (tenancy: resolve /
   invite / join / remove), `budget-invite.js` (pure code minting + hashing),
@@ -132,7 +134,21 @@ budget_recurring       label, category, amount_cents, due_day,
                                               (fixed monthly payments)
 budget_income          label, amount_cents, cadence,
                        start_month, end_month        (paycheques etc.)
+budget_plans           label, price_cents, tax_bps, down_cents,
+                       trade_in_cents, apr_bps, term_months,
+                       insurance_cents, fuel_cents, maintenance_cents,
+                       start_month        (Afford tab purchase scenarios)
 ```
+
+⚠️ **`budget_plans` stores INPUTS ONLY** — rates as basis points (690 =
+6.9%), money as cents. Every derived figure (payment, interest, the
+affordability verdict, the affordable sticker price) is computed in the
+browser by `src/Pages/Budgetter/Afford/loan.js`, so improving the maths never
+needs a migration or a backfill, and two household members always see the
+same arithmetic. It is also the one table created *after* households existed:
+`household_id` is `NOT NULL` from birth, it is absent from `TENANT_TABLES`
+(nothing to backfill), and its index is created in the unconditional DDL block
+because the version-gated migration never runs again on an existing database.
 
 ⚠️ **Two different questions about "whose":** `budget_accounts.member_user_id`
 is *whose card it is* and drives spend-per-person; `user_id` is *who typed it
@@ -247,6 +263,24 @@ re-uploads. Change it only deliberately.
 - ✅ Transactions: search, category filter, inline edit w/ apply-to-future,
   split/exclude (count 0–100% of any charge), CSV export
   (formula-injection-safe, includes counted amounts)
+- ✅ **Afford — big-purchase planner** (built for the car question): price /
+  tax / cash down / trade-in / APR / term / running costs in, and out comes
+  the monthly payment, the total cost of borrowing, and a **recommended
+  monthly limit for everything the vehicle costs**, derived from a trailing
+  6-month baseline of real statements and bills (the current, usually partial,
+  month is dropped so the recommendation can't be flattered by an incomplete
+  statement). Four tiers — recommended / comfortable / stretch / ceiling —
+  plus the 20/4/10 rule of thumb (all transport under 10% of income), where
+  `recommended = min(half your spare cash, 10% of income)`. Surplus uses the
+  dashboard's exact "saved this month" definition, so the two surfaces can't
+  disagree. Also: the *leanest* month as a stress test, the affordable sticker
+  price at the current rate/term/down, months-of-saving runway for the down
+  payment, a projected before/after monthly-outflow chart against income, a
+  balance-vs-cash-paid chart over the whole term, the principal/interest
+  split, a full payment schedule, and side-by-side comparison of saved
+  scenarios (household-shared, max 12). "Bought it" writes the payment (with
+  its real end month) and the insurance into Monthly payments — never fuel or
+  maintenance, which arrive as card charges and would double-count
 - ✅ Statement freshness chips: per-account "data through …" /
   "nothing since …" on the dashboard, click-through to Upload
 - ✅ Bill reminder emails: daily cron, grouped per household and sent to every
@@ -282,7 +316,18 @@ computationally (script-checked, not eyeballed):
   lines; TD: row shape + the balance box). A statement redesign breaks them
   loudly — totals mismatch or zero rows — never silently.
 - "Safe to spend / left this month" math is still out of scope (income
-  tracking itself is done — see the feature matrix).
+  tracking itself is done — see the feature matrix). The Afford tab answers
+  the *next-purchase* version of that question, not the day-to-day one.
+- The Afford planner projects a **flat** baseline: today's 6-month average
+  spending, repeated forward. It is deliberately not a forecast — no seasonal
+  curve, no inflation, no raise. Income *is* projected properly (from each
+  source's `[start_month, end_month]` window), so a paycheque that ends mid-
+  projection shows up. The running costs are whatever you type; nobody is
+  pricing insurance for you.
+- A purchase scenario is not a commitment: it never enters the dashboard's
+  numbers until "Bought it" writes real `budget_recurring` rows. That's a
+  one-way door by design (delete them in the Monthly tab), and the button
+  latches after a successful push so a second click can't duplicate them.
 - No category-rules management UI (rules are created via apply-to-future;
   a wrong rule currently needs a DB edit — planned below).
 - Summary endpoint aggregates per merchant per month; fine at personal scale,
@@ -316,7 +361,9 @@ computationally (script-checked, not eyeballed):
 5. OFX/QFX import (richer than CSV, includes bank transaction ids —
    would also make dedup exact instead of heuristic).
 6. "Left to spend this month" — income and fixed costs are both modelled now,
-   so this is mostly assembly plus a day-pro-rated pace indicator.
+   so this is mostly assembly plus a day-pro-rated pace indicator. The Afford
+   tab already owns the trailing-baseline maths (`Afford/loan.js`
+   `spendBaseline`), which is the reusable half.
 7. Per-account (and now per-member) filtering surfaced in the dashboard; the
    API already supports both.
 8. Plaid/Flinks connection — **only if** manual monthly uploads become a
@@ -333,7 +380,12 @@ with `requireUser()`, then `resolveHousehold()`, then filters by
 `household_id`; no exceptions. Writes also stamp `user_id` with the acting
 member for attribution.*
 
-*Testing: `npm run test:api` covers the pure server helpers. The household
+*Testing: `npm run test:api` covers the pure server helpers; `npm test` covers
+the pure browser maths — the PDF parsers plus `Afford/loan.test.js` (33 cases:
+amortization cross-checked against a standard loan table, the
+payment↔principal inverse, the affordability tiers, and the degenerate cases —
+0% APR, cash purchase, no income on file, a household already overspending).
+The household
 migration and every handler were additionally verified end-to-end against a
 throwaway local Postgres seeded with pre-household data (backfill correctness,
 constraint swap, cross-household dedup isolation, tenancy isolation before a

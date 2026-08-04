@@ -1,5 +1,6 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SpendingDashboard from "./Dashboard/SpendingDashboard";
+import AffordPanel from "./Afford/AffordPanel";
 import BudBackground from "./BudBackground";
 import "./Budgetter.css";
 
@@ -90,7 +91,44 @@ const MOCK_SUMMARY = {
   uncategorizedCount: 7,
 };
 
+// Two saved scenarios so the Afford tab's compare table and the "tight vs
+// fits" verdict states are both visible in a screenshot.
+const MOCK_PLANS = [
+  {
+    id: 1,
+    label: "Used RAV4",
+    price_cents: 2800000,
+    tax_bps: 1300,
+    down_cents: 500000,
+    trade_in_cents: 200000,
+    apr_bps: 690,
+    term_months: 60,
+    insurance_cents: 15000,
+    fuel_cents: 20000,
+    maintenance_cents: 7500,
+    start_month: "2026-09",
+    created_at: "2026-07-20T12:00:00Z",
+  },
+  {
+    id: 2,
+    label: "New Civic",
+    price_cents: 3400000,
+    tax_bps: 1300,
+    down_cents: 300000,
+    trade_in_cents: 0,
+    apr_bps: 499,
+    term_months: 84,
+    insurance_cents: 18000,
+    fuel_cents: 16000,
+    maintenance_cents: 5000,
+    start_month: "2026-09",
+    created_at: "2026-07-21T12:00:00Z",
+  },
+];
+
 const DevPreview = () => {
+  const [tab, setTab] = useState("dashboard");
+
   // ?theme=dark|light forces the theme — lets headless screenshot tooling
   // capture both modes without touching localStorage.
   useEffect(() => {
@@ -103,6 +141,9 @@ const DevPreview = () => {
   const fetchJson = useCallback(async (path) => {
     if (path.startsWith("/api/budget/summary")) {
       return { res: { ok: true, status: 200 }, data: MOCK_SUMMARY };
+    }
+    if (path.startsWith("/api/budget/plans")) {
+      return { res: { ok: true, status: 200 }, data: { configured: true, plans: MOCK_PLANS } };
     }
     if (path.startsWith("/api/budget/transactions")) {
       // Drill-down mock: a handful of plausible charges for the requested
@@ -145,19 +186,38 @@ const DevPreview = () => {
           </p>
         </header>
 
+        {/* Only the two data-driven tabs are wired here — the rest are shown
+            for layout fidelity. */}
         <nav className="bud-tabs" aria-label="Budgetter sections">
-          <button type="button" className="bud-tab is-active">Dashboard</button>
+          <button
+            type="button"
+            className={`bud-tab ${tab === "dashboard" ? "is-active" : ""}`}
+            onClick={() => setTab("dashboard")}
+          >
+            Dashboard
+          </button>
           <button type="button" className="bud-tab">Upload</button>
           <button type="button" className="bud-tab">Transactions</button>
           <button type="button" className="bud-tab">Monthly</button>
+          <button
+            type="button"
+            className={`bud-tab ${tab === "afford" ? "is-active" : ""}`}
+            onClick={() => setTab("afford")}
+          >
+            Afford
+          </button>
         </nav>
 
-        <SpendingDashboard
-          refreshToken={0}
-          fetchJson={fetchJson}
-          onMutate={() => {}}
-          onOpenTransactions={() => {}}
-        />
+        {tab === "dashboard" ? (
+          <SpendingDashboard
+            refreshToken={0}
+            fetchJson={fetchJson}
+            onMutate={() => {}}
+            onOpenTransactions={() => {}}
+          />
+        ) : (
+          <AffordPanel refreshToken={0} fetchJson={fetchJson} onMutate={() => {}} />
+        )}
       </div>
     </div>
   );

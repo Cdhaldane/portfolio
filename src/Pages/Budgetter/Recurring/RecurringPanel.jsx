@@ -35,7 +35,7 @@ const ordinal = (n) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-const RecurringPanel = ({ onMutate }) => {
+const RecurringPanel = ({ onMutate, refreshToken }) => {
   const { getToken } = useAuth();
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -51,9 +51,11 @@ const RecurringPanel = ({ onMutate }) => {
     setLoaded(true);
   }, [getToken]);
 
+  // refreshToken: a write from another tab (the Afford planner pushing a car
+  // payment in) has to reach this already-mounted list.
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, refreshToken]);
 
   const thisMonth = currentMonthKey();
   const active = useMemo(

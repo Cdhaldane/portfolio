@@ -4,6 +4,11 @@
 
 export const fmtMoney = (cents, { compact = false } = {}) => {
   const dollars = cents / 100;
+  // An M step as well as a K one, so an axis tick on a car loan reads "$1.2M"
+  // rather than "$1,200K".
+  if (compact && Math.abs(dollars) >= 1000000) {
+    return `$${(dollars / 1000000).toLocaleString(undefined, { maximumFractionDigits: 1 })}M`;
+  }
   if (compact && Math.abs(dollars) >= 10000) {
     return `$${(dollars / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })}K`;
   }
@@ -33,6 +38,13 @@ export const addMonths = (key, delta) => {
   const [y, m] = key.split("-").map(Number);
   const d = new Date(Date.UTC(y, m - 1 + delta, 1));
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+};
+
+/** Whole months from `a` to `b` — negative when b is earlier. */
+export const monthDiff = (a, b) => {
+  const [ay, am] = a.split("-").map(Number);
+  const [by, bm] = b.split("-").map(Number);
+  return (by - ay) * 12 + (bm - am);
 };
 
 export const currentMonthKey = () => new Date().toISOString().slice(0, 7);

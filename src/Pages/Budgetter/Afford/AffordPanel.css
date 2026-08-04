@@ -1,0 +1,996 @@
+/* Afford tab — reads --ink/--paper/--blue/--blue-deep/etc. from the .bud page
+   wrapper, so the planner is the same design system as the dashboard rather
+   than a lookalike.
+
+   Data hues are ONLY the two blue-ramp steps already validated for this app:
+   --blue for money that already leaves the household, --blue-deep for the new
+   commitment. Income is a neutral ink benchmark tick, never a third series
+   color. Sage/coral appear only as status, always beside signed words, using
+   the WCAG-checked text tokens (light #3e6b34 5.97:1 / #b23a1a 5.70:1 ·
+   dark #97c283 7.98:1 / #ff8a68 7.00:1). */
+
+.afp {
+  --good-text: #3e6b34;
+  --bad-text: #b23a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme="dark"] .afp {
+  --good-text: #97c283;
+  --bad-text: #ff8a68;
+}
+
+/* Refetch keeps the frame — no skeleton flash, no layout jump. */
+.afp.is-refreshing {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.afp-loading,
+.afp-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+}
+
+.afp-empty p {
+  margin: 0 0 12px;
+}
+
+.afp-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--bad-text);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--bad-text);
+}
+
+/* ---- header ---- */
+.afp-h {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0 0 6px;
+}
+
+.afp-sub {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 68ch;
+}
+
+.afp-h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin: 0 0 14px;
+}
+
+.afp-h-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+/* ---- cards ---- */
+.afp-card {
+  padding: 20px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.afp-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---- saved scenarios ---- */
+.afp-scenarios {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.afp-scenario {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.afp-scenario:hover {
+  border-color: var(--blue);
+  color: var(--ink);
+}
+
+.afp-scenario.is-active {
+  color: var(--ink);
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.afp-scenario-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.afp-scenario--new {
+  font-weight: 500;
+}
+
+/* ---- scenario form ---- */
+.afp-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.afp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.afp-field--wide {
+  grid-column: span 2;
+}
+
+.afp-field-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Solid (not glass) backgrounds on inputs and selects for the same
+   native-popup reason documented in UploadPanel.css. */
+.afp-input {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 11px;
+  width: 100%;
+  min-width: 0;
+}
+
+.afp-input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+select.afp-input option {
+  color: var(--ink);
+  background: #f5f7f1;
+}
+
+[data-theme="dark"] .afp-input {
+  background-color: #1d1f1a;
+}
+
+[data-theme="dark"] select.afp-input option {
+  background: #1d1f1a;
+}
+
+.afp-form-h {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin: 20px 0 10px;
+  line-height: 1.6;
+}
+
+.afp-form-h em {
+  font-style: normal;
+  color: var(--ink);
+}
+
+.afp-form-hint {
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.afp-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+/* ---- the answer ---- */
+.afp-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.afp-hero {
+  padding-bottom: 2px;
+}
+
+.afp-hero-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 4px;
+}
+
+/* The one hero figure on the page. Proportional (not tabular) figures — at
+   3rem, equal-width digits read loose. */
+.afp-hero-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 7vw, 3.1rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.afp-hero-sub {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.afp-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.afp-tile {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.afp-tile-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
+.afp-tile-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  margin: 0 0 5px;
+}
+
+.afp-tile-sub {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+/* ---- affordability meter ----
+   The track's full width IS every spare dollar the household has, so a fill
+   that reaches the end means nothing is left to save. The tick marks the
+   recommendation. Over-ceiling turns the fill coral AND the verdict below
+   says it in words — never color alone. */
+.afp-meter-block {
+  margin-top: 2px;
+}
+
+.afp-meter {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(47, 107, 255, 0.14);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .afp-meter {
+  background: rgba(110, 147, 255, 0.16);
+}
+
+.afp-meter-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 0 7px 7px 0;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.afp-meter-fill.is-over {
+  background: var(--accent);
+}
+
+.afp-meter-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ink);
+  opacity: 0.75;
+}
+
+.afp-meter-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  margin-top: 7px;
+}
+
+.afp-meter-mid {
+  color: var(--ink);
+}
+
+/* ---- verdict ---- */
+.afp-verdict {
+  border-left: 2px solid var(--line);
+  padding: 2px 0 2px 14px;
+}
+
+.afp-verdict.is-fits {
+  border-left-color: var(--sage);
+}
+
+.afp-verdict.is-tight,
+.afp-verdict.is-over {
+  border-left-color: var(--accent);
+}
+
+.afp-verdict-main {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.afp-verdict.is-fits .afp-verdict-main {
+  color: var(--good-text);
+}
+
+.afp-verdict.is-tight .afp-verdict-main,
+.afp-verdict.is-over .afp-verdict-main {
+  color: var(--bad-text);
+}
+
+.afp-verdict-note {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+}
+
+/* ---- limits table ---- */
+.afp-limits {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.afp-limits-caption {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: left;
+  padding-bottom: 8px;
+}
+
+.afp-limits th,
+.afp-limits td {
+  text-align: left;
+  padding: 7px 10px 7px 0;
+  border-top: 1px solid var(--line);
+  font-weight: 400;
+}
+
+.afp-limits th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.afp-limits td:nth-child(2) {
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.afp-limits td:last-child {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.afp-limits tr.is-headline th,
+.afp-limits tr.is-headline td:nth-child(2) {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---- push to Monthly ---- */
+.afp-push {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.afp-push-hint {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+  max-width: 70ch;
+}
+
+.afp-push-done {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--good-text);
+  margin: 0;
+}
+
+/* ---- controls ---- */
+.afp-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.afp-toggle-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition:
+    background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.afp-toggle-btn.is-active {
+  color: #fff;
+  background: var(--blue);
+}
+
+.afp-chip {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #fff;
+  background: var(--blue);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.afp-chip:hover:not(:disabled) {
+  background: var(--blue-deep);
+}
+
+.afp-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.afp-chip--small {
+  font-size: 0.72rem;
+  padding: 5px 11px;
+}
+
+.afp-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.afp-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--ink);
+}
+
+.afp-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.afp-btn--danger:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--bad-text);
+}
+
+.afp-link {
+  font: inherit;
+  color: var(--blue-deep);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.afp-link:hover {
+  color: var(--blue);
+}
+
+.afp-error {
+  font-size: 0.82rem;
+  color: var(--bad-text);
+  margin: 0;
+}
+
+/* ---- legend ---- */
+.afp-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.afp-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.afp-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+/* Swatches carry the same opacity as the fills they stand for, so the legend
+   looks like the chart rather than a brighter version of it. */
+.afp-swatch--base {
+  background: var(--blue);
+  opacity: 0.6;
+}
+
+.afp-swatch--car {
+  background: var(--blue-deep);
+}
+
+/* Income key mirrors the benchmark tick: a short ink rule, not a filled
+   block — it's a reference mark, not a series. */
+.afp-swatch--income {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  opacity: 0.75;
+}
+
+/* ---- charts ---- */
+.afp-chartwrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.afp-chartinner {
+  position: relative;
+  min-width: 640px;
+}
+
+.afp-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.afp-grid,
+.afp-axis {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+/* Purchase-month rule: an annotation, not a gridline, but still a solid
+   hairline — dashes would read as a second, noisier grid. */
+.afp-divider {
+  stroke: var(--ink);
+  stroke-width: 1;
+  opacity: 0.25;
+}
+
+.afp-tick {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: end;
+}
+
+.afp-xlabel {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: middle;
+}
+
+.afp-xmark {
+  font-size: 8px;
+  fill: var(--ink);
+  opacity: 0.6;
+  text-anchor: middle;
+}
+
+/* Stacked segments: existing outflow in --blue, the vehicle in --blue-deep.
+   Deliberate asymmetry — the existing spending is CONTEXT so it sits back at
+   half opacity, while the new commitment (the thing being decided) is the
+   loud mark. Two ramp steps at the same opacity read as one block; this way
+   the car segment is unmistakable on every bar, not just the hovered one.
+   Both keep a full-opacity hairline stroke so the mark stays >=3:1
+   perceivable even where the fill is recessive (WCAG 1.4.11). */
+.afp-seg {
+  stroke-width: 1;
+  transition: fill-opacity 0.2s ease;
+}
+
+.afp-seg--base {
+  fill: var(--blue);
+  stroke: var(--blue);
+  fill-opacity: 0.5;
+}
+
+.afp-seg--car {
+  fill: var(--blue-deep);
+  stroke: var(--blue-deep);
+  fill-opacity: 1;
+}
+
+.afp-chart g.is-focus .afp-seg--base,
+.afp-chart g:hover .afp-seg--base {
+  fill-opacity: 0.75;
+}
+
+.afp-income-tick {
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0.75;
+}
+
+.afp-bar-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--ink);
+  text-anchor: middle;
+}
+
+.afp-end-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: start;
+}
+
+.afp-hit {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.afp-hit:focus-visible {
+  stroke: var(--blue);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+/* ---- loan chart ---- */
+.afp-area {
+  fill: var(--blue);
+  fill-opacity: 0.1;
+}
+
+.afp-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.afp-line--owed {
+  stroke: var(--blue);
+}
+
+.afp-line--paid {
+  stroke: var(--blue-deep);
+}
+
+.afp-cross line {
+  stroke: var(--ink);
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+/* 2px surface ring so the dots stay legible where the lines cross. */
+.afp-dot {
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.afp-dot--owed {
+  fill: var(--blue);
+}
+
+.afp-dot--paid {
+  fill: var(--blue-deep);
+}
+
+/* ---- principal vs interest split ---- */
+.afp-split-h {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 18px 0 8px;
+}
+
+.afp-split {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.afp-split-seg--principal {
+  fill: var(--blue);
+  fill-opacity: 0.5;
+}
+
+.afp-split-seg--interest {
+  fill: var(--blue-deep);
+}
+
+/* Text tokens, never the series color — the mark above the label carries
+   identity. */
+.afp-split-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  fill: var(--ink-soft);
+  text-anchor: start;
+}
+
+.afp-split-label--end {
+  text-anchor: end;
+}
+
+/* ---- tooltips ---- */
+.afp-tip {
+  position: absolute;
+  transform: translate(-50%, -110%);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+.afp-tip--hang {
+  transform: translate(-50%, 0);
+}
+
+.afp-tip strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.92rem;
+}
+
+.afp-tip span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+
+.afp-tip-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Line keys, not boxes — a short stroke of the series color, in steps that
+   stay legible against the inverted tooltip surface. */
+.afp-tip-key {
+  display: inline-block;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  flex: none;
+}
+
+/* On the inverted tooltip surface the ramp has to be re-stepped upward to
+   stay legible — but the ORDER is preserved: the recessive series stays the
+   quieter key, the vehicle stays the brighter one. */
+.afp-tip-key--base {
+  background: #b7c8ff;
+  opacity: 0.7;
+}
+
+.afp-tip-key--car {
+  background: #6e93ff;
+}
+
+.afp-tip-key--income,
+.afp-tip-key--left {
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* The tooltip surface inverts with the theme, so in dark mode the keys sit on
+   a LIGHT chip and have to step down, not up. */
+[data-theme="dark"] .afp-tip-key--base {
+  background: #7f9bff;
+  opacity: 1;
+}
+
+[data-theme="dark"] .afp-tip-key--car {
+  background: #2f6bff;
+}
+
+/* ---- tables (the charts' accessible twin) ---- */
+.afp-tables {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 18px;
+}
+
+.afp-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.afp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.afp-table caption {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: left;
+  padding-bottom: 8px;
+}
+
+.afp-table th,
+.afp-table td {
+  padding: 6px 12px 6px 0;
+  text-align: right;
+  border-top: 1px solid var(--line);
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.afp-table thead th {
+  border-top: none;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.afp-table tbody th[scope="row"],
+.afp-table thead th:first-child {
+  text-align: left;
+}
+
+.afp-table tbody tr.is-projected th[scope="row"] {
+  color: var(--ink-soft);
+}
+
+.afp-table tbody tr.is-active {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+[data-theme="dark"] .afp-table tbody tr.is-active {
+  background: rgba(110, 147, 255, 0.1);
+}
+
+.afp-table .is-good {
+  color: var(--good-text);
+}
+
+.afp-table .is-bad {
+  color: var(--bad-text);
+}
+
+.afp-table-note {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+}
+
+/* ---- responsive ---- */
+@media (max-width: 620px) {
+  .afp-field--wide {
+    grid-column: span 1;
+  }
+  .afp-card {
+    padding: 18px 16px;
+  }
+  .afp-meter-scale {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .afp-meter-fill,
+  .afp-seg,
+  .afp-scenario,
+  .afp-toggle-btn,
+  .afp-chip,
+  .afp-btn {
+    transition: none;
+  }
+}

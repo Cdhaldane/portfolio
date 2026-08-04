@@ -349,6 +349,39 @@ function ensureTables(sql) {
         )
       `;
 
+      // Big-purchase scenarios for the Afford tab. Born after households
+      // existed, so household_id is NOT NULL from the start and the table is
+      // deliberately absent from TENANT_TABLES — there is nothing to
+      // backfill, and its index has to be created here rather than in the
+      // version-gated migration (which never runs again on an existing DB).
+      //
+      // Only the INPUTS are stored: rates as basis points (690 = 6.9%),
+      // money as cents. Payment, interest and affordability verdicts are
+      // derived in the browser, so improving the math needs no migration.
+      await sql`
+        CREATE TABLE IF NOT EXISTS budget_plans (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          household_id INTEGER NOT NULL REFERENCES budget_households(id) ON DELETE CASCADE,
+          label TEXT NOT NULL,
+          price_cents INTEGER NOT NULL,
+          tax_bps INTEGER NOT NULL DEFAULT 0,
+          down_cents INTEGER NOT NULL DEFAULT 0,
+          trade_in_cents INTEGER NOT NULL DEFAULT 0,
+          apr_bps INTEGER NOT NULL DEFAULT 0,
+          term_months INTEGER NOT NULL,
+          insurance_cents INTEGER NOT NULL DEFAULT 0,
+          fuel_cents INTEGER NOT NULL DEFAULT 0,
+          maintenance_cents INTEGER NOT NULL DEFAULT 0,
+          start_month TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+      `;
+      await sql`
+        CREATE INDEX IF NOT EXISTS budget_plans_household_idx
+          ON budget_plans (household_id)
+      `;
+
       const versionRows = await sql`
         SELECT value FROM budget_meta WHERE key = 'schema_version'
       `;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CATEGORIES } from "../categories";
+import { niceMax, topRoundedBar } from "../chart";
 import {
   fmtMoney,
   fmtMoneyExact,
@@ -31,22 +32,6 @@ const VBW = 720;
 const VBH = 240;
 const PAD = { l: 48, r: 10, t: 22, b: 28 };
 const SEG_GAP = 2; // surface gap between stacked segments, in viewBox px
-
-const niceMax = (v) => {
-  if (v <= 0) return 100;
-  const exp = Math.pow(10, Math.floor(Math.log10(v)));
-  for (const m of [1, 2, 2.5, 5, 10]) {
-    if (m * exp >= v) return m * exp;
-  }
-  return 10 * exp;
-};
-
-// Bar segment with a 4px rounded data-end and a square baseline end.
-const topRoundedBar = (x, y, w, h) => {
-  const r = Math.min(4, h, w / 2);
-  const yb = y + h;
-  return `M ${x} ${yb} L ${x} ${y + r} Q ${x} ${y} ${x + r} ${y} L ${x + w - r} ${y} Q ${x + w} ${y} ${x + w} ${y + r} L ${x + w} ${yb} Z`;
-};
 
 const titleCase = (s) =>
   s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
