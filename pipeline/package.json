@@ -1,0 +1,17 @@
+{
+  "name": "gallows-hymn-pipeline",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Art pipeline for Gallows Hymn (GALLOWS_HYMN.md §17.8). Isolated from the portfolio's dependency tree, the same way game/ is.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.2.1",
+    "@gltf-transform/extensions": "^4.2.1",
+    "@gltf-transform/functions": "^4.2.1",
+    "meshoptimizer": "^0.25.0",
+    "portfolio": "file:.."
+  }
+}

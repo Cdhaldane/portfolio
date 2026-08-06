@@ -1,0 +1,221 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.4.2",
+    "version": "2.0"
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 768,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 222,
+      "max": [
+        19114,
+        3008,
+        32767
+      ],
+      "min": [
+        -19114,
+        -3008,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 222,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 222,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 1536,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 342,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 768
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 1536,
+      "byteLength": 1776,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 344,
+          "byteLength": 1148,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 222
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 3312,
+      "byteLength": 1776,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 1492,
+          "byteLength": 1064,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 222
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 5088,
+      "byteLength": 888,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 2556,
+          "byteLength": 241,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 222
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "colormap",
+      "mimeType": "image/png",
+      "uri": "textures/a94b4dc4f77a4b8a.png"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "grave.bin",
+      "byteLength": 2800
+    },
+    {
+      "byteLength": 5976,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "name": "colormap",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0,
+          "extensions": {
+            "KHR_texture_transform": {
+              "texCoord": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "grave",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "grave",
+      "translation": [
+        -0.0202254056930542,
+        0.05700000002980232,
+        0.011144697666168213
+      ],
+      "scale": [
+        0.6204746961593628,
+        0.6204746961593628,
+        0.6204746961593628
+      ],
+      "mesh": 0
+    }
+  ],
+  "scenes": [
+    {
+      "name": "grave",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization",
+    "KHR_texture_transform"
+  ],
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ]
+}

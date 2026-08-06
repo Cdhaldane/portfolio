@@ -5,12 +5,25 @@
 /.pnp
 .pnp.js
 /server/node_modules
+/game/node_modules
+/pipeline/node_modules
 
 # testing
 /coverage
 
 # production
 /build
+/game/dist
+
+# art sources and vendored CC0 packs (GALLOWS_HYMN.md Appendix B, §18.4).
+# The ledger + lockfile are committed; the bytes are not.
+/art
+
+# Optimized asset output (§17.8). Rebuildable from art/ via npm run art.
+/game/public/assets
+
+# Pipeline scratch: de-lit/locked intermediates and the texture hash cache.
+/pipeline/.work
 
 # misc
 .DS_Store

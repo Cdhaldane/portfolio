@@ -40,6 +40,11 @@ const Post = lazy(() => import("./Pages/Writing/Post"));
 // Lazy so the Clerk SDK only loads for visitors who actually hit /budgetter.
 const BudgetGate = lazy(() => import("./Pages/Budgetter/BudgetGate"));
 const Budgetter = lazy(() => import("./Pages/Budgetter/Budgetter"));
+// Hidden game launcher (GALLOWS_HYMN.md §18.2). The game itself is a separate
+// Vite app served from /hymn/, so this route only carries the launcher.
+const GallowsHymn = lazy(() =>
+  import("./Pages/GallowsHymn/GallowsHymnLauncher")
+);
 // Dev-only design preview (mock data, no auth) — dead-code eliminated from
 // production builds by the NODE_ENV check at the route below.
 const BudgetPreview =
@@ -78,6 +83,7 @@ const App = () => {
             <Route path="fishbowl" element={<Fishbowl />} />
             <Route path="reckoning" element={<DeadReckoning />} />
           </Route>
+          <Route path="/gallows-hymn" element={<GallowsHymn />} />
           <Route path="/budgetter" element={<BudgetGate />}>
             <Route index element={<Budgetter />} />
           </Route>

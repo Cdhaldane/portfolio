@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Hidden route: unlinked and unindexed. See GALLOWS_HYMN.md §18.2 -->
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="color-scheme" content="dark" />
+    <!-- Inline so there is no favicon request to 404 on. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0a0c'/%3E%3Cpath d='M16 5c-4 0-7 3-7 7v7l-2 3h18l-2-3v-7c0-4-3-7-7-7z' fill='%23c9bfa8'/%3E%3Ccircle cx='16' cy='25' r='2.4' fill='%23ff5d3b'/%3E%3C/svg%3E"
+    />
+    <title>GALLOWS HYMN</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0b0a0c;
+        color: #c9bfa8;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: fixed;
+        inset: 0;
+      }
+      canvas {
+        display: block;
+        touch-action: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

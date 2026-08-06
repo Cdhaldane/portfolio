@@ -1,0 +1,1293 @@
+/*
+ * ui/hud.css — HUD styling.
+ *
+ * Palette values are duplicated here as literals rather than imported: the CSS
+ * is authored against §17.1's 14 swatches, same as render/palette.ts. When the
+ * palette moves to CSS custom properties at M4 this file reads them instead.
+ *
+ * Ledger language throughout (§3): the tally, the bill, paid in full.
+ */
+
+:root {
+  --gh-void: #0b0a0c;
+  --gh-ash: #232227;
+  --gh-grave: #3b3a3d;
+  --gh-bone: #c9bfa8;
+  --gh-sunbleach: #e6dfc8;
+  --gh-oxblood: #7a1f24;
+  --gh-lamp: #ffab5e;
+  --gh-ember: #ff5d3b;
+  --gh-hex: #4ff0e0;
+  --gh-bell: #9be3ff;
+}
+
+.gh {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--gh-bone);
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  user-select: none;
+}
+
+.gh-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* ── crosshair ─────────────────────────────────────────────────────────── */
+
+.gh-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.gh-crosshair span {
+  position: absolute;
+  background: var(--gh-sunbleach);
+  opacity: 0.85;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+}
+
+.gh-crosshair span:nth-child(1),
+.gh-crosshair span:nth-child(2) {
+  width: 2px;
+  height: 7px;
+  left: 12px;
+}
+.gh-crosshair span:nth-child(1) {
+  top: 0;
+}
+.gh-crosshair span:nth-child(2) {
+  bottom: 0;
+}
+.gh-crosshair span:nth-child(3),
+.gh-crosshair span:nth-child(4) {
+  height: 2px;
+  width: 7px;
+  top: 12px;
+}
+.gh-crosshair span:nth-child(3) {
+  left: 0;
+}
+.gh-crosshair span:nth-child(4) {
+  right: 0;
+}
+
+.gh-crosshair[data-build] span {
+  background: var(--gh-hex);
+}
+
+/* ── panels ────────────────────────────────────────────────────────────── */
+
+.gh-panel {
+  position: absolute;
+  pointer-events: none;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.gh-panel--bl {
+  left: 28px;
+  bottom: 26px;
+  display: grid;
+  gap: 10px;
+}
+
+.gh-panel--br {
+  right: 28px;
+  bottom: 26px;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.gh-panel--top {
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.gh-label {
+  color: var(--gh-grave);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+}
+
+.gh-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.gh-num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--gh-sunbleach);
+}
+
+.gh-num--scrap {
+  color: var(--gh-lamp);
+}
+
+/* ── vigil ─────────────────────────────────────────────────────────────── */
+
+.gh-vigil {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 260px;
+}
+
+.gh-bar {
+  height: 5px;
+  background: rgba(201, 191, 168, 0.16);
+  overflow: hidden;
+}
+
+.gh-bar i {
+  display: block;
+  height: 100%;
+  /* The signature blue → sage → coral gradient reads as bell → bone → blood
+     here, which is the same idea in this world's language. */
+  background: linear-gradient(90deg, var(--gh-bell), var(--gh-bone) 55%, var(--gh-ember));
+  transition: width 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gh-vigil[data-low] .gh-num {
+  color: var(--gh-ember);
+}
+
+.gh-vigil[data-low] .gh-bar i {
+  animation: gh-pulse 720ms ease-in-out infinite;
+}
+
+@keyframes gh-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ── ammo ──────────────────────────────────────────────────────────────── */
+
+.gh-ammo {
+  display: flex;
+  gap: 5px;
+}
+
+.gh-ammo i {
+  width: 7px;
+  height: 18px;
+  border-radius: 1px 1px 3px 3px;
+  background: var(--gh-lamp);
+  box-shadow: 0 0 6px rgba(255, 171, 94, 0.35);
+}
+
+.gh-ammo i[data-spent] {
+  background: rgba(201, 191, 168, 0.18);
+  box-shadow: none;
+}
+
+.gh-ammo[data-reloading] i {
+  animation: gh-reload 900ms linear infinite;
+}
+
+@keyframes gh-reload {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.gh-weapon {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: var(--gh-grave);
+}
+
+/* ── the bill ──────────────────────────────────────────────────────────── */
+
+.gh-bill {
+  display: inline-block;
+  padding: 7px 16px;
+  background: rgba(11, 10, 12, 0.62);
+  border: 1px solid rgba(201, 191, 168, 0.14);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.gh-bill b {
+  color: var(--gh-sunbleach);
+  font-weight: 600;
+}
+
+.gh-bill--good {
+  border-color: rgba(79, 240, 224, 0.4);
+  color: var(--gh-hex);
+}
+
+.gh-bill--bad {
+  border-color: rgba(122, 31, 36, 0.7);
+  color: var(--gh-ember);
+}
+
+.gh-bill kbd {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  padding: 1px 5px;
+  border: 1px solid rgba(201, 191, 168, 0.3);
+  color: var(--gh-sunbleach);
+}
+
+
+/* ── the round (it's the score, §4) ────────────────────────────────────── */
+
+.gh-round {
+  position: absolute;
+  left: 50%;
+  top: 76px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+}
+
+.gh-round-label {
+  font-size: 9px;
+  letter-spacing: 0.42em;
+  color: var(--gh-grave);
+  text-transform: uppercase;
+}
+
+.gh-round-num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--gh-sunbleach);
+}
+
+.gh-round[data-elite] .gh-round-num {
+  color: var(--gh-ember);
+}
+
+.gh-round-tag {
+  margin-top: 2px;
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 93, 59, 0.55);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--gh-ember);
+}
+
+/* ── hotbar ────────────────────────────────────────────────────────────── */
+
+.gh-hotbar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.gh-hotbar-tip {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 7px 16px;
+  background: rgba(11, 10, 12, 0.72);
+  border: 1px solid rgba(201, 191, 168, 0.14);
+  text-align: center;
+  max-width: 46ch;
+}
+
+.gh-hotbar-tip-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.gh-hotbar-tip-syn {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(201, 191, 168, 0.82);
+}
+
+.gh-hotbar-tip-keys {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--gh-grave);
+}
+
+.gh-hotbar-tip-keys kbd {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  border: 1px solid rgba(201, 191, 168, 0.24);
+  padding: 0 4px;
+  color: var(--gh-bone);
+}
+
+.gh-slots {
+  display: flex;
+  gap: 7px;
+}
+
+.gh-slot {
+  --elem: var(--gh-bone);
+  appearance: none;
+  position: relative;
+  width: 66px;
+  padding: 8px 4px 6px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  background: rgba(11, 10, 12, 0.72);
+  border: 1px solid rgba(201, 191, 168, 0.16);
+  border-bottom: 2px solid color-mix(in srgb, var(--elem) 55%, transparent);
+  color: var(--gh-bone);
+  font-family: inherit;
+  cursor: default;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 200ms,
+    border-color 200ms;
+}
+
+.gh-slot-key {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 8px;
+  color: var(--gh-grave);
+}
+
+.gh-slot-glyph {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--elem);
+}
+
+/*
+ * Rendered from the trap's own geometry (render/icons.ts). Sized to match the
+ * glyph's line box so the swap from fallback to icon doesn't reflow the row.
+ */
+.gh-slot-icon {
+  width: 34px;
+  height: 34px;
+  margin: -5px 0 -4px;
+  object-fit: contain;
+  image-rendering: auto;
+  pointer-events: none;
+}
+
+.gh-slot[data-poor] .gh-slot-icon {
+  opacity: 0.4;
+  filter: grayscale(0.7);
+}
+
+/*
+ * The gun row. Deliberately not element-tinted: it is the one slot that is
+ * always available, so it reads as neutral rather than as another purchase.
+ */
+.gh-slot[data-kind="weapon"] {
+  --elem: var(--gh-bone);
+  border-bottom-color: rgba(201, 191, 168, 0.5);
+}
+
+.gh-slot[data-kind="weapon"] .gh-slot-glyph {
+  color: var(--gh-sunbleach);
+}
+
+.gh-slot-cost {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--gh-lamp);
+}
+
+.gh-slot-elem {
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  color: var(--gh-grave);
+}
+
+.gh-slot[data-selected] {
+  background: rgba(35, 34, 39, 0.9);
+  border-color: rgba(230, 223, 200, 0.4);
+}
+
+/* Armed = selected AND in build mode: the one that a click will actually set. */
+.gh-slot[data-armed] {
+  transform: translateY(-6px);
+  border-color: var(--elem);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--elem) 40%, transparent),
+    0 10px 26px rgba(0, 0, 0, 0.55);
+}
+
+.gh-slot[data-poor] .gh-slot-cost {
+  color: var(--gh-oxblood);
+}
+
+.gh-slot[data-poor] .gh-slot-glyph {
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-slot {
+    transition: none;
+  }
+}
+
+/* ── build mode (legacy banner, superseded by the hotbar tip) ──────────── */
+
+.gh-build {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  pointer-events: none;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.gh-build-name {
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--gh-hex);
+}
+
+.gh-build-cost {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--gh-oxblood);
+}
+
+.gh-build-cost[data-afford] {
+  color: var(--gh-lamp);
+}
+
+.gh-build-hint {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--gh-grave);
+}
+
+.gh-build-hint kbd {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  border: 1px solid rgba(201, 191, 168, 0.25);
+  padding: 0 4px;
+}
+
+/* ── perf overlay ──────────────────────────────────────────────────────── */
+
+.gh-perf {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 9px 12px;
+  background: rgba(11, 10, 12, 0.82);
+  border-left: 2px solid var(--gh-hex);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--gh-bone);
+  pointer-events: none;
+}
+
+.gh-perf[data-state="warn"] {
+  border-left-color: var(--gh-lamp);
+}
+.gh-perf[data-state="bad"] {
+  border-left-color: var(--gh-ember);
+}
+
+.gh-perf-row b {
+  color: var(--gh-sunbleach);
+  font-size: 13px;
+}
+
+.gh-perf-budget {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(201, 191, 168, 0.14);
+  color: var(--gh-grave);
+  font-size: 10px;
+}
+
+/* ── overlay / title ───────────────────────────────────────────────────── */
+
+.gh-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(60% 60% at 50% 45%, rgba(11, 10, 12, 0.55), rgba(11, 10, 12, 0.94));
+  backdrop-filter: blur(3px);
+}
+
+.gh-overlay-card {
+  width: min(560px, 88vw);
+  padding: 34px 36px 28px;
+  background: rgba(11, 10, 12, 0.78);
+  border: 1px solid rgba(201, 191, 168, 0.16);
+  text-align: center;
+}
+
+.gh-kicker {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  margin-bottom: 14px;
+}
+
+.gh-title {
+  margin: 0 0 10px;
+  font-size: clamp(38px, 7vw, 62px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 0.95;
+  color: var(--gh-sunbleach);
+  text-shadow: 0 0 34px rgba(155, 227, 255, 0.14);
+}
+
+.gh-sub {
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--gh-bone);
+  opacity: 0.78;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.gh-play {
+  appearance: none;
+  padding: 13px 30px;
+  border: 1px solid rgba(255, 93, 59, 0.55);
+  background: rgba(255, 93, 59, 0.1);
+  color: var(--gh-sunbleach);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  cursor: pointer;
+  transition:
+    background 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gh-play:hover:not(:disabled) {
+  background: rgba(255, 93, 59, 0.22);
+  transform: translateY(-1px);
+}
+
+.gh-play:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+.gh-keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 7px 14px;
+  margin: 26px 0 18px;
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(201, 191, 168, 0.12);
+}
+
+.gh-keys > div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  justify-content: center;
+}
+
+.gh-keys dt {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid rgba(201, 191, 168, 0.24);
+  color: var(--gh-sunbleach);
+}
+
+.gh-keys dd {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gh-grave);
+}
+
+.gh-foot {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--gh-grave);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-bar i,
+  .gh-play {
+    transition: none;
+  }
+  .gh-vigil[data-low] .gh-bar i,
+  .gh-ammo[data-reloading] i {
+    animation: none;
+  }
+}
+
+/* ── blood (player health) ─────────────────────────────────────────────── */
+
+.gh-vigil--hp .gh-bar i {
+  background: linear-gradient(90deg, var(--gh-oxblood), var(--gh-ember));
+}
+
+/* ── the Boot (§7) ─────────────────────────────────────────────────────── */
+
+.gh-boot {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 4px 7px;
+  opacity: 0.5;
+  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gh-boot[data-ready] {
+  opacity: 1;
+}
+
+.gh-boot-key {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  padding: 1px 5px;
+  border: 1px solid rgba(201, 191, 168, 0.3);
+  color: var(--gh-sunbleach);
+}
+
+.gh-boot-name {
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: var(--gh-grave);
+}
+
+.gh-boot[data-ready] .gh-boot-name {
+  color: var(--gh-lamp);
+}
+
+.gh-boot-bar {
+  grid-column: 1 / -1;
+  height: 3px;
+  width: 92px;
+  background: rgba(201, 191, 168, 0.16);
+  justify-self: end;
+  overflow: hidden;
+}
+
+.gh-boot-bar i {
+  display: block;
+  height: 100%;
+  background: var(--gh-lamp);
+}
+
+/* ── tally and the poker hand (§5) ─────────────────────────────────────── */
+
+.gh-tally {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  pointer-events: none;
+  text-align: right;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+.gh-tally-label {
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  color: var(--gh-grave);
+}
+
+.gh-tally-num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--gh-sunbleach);
+}
+
+.gh-hand {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+/* One card per kill in the open window. Cards, because the hand is a hand. */
+.gh-hand-cards {
+  display: flex;
+  gap: 3px;
+}
+
+.gh-hand-cards i {
+  width: 9px;
+  height: 13px;
+  border: 1px solid rgba(230, 223, 200, 0.55);
+  background: rgba(230, 223, 200, 0.14);
+  border-radius: 1px;
+  animation: gh-card 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gh-card {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) rotate(-8deg);
+  }
+}
+
+.gh-hand-name {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--gh-lamp);
+}
+
+.gh-hand-name b {
+  color: var(--gh-sunbleach);
+}
+
+/* The ledger stamp when a hand closes. */
+.gh-hand-stamp {
+  margin-top: 6px;
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 171, 94, 0.55);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gh-lamp);
+  animation: gh-stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gh-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.5) rotate(-4deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.96) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-hand-cards i,
+  .gh-hand-stamp {
+    animation: none;
+  }
+  .gh-boot {
+    transition: none;
+  }
+}
+
+/* ── floating damage numbers (render/numbers.ts) ───────────────────────── */
+
+.gh-numbers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.gh-numbers span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.7);
+  will-change: transform, opacity;
+}
+
+/* ── the upgrade panel (§6: exactly two, mutually exclusive) ───────────── */
+
+.gh-upgrade {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 9px 16px 8px;
+  background: rgba(11, 10, 12, 0.82);
+  border: 1px solid rgba(201, 191, 168, 0.18);
+  text-align: center;
+}
+
+.gh-upgrade-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.gh-upgrade-opts {
+  display: flex;
+  gap: 10px;
+}
+
+.gh-upgrade-opt {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: 210px;
+  padding: 7px 9px;
+  border: 1px solid rgba(201, 191, 168, 0.16);
+  border-top: 2px solid rgba(255, 171, 94, 0.6);
+  background: rgba(35, 34, 39, 0.55);
+}
+
+.gh-upgrade-opt[data-poor] {
+  border-top-color: rgba(122, 31, 36, 0.75);
+  opacity: 0.55;
+}
+
+.gh-upgrade-key {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  padding: 1px 5px;
+  border: 1px solid rgba(201, 191, 168, 0.35);
+  color: var(--gh-sunbleach);
+}
+
+.gh-upgrade-opt-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gh-lamp);
+}
+
+.gh-upgrade-blurb {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(201, 191, 168, 0.78);
+}
+
+.gh-upgrade-cost {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--gh-lamp);
+}
+
+.gh-upgrade-cost[data-poor] {
+  color: var(--gh-oxblood);
+}
+
+.gh-upgrade-cost kbd {
+  border: 1px solid rgba(201, 191, 168, 0.24);
+  padding: 0 4px;
+  color: var(--gh-bone);
+}
+
+.gh-upgrade--done .gh-upgrade-name {
+  color: var(--gh-hex);
+}
+
+/* ── mute indicator ────────────────────────────────────────────────────── */
+
+.gh-muted {
+  position: absolute;
+  right: 28px;
+  top: 22px;
+  padding: 4px 10px;
+  border: 1px solid rgba(122, 31, 36, 0.7);
+  background: rgba(11, 10, 12, 0.7);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--gh-oxblood);
+  pointer-events: none;
+}
+
+/* ── shelf: the debug room (§17.9) ─────────────────────────────────────── */
+
+.gh-shelf-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gh-shelf-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-top: -6px;
+  padding: 2px 7px;
+  background: rgba(11, 10, 12, 0.72);
+  border: 1px solid rgba(201, 191, 168, 0.18);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--gh-bone);
+  transition: opacity 120ms linear;
+}
+
+.gh-shelf-help {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  background: rgba(11, 10, 12, 0.78);
+  border: 1px solid rgba(201, 191, 168, 0.16);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--gh-dust);
+  pointer-events: none;
+}
+
+.gh-shelf-help strong {
+  color: var(--gh-lamp);
+  letter-spacing: 0.24em;
+}
+
+.gh-shelf-help kbd {
+  border: 1px solid rgba(201, 191, 168, 0.24);
+  padding: 0 4px;
+  color: var(--gh-bone);
+}
+
+/* ── the persistent record (§18.3) ─────────────────────────────────────── */
+
+.gh-record {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(201, 191, 168, 0.12);
+  border-bottom: 1px solid rgba(201, 191, 168, 0.12);
+}
+
+.gh-record > div {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+}
+
+.gh-record dt {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--gh-grave);
+}
+
+.gh-record dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--gh-sunbleach);
+}
+
+.gh-record dd[data-new] {
+  color: var(--gh-lamp);
+}
+
+.gh-newbest {
+  margin: -8px 0 16px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--gh-lamp);
+}
+
+.gh-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.gh-secondary {
+  appearance: none;
+  display: grid;
+  gap: 2px;
+  padding: 13px 18px;
+  border: 1px solid rgba(201, 191, 168, 0.28);
+  background: transparent;
+  color: var(--gh-bone);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: border-color 220ms, color 220ms;
+}
+
+.gh-secondary span {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--gh-grave);
+}
+
+.gh-secondary:hover {
+  border-color: rgba(230, 223, 200, 0.6);
+  color: var(--gh-sunbleach);
+}
+
+/* The record to beat, alongside the live round. */
+.gh-round-best {
+  margin-top: 3px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 8px;
+  letter-spacing: 0.26em;
+  color: var(--gh-grave);
+}
+
+.gh-round-best[data-beaten] {
+  color: var(--gh-lamp);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-secondary {
+    transition: none;
+  }
+}
+
+/* ── mounted traps ─────────────────────────────────────────────────────────
+   A wall or roof trap can only go where the map allows, so the slot wears the
+   requirement and the tip spells out what to aim at. Both are subordinate to the
+   glyph: this is a qualifier, not the trap's identity. */
+
+.gh-slot-surface {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font: 600 7px/1 var(--gh-mono, ui-monospace), monospace;
+  letter-spacing: 0.08em;
+  padding: 2px 3px;
+  border-radius: 2px;
+  color: #0b0b0d;
+  background: var(--elem);
+  opacity: 0.82;
+}
+
+.gh-slot[data-poor] .gh-slot-surface {
+  opacity: 0.3;
+}
+
+.gh-hotbar-tip-mount {
+  font: 500 10px/1.3 var(--gh-mono, ui-monospace), monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* ── muster screen ─────────────────────────────────────────────────────── */
+/*
+ * The map/hero picker (ui/Menu.tsx). Deliberately NOT the overlay card: the
+ * whole point of the screen is that the site you picked is drawn behind it, so
+ * it uses a side panel and leaves the middle of the frame showing the ground.
+ * A centred modal would cover the one thing the screen exists to demonstrate.
+ */
+
+.gh-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px clamp(18px, 4vw, 48px) 22px;
+  overflow-y: auto;
+  background: linear-gradient(
+    100deg,
+    rgba(11, 10, 12, 0.95) 0%,
+    rgba(11, 10, 12, 0.9) 42%,
+    rgba(11, 10, 12, 0.4) 74%,
+    rgba(11, 10, 12, 0.12) 100%
+  );
+}
+
+.gh-menu-head {
+  flex: none;
+}
+
+.gh-menu-head .gh-title {
+  text-align: left;
+}
+
+.gh-menu-head .gh-sub {
+  margin-bottom: 0;
+}
+
+/*
+ * Narrow, and narrower than it needs to be for the text.
+ *
+ * The hero stands dead centre of frame (a 3.4m third-person boom, §7), so a
+ * panel wide enough to feel comfortable is a panel that covers the character you
+ * are choosing. 520px keeps the cards clear of them and leaves two thirds of the
+ * frame showing the ground, which is the entire argument for a live preview.
+ */
+.gh-menu-section {
+  flex: none;
+  max-width: 520px;
+}
+
+.gh-menu-h {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 10px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  color: var(--gh-bone);
+  opacity: 0.8;
+}
+
+/* The honesty notes — "cosmetic", "this is the real map". Quiet by design. */
+.gh-menu-note {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: none;
+  opacity: 0.5;
+}
+
+.gh-picks {
+  display: grid;
+  /* Fixed two-up rather than auto-fit: four maps wrap to a tidy 2×2 instead of
+     a ragged 3+1, and the column width stays put as maps are added. */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.gh-pick {
+  --pick-accent: var(--gh-bone);
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px 13px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--gh-bone);
+  font-family: inherit;
+  background: rgba(35, 34, 39, 0.55);
+  border: 1px solid rgba(201, 191, 168, 0.14);
+  /* The accent only appears on the selected edge, so a row of cards reads as
+     one object with one choice in it rather than as five competing buttons. */
+  border-left: 2px solid transparent;
+  transition:
+    background 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gh-pick:hover {
+  background: rgba(35, 34, 39, 0.8);
+  transform: translateY(-1px);
+}
+
+.gh-pick[data-selected] {
+  background: rgba(35, 34, 39, 0.94);
+  border-color: rgba(201, 191, 168, 0.3);
+  border-left-color: var(--pick-accent);
+}
+
+.gh-pick-kicker {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: var(--pick-accent);
+  opacity: 0.9;
+}
+
+.gh-pick-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--gh-sunbleach);
+}
+
+.gh-pick-body {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 1.55;
+  opacity: 0.68;
+}
+
+.gh-pick-quote {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--pick-accent);
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.gh-menu-warn {
+  margin: 9px 0 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--gh-lamp);
+  opacity: 0.72;
+}
+
+.gh-menu-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.gh-menu-best {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gh-bone);
+  opacity: 0.6;
+}
+
+@media (max-width: 720px) {
+  .gh-menu {
+    background: rgba(11, 10, 12, 0.93);
+  }
+  .gh-picks {
+    grid-template-columns: 1fr 1fr;
+  }
+}

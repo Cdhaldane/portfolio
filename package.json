@@ -75,11 +75,30 @@
   },
   "scripts": {
     "start": "set PORT=3030 && react-scripts start",
-    "build": "react-app-rewired build",
+    "build": "react-app-rewired build && npm run build:game",
+    "build:game": "npm --prefix game install --no-audit --no-fund --prefer-offline && npm --prefix game run build",
+    "dev:game": "npm --prefix game run dev",
+    "test:game": "npm --prefix game test",
     "test": "react-app-rewired test",
     "test:api": "node --test api/_lib/*.test.js",
     "eject": "react-scripts eject",
-    "dev:api": "vercel dev"
+    "dev:api": "vercel dev",
+    "test:smoke": "node scripts/smoke-game.mjs",
+    "art": "node pipeline/art.mjs",
+    "art:one": "node pipeline/art.mjs one",
+    "art:import": "node pipeline/art.mjs import",
+    "art:vendor": "node pipeline/vendor.mjs",
+    "art:vendor:list": "node pipeline/vendor.mjs --list",
+    "art:vendor:check": "node pipeline/vendor.mjs --check",
+    "art:credits": "node pipeline/credits.mjs",
+    "art:credits:check": "node pipeline/credits.mjs --check",
+    "art:budget": "node pipeline/budget_check.mjs",
+    "art:lock": "node pipeline/palette_lock.mjs",
+    "art:delight": "node pipeline/delight.mjs",
+    "art:selftest": "node --test pipeline/tests/pipeline.test.mjs",
+    "art:optimize": "node pipeline/optimize.mjs",
+    "art:manifest": "node pipeline/manifest.mjs",
+    "art:selftest:all": "npm --prefix pipeline install --no-audit --no-fund --prefer-offline && node --test pipeline/tests/*.test.mjs"
   },
   "eslintConfig": {
     "extends": [

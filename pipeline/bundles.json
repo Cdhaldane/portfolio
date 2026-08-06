@@ -1,0 +1,59 @@
+{
+  "note": [
+    "Maps a source path under art/ to one of the §17.11 load bundles.",
+    "",
+    "This mapping has to be declared somewhere, because the two structures do not",
+    "line up: art/ is organised by asset TYPE (§17.8's tree — kits/chars/traps/",
+    "props/textures), while §17.11's bundles are organised by WHEN THE PLAYER",
+    "NEEDS THEM (boot, core, act1..3, audio). A prop is act1 or act2 depending on",
+    "which site it dresses, which no directory name can tell you.",
+    "",
+    "Rules are ordered; the first whose `match` regex hits the art/-relative path",
+    "wins. Anything unmatched is reported by manifest.mjs as unassigned and FAILS",
+    "the build — an asset in no bundle is never scheduled to load, so silently",
+    "defaulting it would ship a game that is missing something at runtime."
+  ],
+  "rules": [
+    { "match": "^audio/", "bundle": "audio", "why": "§17.11: all audio in one bundle" },
+    { "match": "^ui/|^title/|^launcher/", "bundle": "boot", "why": "§17.11: UI + title scene" },
+
+    { "match": "^chars/hero", "bundle": "core", "why": "§17.11 Core: hero" },
+    { "match": "^weapons/(Absolution|revolver)", "bundle": "core", "why": "§17.11 Core: revolver" },
+    { "match": "^vfx/", "bundle": "core", "why": "§17.11 Core: VFX atlas" },
+    {
+      "match": "^traps/(jaws|tar|vent|plate|sigil|lantern)",
+      "bundle": "core",
+      "why": "§21.2's five starting traps plus the Marshal's lantern — available from round one"
+    },
+
+    {
+      "match": "^kits/(boothill|creek)/",
+      "bundle": "act1",
+      "why": "§17.11 Act I: Boot Hill + Creek kits"
+    },
+    { "match": "^kits/shaft/", "bundle": "act2", "why": "§17.11 Act II: Shaft kit" },
+    { "match": "^kits/reliquary/", "bundle": "act3", "why": "§17.11 Act III: Reliquary kit" },
+
+    {
+      "match": "^chars/(dustkin|ironjaw|preacher|deadeye|buzzard|tumbleweed)",
+      "bundle": "act1",
+      "why": "§17.11 Act I: 6 enemy types"
+    },
+    {
+      "match": "^chars/(bonebride|chaingang|miner|gravelung|rattler)|^bosses/(marrow|colossus)",
+      "bundle": "act2",
+      "why": "§17.11 Act II: 5 enemy types + boss"
+    },
+    {
+      "match": "^chars/(wisp|hearse|revenant)|^bosses/(choirmaster|final)",
+      "bundle": "act3",
+      "why": "§17.11 Act III: 3 enemy types + final boss"
+    },
+
+    {
+      "match": "^props/",
+      "bundle": "act1",
+      "why": "Placeholder while every prop still dresses the Act I sites. Split this rule by kit as soon as art/props/ is organised per-site — it is the first thing that will blow the Act I budget."
+    }
+  ]
+}

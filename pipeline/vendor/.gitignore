@@ -1,0 +1,11 @@
+# Vendored CC0 source packs — fetched, never committed.
+#
+# These are other people's bytes. The repo commits the *ledger*
+# (art-recipes/sources.jsonl) and the *lockfile* (art-recipes/sources.lock.json),
+# which together let anyone reproduce this directory exactly:
+#
+#     npm run art:vendor
+#
+# Same reasoning as art/ in Appendix B — binaries live outside git.
+*
+!.gitignore

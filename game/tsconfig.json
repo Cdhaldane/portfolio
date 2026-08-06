@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+
+    /* Every import carries an explicit .ts extension and every type import is
+       marked `import type`, so the same sources run under `tsc`, Vite, AND
+       `node --experimental-strip-types` (which powers the headless sim tests).
+       `erasableSyntaxOnly` is what mechanically guarantees the third one. */
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    "types": ["vite/client"]
+  },
+  "include": ["src", "tests", "vite.config.ts"]
+}

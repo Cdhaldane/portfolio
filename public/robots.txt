@@ -3,5 +3,7 @@ Allow: /
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /budgetter
+Disallow: /gallows-hymn
+Disallow: /hymn
 
 Sitemap: https://charliehaldane.ca/sitemap.xml
