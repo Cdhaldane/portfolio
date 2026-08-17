@@ -66,6 +66,10 @@ export function hashWorld(w: World): number {
   h.int(w.roundLeaks);
   h.float(w.enemyHpScale);
   h.float(w.enemySpeedScale);
+  // Dev-menu state is sim state: it changes behaviour, so it is fingerprinted.
+  h.int(w.freeBuild ? 1 : 0);
+  h.int(w.debugUsed ? 1 : 0);
+  h.int(w.player.god ? 1 : 0);
 
   const p = w.player;
   h.float(p.x);

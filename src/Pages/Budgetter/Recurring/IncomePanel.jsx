@@ -24,7 +24,7 @@ const EMPTY_FORM = { label: "", amount: "", cadence: "weekly", startMonth: "" };
 const cadenceLabel = (value) =>
   CADENCES.find((c) => c.value === value)?.label || value;
 
-const IncomePanel = ({ onMutate }) => {
+const IncomePanel = ({ onMutate, refreshToken }) => {
   const { getToken } = useAuth();
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -40,9 +40,11 @@ const IncomePanel = ({ onMutate }) => {
     setLoaded(true);
   }, [getToken]);
 
+  // refreshToken: a household join swaps the whole ledger under this
+  // already-mounted list, so a bump from Budgetter has to reach it.
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, refreshToken]);
 
   const thisMonth = currentMonthKey();
   const active = useMemo(
@@ -193,6 +195,7 @@ const IncomePanel = ({ onMutate }) => {
               type="month"
               className="rec-input-month"
               title="Since when this income has been coming in — backdating fills earlier months' savings"
+              aria-label="Income since (month)"
               value={editForm.startMonth}
               onChange={(e) => setEditForm((f) => ({ ...f, startMonth: e.target.value }))}
             />
@@ -297,6 +300,7 @@ const IncomePanel = ({ onMutate }) => {
           type="month"
           className="rec-input-month"
           title="Since when — backdate (e.g. 2026-04) and past months' savings fill in. Blank = this month."
+          aria-label="Income since (month) — blank means this month"
           value={form.startMonth}
           onChange={(e) => setForm((f) => ({ ...f, startMonth: e.target.value }))}
         />

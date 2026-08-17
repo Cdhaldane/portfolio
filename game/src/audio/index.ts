@@ -43,6 +43,13 @@ const SPEC: Record<number, SoundSpec> = {
   [SFX.reloadClick]: { bus: "sfx", gain: 0.4, priority: PRIORITY.player, positional: false },
   [SFX.reloadDone]: { bus: "sfx", gain: 0.4, priority: PRIORITY.player, positional: false },
   [SFX.bootThud]: { bus: "sfx", gain: 0.6, priority: PRIORITY.player, positional: false },
+  [SFX.abilityFire]: { bus: "sfx", gain: 0.55, priority: PRIORITY.player, positional: false },
+  [SFX.abilityDenied]: { bus: "sfx", gain: 0.3, priority: PRIORITY.player, positional: false },
+  [SFX.fanShot]: { bus: "sfx", gain: 0.5, priority: PRIORITY.player, positional: false },
+  [SFX.kegThrow]: { bus: "sfx", gain: 0.4, priority: PRIORITY.player, positional: false },
+  [SFX.kegBlast]: { bus: "sfx", gain: 0.85, priority: PRIORITY.synergy, positional: true },
+  [SFX.revenantRise]: { bus: "sfx", gain: 0.6, priority: PRIORITY.synergy, positional: true },
+  [SFX.revenantShot]: { bus: "sfx", gain: 0.35, priority: PRIORITY.trap, positional: true },
   [SFX.bootWhiff]: { bus: "sfx", gain: 0.4, priority: PRIORITY.player, positional: false },
   [SFX.playerHurt]: { bus: "sfx", gain: 0.7, priority: PRIORITY.player, positional: false },
   [SFX.jawsSnap]: { bus: "sfx", gain: 0.55, priority: PRIORITY.trap, positional: true },
@@ -242,6 +249,28 @@ export class Audio {
         case EV.reloadEnd:
           this.play(SFX.reloadDone);
           break;
+        case EV.abilityFired:
+          this.play(SFX.abilityFire);
+          break;
+        case EV.fanShot:
+          this.play(SFX.fanShot);
+          break;
+        case EV.kegThrown:
+          this.play(SFX.kegThrow);
+          break;
+        case EV.kegBlast:
+          this.play(SFX.kegBlast, x, y, z);
+          break;
+        case EV.revenantRose:
+          this.play(SFX.revenantRise, x, y, z);
+          break;
+        case EV.revenantFired:
+          this.play(SFX.revenantShot, x, y, z);
+          break;
+        /* A revenant's 15s expiry is a quiet fade, not an event — giving it a
+         * sound would mean four allies each announcing themselves at once. */
+        case EV.revenantFell:
+          break;
         case EV.booted:
           this.play(SFX.bootThud);
           break;
@@ -273,6 +302,11 @@ export class Audio {
         case EV.statusApplied:
           this.play(ev.a[i] === 4 ? SFX.sigilHum : SFX.tarSquelch, x, y, z);
           break;
+        case EV.healPulse:
+          // The hymn is arcane sustain, which is exactly what sigilHum already
+          // says — and reusing it keeps "magic is happening here" one sound.
+          this.play(SFX.sigilHum, x, y, z);
+          break;
         case EV.trapPlaced:
         case EV.trapUpgraded:
           this.play(SFX.trapPlace);
@@ -292,6 +326,17 @@ export class Audio {
           break;
         case EV.waveStarted:
           this.play(SFX.bell);
+          this.duckMusic();
+          break;
+        case EV.envFired:
+          /*
+           * Two sounds, because it is two things at once: the crash of the thing
+           * coming down, and the blast under it. §4 calls these the moments a site is
+           * remembered for, and a once-per-site event that shares a sound with a trap
+           * is not a moment.
+           */
+          this.play(SFX.plateBlast, x, y, z);
+          this.play(SFX.clang, x, y, z);
           this.duckMusic();
           break;
         case EV.siteEntered:

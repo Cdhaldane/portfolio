@@ -7,9 +7,13 @@
  */
 
 import {
+  AdditiveBlending,
   BackSide,
   Color,
+  CylinderGeometry,
+  DoubleSide,
   Group,
+  InstancedMesh,
   LineBasicMaterial,
   LineSegments,
   Matrix4,
@@ -17,15 +21,12 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
+  PlaneGeometry,
   PointLight,
   RingGeometry,
   Scene,
-  PlaneGeometry,
-  InstancedMesh,
   Vector3,
   WebGLRenderer,
-  CylinderGeometry,
-  DoubleSide,
 } from "three";
 
 import { cameraPose, makePose, rightX, rightZ } from "../sim/aim.ts";
@@ -34,7 +35,8 @@ import { EV } from "../sim/events.ts";
 import { cellOfSlot, groundHeight, tileCenterX, tileCenterY, tileCenterZ } from "../sim/level.ts";
 import { SKY } from "../sim/atmosphere.ts";
 import { GhostPaths } from "./paths.ts";
-import { SURF, sideYaw } from "../sim/surfaces.ts";
+import { SURF, sideNormalX, sideNormalZ, sideYaw } from "../sim/surfaces.ts";
+import { wallCellOf, wallOfCell, type WallTile } from "../sim/wallgrid.ts";
 import { trapAtCell } from "../sim/world.ts";
 import { lerp } from "../sim/math.ts";
 import { ENEMIES } from "../sim/enemies.ts";
@@ -54,9 +56,19 @@ import {
 } from "./actors.ts";
 import type { HeroId } from "./models/hero.ts";
 import { Motes, Sparks } from "./fx.ts";
+import {
+  enemyPose,
+  gaitFor,
+  wingFlap,
+  type GaitProfile,
+  type Pose,
+  type PoseInput,
+} from "./gait.ts";
 import { NUM, Numbers } from "./numbers.ts";
-import { buildBoxGeometry, buildFloorGeometry, buildGridGeometry } from "./mesher.ts";
+import { PANEL_PROUD, buildBoxGeometry, buildFloorGeometry, buildGridGeometry } from "./mesher.ts";
+import { trapBackDepth } from "./models/traps.ts";
 import { RIM, toonMaterial } from "./materials.ts";
+import { roughGrain } from "./textures.ts";
 import { Post } from "./post/index.ts";
 import {
   applyRendererLook,
@@ -67,6 +79,7 @@ import {
 import {
   buildDressingGeometry,
   buildHillsGeometry,
+  buildRiftGeometry,
   buildSkyGeometry,
   buildStarfield,
 } from "./models/props.ts";
@@ -108,6 +121,13 @@ export class Renderer {
   private traps: TrapPool;
   /** Build-phase route preview (§4). Hidden the moment the bell rings. */
   private ghostPaths = new GhostPaths();
+  /**
+   * Seconds left of the mid-round route peek. The ghost paths are a build-phase
+   * tool, but a blockade placed DURING a round moves the lanes right now — so
+   * the reroute the player just paid for shows itself for a beat instead of
+   * staying a secret until the next build phase.
+   */
+  private pathPeek = 0;
   private sparks = new Sparks();
   private motes = new Motes();
   private numbers: Numbers;
@@ -125,6 +145,11 @@ export class Renderer {
   private recoil = 0;
   /** Milliseconds of hit stop the host should honour before its next step. */
   hitStopRequest = 0;
+  /** Which site the scene currently holds. Read by the debug hook only. */
+  get builtSite(): number {
+    return this.builtSiteId;
+  }
+
   /** How many mount marks are being drawn. Read by the debug hook only. */
   marksShown = 0;
   private ghost: Mesh;
@@ -138,11 +163,58 @@ export class Renderer {
    * at the real mount points tell the truth and are easier to aim at.
    */
   private slotMarks: InstancedMesh;
+  /**
+   * The wall lattice, drawn only while a wall trap is armed.
+   *
+   * The floor grid can afford to be always-on because it is underfoot; a lattice on
+   * every wall in the room, always, would turn the site into graph paper. It appears
+   * when it answers a question you are actually asking.
+   */
+  private wallMarks: InstancedMesh;
+  /**
+   * Faces that refuse traps — always visible, in a colour nothing else uses.
+   *
+   * Permanent on purpose. Where you *may* build is a question you ask while building;
+   * where you may *never* build is a fact about the map you should be able to plan
+   * around from the moment you walk in, without arming anything to find out.
+   */
+  private noBuildMarks: InstancedMesh;
+  /**
+   * Signatures of what the two mark meshes were last built from.
+   *
+   * The marks are a *function of state*, not an animation: they change when the level
+   * changes, when a trap is placed or sold, or when a different trap is armed — and on
+   * no other frame. Rebuilding them every frame cost Undertown 93,696 trap scans,
+   * 1,464 matrix writes and a ~90KB instance-matrix upload per frame, for a picture
+   * that was almost always identical to the one before it.
+   *
+   * Same discipline as `hudSignature` in host/loop.ts, and for the same reason: §14.1
+   * budgets the frame tightly enough that "recompute it, it's only a loop" is a
+   * decision, not a default.
+   */
+  private wallMarkSig = -1;
+  private noBuildSig = -1;
   /** Per-type live instance counts, reused each frame. */
   private trapCounts: Int32Array;
   private enemyCounts!: Int32Array;
   // Assigned by buildStatic(), which the constructor calls before anything reads
   // them; TS can't see through the indirection.
+  /**
+   * Everything that belongs to the *current site*: sky, floor, architecture,
+   * dressing, hills, the grid, the Rift.
+   *
+   * A group rather than loose meshes because a run travels. `buildStatic` used to be
+   * called once, from the constructor, so arriving at the Undertown swapped the sim's
+   * level while the renderer went on drawing Boot Hill — the player was repositioned
+   * to a start point tens of metres outside the geometry still on screen, which reads
+   * exactly as "everything disappeared and I got teleported out of the map".
+   *
+   * Owning them in one group makes the rebuild a remove-and-dispose rather than a
+   * hunt for whichever fields happened to hold a mesh.
+   */
+  private site = new Group();
+  /** Which site the group was built from. -1 until the first build. */
+  private builtSiteId = -1;
   private grid!: LineSegments;
   private gridMaterial!: LineBasicMaterial;
   private rift!: Mesh;
@@ -154,6 +226,29 @@ export class Renderer {
   private time = 0;
   /** Presentation-owned: enemy facing, smoothed from velocity (§12.4 note). */
   private enemyYaw = new Float32Array(0);
+  /**
+   * Presentation-owned stride odometer: metres each body has actually walked.
+   * Gait phase is read off this rather than off the clock, so a slowed body's
+   * steps slow with it and a stopped one stops mid-stride (render/gait.ts).
+   */
+  private enemyStride = new Float32Array(0);
+  /** Gait profiles indexed by EnemyDef.id, resolved once. */
+  private gaits: GaitProfile[] = [];
+  /** Reused pose scratch — one per renderer, never per body (§12.5). */
+  private readonly gaitPose: Pose = { lift: 0, roll: 0, pitch: 0, sway: 0, squash: 1 };
+  private readonly gaitIn: PoseInput = {
+    strideM: 0,
+    phase: 0,
+    time: 0,
+    moving: false,
+    held: false,
+    grounded: true,
+    flying: false,
+    vy: 0,
+    yawRate: 0,
+    windupT: 0,
+    climb: 0,
+  };
 
   /**
    * The §14.5 post stack. Constructed last, because it needs the finished scene
@@ -180,10 +275,8 @@ export class Renderer {
 
     this.camera = new PerspectiveCamera(75, 1, 0.1, 220);
 
-    applySceneAtmosphere(this.scene, world.level.atmosphere);
-
-    this.buildSky(world);
-    this.buildStatic(world);
+    this.scene.add(this.site);
+    this.buildSite(world);
     this.scene.add(this.shadows);
     // `undefined` falls through to `defaultHeroId()`, which reads `?hero=` —
     // so the URL still works for anyone bypassing the menu (a capture harness,
@@ -198,6 +291,8 @@ export class Renderer {
     }
     this.enemyCounts = new Int32Array(this.enemies.bodies.length);
     this.enemyYaw = new Float32Array(world.enemies.alive.length);
+    this.enemyStride = new Float32Array(world.enemies.alive.length);
+    this.gaits = ENEMIES.map((d) => gaitFor(d.key));
     this.traps = buildTrapPool();
     for (let i = 0; i < this.traps.bodies.length; i++) {
       this.scene.add(this.traps.bodies[i], this.traps.rings[i], this.traps.outlines[i]);
@@ -235,6 +330,38 @@ export class Renderer {
     this.slotMarks.visible = false;
     this.slotMarks.renderOrder = 4;
     this.scene.add(this.slotMarks);
+
+    const wallQuad = (color: number, opacity: number, cap: number): InstancedMesh => {
+      const m = new InstancedMesh(
+        new PlaneGeometry(1, 1),
+        new MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity,
+          side: DoubleSide,
+          depthWrite: false,
+        }),
+        cap,
+      );
+      m.frustumCulled = false;
+      m.visible = false;
+      m.renderOrder = 4;
+      this.scene.add(m);
+      return m;
+    };
+    // Undertown carries ~1,400 wall tiles, so the pools are sized for the worst map
+    // rather than the first one.
+    this.wallMarks = wallQuad(COLOR.bone.getHex(), 0.15, 2048);
+    /* 0.15, walked down from 0.5 and then from 0.28. The note each time was the
+       same and each time it was still true: an oxblood quad over every square of
+       a crypt stops reading as "you cannot build here" and starts reading as
+       "this object is red", which paints a whole building out of the palette.
+       Because these are permanent (unlike the other two lattices, which appear
+       only while you are building) they are on screen for the entire run, so
+       they have to survive being looked at for twenty minutes rather than
+       twenty seconds. At 0.15 the masonry underneath still reads as timber and
+       the refusal reads as a stain on it. */
+    this.noBuildMarks = wallQuad(COLOR.oxblood.getHex(), 0.15, 1024);
     this.trapCounts = new Int32Array(this.traps.bodies.length);
     this.scene.add(this.sparks.mesh, this.motes.mesh, this.ghostPaths.mesh);
 
@@ -313,7 +440,37 @@ export class Renderer {
     disc.renderOrder = -2;
     this.sky.add(disc);
 
-    this.scene.add(this.sky);
+    this.site.add(this.sky);
+  }
+
+  /**
+   * (Re)build everything that belongs to the current site.
+   *
+   * Called from the constructor and again whenever the run travels. The atmosphere is
+   * reapplied too: the Undertown is a sealed cavern with no moon and no dome, and
+   * carrying Boot Hill's night sky into it would be the most obvious possible tell.
+   */
+  private buildSite(world: World): void {
+    this.disposeSite();
+    applySceneAtmosphere(this.scene, world.level.atmosphere);
+    this.buildSky(world);
+    this.buildStatic(world);
+    this.builtSiteId = world.level.siteId;
+    // The mark caches key off the site id, so they rebuild with it.
+    this.wallMarkSig = -1;
+    this.noBuildSig = -1;
+  }
+
+  /** Drop the previous site's meshes and the GPU memory behind them. */
+  private disposeSite(): void {
+    for (let i = this.site.children.length - 1; i >= 0; i--) {
+      const child = this.site.children[i] as Mesh;
+      this.site.remove(child);
+      child.geometry?.dispose();
+      const mat = child.material as MeshStandardMaterial | MeshStandardMaterial[] | undefined;
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+      else mat?.dispose();
+    }
   }
 
   private buildStatic(world: World): void {
@@ -323,10 +480,10 @@ export class Renderer {
       // The boxes are handed over so the floor can bake a contact shadow around
       // each one — the cheapest possible version of §14.4's baked AO.
       buildFloorGeometry(level.width, level.depth, level.boxes),
-      toonMaterial({ rim: RIM.architecture }),
+      toonMaterial({ rim: RIM.architecture, map: roughGrain() }),
     );
     floor.receiveShadow = true;
-    this.scene.add(floor);
+    this.site.add(floor);
 
     /*
      * The Bone Orchard: everything decorative, in one draw call.
@@ -342,23 +499,23 @@ export class Renderer {
     );
     dressing.castShadow = true;
     dressing.receiveShadow = true;
-    this.scene.add(dressing);
+    this.site.add(dressing);
 
     // Hills, sitting most of the way inside the fog so the site has a beyond.
     const hills = new Mesh(
       buildHillsGeometry(level),
       toonMaterial({ rim: RIM.architecture }),
     );
-    this.scene.add(hills);
+    this.site.add(hills);
 
     // The whole site: one geometry, one draw call (§14.2).
     const boxes = new Mesh(
-      buildBoxGeometry(level.boxes),
-      toonMaterial({ rim: RIM.architecture }),
+      buildBoxGeometry(level.boxes, level.tile),
+      toonMaterial({ rim: RIM.architecture, map: roughGrain() }),
     );
     boxes.castShadow = true;
     boxes.receiveShadow = true;
-    this.scene.add(boxes);
+    this.site.add(boxes);
 
     this.gridMaterial = new LineBasicMaterial({
       color: COLOR.bone.getHex(),
@@ -369,22 +526,28 @@ export class Renderer {
       buildGridGeometry(level.width, level.depth, level.tile),
       this.gridMaterial,
     );
-    this.scene.add(this.grid);
+    this.site.add(this.grid);
 
-    // The Rift: a cold leak in the ground. The only cyan thing that isn't a
-    // threat, and the thing you are protecting.
+    /*
+     * The Rift: a cold leak in the ground, and the thing you are protecting.
+     *
+     * Nested shells fading upward, drawn additively (models/props.ts) — see the
+     * note there for why the previous flat-opacity cylinder read as plastic.
+     * `depthWrite: false` so the shells never occlude each other, and
+     * `depthTest: true` so the world still occludes the Rift.
+     */
     this.rift = new Mesh(
-      new CylinderGeometry(level.rift.radius * 0.55, level.rift.radius * 0.8, 5.5, 20, 1, true),
+      buildRiftGeometry(level.rift.radius),
       new MeshBasicMaterial({
-        color: COLOR.bell.getHex(),
+        vertexColors: true,
         transparent: true,
-        opacity: 0.16,
+        blending: AdditiveBlending,
         side: DoubleSide,
         depthWrite: false,
       }),
     );
-    this.rift.position.set(level.rift.x, 2.75, level.rift.z);
-    this.scene.add(this.rift);
+    this.rift.position.set(level.rift.x, 0.02, level.rift.z);
+    this.site.add(this.rift);
 
     this.riftRing = new Mesh(
       new RingGeometry(level.rift.radius * 0.9, level.rift.radius, 28),
@@ -397,11 +560,11 @@ export class Renderer {
     );
     this.riftRing.rotation.x = -Math.PI / 2;
     this.riftRing.position.set(level.rift.x, 0.02, level.rift.z);
-    this.scene.add(this.riftRing);
+    this.site.add(this.riftRing);
 
     const riftLight = new PointLight(COLOR.bell.getHex(), 9, 18, 2);
     riftLight.position.set(level.rift.x, 1.6, level.rift.z);
-    this.scene.add(riftLight);
+    this.site.add(riftLight);
 
     /*
      * Gates burn warm so the two ends of the site never read the same.
@@ -415,8 +578,22 @@ export class Renderer {
       for (const side of [-1.5, 1.5]) {
         const lamp = new PointLight(COLOR.ember.getHex(), 5, 15, 2);
         lamp.position.set(gate.x, 3.3, gate.z + side);
-        this.scene.add(lamp);
+        this.site.add(lamp);
       }
+    }
+
+    /*
+     * Authored lantern pools (sim/atmosphere.ts `lamps`). This is MAPS §6's
+     * "the fix is lantern density" made real for the dark sites: Shaft Nine's
+     * timber sets each carry one, and the stope gets standing lamps. `lamp`
+     * hue, not `ember` — §3 reads warm-gold as safe/yours (the hero's own
+     * lantern), where ember marks the way the dead come in. The lantern models
+     * themselves are dressing (models/props.ts), so the glow has a source.
+     */
+    for (const l of level.atmosphere.lamps ?? []) {
+      const light = new PointLight(COLOR.lamp.getHex(), 6, 16, 2);
+      light.position.set(l.x, l.y, l.z);
+      this.site.add(light);
     }
 
     // Moonlight and bounce: see render/look.ts for why the moon is a cool value
@@ -465,6 +642,27 @@ export class Renderer {
           this.recoil = 1;
           this.sparks.burst(x, y, z, 4, COLOR.lamp, 3.2, 0.07, 0.16);
           break;
+        /*
+         * A fanned shot (§7.3). Deliberately LOUDER than an ordinary muzzle
+         * flash rather than a copy of it: the whole point of the ability is that
+         * the gun is running away with itself, and six identical flashes would
+         * read as six ordinary shots that happen to be close together.
+         *
+         * `w` carries the shots remaining, so the burst escalates as it empties
+         * — the last round kicks hardest, which is where the fantasy is.
+         */
+        case EV.fanShot: {
+          const left = ev.a[i];
+          const heat = 1 - Math.min(1, left / 6);
+          this.muzzleTimer = 0.075;
+          this.shake = Math.min(1, this.shake + 0.42 + heat * 0.25);
+          this.recoil = 1;
+          // Powder, thrown wide and hot.
+          this.sparks.burst(x, y, z, 7 + Math.round(heat * 5), COLOR.lamp, 4.4, 0.09, 0.22);
+          // Brass, arcing away to the right of the gun and falling.
+          this.sparks.burst(x + 0.25, y - 0.12, z, 2, COLOR.bone, 2.0, 0.05, 0.5);
+          break;
+        }
         case EV.bulletImpact:
           this.sparks.burst(x, y, z, 5, COLOR.sunbleach, 2.4, 0.05, 0.3);
           break;
@@ -485,9 +683,13 @@ export class Renderer {
           break;
         case EV.trapPlaced:
           this.sparks.burst(x, 0.15, z, 8, COLOR.hex, 1.8, 0.07, 0.4);
+          // An obstacle moved the lanes; show the player where they went.
+          if (TRAPS[ev.a[i]]?.blocks === true) this.pathPeek = 2.6;
           break;
         case EV.trapSold:
           this.sparks.burst(x, 0.15, z, 6, COLOR.lamp, 1.5, 0.06, 0.35);
+          // Selling an obstacle moves them back — same courtesy.
+          if (TRAPS[ev.a[i]]?.blocks === true) this.pathPeek = 2.6;
           break;
         case EV.ignite:
           // The headline synergy gets the biggest effect in the game so far.
@@ -502,6 +704,12 @@ export class Renderer {
           break;
         case EV.statusApplied:
           this.sparks.burst(x, y, z, 2, COLOR.hex, 1.1, 0.05, 0.25);
+          break;
+        case EV.healPulse:
+          // The Preacher's hymn: a slow upward drift of hex motes, not a burst.
+          // It has to read as "something is being sustained here" from across
+          // the map — the player sees the lane stop dying before the cause.
+          this.sparks.burst(x, y, z, 5, COLOR.hex, 0.9, 0.2, 0.9);
           break;
         case EV.roundCleared:
           this.shake = Math.min(1, this.shake + 0.25);
@@ -646,6 +854,14 @@ export class Renderer {
   render(world: World, alpha: number, dt: number, aimCell: number, canPlace: boolean): void {
     this.time += dt;
 
+    /*
+     * The run may have travelled since the last frame (sim/systems/objective.ts).
+     * Checked here rather than driven by `EV.siteEntered`, because the renderer must
+     * be correct even on a frame where the event ring was drained by something else —
+     * the state is the level, not the notification.
+     */
+    if (world.level.siteId !== this.builtSiteId) this.buildSite(world);
+
     // ── camera ────────────────────────────────────────────────────────────
     cameraPose(world, alpha, this.pose);
     this.shake = Math.max(0, this.shake - dt * 4.5);
@@ -722,73 +938,94 @@ export class Renderer {
       // touch simulation state — §13 rule 5.)
       const vx = e.vx[i];
       const vz = e.vz[i];
+      let yawRate = 0;
       if (vx * vx + vz * vz > 0.04) {
         const target = Math.atan2(-vx, -vz);
         let d = target - this.enemyYaw[i];
         while (d > Math.PI) d -= Math.PI * 2;
         while (d < -Math.PI) d += Math.PI * 2;
-        this.enemyYaw[i] += d * Math.min(1, dt * 9);
+        const turn = d * Math.min(1, dt * 9);
+        this.enemyYaw[i] += turn;
+        // The applied turn per second — gait.ts banks the body into it.
+        if (dt > 0) yawRate = turn / dt;
       }
 
       const held = e.hold[i] > 0;
       const winding = e.windup[i] > 0;
-      // A clamped body lurches and shudders; a body mid-swing rears back. Both
-      // are tells the player has to be able to read at a glance (§14.6).
-      const lurch = held ? Math.sin(this.time * 26 + i) * 0.05 : 0;
-      const squash = held ? 0.82 : 1;
-      // Fliers bob so the altitude reads as flight rather than a floating bug.
-      const bob = def.flying ? Math.sin(this.time * 6 + i * 1.7) * 0.16 : 0;
 
       /*
-       * The shamble.
+       * Locomotion (render/gait.ts).
        *
        * §14.3 says real crowd animation is a VAT bake, and that is still the
-       * plan — but a horde of perfectly rigid bodies gliding at you is the
-       * single most obvious "unfinished" tell a game can have, and it costs
-       * nothing to fix approximately. Phase comes from the per-instance hash so
-       * forty bodies never march in step, and the rate comes from the enemy's
-       * own speed so a Buzzard doesn't shuffle like a Dustkin.
+       * plan — but until it lands, each archetype gets a procedural gait folded
+       * into the matrix that was being written anyway. The profiles and the
+       * pose math live in gait.ts where they are pure and tested; this loop
+       * only gathers inputs and composes the result.
        *
-       * Three components, all folded into the one matrix that was already being
-       * written: a vertical step, a roll onto the weighted foot, and a squash so
-       * the step reads as weight rather than as hovering.
+       * The stride odometer is the part that matters: phase comes from metres
+       * actually walked, so a Tar-slowed body trudges, a held one stops
+       * mid-step, and nothing foot-slides (§14.6).
        */
-      const moving = vx * vx + vz * vz > 0.05;
-      const gait = this.time * def.speed * 2.6 + this.enemies.phase[i];
-      const step = moving && !held ? Math.abs(Math.sin(gait)) : 0;
-      const roll = moving && !held ? Math.sin(gait) * 0.07 : 0;
-      const stepY = def.flying ? 0 : step * 0.055 * def.height * 0.5;
-      const stretch = def.flying ? 1 : 1 + step * 0.035 - 0.018;
+      const grounded = e.grounded[i] === 1;
+      if (grounded && !held) {
+        this.enemyStride[i] += Math.sqrt(vx * vx + vz * vz) * dt;
+      }
 
-      // Roll is applied about Z (a lean onto the planted foot) after the facing
-      // yaw, which is why this composes rather than using makeRotationY alone.
-      tmpMatrix.makeRotationY(this.enemyYaw[i] + lurch);
-      tmpRotation.makeRotationZ(roll);
+      const inp = this.gaitIn;
+      inp.strideM = this.enemyStride[i];
+      inp.phase = this.enemies.phase[i];
+      inp.time = this.time;
+      inp.moving = vx * vx + vz * vz > 0.05;
+      inp.held = held;
+      inp.grounded = grounded;
+      inp.flying = def.flying;
+      inp.vy = e.vy[i];
+      inp.yawRate = yawRate;
+      inp.windupT =
+        def.melee && e.windup[i] > 0 ? 1 - e.windup[i] / def.melee.windup : 0;
+      // How far below cruise a flier is: drives the climb attitude and the
+      // wing-beat regime together, so body and wings agree about the effort.
+      inp.climb = def.flying
+        ? Math.min(1, Math.max(0, (def.flightHeight - ey) / 1.5))
+        : 0;
+      enemyPose(this.gaitPose, def, this.gaits[defId], inp);
+
+      // Compose yaw → pitch → roll, the order gait.ts's sign conventions assume.
+      tmpMatrix.makeRotationY(this.enemyYaw[i] + this.gaitPose.sway);
+      tmpRotation.makeRotationX(this.gaitPose.pitch);
       tmpMatrix.multiply(tmpRotation);
-      tmpScale.set(s, s * squash * stretch, s);
+      tmpRotation.makeRotationZ(this.gaitPose.roll);
+      tmpMatrix.multiply(tmpRotation);
+      // What Y loses to squash, the footprint partly gains — volume is what
+      // separates "gripped by a trap" from "shrunk by one".
+      const xz = 1 + (1 - this.gaitPose.squash) * 0.5;
+      tmpScale.set(s * xz, s * this.gaitPose.squash, s * xz);
       tmpMatrix.scale(tmpScale);
       // Models are authored base-at-origin, so the sim's feet position IS the
       // instance position — no half-height offset, and no second matrix for a
       // head that is now part of the mesh.
-      tmpMatrix.setPosition(ex, ey + bob + stepY, ez);
+      tmpMatrix.setPosition(ex, ey + this.gaitPose.lift, ez);
       body.setMatrixAt(n, tmpMatrix);
 
-      // Wings, hinged at the shoulder so a flap is a rotation about Z. Fliers
-      // beat harder when they are climbing, which falls out of using the same
-      // bob phase.
+      // Wings, hinged at the shoulder so a flap is a rotation about Z. They
+      // inherit the body's full attitude (bank, climb pitch, sway) — a bird
+      // that banks with level wings reads as a weather vane — and the flap
+      // regime rides the same `climb` the body pitch does (gait.ts).
       const wings = this.enemies.wings[defId];
       if (wings) {
-        const flap = Math.sin(this.time * 7.5 + this.enemies.phase[i]) * 0.62 - 0.12;
+        const flap = wingFlap(this.time, this.enemies.phase[i], inp.climb);
         for (const [mesh, dir] of [
           [wings.right, 1],
           [wings.left, -1],
         ] as const) {
-          tmpWing.makeRotationY(this.enemyYaw[i]);
-          tmpRotation.makeRotationZ(flap * dir);
+          tmpWing.makeRotationY(this.enemyYaw[i] + this.gaitPose.sway);
+          tmpRotation.makeRotationX(this.gaitPose.pitch);
+          tmpWing.multiply(tmpRotation);
+          tmpRotation.makeRotationZ(this.gaitPose.roll + flap * dir);
           tmpWing.multiply(tmpRotation);
           tmpScale.set(s, s, s);
           tmpWing.scale(tmpScale);
-          tmpWing.setPosition(ex, ey + bob + stepY + wings.y * s, ez);
+          tmpWing.setPosition(ex, ey + this.gaitPose.lift + wings.y * s, ez);
           mesh.setMatrixAt(n, tmpWing);
         }
       }
@@ -877,9 +1114,31 @@ export class Renderer {
       const LIFT = 0.01;
       // A trap that just went off kicks, then settles.
       const kick = justFired ? (tr.fired[i] / 18) * 0.1 : 0;
-      // Wall and roof mounts carry their own height and facing (sim/world.ts).
+      /*
+       * Wall and roof mounts carry their own height and facing (sim/world.ts), and a
+       * wall mount is additionally pushed OUT along its normal.
+       *
+       * The sim puts a wall trap on the face, which is where it logically is and where
+       * its effects come from. Its *mesh* extends backwards from that origin — the
+       * Scattergun Ports plate reaches 0.44m behind it — so drawing it at the mount
+       * sank almost half a metre of iron into the masonry. Clipping is a rendering
+       * problem, so it is fixed here rather than by moving the trap.
+       *
+       * The distance is measured off the model itself (`trapBackDepth`) rather than
+       * authored per trap, so re-modelling a trap cannot leave a stale number behind;
+       * `PANEL_PROUD` clears the coursed panels the wall now wears.
+       */
+      const wallIdx = wallOfCell(tr.cell[i]);
+      let mx = tr.x[i];
+      let mz = tr.z[i];
+      if (wallIdx >= 0) {
+        const side = world.level.wallTiles[wallIdx]?.side ?? 0;
+        const out = trapBackDepth(def.key) + PANEL_PROUD;
+        mx += sideNormalX(side) * out;
+        mz += sideNormalZ(side) * out;
+      }
       tmpMatrix.makeRotationY(tr.yaw[i]);
-      tmpMatrix.setPosition(tr.x[i], tr.y[i] + LIFT + kick, tr.z[i]);
+      tmpMatrix.setPosition(mx, tr.y[i] + LIFT + kick, mz);
       body.setMatrixAt(n, tmpMatrix);
 
       // The instance colour modulates STATE, not hue.
@@ -932,10 +1191,87 @@ export class Renderer {
     // ── build mode ────────────────────────────────────────────────────────
     const building = p.buildMode && world.phase !== PHASE.lost;
     this.gridMaterial.opacity = building ? 0.22 : 0.05;
+    /*
+     * The no-build faces, every frame and regardless of what is armed.
+     *
+     * Rebuilt rather than cached because Undertown's geometry changes when the player
+     * opens a building, and a stale lattice would paint rock that is no longer there.
+     * ~48 quads is nothing; a cache invalidation bug here would be worse than the
+     * work it saves.
+     */
+    {
+      // Purely a property of the map, so it is rebuilt only when the map changes —
+      // which Undertown does, when the player opens a building.
+      const sig = world.level.siteId * 7919 + world.level.wallTiles.length;
+      if (sig !== this.noBuildSig) {
+        this.noBuildSig = sig;
+        let n = 0;
+        const tiles = world.level.wallTiles;
+        for (let i = 0; i < tiles.length && n < this.noBuildMarks.instanceMatrix.count; i++) {
+          if (!tiles[i].noBuild) continue;
+          this.faceQuad(tmpMatrix, tiles[i], world.level.tile * 0.98);
+          this.noBuildMarks.setMatrixAt(n, tmpMatrix);
+          n++;
+        }
+        this.noBuildMarks.count = n;
+        this.noBuildMarks.instanceMatrix.needsUpdate = true;
+      }
+      /*
+       * Visible always, which is the documented intent on `noBuildMarks` above:
+       * where you may never build is a fact about the map, not an answer to a
+       * question you only ask while holding a trap.
+       *
+       * Set here rather than inside the rebuild block. It used to live in there,
+       * and since that block only runs when the map signature changes, the flag
+       * happened to latch correctly — but only by luck, and it would have gone
+       * stale the moment anything else wanted to hide the marks.
+       */
+      this.noBuildMarks.visible = this.noBuildMarks.count > 0;
+    }
+
     // Chalk every free mount of the armed class, so "where can this go" is a
     // question the world answers rather than one the player has to guess.
     const armedDef = TRAPS[p.slot];
-    if (building && armedDef && armedDef.surface !== SURF.floor) {
+    if (building && armedDef && armedDef.surface === SURF.wall) {
+      /*
+       * Signature over everything the picture depends on: the map, and which wall
+       * tiles are taken. Trap *cells* rather than trap count, because selling one and
+       * building another elsewhere leaves the count identical and the marks different.
+       */
+      let sig = world.level.siteId * 7919 + world.level.wallTiles.length;
+      const tr = world.traps;
+      for (let i = 0; i < tr.alive.length; i++) {
+        if (tr.alive[i]) sig = (sig * 33 + tr.cell[i]) | 0;
+      }
+      if (sig !== this.wallMarkSig) {
+        this.wallMarkSig = sig;
+        /* Occupancy as a set, built once. The loop used to call `trapAtCell` per tile,
+           which is a linear scan of all 64 trap slots — 93,696 comparisons on Undertown
+           to answer a question one pass over the traps answers completely. */
+        const taken = new Set<number>();
+        for (let i = 0; i < tr.alive.length; i++) {
+          if (tr.alive[i]) taken.add(tr.cell[i]);
+        }
+        let n = 0;
+        const tiles = world.level.wallTiles;
+        for (let i = 0; i < tiles.length && n < this.wallMarks.instanceMatrix.count; i++) {
+          const t = tiles[i];
+          if (t.noBuild) continue;
+          if (taken.has(wallCellOf(i))) continue;
+          this.faceQuad(tmpMatrix, t, world.level.tile * 0.9);
+          this.wallMarks.setMatrixAt(n, tmpMatrix);
+          n++;
+        }
+        this.wallMarks.count = n;
+        this.wallMarks.instanceMatrix.needsUpdate = true;
+      }
+      this.wallMarks.visible = this.wallMarks.count > 0;
+    } else {
+      this.wallMarks.visible = false;
+      // `count` and the signature are left alone: holstering and re-arming must not
+      // have to rebuild a picture that has not changed.
+    }
+    if (building && armedDef && armedDef.surface !== SURF.floor && armedDef.surface !== SURF.wall) {
       let n = 0;
       const slots = world.level.slots;
       for (let i = 0; i < slots.length && n < this.slotMarks.count; i++) {
@@ -957,11 +1293,16 @@ export class Renderer {
       this.slotMarks.count = n;
       this.slotMarks.visible = n > 0;
       this.slotMarks.instanceMatrix.needsUpdate = true;
-      this.marksShown = n;
     } else {
       this.slotMarks.visible = false;
-      this.marksShown = 0;
+      this.slotMarks.count = 0;
     }
+    /* Summed, not assigned per branch. Setting it inside each block meant whichever
+       ran second won, and the authored-mount branch's `else` zeroed the wall count on
+       every frame a wall trap was armed. */
+    this.marksShown =
+      (this.wallMarks.visible ? this.wallMarks.count : 0) +
+      (this.slotMarks.visible ? this.slotMarks.count : 0);
 
     if (building && aimCell >= 0) {
       const def = TRAPS[p.slot];
@@ -971,10 +1312,13 @@ export class Renderer {
       // Fill the tile, less a hair so the grid line still reads underneath.
       const gs = world.level.tile * 0.94;
       this.ghost.scale.set(gs, 1, gs);
+      const gw = wallOfCell(aimCell);
+      const gOut = gw >= 0 ? PANEL_PROUD + 0.05 : 0;
+      const gSide = gw >= 0 ? (world.level.wallTiles[gw]?.side ?? 0) : 0;
       this.ghost.position.set(
-        tileCenterX(world.level, aimCell),
+        tileCenterX(world.level, aimCell) + sideNormalX(gSide) * gOut,
         tileCenterY(world.level, aimCell) + 0.05 + Math.sin(this.time * 4) * 0.015,
-        tileCenterZ(world.level, aimCell),
+        tileCenterZ(world.level, aimCell) + sideNormalZ(gSide) * gOut,
       );
       const elem = COLOR[ELEM_SWATCH[def ? def.elem : 0]];
       const mat = this.ghost.material as MeshBasicMaterial;
@@ -1021,7 +1365,12 @@ export class Renderer {
      * re-routes the crowd is a visible consequence rather than an ambush.
      */
     this.ghostPaths.sync(world.level, world.round);
-    this.ghostPaths.update(dt, this.time, world.phase === PHASE.build);
+    this.pathPeek = Math.max(0, this.pathPeek - dt);
+    this.ghostPaths.update(
+      dt,
+      this.time,
+      world.phase === PHASE.build || this.pathPeek > 0,
+    );
 
     this.numbers.update(dt, this.camera, this.canvas.clientWidth, this.canvas.clientHeight);
     this.sparks.update(dt, this.time);
@@ -1036,6 +1385,28 @@ export class Renderer {
   stats(): RenderStats {
     const info = this.renderer.info.render;
     return { drawCalls: info.calls, triangles: info.triangles };
+  }
+
+  /**
+   * Lay a unit quad flat on a wall tile's face.
+   *
+   * `sideYaw` orients a mesh's -Z along the normal, and a `PlaneGeometry` faces +Z,
+   * so the quad is turned a further half-turn. It is double-sided anyway, which makes
+   * this invisible if it is wrong — hence saying it out loud rather than relying on
+   * it looking fine.
+   */
+  private faceQuad(out: Matrix4, tile: WallTile, size: number): void {
+    out.makeRotationY(sideYaw(tile.side) + Math.PI);
+    tmpScale.set(size, size, 1);
+    out.scale(tmpScale);
+    // Clear of the coursed panels, or the marks would z-fight with the masonry they
+    // are drawn on and flicker as the camera moves.
+    const out2 = PANEL_PROUD + 0.02;
+    out.setPosition(
+      tile.x + sideNormalX(tile.side) * out2,
+      tile.y,
+      tile.z + sideNormalZ(tile.side) * out2,
+    );
   }
 
   /**

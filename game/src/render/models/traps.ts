@@ -654,65 +654,50 @@ function roost(s: Sink): void {
 
 
 /**
- * DEAD MAN'S BRACE — a coffin-lid barricade braced with grave iron.
+ * DEAD MAN'S BRACE — a flat square that fills its tile exactly.
  *
- * The only trap that is a *wall*, and it has to read as one instantly, from any
- * angle, at any range: it is the trap the player uses to reason about paths, so a
- * moment of "is that solid?" ruins the decision it exists to support.
+ * Authored at 1.0 x 1.0, which is one whole build tile before `TRAP_MODEL_SCALE`, so
+ * a run of them reads as a continuous line rather than a row of separate objects with
+ * gaps you would instinctively try to walk through.
  *
- * Three things do that work. It spans its whole tile edge to edge, because a
- * barricade with a visible gap looks like something a body could squeeze past. It is
- * chest-high rather than knee-high — you shoot over it, and so it must be obviously
- * lower than a wall and obviously higher than cover. And it leans, braced from
- * behind, so the silhouette says "propped up in a hurry" rather than "built here",
- * which is exactly what the player is doing with it.
+ * Flat, and deliberately so. It is the trap the player uses to *reason about paths*,
+ * so what matters is seeing the shape of the wall you are drawing from across the map
+ * and over the top of your own build — a chest-high barricade hides exactly the
+ * ground you are trying to plan on. It also tells the truth about the rule: you shoot
+ * straight over it because it stops bodies and nothing else.
+ *
+ * The collision volume is 2m tall regardless (sim/level.ts `bakeBlockades`) — it has
+ * to clear `bakeBlocked`'s 1m threshold or the flow field would route straight
+ * through. The plate is the read; the volume is the rule.
  */
 function brace(s: Sink): void {
-  // Two posts hammered into the ground, taking the whole tile's width.
-  for (const px of [-0.42, 0.42]) {
-    box(s, {
-      at: [px, 0, 0],
-      size: [0.13, 0.74, 0.15],
-      col: COLOR.timberDark,
-      taper: 0.85,
-    });
+  const T = 0.5; // half a tile
+
+  // The deck: one square slab, edge to edge.
+  box(s, { at: [0, 0, 0], size: [T * 2, 0.1, T * 2], col: COLOR.timberDark, taper: 1 });
+
+  // Four planks laid across it, gapped, so the square has a grain and a direction.
+  for (const z of [-0.3, -0.1, 0.1, 0.3]) {
+    box(s, { at: [0, 0.1, z], size: [T * 1.94, 0.05, 0.17], col: COLOR.timber, taper: 1 });
   }
 
-  // The lid: four boards, gapped, leaning back off vertical.
-  const boards: [number, number][] = [[0.06, 0.2], [0.24, 0.19], [0.42, 0.18], [0.58, 0.15]];
-  for (const [y, depth] of boards) {
-    box(s, {
-      at: [0, y, depth * 0.12],
-      size: [0.92, 0.15, 0.1],
-      col: COLOR.timber,
-      lean: 0.13,
-      taper: 0.96,
-    });
+  // A rust kerb around the rim: this is what makes it read as a filled TILE rather
+  // than a rug, and what makes two of them abutting look like one wall.
+  for (const [dx, dz, sx, sz] of [
+    [0, -T + 0.04, T * 2, 0.08],
+    [0, T - 0.04, T * 2, 0.08],
+    [-T + 0.04, 0, 0.08, T * 2],
+    [T - 0.04, 0, 0.08, T * 2],
+  ]) {
+    box(s, { at: [dx, 0.1, dz], size: [sx, 0.09, sz], col: COLOR.rust, taper: 1 });
   }
 
-  // A cross-brace, which is where the name comes from and what sells "propped".
-  box(s, {
-    at: [0, 0.34, 0.05],
-    size: [1.02, 0.07, 0.07],
-    col: COLOR.rust,
-    yaw: 0.18,
-  });
-
-  // Grave iron: two struts raking back to the ground behind it.
-  for (const px of [-0.3, 0.3]) {
-    box(s, {
-      at: [px, 0.14, 0.2],
-      size: [0.06, 0.5, 0.06],
-      col: COLOR.rust,
-      lean: 0.62,
-    });
+  // Four bolt heads, one per corner. Cheap, and they sell "fixed down".
+  for (const dx of [-T + 0.13, T - 0.13]) {
+    for (const dz of [-T + 0.13, T - 0.13]) {
+      box(s, { at: [dx, 0.19, dz], size: [0.1, 0.05, 0.1], col: COLOR.ash, taper: 0.7 });
+    }
   }
-
-  // A row of nail heads along the brace, and one bone wired on for luck.
-  for (const px of [-0.36, -0.12, 0.12, 0.36]) {
-    box(s, { at: [px, 0.4, -0.04], size: [0.05, 0.05, 0.04], col: COLOR.ash });
-  }
-  spike(s, { at: [0.24, 0.66, -0.05], base: [0.07, 0.07], height: 0.14, col: COLOR.bone });
 }
 
 /* ── assembly ────────────────────────────────────────────────────────────── */
@@ -754,6 +739,29 @@ export const TRAP_TRI_BUDGET = 1200;
  * baked vertex colours untouched.
  */
 export const TRAP_MODEL_SCALE = BUILD_TILE;
+
+/**
+ * How far a trap's mesh reaches BEHIND its origin, in metres.
+ *
+ * Wall models are authored with -Z outward, so their positive-Z extent is the part
+ * that would end up inside the masonry. The renderer pushes the mesh out by exactly
+ * this much (scene.ts), which is why re-modelling a wall trap needs no other edit —
+ * measured off the geometry rather than written down beside it.
+ */
+const BACK_DEPTH = new Map<string, number>();
+
+export function trapBackDepth(key: string): number {
+  const hit = BACK_DEPTH.get(key);
+  if (hit !== undefined) return hit;
+  const pos = buildTrapGeometry(key).getAttribute("position");
+  let max = 0;
+  for (let v = 0; v < pos.count; v++) {
+    const z = pos.getZ(v);
+    if (z > max) max = z;
+  }
+  BACK_DEPTH.set(key, max);
+  return max;
+}
 
 export function buildTrapGeometry(key: string): BufferGeometry {
   // PROP_SHADE is buildGeometry's default and is the right profile for traps:

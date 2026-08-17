@@ -55,6 +55,18 @@ export class Input {
     return this.locked;
   }
 
+  /**
+   * Overwrite the accumulated look angles.
+   *
+   * Needed because the host owns the *authoritative* yaw/pitch and re-sends them
+   * every frame — setting them on the player alone would be undone on the next
+   * sample. Only `__ghLook` uses this.
+   */
+  setLook(yaw: number, pitch: number): void {
+    this.yaw = yaw;
+    this.pitch = pitch;
+  }
+
   requestLock(): void {
     void this.canvas.requestPointerLock();
   }
@@ -190,7 +202,21 @@ export class Input {
       case "KeyR":
         this.buffer.press({ t: CMD.reload });
         break;
+      /*
+       * §7.3 decision 20 — the two weapon abilities.
+       *
+       * Both keys had prior owners. `Q`'s build toggle became redundant under
+       * decision 17 (`1` unconditionally arms the revolver, and arming any trap
+       * slot enters build mode), and The Boot keeps middle-mouse plus its new
+       * `V` binding — so nothing lost its only home.
+       */
+      case "KeyQ":
+        this.buffer.press({ t: CMD.ability, slot: 0 });
+        break;
       case "KeyE":
+        this.buffer.press({ t: CMD.ability, slot: 1 });
+        break;
+      case "KeyV":
         this.buffer.press({ t: CMD.boot });
         break;
       // The two branches of a trap's upgrade (§6). Only meaningful while the
@@ -208,12 +234,6 @@ export class Input {
       case "ShiftLeft":
       case "ShiftRight":
         this.buffer.press({ t: CMD.sprint, on: true });
-        break;
-      case "KeyQ":
-        // Kept as a toggle, unlike `1`: a quick there-and-back to the last armed
-        // trap is worth a key, and it's already in muscle memory from M0.5.
-        this.buildMode = !this.buildMode;
-        this.buffer.press({ t: CMD.buildMode, on: this.buildMode });
         break;
       /*
        * §7 decision 17 — row index 0 is the revolver, 1..N are traps.

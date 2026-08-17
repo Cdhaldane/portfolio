@@ -10,7 +10,7 @@
  * display.
  */
 
-import { buildLevel, type Level } from "./level.ts";
+import { buildLevel, groundHeight, type Level } from "./level.ts";
 import { siteForRound } from "./sites.ts";
 import { ENEMIES, enemyDef } from "./enemies.ts";
 import { makeHand, type HandState } from "./combo.ts";
@@ -66,7 +66,26 @@ export interface PlayerState {
   hp: number;
   maxHp: number;
   invuln: number;
+  /** Dev-menu god mode (CMD.debug): damagePlayer becomes a no-op. */
+  god: boolean;
   bootCooldown: number;
+  /** Which weapon is carried (§7.3). Decides the two ability slots. */
+  weapon: number;
+  /** Cooldown ticks remaining for ability Q and E. */
+  abilityCooldown: [number, number];
+  /** Ticks left on a self-damage buff, and its multiplier while it lasts. */
+  buffTicks: number;
+  buffDamage: number;
+  /** Ticks left rooted — the cost half of a brace. */
+  rootTicks: number;
+  /** Ticks during which the revolver pierces every body on the ray (§7.3). */
+  pierceTicks: number;
+  /** Shots left in a free-fire burst, and the ticks it may span. */
+  freeShots: number;
+  freeFireTicks: number;
+  /** Ticks between shots in a burst, and the countdown to the next one. */
+  freeFireInterval: number;
+  freeFireDelay: number;
   ammo: number;
   fireCooldown: number;
   reloadTicks: number;
@@ -115,6 +134,8 @@ export interface Enemies {
   burnDps: Float32Array;
   marked: Uint16Array;
   markAmp: Float32Array;
+  /** Ticks of fear remaining: the body flees the player instead of the Rift. */
+  feared: Uint16Array;
   slowed: Uint16Array;
   slowFactor: Float32Array;
   /** 1 = an elite for this round: tougher, worth more. */
@@ -142,6 +163,9 @@ export interface Traps {
    */
   cell: Int32Array;
   cooldown: Uint16Array;
+  /** Ticks of an external damage buff (Peal), and its multiplier. */
+  buffTicks: Uint16Array;
+  buffMult: Float32Array;
   /** Index into TRAPS (sim/traps.ts). */
   defId: Uint8Array;
   /** Ticks since this trap last did something — presentation reads it. */
@@ -154,6 +178,53 @@ export interface Traps {
   free: number[];
 }
 
+/**
+ * The three things a weapon ability can leave lying around.
+ *
+ * All fixed-capacity, all struct-of-arrays, all deterministic — the same rules
+ * as every other pool (§12.5, §13). Deliberately one struct rather than three
+ * files: they are small, they tick together, and splitting them would triple the
+ * plumbing for no gain.
+ */
+export interface Summons {
+  /** Thrown charges: fly, land, then detonate on fuse or on a second press. */
+  keg: {
+    alive: Uint8Array;
+    x: Float64Array;
+    y: Float64Array;
+    z: Float64Array;
+    vx: Float64Array;
+    vy: Float64Array;
+    vz: Float64Array;
+    fuse: Uint16Array;
+    radius: Float32Array;
+    damage: Float32Array;
+    up: Float32Array;
+  };
+  /**
+   * Where bodies fell, and for how long they can still be raised.
+   *
+   * Enemies free their slot the instant they die, so without this a corpse is
+   * unrecoverable one tick later and Wake would have nothing to work with.
+   */
+  corpse: {
+    alive: Uint8Array;
+    x: Float64Array;
+    y: Float64Array;
+    z: Float64Array;
+    ttl: Uint16Array;
+  };
+  /** Raised gunslingers: stationary, timed, and they shoot the nearest body. */
+  revenant: {
+    alive: Uint8Array;
+    x: Float64Array;
+    y: Float64Array;
+    z: Float64Array;
+    ttl: Uint16Array;
+    cooldown: Uint16Array;
+  };
+}
+
 export interface World {
   tick: number;
   seed: number;
@@ -164,6 +235,8 @@ export interface World {
   player: PlayerState;
   enemies: Enemies;
   traps: Traps;
+  /** Bodies the player put in the world: kegs, corpses, revenants (§7.3). */
+  summons: Summons;
   events: EventRing;
 
   scrap: number;
@@ -215,6 +288,15 @@ export interface World {
   bestHand: number;
   /** Spawns per def this round, so a debut can be capped (§8). */
   spawnedByDef: Int32Array;
+
+  /** Dev-menu free build (CMD.debug): traps and upgrades cost nothing. */
+  freeBuild: boolean;
+  /**
+   * Any debug command has touched this run. The host reads it to keep the run
+   * off the leaderboard — a cheated round count is not a score, and the flag
+   * travels with the sim so a replay of a cheated run knows it is one too.
+   */
+  debugUsed: boolean;
 }
 
 function makeEnemies(): Enemies {
@@ -245,6 +327,7 @@ function makeEnemies(): Enemies {
     burnDps: new Float32Array(n),
     marked: new Uint16Array(n),
     markAmp: new Float32Array(n),
+    feared: new Uint16Array(n),
     slowed: new Uint16Array(n),
     slowFactor: new Float32Array(n),
     elite: new Uint8Array(n),
@@ -267,6 +350,8 @@ function makeTraps(): Traps {
     yaw: new Float32Array(n),
     cell: new Int32Array(n),
     cooldown: new Uint16Array(n),
+    buffTicks: new Uint16Array(n),
+    buffMult: new Float32Array(n),
     defId: new Uint8Array(n),
     fired: new Uint16Array(n),
     lit: new Uint16Array(n),
@@ -310,7 +395,18 @@ export function createWorld(
     hp: PLAYER.maxHp,
     maxHp: PLAYER.maxHp,
     invuln: 0,
+    god: false,
     bootCooldown: 0,
+    weapon: 0,
+    abilityCooldown: [0, 0],
+    buffTicks: 0,
+    buffDamage: 1,
+    rootTicks: 0,
+    pierceTicks: 0,
+    freeShots: 0,
+    freeFireTicks: 0,
+    freeFireInterval: 0,
+    freeFireDelay: 0,
     ammo: REVOLVER.magazine,
     fireCooldown: 0,
     reloadTicks: 0,
@@ -335,6 +431,7 @@ export function createWorld(
     player,
     enemies: makeEnemies(),
     traps: makeTraps(),
+    summons: makeSummons(),
     events: new EventRing(),
     scrap: ECONOMY.startingScrap,
     vigil: OBJECTIVE.startingVigil,
@@ -362,6 +459,8 @@ export function createWorld(
     lastHandPoints: 0,
     bestHand: 0,
     spawnedByDef: new Int32Array(ENEMIES.length),
+    freeBuild: false,
+    debugUsed: false,
   };
 }
 
@@ -371,13 +470,22 @@ export function spawnEnemy(w: World, x: number, z: number, defId = 0): number {
   const e = w.enemies;
   const i = e.free.pop();
   if (i === undefined) return -1;
+  /*
+   * Spawn ON the ground, not at 0. Shaft Nine's gallery gates stand on a +6
+   * deck, and a body spawned at 0 walked the whole lane in the void underneath
+   * it, surfacing through the ramp's treads — enemies visibly clipping out of a
+   * staircase. The 8m probe takes the tallest floor a gate can stand on (the
+   * gallery) while ignoring the catwalks (+11) and the rock tops above them,
+   * neither of which any gate may spawn on. Flat maps read 0, exactly as before.
+   */
+  const ground = groundHeight(w.level, x, z, 8);
   e.alive[i] = 1;
   e.x[i] = x;
   e.z[i] = z;
-  e.y[i] = 0;
+  e.y[i] = ground;
   e.px[i] = x;
   e.pz[i] = z;
-  e.py[i] = 0;
+  e.py[i] = ground;
   e.vx[i] = 0;
   e.vz[i] = 0;
   e.vy[i] = 0;
@@ -410,9 +518,68 @@ export function spawnEnemy(w: World, x: number, z: number, defId = 0): number {
   return i;
 }
 
+/** Fixed-capacity pools for everything an ability can leave behind (§7.3). */
+export const SUMMON_LIMITS = { kegs: 8, corpses: 64, revenants: 8 } as const;
+/** How long a body stays raisable. 8s — long enough to be a plan, not a reflex. */
+export const CORPSE_TTL = 480;
+
+function makeSummons(): Summons {
+  const k = SUMMON_LIMITS.kegs;
+  const c = SUMMON_LIMITS.corpses;
+  const r = SUMMON_LIMITS.revenants;
+  return {
+    keg: {
+      alive: new Uint8Array(k),
+      x: new Float64Array(k), y: new Float64Array(k), z: new Float64Array(k),
+      vx: new Float64Array(k), vy: new Float64Array(k), vz: new Float64Array(k),
+      fuse: new Uint16Array(k),
+      radius: new Float32Array(k), damage: new Float32Array(k), up: new Float32Array(k),
+    },
+    corpse: {
+      alive: new Uint8Array(c),
+      x: new Float64Array(c), y: new Float64Array(c), z: new Float64Array(c),
+      ttl: new Uint16Array(c),
+    },
+    revenant: {
+      alive: new Uint8Array(r),
+      x: new Float64Array(r), y: new Float64Array(r), z: new Float64Array(r),
+      ttl: new Uint16Array(r), cooldown: new Uint16Array(r),
+    },
+  };
+}
+
+/**
+ * First free slot in a pool, or -1.
+ *
+ * Lowest index rather than a free-list: the pools are tiny and a deterministic
+ * scan keeps replay behaviour obvious (§13 rule 4) without another array to keep
+ * in sync.
+ */
+export function firstFree(alive: Uint8Array): number {
+  for (let i = 0; i < alive.length; i++) if (!alive[i]) return i;
+  return -1;
+}
+
 export function killEnemy(w: World, i: number): void {
   const e = w.enemies;
   if (!e.alive[i]) return;
+
+  /* Leave a corpse behind. The enemy slot is reused immediately, so a body that
+   * is not recorded here cannot be raised a tick later (§7.3 Wake). Oldest is
+   * overwritten when full, which keeps the freshest kills raisable — those are
+   * the ones near the player. */
+  const c = w.summons.corpse;
+  let slot = firstFree(c.alive);
+  if (slot < 0) {
+    slot = 0;
+    for (let k = 1; k < c.alive.length; k++) if (c.ttl[k] < c.ttl[slot]) slot = k;
+  }
+  c.alive[slot] = 1;
+  c.x[slot] = e.x[i];
+  c.y[slot] = e.y[i];
+  c.z[slot] = e.z[i];
+  c.ttl[slot] = CORPSE_TTL;
+
   e.alive[i] = 0;
   e.count--;
   e.free.push(i);

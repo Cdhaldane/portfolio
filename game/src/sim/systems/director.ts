@@ -14,7 +14,7 @@
  */
 
 import { DEBUT_CAP, ENEMIES, isDebutRound, unlockedFor, type EnemyDef } from "../enemies.ts";
-import { activeGates, cellOf } from "../level.ts";
+import { GATE_SPAWN_REACH, activeGates, cellOf } from "../level.ts";
 import { ROUND, WAVE } from "../tuning.ts";
 import { clamp } from "../math.ts";
 import { PHASE, isEliteRound, spawnEnemy, type World } from "../world.ts";
@@ -45,6 +45,33 @@ export function directorSystem(w: World): void {
   if (cell < 0 || w.level.blocked[cell]) {
     sx = clamp(gate.x, 1.2, w.level.width - 1.2);
     sz = clamp(gate.z, 1.2, w.level.depth - 1.2);
+    /*
+     * The gate's own centre can be legally walled now: a blockade at the mouth
+     * narrows the lane, and `wouldSealLane` only promises the spawn AREA keeps a
+     * route. So when the centre is inside a blockade's padded skirt, walk the
+     * same GATE_SPAWN_REACH the placement rule reasons over and start the body
+     * on the nearest cell that actually routes — arriving beside the barricade
+     * and walking around it, instead of standing in the skirt fighting the
+     * collision. Deterministic: fixed scan order, nearest wins, no RNG.
+     */
+    const c2 = cellOf(w.level, sx, sz);
+    if (c2 < 0 || w.level.blocked[c2]) {
+      let bestD = Infinity;
+      for (let dz = -GATE_SPAWN_REACH; dz <= GATE_SPAWN_REACH; dz += w.level.cell) {
+        for (let dx = -GATE_SPAWN_REACH; dx <= GATE_SPAWN_REACH; dx += w.level.cell) {
+          const x = clamp(gate.x + dx, 1.2, w.level.width - 1.2);
+          const z = clamp(gate.z + dz, 1.2, w.level.depth - 1.2);
+          const c = cellOf(w.level, x, z);
+          if (c < 0 || w.level.blocked[c] || !Number.isFinite(w.level.dist[c])) continue;
+          const d = dx * dx + dz * dz;
+          if (d < bestD) {
+            bestD = d;
+            sx = x;
+            sz = z;
+          }
+        }
+      }
+    }
   }
 
   const i = spawnEnemy(w, sx, sz, defId);
@@ -76,6 +103,7 @@ export function siteCanAnswer(def: EnemyDef, w: World): boolean {
   if (req.verticalSurfaces !== undefined && c.wall + c.ceiling < req.verticalSurfaces) {
     return false;
   }
+  if (req.ceilings !== undefined && c.ceiling < req.ceilings) return false;
   if (req.sigils !== undefined && c.sigil < req.sigils) return false;
   if (req.perCeiling !== undefined) {
     if (w.spawnedByDef[def.id] >= Math.max(1, c.ceiling * req.perCeiling)) return false;
@@ -122,9 +150,26 @@ export function spawnInterval(round: number): number {
   return Math.round(sec * 60);
 }
 
+/**
+ * HP multiplier for a round, under the two-regime curve (§4, decision 20).
+ *
+ * Linear at `hpPerRound` until `hpRampRound`, then **compounding** at
+ * `hpPerRoundLate`. Compounding is the point: past the body cap, HP is the only
+ * lever still moving, and a linear term would flatten out exactly where the game
+ * needs to keep climbing.
+ *
+ * Continuous at the join — round 30 gives the same number under either branch —
+ * so the difficulty never steps.
+ */
+export function hpScaleForRound(round: number): number {
+  const linear = 1 + (Math.min(round, ROUND.hpRampRound) - 1) * ROUND.hpPerRound;
+  if (round <= ROUND.hpRampRound) return linear;
+  return linear * (1 + ROUND.hpPerRoundLate) ** (round - ROUND.hpRampRound);
+}
+
 /** Called when a round is armed: bakes the per-round scalars once. */
 export function applyRoundScaling(w: World): void {
-  w.enemyHpScale = 1 + (w.round - 1) * ROUND.hpPerRound;
+  w.enemyHpScale = hpScaleForRound(w.round);
   w.enemySpeedScale = Math.min(
     ROUND.speedCapMultiplier,
     1 + (w.round - 1) * ROUND.speedPerRound,

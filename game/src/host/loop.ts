@@ -16,9 +16,12 @@ import {
   tileOf,
   wouldSealLane,
 } from "../sim/level.ts";
+import { CMD, type DbgAction } from "../sim/commands.ts";
 import { SURF, slotNearRay } from "../sim/surfaces.ts";
+import { wallCellOf, wallTileAtRay } from "../sim/wallgrid.ts";
 import { step } from "../sim/step.ts";
-import { BOOT, MAX_CATCHUP_STEPS, OBJECTIVE, REVOLVER, ROUND, STEP } from "../sim/tuning.ts";
+import { BOOT, MAX_CATCHUP_STEPS, OBJECTIVE, PLAYER, REVOLVER, ROUND, SIM_HZ, STEP } from "../sim/tuning.ts";
+import { abilityDef, weaponDef } from "../sim/abilities.ts";
 import { siteForRound } from "../sim/sites.ts";
 import type { HeroId } from "../render/models/hero.ts";
 import { HANDS, evaluate, type HandId } from "../sim/combo.ts";
@@ -29,6 +32,7 @@ import { Renderer } from "../render/scene.ts";
 import { Audio } from "../audio/index.ts";
 import { Recorder, encode, sizeBytes, type Replay } from "../sim/replay.ts";
 import { loadProfile, recordRun, saveProfile, type Profile } from "./persist.ts";
+import { submitRun } from "./board.ts";
 import { Input } from "./input.ts";
 
 /** One hotbar slot, as the HUD sees it. */
@@ -51,6 +55,19 @@ export interface HudSlot {
   icon: string;
 }
 
+/** One weapon ability as the HUD sees it (§7.3). */
+export interface HudAbility {
+  key: string;
+  name: string;
+  blurb: string;
+  /** 0..1, 1 = ready. Drives the sweep, so the wait is legible. */
+  ready: number;
+  /** Whole seconds left, for the numeral. 0 when ready. */
+  secondsLeft: number;
+  /** True while its effect is actually running, not merely off cooldown. */
+  active: boolean;
+}
+
 /** What the HUD needs. Plain data, published only when it changes. */
 export interface HudState {
   phase: number;
@@ -67,12 +84,18 @@ export interface HudState {
   lastHandPoints: number;
   /** 0..1, 1 = ready. */
   bootReady: number;
+  /** The two weapon abilities (§7.3), `Q` then `E`. */
+  abilities: HudAbility[];
+  /** Name of the carried weapon, for the ammo panel. */
+  weaponName: string;
   /** Persisted across sessions (§18.3), so a run means something. */
   bestRound: number;
   bestTally: number;
   runsPlayed: number;
   newBestRound: boolean;
   newBestTally: boolean;
+  /** The run reached the leaderboard. False also means "no board", by design. */
+  banked: boolean;
   /** Set once the run has ended and a replay exists to download. */
   replayBytes: number;
   highestRound: number;
@@ -90,6 +113,8 @@ export interface HudState {
   roundQuota: number;
   buildMode: boolean;
   canPlace: boolean;
+  /** Why placement is refused right now, for the player to read. */
+  denyReason: string | null;
   onExistingTrap: boolean;
   /** Set when the crosshair is on a trap that can still be upgraded. */
   upgradeTarget: {
@@ -106,6 +131,10 @@ export interface HudState {
   lastPayout: number;
   locked: boolean;
   accuracy: number;
+  /** Dev-menu state (§19.2): the toggles' current truth, and the taint flag. */
+  god: boolean;
+  freeBuild: boolean;
+  debugUsed: boolean;
 }
 
 export interface PerfState {
@@ -161,6 +190,8 @@ export class Game {
   private newBestRound = false;
   private newBestTally = false;
   private saved = false;
+  /** True once the run reached the board. Presentation only. */
+  private banked = false;
   private raf = 0;
   private last = 0;
   private accumulator = 0;
@@ -170,6 +201,8 @@ export class Game {
   private aimRay = new Float64Array(6);
   private aimCell = -1;
   private canPlace = false;
+  /** Why the crosshair refuses, in words. Null when it does not. */
+  private denyReason: string | null = null;
   private onExistingTrap = false;
   private lastHudSig = "";
 
@@ -309,6 +342,26 @@ export class Game {
       } else {
         this.aimCell = -1;
       }
+    } else if (surface === SURF.wall) {
+      /*
+       * Walls are a surface, so the crosshair lands ON a tile — a real raycast, not
+       * the forgiving proximity cone the authored mounts needed. That tolerance was
+       * always a symptom of mounts being sparse points; a lattice does not need it,
+       * and exact placement is what makes "anywhere on the wall" true.
+       */
+      this.renderer.aimRayInto(this.aimRay);
+      const hit = wallTileAtRay(
+        this.world.level.wallTiles,
+        this.world.level,
+        this.aimRay[0],
+        this.aimRay[1],
+        this.aimRay[2],
+        this.aimRay[3],
+        this.aimRay[4],
+        this.aimRay[5],
+        40,
+      );
+      this.aimCell = hit < 0 ? -1 : wallCellOf(hit);
     } else {
       const r = this.renderer.aimRayInto(this.aimRay);
       const slot = r
@@ -328,6 +381,37 @@ export class Game {
     }
     const existing = this.aimCell >= 0 ? trapAtCell(this.world, this.aimCell) : -1;
     this.onExistingTrap = existing >= 0;
+    /*
+     * WHY it is refused, not just that it is.
+     *
+     * A red ghost with no explanation is the worst kind of refusal: the player cannot
+     * tell "you cannot build here" from "you armed a roof trap" from "you are broke",
+     * and every one of those looks identical from behind the crosshair. Reported in
+     * priority order, most-specific first.
+     */
+    this.denyReason =
+      !this.world.player.buildMode || this.world.phase === PHASE.lost
+        ? null
+        : this.aimCell < 0
+          ? surface === SURF.floor
+            ? "NO GROUND IN SIGHT"
+            : surface === SURF.wall
+              ? "AIM AT A WALL"
+              : surface === SURF.ceiling
+                ? "AIM AT A ROOF BEAM"
+                : "AIM AT A CHALK CIRCLE"
+          : existing >= 0
+            ? "SOMETHING IS ALREADY THERE"
+            : !isPlaceableFor(this.world.level, this.aimCell, surface)
+              ? surface === SURF.floor
+                ? "NOT OPEN GROUND"
+                : "WRONG SURFACE FOR THIS TRAP"
+              : this.world.scrap < trapCost(this.world, this.world.player.slot)
+                ? "NOT ENOUGH SCRAP"
+                : armed?.blocks === true && wouldSealLane(this.world.level, this.aimCell)
+                  ? "THAT WOULD SEAL THE LAST WAY THROUGH"
+                  : null;
+
     this.canPlace =
       this.aimCell >= 0 &&
       isPlaceableFor(this.world.level, this.aimCell, surface) &&
@@ -388,6 +472,35 @@ export class Game {
     saveProfile(this.profile);
     // Force a republish so the death screen can show the new best immediately.
     this.lastHudSig = "";
+
+    /*
+     * Bank it, without waiting for it.
+     *
+     * Deliberately not awaited and deliberately unable to throw (host/board.ts
+     * resolves every failure to "no board"): the death screen has to appear on this
+     * frame whether the player is offline, the deployment has no database, or a cold
+     * serverless start takes three seconds. A leaderboard on a hidden page is never
+     * allowed to be in the way of the game.
+     *
+     * A run the dev menu touched stays local. Round 40 with free traps is not a
+     * score, and the flag lives in the sim so the replay carries the same truth.
+     */
+    if (this.world.debugUsed) return;
+    void submitRun(this.profile, this.replay).then((r) => {
+      this.banked = r.ok;
+      this.lastHudSig = "";
+    });
+  }
+
+  /**
+   * Queue a dev-menu cheat (§19.2) into the sim.
+   *
+   * Through the command buffer, never a direct poke: a poked world diverges
+   * from its own replay at the next hash checkpoint. The sim marks the run
+   * `debugUsed` on arrival, which is what keeps it off the board below.
+   */
+  debug(action: DbgAction, value = 0): void {
+    this.input.buffer.press({ t: CMD.debug, action, value });
   }
 
   /** Download the finished run as a `.ghreplay` file (§13: seed + command log). */
@@ -456,7 +569,40 @@ export class Game {
       this.aimCell,
       this.input.isLocked ? 1 : 0,
       this.saved ? 1 : 0,
+      // Dev-menu toggles: the menu shows their truth, so their truth republishes.
+      (p.god ? 1 : 0) | (w.freeBuild ? 2 : 0) | (w.debugUsed ? 4 : 0),
     ].join(",");
+  }
+
+  /**
+   * The two ability pips.
+   *
+   * `active` is deliberately separate from `ready`: a player mid-brace needs to
+   * see that Steady is *running*, which is a different fact from it being off
+   * cooldown, and conflating them makes a 3s buff invisible behind a 14s sweep.
+   */
+  private buildAbilities(): HudAbility[] {
+    const p = this.world.player;
+    return [0, 1].map((slot) => {
+      const def = abilityDef(p.weapon, slot);
+      const left = p.abilityCooldown[slot];
+      return {
+        key: def.key,
+        name: def.name,
+        blurb: def.blurb,
+        ready: 1 - left / Math.max(1, def.cooldown),
+        secondsLeft: Math.ceil(left / SIM_HZ),
+        /* Derived from what this ability actually does, not from its slot
+         * index — only the starting revolver happens to have free-fire on Q and
+         * a brace on E, and hardcoding that would mislabel every other weapon. */
+        active: def.effects.some((fx) => {
+          if (fx.kind === "freeFire") return p.freeShots > 0;
+          if (fx.kind === "selfDamage") return p.buffTicks > 0;
+          if (fx.kind === "root") return p.rootTicks > 0;
+          return false;
+        }),
+      };
+    });
   }
 
   private buildSlots(): HudSlot[] {
@@ -474,7 +620,7 @@ export class Game {
         synergy: `${p.ammo} / ${REVOLVER.magazine} · ${p.reloadTicks > 0 ? "RELOADING" : "READY"}`,
         affordable: true,
         surface: -1,
-        icon: "",
+        icon: weaponDef(p.weapon).key,
       },
     ];
     for (let i = 0; i < TRAPS.length; i++) {
@@ -514,11 +660,14 @@ export class Game {
         lastHandName: HANDS[w.lastHand as HandId].name,
         lastHandPoints: w.lastHandPoints,
         bootReady: 1 - p.bootCooldown / Math.max(1, BOOT.cooldown),
+        abilities: this.buildAbilities(),
+        weaponName: weaponDef(p.weapon).name,
         bestRound: this.profile.bestRound,
         bestTally: this.profile.bestTally,
         runsPlayed: this.profile.runsPlayed,
         newBestRound: this.newBestRound,
         newBestTally: this.newBestTally,
+        banked: this.banked,
         replayBytes: this.replay ? sizeBytes(this.replay) : 0,
         highestRound: w.highestRound,
         eliteRound: isEliteRound(w.round),
@@ -535,6 +684,7 @@ export class Game {
         roundQuota: w.roundQuota,
         buildMode: p.buildMode,
         canPlace: this.canPlace,
+        denyReason: this.denyReason,
         onExistingTrap: this.onExistingTrap,
         upgradeTarget: this.upgradeTarget(),
         upgradedAs: this.upgradedAs(),
@@ -543,6 +693,9 @@ export class Game {
         lastPayout: w.lastPayout,
         locked: this.input.isLocked,
         accuracy: w.shotsFired > 0 ? w.shotsHit / w.shotsFired : 0,
+        god: p.god,
+        freeBuild: w.freeBuild,
+        debugUsed: w.debugUsed,
       });
     }
 
@@ -562,6 +715,30 @@ export class Game {
      * cell the crosshair is on lets the capture harness close the loop and aim at
      * a specific trap instead of guessing screen coordinates.
      */
+    /*
+     * A companion setter for the *camera only*.
+     *
+     * The comment above notes that synthetic mouse moves do not map onto view
+     * rotation under pointer lock; puppeteer's `mouse.move` is absolute, so a
+     * sequence of small deltas cancels itself out and the camera barely turns.
+     * `scripts/survey-scenery.mjs` needs deliberate, repeatable vantage points to
+     * compare two versions of the art, which is impossible to express in mouse
+     * pixels. This writes yaw/pitch directly.
+     *
+     * Presentation only: it never enters the command buffer, so it cannot reach
+     * the replay or the state hash (§13). It is a camera, not an input.
+     */
+    (
+      window as unknown as { __ghLook?: (yaw: number, pitch: number) => void }
+    ).__ghLook = (yaw, pitch) => {
+      const pl = this.world.player;
+      pl.yaw = yaw;
+      pl.pyaw = yaw;
+      pl.pitch = Math.max(-PLAYER.pitchLimit, Math.min(PLAYER.pitchLimit, pitch));
+      pl.ppitch = pl.pitch;
+      this.input.setLook(yaw, pl.pitch);
+    };
+
     (window as unknown as { __gallowsHymn?: Record<string, number | string> }).__gallowsHymn = {
       frame: this.frameCount,
       tick: w.tick,
@@ -573,15 +750,26 @@ export class Game {
       trapAt: this.aimCell >= 0 ? trapAtCell(w, this.aimCell) : -99,
       trapCell0: w.traps.count > 0 ? w.traps.cell[0] : -99,
       buildMode: p.buildMode ? 1 : 0,
+      canPlace: this.canPlace ? 1 : 0,
       /* Mount placement, for scripts/verify-mounts.mjs. `aimCell` above already
          reports a mount as its SLOT_BASE id, so `aimSlot` is just the decoded
          form; `mountSlots` is how many the site offers for the armed class, which
          is the number the chalk marks should agree with. */
       aimSlot: slotOfCell(this.aimCell),
       marks: this.renderer.marksShown,
-      mountSlots: this.world.level.slots.filter(
-        (sl) => sl.surface === (TRAPS[p.slot]?.surface ?? SURF.floor),
-      ).length,
+      /* The renderer's site against the sim's. They must always agree: when they did
+         not, travelling swapped the level while the scene kept drawing the old map and
+         the player was repositioned outside it. */
+      site: w.level.siteId,
+      builtSite: this.renderer.builtSite,
+      mountSlots:
+        (TRAPS[p.slot]?.surface ?? SURF.floor) === SURF.wall
+          ? this.world.level.wallTiles.filter((t) => !t.noBuild).length
+          : this.world.level.slots.filter(
+              (sl) => sl.surface === (TRAPS[p.slot]?.surface ?? SURF.floor),
+            ).length,
+      wallTiles: this.world.level.wallTiles.length,
+      noBuildWall: this.world.level.census.noBuildWall,
       mounted: (() => {
         let n = 0;
         for (let i = 0; i < w.traps.alive.length; i++) {
@@ -589,6 +777,13 @@ export class Game {
         }
         return n;
       })(),
+      /* Ability state, so the harness can prove the Q/E path reaches the sim
+         rather than only that the HUD drew something (§7.3). */
+      abilityCdQ: p.abilityCooldown[0],
+      abilityCdE: p.abilityCooldown[1],
+      kegs: w.summons.keg.alive.reduce((n, v) => n + v, 0),
+      corpses: w.summons.corpse.alive.reduce((n, v) => n + v, 0),
+      revenants: w.summons.revenant.alive.reduce((n, v) => n + v, 0),
       upg: this.upgradeTarget() ? 1 : 0,
       audio: audioStats.state,
       voices: audioStats.voices,

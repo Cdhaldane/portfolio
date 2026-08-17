@@ -408,7 +408,62 @@ export function buildDressingGeometry(level: Level): BufferGeometry {
     withTransform(s, { x: gate.x, z: gate.z }, gateArch);
   }
 
+  // ── authored lanterns ────────────────────────────────────────────────────
+  // Same rule as the gate arches: the point light scene.ts hangs on a LampDef
+  // needs a source you can see, or the pool of light reads as a rendering bug.
+  for (const lamp of level.atmosphere.lamps ?? []) {
+    minerLamp(s, lamp.x, lamp.y, lamp.z, lamp.post === true);
+  }
+
   return finish(s);
+}
+
+/**
+ * A miner's lantern: a rust bracket, a `lamp` glass, and — for the standing
+ * variant — a timber post from the ground. The bracket-only form hangs off
+ * whatever the map put next to it (Shaft Nine bolts them to its timber sets).
+ * Dimensions match the gate arch's lanterns, because they are the same lamps
+ * from the same company store.
+ */
+function minerLamp(s: Sink, x: number, y: number, z: number, post: boolean): void {
+  if (post) {
+    // The post, planted a little off vertical — company issue, miner installed.
+    box(s, {
+      at: [x, 0, z],
+      size: [0.22, y + 0.3, 0.22],
+      col: COLOR.timber,
+      taper: 0.82,
+      lean: 0.03,
+    });
+    // A footing wedge, so it reads as planted rather than stuck on.
+    box(s, { at: [x, 0, z], size: [0.4, 0.18, 0.4], col: COLOR.grave, taper: 0.85 });
+  }
+  // Bracket arm above the glass.
+  box(s, {
+    at: [x, y + 0.14, z],
+    size: [0.08, 0.28, 0.08],
+    col: COLOR.rust,
+    taper: 0.9,
+  });
+  // The glass: `lamp`-coloured, the §3 warm-means-yours signal, and the visible
+  // source for the light scene.ts parents here.
+  cyl(s, {
+    at: [x, y - 0.14, z],
+    rBottom: 0.14,
+    rTop: 0.16,
+    height: 0.26,
+    segments: 7,
+    col: COLOR.lamp,
+  });
+  // The cap.
+  cyl(s, {
+    at: [x, y + 0.12, z],
+    rBottom: 0.17,
+    rTop: 0.1,
+    height: 0.12,
+    segments: 7,
+    col: COLOR.rust,
+  });
 }
 
 /**
@@ -514,6 +569,99 @@ export function buildSkyGeometry(moonAt: { x: number; y: number; z: number }): B
  * post-processing. Distributed by a hash rather than `Math.random` so the sky is
  * the same one every run — the title-card dolly (§1) should be reproducible.
  */
+/**
+ * The Rift, as light rather than as glass.
+ *
+ * The first version was a `MeshBasicMaterial` cylinder at a flat 0.16 opacity,
+ * and from four metres away — which is where the player spawns — it read as a
+ * pale blue plastic tube covering a third of the frame. Three things were wrong
+ * with it and all three are geometry problems, not shader problems:
+ *
+ *  1. **Uniform opacity.** Real light falls off. A column that is as solid at
+ *     its top as at its base has no direction, so it reads as a wall.
+ *  2. **One surface.** A single shell has a hard silhouette. Light does not.
+ *  3. **Flat blending.** Alpha blending over the sky darkened it; additive
+ *     blending *adds* to what is behind, which is what emitted light does.
+ *
+ * So: three nested shells, each fading to black upward, drawn additively. Black
+ * is transparent under additive blending, so the fade lives in the vertex
+ * colours and no alpha channel is needed at all — which also means it can be one
+ * geometry and one draw call.
+ *
+ * `bell` (#9be3ff) is the correct swatch: §17.1 gives it to "Rift light, cold
+ * magic accents", and the Rift is the one cyan thing in the game that is not a
+ * threat.
+ */
+export function buildRiftGeometry(radius: number): BufferGeometry {
+  /*
+   * Shell radius multiplier, height, and how hot the base is.
+   *
+   * The gains are LOW on purpose, and lower than they look like they should be.
+   *
+   * Two things stack against them. Bloom runs at strength 0.62 with a high
+   * threshold (render/post), so anything additive near full swatch brightness
+   * sails past it — 1.0/0.55/0.28 whited out the whole right of the frame from
+   * the spawn point. And `DoubleSide` means a grazing view crosses SIX surfaces
+   * (front and back of three shells), each adding, so the on-screen value is
+   * several times the number written here.
+   *
+   * Calibrated against the version this replaces, which was a single alpha
+   * shell at 0.16 and read at about the right brightness while reading as the
+   * wrong material. Summed across the layers these land near that, with the
+   * falloff doing the work instead of the opacity.
+   */
+  const SHELLS = [
+    { r: 0.42, h: 5.2, gain: 0.085 },
+    { r: 0.72, h: 4.0, gain: 0.05 },
+    { r: 1.0, h: 2.8, gain: 0.028 },
+  ];
+  const SEGMENTS = 22;
+
+  const pos: number[] = [];
+  const col: number[] = [];
+  const base = new Color(COLOR.bell);
+
+  for (const shell of SHELLS) {
+    const r = radius * shell.r;
+    for (let i = 0; i < SEGMENTS; i++) {
+      const a0 = (i / SEGMENTS) * Math.PI * 2;
+      const a1 = ((i + 1) / SEGMENTS) * Math.PI * 2;
+      const x0 = Math.cos(a0) * r;
+      const z0 = Math.sin(a0) * r;
+      const x1 = Math.cos(a1) * r;
+      const z1 = Math.sin(a1) * r;
+
+      /* Taper inward as it rises: a column that narrows reads as something
+       * escaping, where a parallel-sided one reads as a pipe. */
+      const topR = 0.55;
+      const tx0 = x0 * topR;
+      const tz0 = z0 * topR;
+      const tx1 = x1 * topR;
+      const tz1 = z1 * topR;
+
+      // Two triangles, wound both ways so the shell is visible from inside too.
+      const quad = [
+        [x0, 0, z0, 0], [x1, 0, z1, 0], [tx1, shell.h, tz1, 1],
+        [x0, 0, z0, 0], [tx1, shell.h, tz1, 1], [tx0, shell.h, tz0, 1],
+        [x1, 0, z1, 0], [x0, 0, z0, 0], [tx0, shell.h, tz0, 1],
+        [x1, 0, z1, 0], [tx0, shell.h, tz0, 1], [tx1, shell.h, tz1, 1],
+      ];
+      for (const [vx, vy, vz, t] of quad) {
+        pos.push(vx, vy, vz);
+        /* Cubic fade, not linear: light thins fast and then lingers, and a
+         * linear ramp leaves a visible flat-topped column. */
+        const k = (1 - (t as number)) ** 3 * shell.gain;
+        col.push(base.r * k, base.g * k, base.b * k);
+      }
+    }
+  }
+
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(pos), 3));
+  geo.setAttribute("color", new BufferAttribute(new Float32Array(col), 3));
+  return geo;
+}
+
 export function buildStarfield(): Points {
   const COUNT = 420;
   const pos = new Float32Array(COUNT * 3);

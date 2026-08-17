@@ -136,7 +136,21 @@ export const ROUND = {
   baseIntervalSec: 2.1,
   intervalPerRound: 0.075,
   minIntervalSec: 0.42,
+  /*
+   * HP scales in two regimes (§4, decision 20).
+   *
+   * Count is the primary lever while it still has room: `6 + 2.2×round` reaches
+   * `countCap` 90 at round 38, and after that speed is near its own cap and the
+   * spawn interval is at its floor — so an endless game would simply stop
+   * escalating. Past `hpRampRound` the curve hands the job to HP.
+   *
+   * The sponge risk this creates is answered by the combo system, not by the
+   * curve: an open hand amplifies TRAP damage (§5), so the player's answer grows
+   * with the same skill the score measures.
+   */
   hpPerRound: 0.11,
+  hpRampRound: 30,
+  hpPerRoundLate: 0.18,
   speedPerRound: 0.016,
   speedCapMultiplier: 1.55,
   /** Every Nth round is an elite round: fewer, tougher, worth more. */
@@ -146,6 +160,21 @@ export const ROUND = {
   eliteCountFactor: 0.45,
   /** Vigil restored for clearing a round, capped at the starting value. */
   vigilPerRound: 3,
+} as const;
+
+/**
+ * The combo system's grip on the rest of the game (§5, decision 20).
+ *
+ * The hand is not only a scoreboard: while it is open it amplifies TRAP damage,
+ * which is what makes ROUND's steeper late HP curve survivable without turning
+ * the endgame into chip damage. Traps only — see `TRAP_SOURCES` in
+ * `systems/combat.ts`, which is the single definition of "the machinery did it".
+ */
+export const COMBO = {
+  /** Trap damage gained per card in the open hand. */
+  ampPerCard: 0.08,
+  /** Hard ceiling. MAX_HAND is 8, so a full hand lands exactly here. */
+  ampCap: 1.6,
 } as const;
 
 /** Round-end payout (§5). */

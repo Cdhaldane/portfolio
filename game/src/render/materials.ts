@@ -46,6 +46,7 @@ import {
   NearestFilter,
   RedFormat,
   ShaderMaterial,
+  type Texture,
   UnsignedByteType,
 } from "three";
 
@@ -151,6 +152,15 @@ function rimPatch(strength: number, colour: Color): (shader: { fragmentShader: s
 /* ── the material ────────────────────────────────────────────────────────── */
 
 export interface ToonOptions {
+  /**
+   * A multiplying grain map (render/textures.ts).
+   *
+   * Kept as an option on the shared factory rather than a second material, because
+   * §17.9's rule is one shader for everything — a textured wall and an untextured
+   * trap under two different materials would read as two asset packs, which is the
+   * exact failure the rule exists to prevent.
+   */
+  map?: Texture | null;
   /** Baked per-part colour lives in the vertex stream for every model. */
   vertexColors?: boolean;
   /** Rim strength — pick from `RIM`, don't invent a number. */
@@ -164,6 +174,7 @@ export interface ToonOptions {
 
 export function toonMaterial(opts: ToonOptions = {}): MeshToonMaterial {
   const material = new MeshToonMaterial({
+    map: opts.map ?? null,
     color: opts.color ?? 0xffffff,
     vertexColors: opts.vertexColors ?? true,
     gradientMap: sharedRamp(),

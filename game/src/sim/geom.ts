@@ -5,7 +5,18 @@
  * temporaries: this is the code that runs hundreds of times per tick (§12.5).
  */
 
-import { isSolidKind, type Box, type Level } from "./level.ts";
+import { BOX, isHazardKind, isSolidKind, type Box, type Level } from "./level.ts";
+
+/**
+ * A step whose top is this far above the feet is a wall from the side, not a
+ * stair. Chosen against the fattest climber: a Colossus (r 0.8) on a 0.3/0.4
+ * flight overlaps treads up to three ahead of its own — a 0.9m top delta — so
+ * anything at 1.1m or more can only be a flank being walked into, never a tread
+ * being climbed. Shaft Nine's 6m ramp flank is the case this exists for: steps
+ * are invisible to `resolveCircle` (they're ridden via `groundHeight`), and
+ * without this you could stroll straight through the staircase's side.
+ */
+const STEP_FLANK = 1.1;
 
 /**
  * Ray vs axis-aligned box (slab method). Returns entry distance, or Infinity.
@@ -171,9 +182,31 @@ export function resolveCircle(
      * body walking into it — the field said west, collision said no, and the body
      * wedged there forever, softlocking the round. Steps and decks are ridden via
      * `groundHeight`; headstones are scenery.
+     *
+     * ONE exception, learned on Shaft Nine's 6m haulage ramp: a step whose top is
+     * far above the feet is not a stair from where this body stands, it is the
+     * staircase's flank, and walking through it reads as clipping through solid
+     * geometry. The threshold is high enough that no climber ever meets it on the
+     * treads it is actually climbing (see STEP_FLANK) — and anywhere a flank
+     * borders a lane, the site must navBlock it so the flow field agrees with
+     * collision (shaft.ts does; that agreement is the anti-softlock rule above).
      */
-    if (!isSolidKind(b.kind)) continue;
-    if (!spansOverlap(b, bodyY0, bodyY1)) continue;
+    if (!isSolidKind(b.kind)) {
+      if (b.kind !== BOX.step) continue;
+      if (b.y1 <= bodyY0 + STEP_FLANK) continue;
+      if (!spansOverlap(b, bodyY0, bodyY1)) continue;
+    } else
+    /*
+     * Water stops you, and only while you are on the ground.
+     *
+     * A hazard is 2cm tall, so the ordinary span test would never see it. Applying it
+     * near the ground rather than always is what lets a launched body clear a flooded
+     * cut — which makes a Powder Plate across a channel a real thing to build rather
+     * than an invisible wall the player cannot reason about.
+     */
+    if (isHazardKind(b.kind)) {
+      if (bodyY0 > 0.5) continue;
+    } else if (!spansOverlap(b, bodyY0, bodyY1)) continue;
     // Anything low enough to step onto is not a wall either.
     if (stepUp > 0 && b.y1 <= bodyY0 + stepUp) continue;
     const nx = px < b.x0 ? b.x0 : px > b.x1 ? b.x1 : px;

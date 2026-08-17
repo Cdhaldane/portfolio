@@ -25,6 +25,8 @@ import {
   cellOf,
   groundHeight,
   isPlaceable,
+  rebake,
+  wouldSealLane,
   tileOf,
   openBuilding,
   type Box,
@@ -201,10 +203,16 @@ describe("every authored site holds §11's guarantees", () => {
       it("declares a census that matches its own claims", () => {
         const c = level.census;
         assert.ok(c.floor > 0 && c.sigil >= 0 && c.ceiling >= 0 && c.wall >= 0);
-        // Boot Hill is floor-only *on purpose*, and the census has to say so or
-        // the director cannot protect it.
+        /*
+         * Boot Hill is no longer wall-SCARCE, and that is the wall-lattice inversion
+         * rather than a regression: every exposed face is buildable now, so a map
+         * cannot be made simple by withholding walls. Its simplicity is expressed
+         * where scarcity still exists — one ceiling anchor, and a crypt row that
+         * refuses iron.
+         */
         if (site.id === SITE.bootHill) {
-          assert.ok(c.wall <= 4, "Boot Hill must stay floor-only");
+          assert.equal(c.ceiling, 1, "Boot Hill keeps exactly one roof anchor");
+          assert.ok(c.noBuildWall > 0, "and the crypt row must still refuse traps");
           assert.equal(c.ceiling, 1, "one ceiling anchor: the hanging tree");
         }
       });
@@ -234,18 +242,32 @@ describe("Boot Hill teaches in the order MAPS §4 claims", () => {
     for (let z = 12; z <= 20; z++) {
       if (!level.blocked[cellOf(level, 30.5, z + 0.5)]) open++;
     }
-    // The fence gap is 4m of geometry, but `blocked` is inflated by the agent
-    // radius (0.45m) on each side, leaving ~3.1m walkable and exactly 2 cells a
-    // trap may occupy. A Tar Seep is 1.5m radius — 3m across — so one pool still
-    // cannot seal it, which is the whole point (§21.2 note 2).
-    assert.equal(open, 2, `expected a 2-cell pinch, found ${open}`);
-    const walkable = open * level.cell + 2 * (1 - 0.45);
-    assert.ok(walkable > 3.0, `walkable ${walkable}m must exceed one Tar diameter`);
+    /*
+     * Four cells, because the gap is 4m and the field now says so.
+     *
+     * This asserted 2 for as long as `bakeBlocked` inflated a wall by the agent radius
+     * and then claimed every cell that band touched — a 2m wall blocking 4m of
+     * navigation, and a 4m gap carrying 2m of it. The bake tests the distance from each
+     * cell's *centre* now, which is the question a body actually asks, so geometry and
+     * field agree. A Tar Seep is 1.5m radius; 3m across still cannot seal 4m, which was
+     * always the point (§21.2 note 2).
+     */
+    assert.equal(open, 4, `expected a 4-cell pinch, found ${open}`);
+    assert.ok(
+      open * level.cell > 3.0,
+      `walkable ${open * level.cell}m must exceed one Tar diameter`,
+    );
   });
 
   it("keeps the second route the loop depends on", () => {
-    // The fence stops at z=26; south of it there must be a way around.
-    const southOfFence = cellOf(level, 30.5, 29.5);
+    /*
+     * The fence stops at z=26; south of it there must be a way around.
+     *
+     * z = 27.5, not 29.5: tile-aligned walls moved the south wall from a 0.6m run at
+     * z=32 to a whole tile at z 30-32, and the flank wall with it, so the corridor
+     * itself shifted two metres north. The route is what matters, not where it was.
+     */
+    const southOfFence = cellOf(level, 30.5, 27.5);
     assert.equal(level.blocked[southOfFence], 0, "the southern loop must stay open");
     assert.ok(Number.isFinite(level.dist[southOfFence]));
   });
@@ -268,14 +290,26 @@ describe("composition constraint #6 — the site must be able to answer (MAPS §
   });
 
   it("bars an archetype whose answer the site does not have", () => {
-    // A hypothetical Rattler: invalidates floor traps, needs vertical surfaces.
+    /*
+     * The lever moved. Before the wall lattice this used `verticalSurfaces`, because
+     * Boot Hill authored three wall mounts and a wall-dependent archetype genuinely
+     * had no answer there. Every exposed face is buildable now, so **wall scarcity is
+     * no longer something a map can express** — and the constraint has to be keyed to
+     * a class that is still genuinely rare.
+     *
+     * Ceilings are. They stay discrete authored anchors (one roof beam is one place,
+     * not a surface), which is exactly why the Buzzard is the enemy this protects.
+     */
     const w = createWorld(1, SITE.bootHill);
-    const rattler = { ...ENEMIES[ENEMY.dustkin], requires: { verticalSurfaces: 8 } };
+    assert.equal(w.level.census.ceiling, 1, "the fixture assumes a roof-poor site");
+    const roofbound = { ...ENEMIES[ENEMY.dustkin], requires: { ceilings: 6 } };
     assert.equal(
-      siteCanAnswer(rattler, w),
+      siteCanAnswer(roofbound, w),
       false,
-      "Boot Hill has 4 vertical faces; a Rattler here has no answer",
+      "Boot Hill has one roof anchor; an archetype needing six has no answer",
     );
+    // And it is not simply refusing everything.
+    assert.equal(siteCanAnswer({ ...ENEMIES[ENEMY.dustkin], requires: { ceilings: 1 } }, w), true);
   });
 
   it("the director still fills a round when everything else is barred", () => {
@@ -596,5 +630,132 @@ describe("ghost paths — what the build phase promises", () => {
     const pts: number[] = [];
     const n = tracePath(l, 34, 44, pts);
     assert.ok(nearRift(l, pts[(n - 1) * 2], pts[(n - 1) * 2 + 1]));
+  });
+});
+
+describe("walls are squares, and they sit on the grid", () => {
+  /*
+   * The ideology, as a test.
+   *
+   * `bakeBlocked` inflates every wall by the agent radius and marks whole nav cells, so
+   * a wall that sits *between* grid lines eats a cell either side of itself and a 2m
+   * gap seals outright. That cost three separate debugging sessions — Boot Hill's
+   * orchard gap, Undertown's plaza mouths, and Shaft Nine's winzes, where G2 baked with
+   * `dist = Infinity` and could never reach the Rift. Each fix was "widen the gap",
+   * which treats the symptom.
+   *
+   * Tile-aligned walls make it structural: walls are whole tiles, so gaps are whole
+   * tiles, and the only rule an author has to hold is "a gap is at least 2 tiles".
+   */
+  const MIGRATED = SITES.filter((d) => d.id !== SITE.undertown);
+
+  it("aligns every wall and mass to the build grid", () => {
+    for (const def of MIGRATED) {
+      const level = buildLevel(def.id);
+      for (const b of level.boxes) {
+        // Pillars, props, steps and decks are furniture, not architecture.
+        if (b.kind !== BOX.wall && b.kind !== BOX.block) continue;
+        for (const [name, v] of [["x0", b.x0], ["x1", b.x1], ["z0", b.z0], ["z1", b.z1]] as const) {
+          assert.ok(
+            Math.abs(v / level.tile - Math.round(v / level.tile)) < 1e-6,
+            `${def.key}: a ${b.kind === BOX.wall ? "wall" : "mass"} has ${name}=${v}, off the ${level.tile}m grid`,
+          );
+        }
+      }
+    }
+  });
+
+  it("keeps every wall inside the map it belongs to", () => {
+    // A tile-thick wall snapped outward at the far edge lands outside the level, where
+    // it blocks nothing and renders into the void.
+    for (const def of MIGRATED) {
+      const level = buildLevel(def.id);
+      for (const b of level.boxes) {
+        if (b.kind !== BOX.wall) continue;
+        assert.ok(
+          b.x0 >= -1e-6 && b.z0 >= -1e-6 && b.x1 <= level.width + 1e-6 && b.z1 <= level.depth + 1e-6,
+          `${def.key}: a wall spans ${b.x0}..${b.x1} x ${b.z0}..${b.z1}, outside ${level.width}x${level.depth}`,
+        );
+      }
+    }
+  });
+
+
+  it("can still be tunnelled after its obvious chokepoint is braced", () => {
+    /*
+     * The operational version, and the one that reproduces the bug report.
+     *
+     * Sealing the pinch is a legal, sensible opening move. The failure mode is what
+     * comes next: if the route it forces bodies onto is two tiles wide, *every* tile
+     * of it refuses, and the player is left looking at open ground they cannot build
+     * on with no explanation but "that would seal the last way through".
+     *
+     * So: brace the narrowest legal spot, then require that somewhere on the map a
+     * brace is still legal. A map that answers "nowhere" has stopped being playable
+     * with the trap that shapes paths.
+     */
+    for (const def of SITES) {
+      const level = buildLevel(def.id);
+      const tiles = level.tw * level.th;
+
+      // The first legal brace anywhere — stand-in for "the player made a move".
+      let first = -1;
+      for (let t = 0; t < tiles && first < 0; t++) {
+        if (isPlaceable(level, t) && !wouldSealLane(level, t)) first = t;
+      }
+      assert.ok(first >= 0, `${def.key}: no legal blockade placement at all`);
+
+      level.blockTiles[first] = 1;
+      rebake(level);
+
+      let still = 0;
+      for (let t = 0; t < tiles; t++) {
+        if (isPlaceable(level, t) && !wouldSealLane(level, t)) still++;
+      }
+      assert.ok(
+        still > 0,
+        `${def.key}: after one blockade, nowhere else on the map accepts another`,
+      );
+    }
+  });
+
+  it("leaves every site a corridor a barricade can tunnel", () => {
+    /*
+     * The Dead Man's Brace shapes paths, and it needs somewhere to shape them: a run of
+     * open tiles wide enough to build a zigzag in but narrow enough that doing so
+     * matters. Two to four tiles is the band — one tile cannot be tunnelled (the first
+     * blockade would seal it, and the rule refuses), and beyond four a blockade is
+     * a decoration rather than a decision.
+     */
+    for (const def of SITES) {
+      const level = buildLevel(def.id);
+      let widest = 0;
+      for (let tz = 0; tz < level.th; tz++) {
+        let run = 0;
+        for (let tx = 0; tx < level.tw; tx++) {
+          if (isPlaceable(level, tz * level.tw + tx)) run++;
+          else {
+            if (run >= 2 && run <= 6 && run > widest) widest = run;
+            run = 0;
+          }
+        }
+      }
+      /*
+       * THREE, not two.
+       *
+       * A blockade is one tile wide and pads to 2.9m, so in a two-tile (4m) corridor it
+       * leaves nothing at all — every tile refuses with "that would seal the last way
+       * through", which is true and completely useless to the player. Reported from
+       * play on Boot Hill, whose southern loop was exactly two tiles: brace the pinch
+       * and the only remaining route became unbuildable end to end.
+       *
+       * Three tiles is the smallest corridor that tunnels: the outer two accept a
+       * brace and only the middle seals.
+       */
+      assert.ok(
+        widest >= 3,
+        `${def.key}'s widest corridor is ${widest} tiles — under three, a barricade can only seal it`,
+      );
+    }
   });
 });

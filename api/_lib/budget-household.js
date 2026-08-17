@@ -90,13 +90,18 @@ async function activeMemberIds(sql, householdId) {
 
 /** Does this household hold anything a join would orphan? */
 async function householdHasData(sql, householdId) {
+  // budget_plans counts too: an owner's household row is DELETEd on join and
+  // every tenant table cascades, so saved Afford scenarios would silently
+  // vanish. (Category rules are deliberately absent — they're derivable and
+  // there's no UI to clear them, so counting them could wedge a join.)
   const [{ count }] = await sql`
     SELECT (
       (SELECT COUNT(*) FROM budget_transactions WHERE household_id = ${householdId}) +
       (SELECT COUNT(*) FROM budget_accounts     WHERE household_id = ${householdId}) +
       (SELECT COUNT(*) FROM budget_recurring    WHERE household_id = ${householdId}) +
       (SELECT COUNT(*) FROM budget_income       WHERE household_id = ${householdId}) +
-      (SELECT COUNT(*) FROM budget_budgets      WHERE household_id = ${householdId})
+      (SELECT COUNT(*) FROM budget_budgets      WHERE household_id = ${householdId}) +
+      (SELECT COUNT(*) FROM budget_plans        WHERE household_id = ${householdId})
     )::int AS count
   `;
   return count > 0;

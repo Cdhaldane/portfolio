@@ -999,6 +999,12 @@ to a high standard (§17). Variants (armoured Dustkin, burning Coyote) are
 palette + stat swaps on existing rigs, which is how the roster *feels* like 25
 for the cost of 14.
 
+> **As built:** six of the fourteen are live — Dustkin, Coyote, Ironjaw,
+> Hollow Preacher, Buzzard, Marrow Colossus. Their bodies, silhouette
+> contract, as-built stat rationale and the deferred-behaviour ledger live in
+> [`ENEMIES.md`](ENEMIES.md), the roster's companion doc (the pattern
+> `HEROES.md` set for §7).
+
 ### The wave director
 
 Budget-based, seeded, and constrained — never a raw random draw.
@@ -3536,10 +3542,535 @@ placement lattice, traps anywhere on them, and special no-build faces marked by
 material. That inverts the mount system from authored *inclusions* to authored
 *exclusions*, and is the next piece.
 
-**Also unblocked:** the server half of §18.3 — one Vercel function
-(`api/game/[action].js`, taking the deployment to 6 of the Hobby plan's 12) plus the
-`gh_` Neon tables. The client already produces exactly the payload it needs: a
-`player_key`, an outcome, and a replay that can be recomputed rather than believed.
+### 21.10 M1.3 — walls become a surface
+
+#### The lattice, and the inversion
+
+M1.1 had maps *list* the faces a trap could bolt to. Played, that scarcity read as
+**arbitrariness** — nothing about the third crypt explains why it takes iron and the
+fence beside it does not, and a player cannot plan around a rule whose shape they
+cannot see. So the polarity flipped: **every exposed wall face is a lattice of build
+tiles**, derived from geometry exactly as the floor grid is, and a map declares the
+faces that **refuse** traps.
+
+| | before | after |
+| --- | --- | --- |
+| Boot Hill | 3 authored mounts | **220 buildable + 26 refused** |
+| Hollow Creek | 10 authored | 216 |
+| Undertown | hand-listed `UNDERTOWN_SURFACES` | **1,416 + 48**, nothing maintained |
+
+Three things fall out of deriving rather than authoring: nothing to keep in sync (a
+map that grows a building grows wall tiles); the census stops being a promise and
+becomes a *measurement* (§3 G7); and placement becomes **exact** — a face lattice has
+real cells, so the crosshair raycasts onto one instead of snapping to the nearest
+point within a forgiving cone. That tolerance was always a symptom of mounts being
+sparse points rather than a surface.
+
+Exclusions are the rare, explicable case and are painted oxblood, permanently visible
+whether or not anything is armed — *where you may build* is a question you ask while
+building; *where you may never* is a fact you should be able to plan around on the way
+in. Boot Hill refuses its crypt row (consecrated ground); Undertown refuses the rib,
+using the map's own words — "untouched strata the town was built around".
+
+**An honest consequence:** wall scarcity is no longer a lever a map can pull. Ceilings
+still are — one roof beam is one *place*, not a surface — so the director's archetype
+gate moved onto a new `ceilings` requirement.
+
+#### Walls in three dimensions
+
+Boxes were flat slabs. Now every wall, block and pillar wears **coursed panels** laid
+on its vertical faces, on the same 2m squares traps mount on — so the masonry a player
+is looking at *is* the grid they are placing into.
+
+That last claim was false when first written, and the fix is the interesting part.
+The lattice and the mesher were two implementations of "where a wall's squares are",
+and they drifted: the lattice counted rows up from a minimum mount height while the
+mesher divided each face into equal parts, so on a 4m wall the courses were drawn at
+y = 1 and 3 while traps mounted at **1.8 and 3.8** — every wall trap floating 0.8m
+above the square it appeared to sit on. Both now call one function, `faceSquares`,
+so the claim is true by construction rather than by coincidence.
+
+The squares are **world-aligned, exactly like the floor**. `tileOf` buckets the floor
+by `floor(x / tile)`, so bucketing walls the same way puts a wall square directly above
+the floor square beneath it, and makes a two-square-high wall read as two squares.
+Centring the lattice on each *face* instead — the mesher's original scheme — leaves two
+walls meeting at a corner with courses that do not line up, and nothing hides that. A
+square survives only if three quarters of it lies on the wall, which also guarantees
+its centre does, so a trap can never mount on a square mostly hanging off a fence end.
+
+Panels stand **proud**, not recessed, and both halves of that matter. Recessing needs
+the flat face cut away around each panel, and any gap in that cut is a hole you can
+see the sky through; laying courses on the intact box can never hole. Proud also
+changes the **silhouette**, which is most of what makes a wall look three-dimensional
+from across a room — far more than face detail does. Depth varies per course from
+hashed noise, never `Math.random` (§13 rule 2). Cost: Boot Hill 1k → **4.7k**
+triangles, Undertown **27k**, against a 1.2M budget.
+
+#### Rough surfaces, generated not painted
+
+There are no image files in this project and won't be — Path A plus "never used
+Blender, won't spend money" rules out a painted texture. So `render/textures.ts`
+generates the grain at load: coarse mottle that reads across the site, fine speckle
+that reads at arm's length, and **vertical streaking**, because weathering runs *down*
+and biasing the noise along one axis is the difference between "noisy" and "rained
+on". World-planar UVs (triplanar-lite) keep the grain the same physical size on every
+surface — any per-box scheme would make it change size wall to wall.
+
+It only ever darkens, since `map` multiplies, and the range is deliberately narrow
+(0.78–1.0): under a three-band toon ramp a texture that swings too far stops sitting
+*under* the bands and starts competing with them. Work is split by scale —
+silhouette to geometry, blotching to vertex colours, fine grain to the texture — so
+nothing pays triangles to carry colour.
+
+#### No clipping
+
+**Scattergun Ports sank 0.44m into the masonry**, and nothing failed. Fixed in the
+renderer, not the sim: a wall trap logically *is* on the face, which is where its
+effects should originate, so only the mesh needed moving. The distance is measured off
+the model (`trapBackDepth`) rather than authored beside it, so re-modelling a trap
+cannot leave a stale number behind, and `PANEL_PROUD` is added to clear the new
+courses. The ghost and the lattice marks get the same offset — marks drawn at the
+nominal plane would z-fight the masonry and flicker.
+
+`tests/walls.test.ts` rebuilds what the renderer does and asserts no vertex of any
+wall trap ends up on the wall's side of the face plane, on 40 real tiles across all
+four facings.
+
+#### Also this increment
+
+- **Placement near walls was badly broken**, and it was mine from M1.2. `isPlaceable`
+  refused on *any* solid overlap, so a 0.6m perimeter wall centred on the boundary —
+  reaching 15% into the first tile — killed **every border tile on every map** (76 on
+  Boot Hill), plus a column beside every fence. Now an area rule: a tile is a trap bed
+  if it is *mostly* open floor (≤25% covered), with a centre test so nothing sits
+  inside a pillar.
+- **Reachability was tested at the tile's centre nav cell**, which lands inside a
+  wall's *inflated* skirt — a fact about where a body's centre may be, not where iron
+  may go. Worse, it was asymmetric: a 48m map puts tile centres at 1.0 and 47.0, and
+  only the far one falls in the skirt, so one border died and the opposite one lived.
+  Any covered nav cell now counts. Boot Hill: **219 → 330** placeable tiles, border
+  **34/76 → 70/76**.
+- The Rift keep-out, which M1.2 inflated by half a tile, is back to the true ring. G2
+  asks that no trap sit *in* the ring — a question about the trap, not its tile.
+- **The Dead Man's Brace is a flat square filling its tile**, with a rust kerb so two
+  abutting read as one wall. Flat is right for the trap you use to reason about paths:
+  a chest-high barricade hides the ground you are planning on. Its collision volume
+  stays 2m (it must clear `bakeBlocked`'s 1m threshold) — the plate is the read, the
+  volume is the rule.
+- `slotOfCell` decoded a **wall** id as a nonsense mount, because the ranges overlap.
+- A 4m wall yielded **one** row of tiles, not two: the row count asked how many whole
+  steps fitted above the minimum instead of how many row centres fit under the top,
+  throwing away the upper half of every wall on every map.
+
+#### Every side face in the site mesh was inside out
+
+Reported as "some of the walls are still invisible", and it had been shipping **since
+M0**.
+
+`emitBox` listed the corners of all four *side* faces in the order that makes the
+geometric normal point back into the box. Under the default `FrontSide` material every
+one of them was back-facing and culled, so looking at a wall you saw straight through
+the near face to the inside of the far one. Only the top face was ever wound correctly
+— which is why the floor, which shares its corner order, always looked right.
+
+It survived three milestones because **lighting reads the supplied `normal` attribute,
+not the winding**. The faces that did draw were shaded correctly, so nothing looked
+broken; the site just looked oddly flat, and every explanation for that pointed
+somewhere else — the palette, the fog, the toon ramp. Adding panelled relief made it
+worse rather than better, because the panels inherited it.
+
+The invariant is checkable without a GPU and is now asserted for every triangle the
+mesher emits, panels and floor included:
+
+```
+cross(b - a, c - a) · declaredNormal > 0
+```
+
+Two smaller things the same look-through-the-geometry pass turned up:
+
+- **Panels were shaded twice.** `emitPanels` passed the parent face's shade into
+  `emitBox`, which applies `FACE_SHADE` per face itself — so a course came out at
+  0.25× where the wall behind it was 0.5×, reading as grime at best. (Fixed once,
+  reintroduced by a later rewrite of that function, hence the note in the code.)
+- **The no-build overlay was too strong at 50%**, painting a whole crypt oxblood: it
+  stopped saying "you cannot build here" and started saying "this object is red".
+
+#### The audit that should have existed first
+
+The winding bug was found by a check that needs no GPU, no browser and no screenshot,
+which makes its three-milestone survival a process failure rather than bad luck. So the
+check was generalised into `tests/geometry.test.ts` and pointed at **every** generator
+in the game — traps, the roster, the hero, dressing, hills, floors and site boxes —
+not just the one that had the bug, because the reason it hid applies equally to all of
+them.
+
+Result: everything else was already correct. Worth recording precisely because a clean
+audit is the useful outcome, and now it cannot quietly stop being clean.
+
+Two things the audit taught about auditing:
+
+- **The skydome reported 59 backwards triangles out of "141.67".** Not a whole number
+  of triangles, which was the tell: it is *indexed*, and the probe was walking positions
+  sequentially instead of through the index. It is also drawn `BackSide` — a shell you
+  stand inside, so it is *supposed* to face inward. Both the bug and the exemption were
+  in the tool, not the game. The committed version reads the index and says why the sky
+  is excluded.
+- The same pass checks **unit-length normals** and **degenerate triangles**, because
+  toon shading quantises `dot(N, L)` — a normal that is not unit length lands in the
+  wrong band and shows up as a hard-edged patch on a surface that is otherwise fine.
+
+#### Marks were rebuilt every frame
+
+The wall lattice is a *function of state* — it changes when the level changes, when a
+trap is placed or sold, or when a different trap is armed, and on no other frame. It
+was being rebuilt unconditionally, which on Undertown cost **93,696 trap scans, 1,464
+matrix writes and a ~90KB instance-matrix upload per frame** to produce a picture
+almost always identical to the previous one.
+
+Now signature-cached, the same discipline as `hudSignature` (§14.1 budgets the frame
+tightly enough that "recompute it, it's only a loop" has to be a decision rather than a
+default). The signature hashes trap **cells**, not the trap count — selling one and
+building another elsewhere leaves the count identical and the marks different. The
+rebuild itself also stopped calling `trapAtCell` per tile, a linear scan of all 64 trap
+slots, in favour of one pass over the traps into a set.
+
+Also checked and found sound, recorded so it is not re-derived: §8's contract that an
+enemy's answer is available by the round it debuts. The Buzzard arrives at round 5
+against gross income of ~764 for a 120-scrap Roost, on a site with 14 roof anchors.
+
+Tests: **214**, adding `tests/wallgrid.test.ts` (12), `tests/walls.test.ts` (12) and
+`tests/geometry.test.ts` (3).
+
+**Verified headlessly only.** The browser harnesses are no longer run without being
+asked for — they drive a real Chrome, `/hymn` takes pointer lock, and scripted mouse
+moves therefore seize the machine's actual cursor. See CLAUDE.md §0.
+
+### 21.11 M1.4 — the tally board
+
+§18.3, and the thing asked for on day one: *"a leaderboard for all players, wont be
+much."* One Vercel function (`api/game/[action].js` → **6** of the Hobby plan's 12),
+one `gh_scores` table, and the same shape as `reckoning.js` — Neon, a table created
+once per warm instance, salted IP hashes never addresses, a honeypot field, and
+`configured: false` rather than an error when there is no database.
+
+**One row per player, not per run.** The board answers "how far has each person got",
+so a table of every attempt would be mostly rows to filter out, growing without bound
+while storing a replay each. `UNIQUE (player_key)` plus an upsert guarded by
+`WHERE EXCLUDED.round > gh_scores.round` keeps it one row per person and makes a later,
+worse run unable to overwrite a better one — without the client being trusted about
+what its own previous best was.
+
+#### What the replay buys, and what it doesn't
+
+The server **cannot** prove a run happened: that needs the simulation, which is ESM
+TypeScript running in the browser and in `node --test`, not in a CommonJS serverless
+function. Bundling it to re-run every submission is a large dependency for a
+leaderboard that "won't be much".
+
+So it checks the claim is *internally coherent* instead. A replay is a seed, a sparse
+command log and a fingerprint every 600 ticks, and those have to agree with each other
+and with the outcome claimed:
+
+- commands in order and inside the run
+- checkpoints in order, and **exactly** `floor((ticks - 1) / 600) + 2` of them —
+  `Recorder.finish` always takes a final fingerprint, so the count is exact rather
+  than a range, and it is the single hardest part of a forgery to get right by accident
+- a round that fits in the ticks the replay says it took
+- caps on round, kills and blob size
+
+Forging a round-50 run therefore means producing a coherent command stream of plausible
+length with correctly spaced checkpoints — most of the work of writing the replay
+system, rather than editing a number in a POST body.
+
+**And the blob is kept**, so exact verification is a replay away — `verify()` already
+does it, in any visitor's browser, for free. The board makes a claim the reader can
+check rather than one they have to accept. `GET /api/game/replay?player=…` serves it,
+deliberately as a separate request: 19KB per four minutes of play would make a 25-row
+board megabytes wide for a feature almost nobody uses on a given visit.
+
+#### The test that matters
+
+`api/_lib/hymn-run.test.js` (20 tests) checks the rules against replays *it builds
+itself*, which proves only that the rules are self-consistent. The real risk is
+quieter: **the validator describes `Recorder`, and `Recorder` can change.** Bump
+`HASH_INTERVAL`, take one more fingerprint, add an outcome field — and the server
+starts rejecting every genuine run while both suites stay green.
+
+So `game/tests/leaderboard.test.ts` plays real rounds, records them with the real
+`Recorder`, and pushes the result through the real validator, loaded across the
+module-system boundary with `createRequire`. It asserts the shared constants match and
+that runs of 1s, 9s, 10s, 11s, 60s and 240s all pass — the boundaries either side of a
+checkpoint tick, where an exact count is most likely to be wrong.
+
+#### Never in the way
+
+The board is a nicety on a hidden page, so every failure — offline, 404, cold start,
+a deploy with no `POSTGRES_URL` — resolves to "no board" and is never raised as an
+error. Submission is fired without being awaited from the frame that detects the loss,
+because the death screen must appear on that frame regardless. With no database
+configured, the leaderboard simply never appears, and nothing explains why.
+
+Tests: **240** — 220 in the game, 20 in the API.
+
+**Next:** the board lists runs but nothing yet calls `fetchReplay` to *recompute* one,
+which is the feature that makes it more than a list of numbers. The client half of
+that already exists on both sides (`verify()`, `GET replay`); it needs a button and a
+result to show.
+
+### 21.12 M1.5 — closing M2's stragglers
+
+`GALLOWS_HYMN_MAPS.md` §12 puts engine items 5 and 7 at M2. Eight of the ten items
+were done — items 9 (per-site atmosphere) and 10 (ghost paths) landed alongside this
+work — and these two were the tail.
+
+#### Item 5: the chalk had no consumer, because the Sigil was in the wrong family
+
+Every site traced chalk circles, the census counted them, and `siteCanAnswer` could
+gate a whole archetype on `sigil >= 4` — while **no trap in the catalog could be
+traced on one**. The cause was a straight misreading: §6's catalog lists the **Sigil
+of Nine as #19, in the sigil family**, and it shipped as a floor trap.
+
+That mistake had a second cost. The strongest amplifier in the game — 90 scrap for
++50% damage in a radius — was placeable on any of ~330 floor tiles, when it is meant
+to be scarce. Boot Hill traces four circles and Hollow Creek six, so *where the Sigil
+goes* is now a decision the map makes half of, which is what an amplifier that
+expensive should be.
+
+**Unhallowed** is implemented as the rule it actually is: a *region* of ordinary floor
+that accepts `ELEM.arcane` and nothing else. Deliberately separate from
+`isPlaceableFor`, because it constrains the trap's **element**, not the surface it
+sits on — conflating those is what would make "sigil" and "unhallowed" look like the
+same idea. No site declares one yet; Map 05 is the first, and §21 lists it first to cut.
+
+The guard that would have caught this now exists: **every surface class a site
+authors must have at least one trap that can use it.** Authored data nothing consumes
+does not look broken — it looks finished.
+
+#### Item 7: environmental one-shots
+
+§4 promises "1–3 environmental trap slots, free to activate once… the generator
+guarantees at least one per site." `UNDERTOWN_ENV` had named a hoist, a chandelier, a
+bell and the winding gear; nothing could fire one. Boot Hill and Hollow Creek had
+none at all, so the guarantee was false on two of three sites — now they have the
+hanging tree and the winding gear.
+
+**They are shot, not pressed.** The obvious build is an interact key and it is the
+wrong one: this is a shooter whose fantasy is a lantern in one hand and a revolver in
+the other, and "shoot the rope holding the chandelier" needs no key, no prompt and no
+tutorial. It also collides with nothing (`E` is the Boot). The cost is a rendering
+obligation — an env slot has to *look* shootable.
+
+The hit test runs against the same `bestT` as bodies and walls, so a Dustkin standing
+under the tree eats the bullet instead of the rope. That is the correct outcome and
+the reason the shot is worth aiming.
+
+They apply a **hold** as well as damage, and the hold is the point: a thing that deals
+240 damage is a big trap, where a thing that deals 240 *and pins whatever survives*
+creates a two-second window the whole build gets to use. `used` lives on the level, so
+travelling restores them — once per **site**, not once per run.
+
+**Deferred honestly:** "then cost salt to reset" is not implemented, because **salt
+is not implemented** — it is the §5 meta currency and nothing in the sim tracks it.
+`resetSalt` is carried on every definition so the maps stay truthful, and the moment
+salt lands this becomes a spend rather than a rewrite.
+
+Tests: **248** — 228 in the game (adding `tests/env.test.ts`), 20 in the API.
+
+### 21.13 M1.6 — Map 04, The Crossroads
+
+MAPS §13 open question 1: *"Does a no-pinch map work at all? Map 04 is the one
+genuinely unproven design here. It is grey-box-testable at M3 for about a day's work,
+and it should be tested before anything is drawn."* Built first for exactly that
+reason — ahead of Map 03 and the chunk cut, because it is the assumption most likely
+to be wrong and the cheapest one to falsify.
+
+56 × 56, four roads, four gates open from round one, the Rift at the centre of all of
+it. Site rotation is now Boot Hill 1–3 → Undertown 4–9 → **the Crossroads 10+**, which
+matches §7's "boss round 10, then rounds 12+".
+
+**Two pieces of geometry are load-bearing, and both are subtle:**
+
+- **The scaffold.** Four roads pointing at the centre is four gates with a clean shot
+  at the Rift, which breaks G2 and makes §8's Deadeye constraint *unsatisfiable* —
+  there would be no legal Deadeye gate anywhere on the map. Four uprights and a plank
+  skirt break the eye line from road level in all four directions.
+- **The skirt is `BOX.prop`, not a wall.** §7 requires "the ground itself completely
+  open to walk across", and a 1.1m solid ring around the Rift would seal the flow
+  field's only source — every cell on the map unreachable, which is the M0 softlock
+  (§21.1 note 3) rebuilt on purpose. Props are exempt from `isSolidKind`, so it
+  occludes without existing to pathing or collision.
+
+The Rift sits at grade under the trapdoor, **not** on a deck: a deck needs stairs, and
+stairs would be a chokepoint.
+
+Verified: all four gates path to the Rift at 25m each (G4 wants ≥18m), the Rift cell
+stays unblocked, 698 of 784 tiles are buildable, and every §11 guarantee the other
+three sites are held to passes unchanged. It is the first site with **four** gates from
+round one and **no chalk at all** — which means `siteCanAnswer` bars a Lamplight Wisp
+here, since it needs `sigil ≥ 4`. That is accidentally correct: the Wisp's answer on
+this map is the salt ring, and the salt ring is not implemented, so refusing the Wisp
+is honest until it is.
+
+#### The question is still open, and the measurement failed
+
+An attempt to answer §13 open question 1 headlessly — same money, same ring-the-Rift
+build, player parked, across all four sites — **did not work, and is not reported as
+though it did.** The tell was Undertown, a two-lane map, scoring *worse* than the
+pinchless one; and quadrupling the budget barely moved any map. Both say the probe was
+measuring the shape of one scripted build rather than the maps, so it was deleted
+rather than kept as a misleading number.
+
+The doc's own criterion needs a player: *"if a competent player's round-12 clear rate
+here is more than one round worse than on Map 02"*. **That is a playtest, and it is the
+next thing this map needs.** The pre-specified fix is already written down — add a pair
+of low stone walls on the diagonal approaches and accept it as a *four*-pinch map — so
+the decision is cheap either way.
+
+Tests: **256** — 236 in the game, 20 in the API.
+
+### 21.14 M1.7 — Map 03, Shaft Nine
+
+**64 × 48 across three levels.** What it invalidates: *the flat build.* Every map
+before it was a plan view; this one has a Y axis and the crowd uses it. Rotation is now
+Boot Hill 1–3 → Undertown 4–7 → **Shaft Nine 8–11** → the Crossroads 12+.
+
+**The heights are shifted, deliberately.** MAPS §6 draws the gallery at 0m and the
+stope at −6m; the engine cannot, because `groundHeight` starts at 0 and returns the
+highest box top at or below the query — **0 is the floor of the world**. So the map is
+lifted 6m: stope 0, gallery +6, catwalks +11. Every relative height the design depends
+on survives, and nothing a player could perceive changes.
+
+**It is 2.5D but planar for pathing**, which is what makes a single 2D flow field
+*exact* here rather than an approximation: the gallery (z 6–30) and the stope (z 30–46)
+are at different heights and do not overlap in plan, joined only by the haulage ramp.
+§6 offered two options — a field per level with link cells, or non-navigable chutes —
+and called the second "cheaper, correct for this map". The geometry satisfies it
+without a special case. The catwalks *do* overlap the gallery, and they are the
+exception that proves it: they are the player's, enemies never path onto them.
+
+**The chutes are the signature verb.** Three one-way drops in the lip, implemented as
+a new `navBlock` region — the field refuses to route through them, and *nothing
+physical is there*, so a body the player Boots through one falls 6m onto whatever is
+built below. It only works because the hole is a hole to physics and a wall to
+pathing. A `Box` would have stopped the body as well as the path.
+
+Verified: all three gates reach the Rift, and G3 lands at **36.7m** against the doc's
+stated 36m. Heights read correctly at gallery, stope and catwalk. The chute cells are
+`blocked = 1` with no geometry behind them.
+
+**Two engine additions**, both small and both forced by the map: `stepsZ` (the haulage
+ramp descends south, and `steps` only walked X) and `EnvSlotDef.y` — a mine cart sits
+*on* the rail, and the default hoist height put both carts at 14.2m, hanging from the
+catwalk 5m above the track.
+
+**One bug caught, and it is the third time this arithmetic has bitten.** The rib's
+winzes were authored at 2m. `bakeBlocked` inflates every wall by the agent radius and
+marks whole cells, so a 2m gap loses a cell to each side and seals outright — G2 baked
+with `dist = Infinity` and could never reach the Rift. Widened to 4m. This is the same
+failure as Boot Hill's orchard gap (§21.7) and Undertown's plaza mouths: **a gap
+authored below ~3m does not survive the bake**, and it is worth stating as a rule
+rather than rediscovering per map.
+
+**Deferred, and named:** the Cage (G4) is absent. It is §11 guarantee 4's second
+authored break, and §6 says its mitigation "must ship with it" — three seconds of
+visible descent, winch audio starting 1.5s earlier. A spawn point 12.6m from the Rift
+*without* that telegraph is precisely what §8 forbids, so it waits for the descent
+rather than shipping as an ordinary very-close gate. The mine carts fire the generic
+radius one-shot rather than §6's 60m line down the track.
+
+Tests: **264** — 244 in the game, 20 in the API.
+
+### 21.15 M1.8 — walls are squares, and they sit on the grid
+
+An authored ideology, applied to every map: **a wall occupies whole tiles and never
+straddles two.**
+
+This is not tidiness, it is the end of a bug. `bakeBlocked` inflates every wall by the
+agent radius and marks whole nav cells, so a wall sitting *between* grid lines eats a
+cell either side of itself and a 2m gap seals outright. That cost three separate
+debugging sessions — Boot Hill's orchard gap, Undertown's plaza mouths, and Shaft
+Nine's winzes, where G2 baked with `dist = Infinity`. Each fix was "widen the gap",
+which treats the symptom. Tile-aligned walls make it structural: walls are tiles, so
+gaps are tiles, and the whole rule collapses to **"a gap is at least 2 tiles"**.
+
+New kit: `wall()`, `slab()` (both quantised) and `hazard()`. Migration is complete on
+the four sites this side owns — Boot Hill 10/10, Hollow Creek 9/9, the Crossroads
+11/11, Shaft Nine 17/17. `undertown.ts` is authored in parallel and is exempted by
+name in the test, as a **migration marker rather than a permanent exemption**.
+
+#### Water, lava, and ground that is not a wall
+
+`BOX.hazard`: flat (2cm), impassable, unbuildable, and blocking **neither sight nor
+shots**. That combination is the whole point — an open map with water in it still reads
+as open, and you can fight across a channel you cannot walk over. Collision applies
+only near the ground, so a **launched body clears one**, which makes a Powder Plate
+across a flooded cut something to build rather than an invisible wall.
+
+Three authored, each doing a different job: Hollow Creek finally has a *creek* (it
+narrows the northern approach without adding a wall), the Crossroads gets a flooded
+trough (an edge to anchor a build against, on the map whose argument is that there is
+nothing to hold), and Shaft Nine's stope has a sump under the western chutes, so a body
+Booted down one lands in water rather than on open floor.
+
+#### A corridor a barricade can tunnel — and why two tiles is not one
+
+Reported from play: *"on the right side of map, there's 2 squares, both say that would
+seal the way through."*
+
+The message was true. Boot Hill's southern loop — the route bodies take once the pinch
+is braced — was exactly **two tiles**, and **a two-tile corridor cannot be tunnelled at
+all.** A blockade is one tile wide and pads to 2.9m by the agent radius, so in a 4m
+corridor it leaves nothing: every tile of it refuses, correctly, and the player is left
+staring at open ground they cannot build on. The first legal move on the map made the
+only remaining route unbuildable end to end.
+
+**Three is the minimum**, and it is the number where tunnelling starts working: the
+outer two tiles accept a brace and only the middle seals, which is exactly the zigzag
+the trap exists to build. Boot Hill's flank wall moved two tiles north to give its loop
+three, and the refusal count after bracing the pinch fell from **15 tiles to 1**.
+
+The guarantee was wrong too — it asserted ≥2, which is precisely the width that fails —
+and is now ≥3, alongside an operational test that reproduces the report directly:
+**brace the first legal tile, then require that somewhere on the map another brace is
+still legal.** A map that answers "nowhere" has stopped being playable with the trap
+that shapes paths.
+
+#### Saying why, instead of only saying no
+
+The same report exposed a plainer failure: a red ghost is silent. "You cannot build
+here", "you armed a roof trap" and "you are broke" look identical from behind a
+crosshair, and the first thing this bug needed was for the game to distinguish them.
+The crosshair now names the refusal — `AIM AT A ROOF BEAM`, `NOT OPEN GROUND`,
+`SOMETHING IS ALREADY THERE`, `NOT ENOUGH SCRAP`, `THAT WOULD SEAL THE LAST WAY
+THROUGH` — which is what turned an unreproducible report into a two-line diagnosis.
+
+#### What the migration broke, and what it exposed
+
+Four regressions, all the same arithmetic in different clothes, all caught by tests
+that already existed: **two gates ended up inside their own walls** (a tile-thick
+perimeter moved inward past the spawn point), and **two southern loops sealed** — Boot
+Hill's and Hollow Creek's, where a 2m flank wall plus padding left no passable cell
+before the perimeter. The loops were load-bearing on both maps; the fix was moving the
+flank two tiles north, not widening anything.
+
+**And one genuine bug in the blockade rule.** `wouldSealLane`'s reachability flood was
+**4-connected while `bakeDistance` is 8-connected**, so a cell reachable only on a
+diagonal looked already-unreachable to the preview — which then skipped that gate and
+approved a blockade that cut it off. On Boot Hill, 64 individually legal placements
+sealed a gate one at a time.
+
+It was caught by the test written for exactly this in §21.9 — *"the preview and the
+real thing have to give the same answer, or the ghost turns green on a placement the
+command system then refuses"* — and it is the same class of lie as a ghost path drawn
+by different code than the enemies steer by. A preview must walk the same graph as the
+thing it previews.
+
+Tests: **297** — 277 in the game, 20 in the API.
+
+**Then the rest of M3:** the chunk cut and the graph generator with its 5,000-seed
+validator. Four of the five anchor sites now exist (01, 02, 03, 04) — which is the
+chunk library §11 wants to cut from, except §10 says "author the map, play it, **then**
+cut it", and three of the four have never been played.
 
 ---
 

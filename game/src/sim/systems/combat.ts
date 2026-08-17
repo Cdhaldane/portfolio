@@ -16,12 +16,13 @@
  */
 
 import { cameraPose, makePose } from "../aim.ts";
+import { ENV_KIND, envReady } from "../env.ts";
 import { HANDS, evaluate, resetHand, score, type HandId } from "../combo.ts";
 import { enemyDef } from "../enemies.ts";
 import { EV } from "../events.ts";
 import { rayCylinder, rayLevel } from "../geom.ts";
 import { dcos, dsin } from "../math.ts";
-import { BOOT, KILL, LAUNCH, REVOLVER, ROUND, STATUS, SURVIVAL } from "../tuning.ts";
+import { BOOT, COMBO, KILL, LAUNCH, REVOLVER, ROUND, STATUS, SURVIVAL } from "../tuning.ts";
 import { ELEM, type Elem } from "../traps.ts";
 import { PHASE, killEnemy, type World } from "../world.ts";
 
@@ -45,6 +46,16 @@ export const SOURCE = {
 
 export type Source = (typeof SOURCE)[keyof typeof SOURCE];
 
+/**
+ * Trap-damage multiplier from the hand currently open.
+ *
+ * `1 + 0.08 × cards`, capped at 1.6 — so a full 8-card hand is the cap exactly,
+ * and a player who is not chaining gets nothing at all.
+ */
+export function handAmp(w: World): number {
+  return Math.min(COMBO.ampCap, 1 + w.hand.count * COMBO.ampPerCard);
+}
+
 /** Trap def id → damage source, so the kill feed and the hand agree. */
 export const TRAP_SOURCE: Source[] = [
   SOURCE.jaws,
@@ -58,6 +69,18 @@ export const TRAP_SOURCE: Source[] = [
   SOURCE.roost,
 ];
 
+/**
+ * Sources that count as "the machinery did it".
+ *
+ * The single definition of trap-caused damage, used for BOTH the §5 scoring
+ * multiplier and the combo damage bonus — two predicates that agree today would
+ * drift tomorrow.
+ *
+ * `burn` and `fall` are in deliberately: burn is always the residue of a fire
+ * trap, and a body that dies on impact was put in the air by a Powder Plate or
+ * the Boot. Excluding them would make the game's signature combos score worse
+ * than hitting the same body directly.
+ */
 const TRAP_SOURCES = new Set<number>([
   SOURCE.jaws,
   SOURCE.tar,
@@ -98,6 +121,19 @@ export function damageEnemy(
   // 2 ── amplifiers, multiplicative.
   if (e.marked[i] > 0) dmg *= 1 + e.markAmp[i];
   if (e.hold[i] > 0) dmg *= 1 + STATUS.heldAmp;
+
+  /*
+   * 2b ── the open hand (§5, decision 20).
+   *
+   * TRAPS ONLY, and deliberately so: amplifying the revolver would hand the
+   * reward to the wrong verb and undercut "traps are the intended answer". This
+   * is what lets §4 raise enemy HP steeply without the late game becoming chip
+   * damage — the player's answer scales with the same skill the score measures.
+   *
+   * Capped and lost the instant the hand closes or breaks, so it is a rhythm and
+   * never a ratchet.
+   */
+  if (TRAP_SOURCES.has(source)) dmg *= handAmp(w);
 
   // 3 ── armour, on the amplified number.
   if (def.armour > 0 && dmg < def.armour) {
@@ -174,6 +210,8 @@ export function comboSystem(w: World): void {
 export function damagePlayer(w: World, amount: number): void {
   const p = w.player;
   if (w.phase === PHASE.lost || p.invuln > 0) return;
+  // Dev-menu god mode: not even the invuln tick, so the flag leaves no residue.
+  if (p.god) return;
 
   p.hp -= amount;
   p.invuln = SURVIVAL.invulnTicks;
@@ -283,6 +321,28 @@ export function bootSystem(w: World): void {
   damageEnemy(w, best, BOOT.damage, SOURCE.boot, ELEM.iron);
 }
 
+/*
+ * Scratch for a piercing shot (§7.3). Fixed-size and reused: the sim must not
+ * allocate per tick (§12.5), and a pierce can touch at most the whole live
+ * roster, which LIMITS already bounds.
+ */
+const pierced = {
+  buf: new Int32Array(256),
+  length: 0,
+  get capacity(): number {
+    return this.buf.length;
+  },
+  push(i: number): void {
+    this.buf[this.length++] = i;
+  },
+  at(k: number): number {
+    return this.buf[k];
+  },
+  clear(): void {
+    this.length = 0;
+  },
+};
+
 const pose = makePose();
 
 /**
@@ -290,6 +350,33 @@ const pose = makePose();
  * shot goes exactly where the crosshair is (§7) — see aim.ts for why that pose
  * is computed in the sim rather than in render.
  */
+/**
+ * Bring one down: heavy damage and a hold in a generous radius, once per site.
+ *
+ * The hold matters more than the number. §4 calls these "memorable", and a thing that
+ * merely deals 240 damage is a big trap — a thing that deals 240 damage *and pins
+ * whatever survives* creates a two-second window the player's whole build gets to use,
+ * which is a moment rather than a number.
+ */
+export function fireEnvSlot(w: World, i: number): void {
+  const env = w.level.envSlots;
+  if (env.used[i]) return;
+  env.used[i] = 1;
+
+  const { x, z } = env.def[i];
+  const e = w.enemies;
+  const r2 = ENV_KIND.radius * ENV_KIND.radius;
+  for (let k = 0; k < e.alive.length; k++) {
+    if (!e.alive[k]) continue;
+    const ddx = e.x[k] - x;
+    const ddz = e.z[k] - z;
+    if (ddx * ddx + ddz * ddz > r2) continue;
+    if (e.hold[k] < ENV_KIND.hold) e.hold[k] = ENV_KIND.hold;
+    damageEnemy(w, k, ENV_KIND.damage, SOURCE.fall, ELEM.iron);
+  }
+  w.events.push(EV.envFired, x, env.y[i], z, i);
+}
+
 export function hitscan(w: World): void {
   cameraPose(w, 0, pose);
   const ox = pose.x;
@@ -303,6 +390,25 @@ export function hitscan(w: World): void {
 
   let bestT = wallT;
   let bestEnemy = -1;
+  let bestEnv = -1;
+
+  /*
+   * Env slots are shot, like everything else (sim/env.ts).
+   *
+   * Tested against the same `bestT` as bodies and walls, so a Dustkin standing under
+   * the hanging tree eats the bullet instead of the rope. That is the correct outcome
+   * and the reason the shot is worth aiming.
+   */
+  const env = w.level.envSlots;
+  for (let i = 0; i < env.def.length; i++) {
+    if (!envReady(env, i, (o) => w.level.open[o] === true)) continue;
+    const t = rayCylinder(
+      env.def[i].x, env.y[i] - 0.4, env.def[i].z,
+      ENV_KIND.hitRadius, 0.8,
+      ox, oy, oz, dx, dy, dz,
+    );
+    if (t < bestT) { bestT = t; bestEnv = i; }
+  }
   const e = w.enemies;
   for (let i = 0; i < e.alive.length; i++) {
     if (!e.alive[i]) continue;
@@ -324,14 +430,42 @@ export function hitscan(w: World): void {
       bestT = t;
       bestEnemy = i;
     }
+    /*
+     * Piercing (§7.3 Dead Reckoning) collects every body the ray passes through,
+     * not just the nearest.
+     *
+     * Gathered in the same loop rather than a second pass so the ray is tested
+     * once per body either way — a pierce shot costs no more than a normal one.
+     * `wallT` bounds it, so a pierce still stops at geometry rather than
+     * shooting through the map.
+     */
+    if (w.player.pierceTicks > 0 && t < wallT && pierced.length < pierced.capacity) {
+      pierced.push(i);
+    }
   }
 
   const p = w.player;
   w.events.push(EV.muzzle, p.x, p.y + 1.35, p.z, p.yaw);
 
-  if (bestEnemy >= 0) {
+  // Steady's brace (§7.3) multiplies the gun, and only the gun.
+  const damage = REVOLVER.damage * p.buffDamage;
+
+  if (p.pierceTicks > 0 && pierced.length > 0) {
     w.shotsHit++;
-    damageEnemy(w, bestEnemy, REVOLVER.damage, SOURCE.revolver, ELEM.iron);
+    for (let k = 0; k < pierced.length; k++) {
+      damageEnemy(w, pierced.at(k), damage, SOURCE.revolver, ELEM.iron);
+    }
+    pierced.clear();
+    return;
+  }
+  pierced.clear();
+
+  if (bestEnv >= 0) {
+    w.shotsHit++;
+    fireEnvSlot(w, bestEnv);
+  } else if (bestEnemy >= 0) {
+    w.shotsHit++;
+    damageEnemy(w, bestEnemy, damage, SOURCE.revolver, ELEM.iron);
   } else if (isFinite(bestT)) {
     w.events.push(EV.bulletImpact, ox + dx * bestT, oy + dy * bestT, oz + dz * bestT);
   }

@@ -97,10 +97,13 @@ const Budgetter = () => {
     setTab("dashboard");
   };
 
-  // A household change can swap the whole ledger under us.
+  // A household change can swap the whole ledger under us — including the
+  // always-mounted Monthly tab, which otherwise keeps showing the pre-join
+  // household's (usually empty) payments and income.
   const onHouseholdMutate = () => {
     refreshDashboard();
     listRef.current?.refresh();
+    setMonthlyToken((t) => t + 1);
   };
 
   return (
@@ -204,7 +207,7 @@ const Budgetter = () => {
           />
         </div>
         <div hidden={tab !== "monthly"} className="bud-monthly">
-          <IncomePanel onMutate={refreshDashboard} />
+          <IncomePanel onMutate={refreshDashboard} refreshToken={monthlyToken} />
           <RecurringPanel onMutate={refreshDashboard} refreshToken={monthlyToken} />
         </div>
         <div hidden={tab !== "afford"}>

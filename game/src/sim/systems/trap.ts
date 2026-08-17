@@ -29,6 +29,7 @@ import { EV as EVENTS } from "../events.ts";
 import { STEP } from "../tuning.ts";
 import type { World } from "../world.ts";
 import { slotOfCell } from "../level.ts";
+import { wallOfCell } from "../wallgrid.ts";
 import { SURF, sideNormalX, sideNormalZ } from "../surfaces.ts";
 import { TRAP_SOURCE, damageEnemy, launchEnemy } from "./combat.ts";
 
@@ -68,6 +69,9 @@ export function trapSystem(w: World): void {
   for (let ti = 0; ti < t.alive.length; ti++) {
     if (!t.alive[ti]) continue;
     if (t.fired[ti] > 0) t.fired[ti]--;
+    /* Peal's buff expires on its own clock (§7.3). Cleared rather than left to
+     * decay, so `buffMult` is only ever read while `buffTicks` vouches for it. */
+    if (t.buffTicks[ti] > 0 && --t.buffTicks[ti] === 0) t.buffMult[ti] = 1;
 
     // The resolved def folds in whichever upgrade this instance took (§6).
     const def = resolved(t.defId[ti], t.upgrade[ti]);
@@ -264,8 +268,14 @@ function applyEffects(
          * The normal comes from the mount, not from `yaw`: a north-facing wall has
          * yaw 0, which is indistinguishable from a ceiling beam.
          */
+        const wi = wallOfCell(t.cell[ti]);
         const si = slotOfCell(t.cell[ti]);
-        const mount = si >= 0 ? w.level.slots[si] : undefined;
+        const mount =
+          wi >= 0
+            ? { surface: SURF.wall, side: w.level.wallTiles[wi].side }
+            : si >= 0
+              ? w.level.slots[si]
+              : undefined;
         if (mount !== undefined && mount.surface === SURF.wall) {
           const nx = sideNormalX(mount.side ?? 0);
           const nz = sideNormalZ(mount.side ?? 0);
@@ -283,6 +293,9 @@ function applyEffects(
     // Aura damage is authored per SECOND: applying it per tick unchanged would be
     // a 60x error, and "24" reads as a rate in the def where "0.4" reads as noise.
     if (def.trigger === TRIGGER.aura) damage *= STEP;
+    /* Peal's buff (§7.3). Guarded on the timer rather than reading buffMult
+     * directly, because the pool's default is 0 and would zero the damage. */
+    if (t.buffTicks[ti] > 0) damage *= t.buffMult[ti];
     damageEnemy(w, i, damage, TRAP_SOURCE[def.id] ?? 0, elem);
   } else if (announce) {
     // A no-damage trap still needs to look like it did something.

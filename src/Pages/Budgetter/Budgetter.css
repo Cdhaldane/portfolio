@@ -15,12 +15,19 @@
   --bad-text: #b23a1a;
 
   min-height: 100vh;
+  /* dvh where supported: 100vh is iOS's LARGE viewport, which overshoots
+     while the toolbar is visible. */
+  min-height: 100dvh;
   background:
     radial-gradient(120% 70% at 100% 0%, #f4f7f0 0%, var(--paper) 55%),
     var(--paper);
   color: var(--ink);
   font-family: "Inter", system-ui, sans-serif;
   padding: clamp(48px, 9vw, 96px) 24px 96px;
+  /* Containment guard: a single overflowing child in any panel must never
+     become whole-page horizontal scroll. Rows that mean to scroll (tabs,
+     charts, tables) own their overflow-x already. */
+  overflow-x: hidden;
 }
 
 [data-theme="dark"] .bud {
@@ -106,6 +113,8 @@
   line-height: 1.6;
   color: var(--ink-soft);
   margin: 0 0 32px;
+  /* Emails and household names are unbroken user strings. */
+  overflow-wrap: anywhere;
 }
 
 .bud code {
@@ -136,7 +145,9 @@
 
 .bud-status p {
   margin: 0;
-  flex: 1 1 260px;
+  /* 200px basis, not 260px: dot + gap + text must share the first line down
+     to ~320px viewports, or the dot strands alone above the message. */
+  flex: 1 1 200px;
 }
 
 .bud-status-dot {
@@ -275,6 +286,23 @@
 .bud-signout:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* iOS Safari zooms the whole page when a focused control's text is under
+   16px, and the zoom doesn't revert on blur. One clamp at the shell covers
+   every tab's inputs, so no panel stylesheet can reintroduce it. The :not()
+   pair isn't (only) semantic — it lifts specificity to (0,3,1) so panel
+   selectors like `.txl-edit input[type="text"]` (0,2,1) can't win. */
+@media (max-width: 768px) {
+  .bud input:not([type="checkbox"]):not([type="radio"]),
+  .bud select,
+  .bud textarea {
+    font-size: 16px;
+  }
+  .bud-retry,
+  .bud-signout {
+    min-height: 40px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -92,7 +92,9 @@
 
 .txl-row {
   display: grid;
-  grid-template-columns: 110px 1fr 130px 170px 100px;
+  /* Amount column grows past 100px when a split chip rides along — the
+     table's overflow:hidden would otherwise clip the digits. */
+  grid-template-columns: 110px 1fr 130px 170px minmax(100px, max-content);
   gap: 10px;
   align-items: center;
   padding: 12px 16px;
@@ -281,9 +283,12 @@
   color: var(--blue);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .txl-row {
-    grid-template-columns: 90px 1fr 90px;
+    /* max-content, not 90px: "$1,234.56" + a split chip is ~115px and the
+       table's overflow:hidden clips fixed tracks. The merchant column takes
+       the squeeze instead — it ellipsizes. */
+    grid-template-columns: 90px minmax(0, 1fr) max-content;
     grid-template-areas:
       "date merchant amount"
       "cat cat cat"
@@ -378,6 +383,8 @@
 .txl-split-btns {
   display: flex;
   gap: 6px;
+  /* Five pills ≈ 292px — narrower phones need the strip to wrap. */
+  flex-wrap: wrap;
 }
 
 .txl-split-btn {
@@ -400,4 +407,23 @@
   color: #fff;
   background: var(--blue);
   border-color: var(--blue);
+}
+
+/* Touch ergonomics: ~40px targets on everything tappable. (The 16px input
+   clamp that stops iOS focus-zoom lives on the .bud shell.) */
+@media (max-width: 768px) {
+  .txl-export,
+  .txl-more {
+    min-height: 40px;
+  }
+  .txl-badge,
+  .txl-split-btn,
+  .txl-edit-actions button {
+    min-height: 36px;
+  }
+  /* Grow the amount button's hit area without moving the layout. */
+  .txl-amount-btn {
+    padding: 9px 4px;
+    margin: -9px -4px;
+  }
 }

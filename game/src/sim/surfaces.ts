@@ -183,6 +183,8 @@ export function slotNearRay(
 export interface SurfaceCensus {
   floor: number;
   wall: number;
+  /** Wall tiles the map refuses. Painted differently, and counted separately. */
+  noBuildWall: number;
   ceiling: number;
   sigil: number;
   unhallowed: number;
@@ -205,5 +207,5 @@ export function censusOf(slots: SurfaceSlot[], floor: number, env: number): Surf
     else if (s.surface === SURF.sigil) sigil++;
     else if (s.surface === SURF.unhallowed) unhallowed++;
   }
-  return { floor, wall, ceiling, sigil, unhallowed, env };
+  return { floor, wall, noBuildWall: 0, ceiling, sigil, unhallowed, env };
 }

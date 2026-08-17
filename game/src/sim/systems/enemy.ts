@@ -53,6 +53,64 @@ export function statusSystem(w: World): void {
 }
 
 /**
+ * How often the hymn is *audible/visible*, in ticks. The healing itself is
+ * continuous; the pulse is presentation cadence, on a shared beat (`w.tick`
+ * phase) so every Preacher in earshot sings in unison — which is both cheaper
+ * than per-body timers and better fiction.
+ */
+const HEAL_PULSE_TICKS = 36;
+
+/**
+ * System 3b — the Hollow Preacher's hymn (§8).
+ *
+ * Restores HP to every *other* body in range and cleanses their slows. Two
+ * rules do the design work:
+ *
+ *   - It never heals itself, so "kill it yourself" stays a decision with a
+ *     fixed price (two revolver rounds) rather than a DPS race.
+ *   - It keeps singing while clamped in a trap. Traps must not be the answer
+ *     to the unit whose argument is "your traps have stopped working".
+ *
+ * O(n × preachers), which is fine at weight 3 — and the loop shape is the same
+ * one separationSystem already lives with.
+ */
+export function healSystem(w: World): void {
+  const e = w.enemies;
+
+  for (let i = 0; i < e.alive.length; i++) {
+    if (!e.alive[i]) continue;
+    const def = enemyDef(e.defId[i]);
+    const heal = def.heal;
+    if (!heal) continue;
+
+    const r2 = heal.radius * heal.radius;
+    let landed = false;
+
+    for (let j = 0; j < e.alive.length; j++) {
+      if (j === i || !e.alive[j]) continue;
+      const dx = e.x[j] - e.x[i];
+      const dz = e.z[j] - e.z[i];
+      if (dx * dx + dz * dz > r2) continue;
+
+      if (e.slowed[j] > 0) {
+        e.slowed[j] = 0;
+        landed = true;
+      }
+      if (e.hp[j] < e.maxHp[j]) {
+        e.hp[j] = Math.min(e.maxHp[j], e.hp[j] + heal.rate * STEP);
+        landed = true;
+      }
+    }
+
+    // The tell. §8's telegraph rule generalises: an aura with no cue is a lane
+    // that stopped working for no visible reason, which reads as a bug.
+    if (landed && w.tick % HEAL_PULSE_TICKS === 0) {
+      w.events.push(EV.healPulse, e.x[i], e.y[i] + def.height * 0.8, e.z[i], e.defId[i]);
+    }
+  }
+}
+
+/**
  * System 4 — the melee half of ThinkSystem.
  *
  * A telegraphed swing, not an instant touch: `windup` gives the player a window
@@ -150,8 +208,27 @@ export function enemyMoveSystem(w: World): void {
     // flowDir, not a raw cell lookup: a body standing in a blocked cell's skirt
     // has no flow of its own and would otherwise freeze forever (see level.ts).
     flowDir(level, e.x[i], e.z[i], flow);
-    const dirX = flow[0];
-    const dirZ = flow[1];
+    let dirX = flow[0];
+    let dirZ = flow[1];
+
+    /*
+     * Feared bodies run from the player rather than toward the Rift (§7.3 Peal).
+     *
+     * Steering away from the PLAYER, not simply reversing the flow field:
+     * reversing sends them back down the lane they came from, which is where
+     * the traps are, and a crowd-control verb that herds enemies INTO the kill
+     * box would read as a reward rather than a reprieve.
+     */
+    if (e.feared[i] > 0) {
+      e.feared[i]--;
+      const fx = e.x[i] - w.player.x;
+      const fz = e.z[i] - w.player.z;
+      const len = Math.hypot(fx, fz);
+      if (len > 1e-4) {
+        dirX = fx / len;
+        dirZ = fz / len;
+      }
+    }
 
     const control = airborne ? LAUNCH.airControl : 1;
     const rate = def.turnRate * STEP * def.speed * control;

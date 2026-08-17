@@ -31,6 +31,24 @@ export interface LightShaft {
   height: number;
 }
 
+/**
+ * An authored lantern: a warm point light with a visible source.
+ *
+ * Underground the hemisphere is a floor, not an image — MAPS §6's own rule is
+ * that when a cavern reads too dark "the fix is lantern density rather than fog
+ * distance", so lanterns are site data the way gates are. The renderer hangs a
+ * light here and the dressing builds the lantern it hangs from, because a glow
+ * with no source reads as a bug (the gate-arch rule, scene.ts).
+ */
+export interface LampDef {
+  x: number;
+  /** Height of the flame, absolute metres — lamps hang at gallery height too. */
+  y: number;
+  z: number;
+  /** Standing lamp: the dressing adds a post from the ground to the bracket. */
+  post?: boolean;
+}
+
 export interface Atmosphere {
   sky: SkyKind;
   /**
@@ -45,6 +63,8 @@ export interface Atmosphere {
   /** Hemisphere bounce. It carries the whole image once the moon is gone. */
   hemi: number;
   shaft?: LightShaft;
+  /** Authored lantern pools. The dark sites carry their own light sources. */
+  lamps?: LampDef[];
 }
 
 /**

@@ -49,6 +49,22 @@ export const EV = {
   trapUpgraded: 26,
   /** Arrived at a new site. `a` is the SiteId. */
   siteEntered: 27,
+  abilityFired: 28,
+  kegThrown: 29,
+  kegBlast: 30,
+  revenantRose: 31,
+  revenantFell: 32,
+  revenantFired: 33,
+  fanShot: 34,
+  /* Renumbered twice now: 29/30 were reused by kegThrown/kegBlast, then 34 by
+     fanShot — parallel branches assign these by hand and a duplicate
+     discriminant means one event plays another's sound. Ids are runtime-only
+     (never persisted) so renumbering is free, and the uniqueness test in
+     sim.test.ts is what catches the next collision. */
+  /** A Hollow Preacher's hymn landed — bodies nearby are healing (§8). */
+  healPulse: 36,
+  /** An environmental one-shot was brought down (§4). `a` is the slot index. */
+  envFired: 35,
 } as const;
 
 export type EvKind = (typeof EV)[keyof typeof EV];

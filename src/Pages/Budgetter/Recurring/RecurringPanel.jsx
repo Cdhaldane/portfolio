@@ -272,6 +272,7 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
               type="month"
               className="rec-input-month"
               title="Since when you've been paying this — backdating fills earlier months on the dashboard"
+              aria-label="Paying since (month)"
               value={editForm.startMonth}
               onChange={(e) => setEditForm((f) => ({ ...f, startMonth: e.target.value }))}
             />
@@ -421,6 +422,7 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
           type="month"
           className="rec-input-month"
           title='Since when — backdate (e.g. 2026-04) and the dashboard fills those months too. Blank = this month.'
+          aria-label="Paying since (month) — blank means this month"
           value={form.startMonth}
           onChange={(e) => setForm((f) => ({ ...f, startMonth: e.target.value }))}
         />

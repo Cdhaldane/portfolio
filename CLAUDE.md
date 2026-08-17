@@ -1,4 +1,29 @@
-# Design Philosophy — Charlie Haldane Portfolio
+# Charlie Haldane Portfolio
+
+## 0. Ground rules — read first
+
+**Never launch a browser or run a browser-automation script unless I explicitly ask
+in that message.** This includes Puppeteer/Playwright, `scripts/smoke-game.mjs`,
+`scripts/capture-game.mjs`, `scripts/verify-mounts.mjs`, and anything else that opens
+Chrome or Edge — headless or not.
+
+Why: these drive a real browser, and `/hymn` takes **pointer lock**. Scripted mouse
+moves are then delivered as raw pointer input and they **take over my physical
+cursor**, mid-whatever-I-am-doing. It is not a background activity; it grabs the
+machine. This happened repeatedly during the M1.3 wall-grid work while I was playing
+a game, and it is disruptive enough that "it would be good verification" never
+outweighs it.
+
+What to do instead, by default:
+
+- Verify with the headless suites — `npm run test:game` covers the sim, models,
+  replays, sites, surfaces, blockades and the wall lattice.
+- `npx tsc --noEmit` and `npx vite build` are always fine; they touch nothing.
+- If something genuinely can only be proven in a browser, **say so and ask.** Name
+  the script and what it would prove, then wait. Do not run it and apologise after.
+- If I do approve a run, it is approval for **that** run, not standing permission.
+
+---
 
 > The portfolio is the product. Every page should *demonstrate* craft, not just
 > describe it. If a visitor can feel the attention to motion, layout, and detail

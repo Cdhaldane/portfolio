@@ -9,8 +9,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { fetchBoard, type BoardState } from "../host/board.ts";
 import { PHASE } from "../sim/world.ts";
 import { ELEM } from "../sim/traps.ts";
+import { DBG, type DbgAction } from "../sim/commands.ts";
+import { ENEMIES } from "../sim/enemies.ts";
 import { Game, type HudState, type HudSlot, type PerfState } from "../host/loop.ts";
 import { CSS } from "../render/palette.ts";
 import { defaultHeroId } from "../render/models/hero.ts";
@@ -62,6 +65,14 @@ function Play() {
     () => new URLSearchParams(location.search).has("dev"),
   );
   /**
+   * The dev cheat menu (§19.2). Gated twice: the panel only exists under `?dev`,
+   * and every button routes through CMD.debug, which taints the run and keeps it
+   * off the leaderboard (host/loop.ts) — so leaving it open costs nothing until
+   * something is actually clicked.
+   */
+  const isDev = new URLSearchParams(location.search).has("dev");
+  const [showDev, setShowDev] = useState(false);
+  /**
    * What the muster screen has chosen so far.
    *
    * Seeded from the URL so `?hero=ada` still selects a body — that was the
@@ -82,6 +93,14 @@ function Play() {
    * is why there is no hitch between the last click and the first frame.
    */
   const [started, setStarted] = useState(false);
+  /**
+   * Bumped to force a fresh world when the player returns to the muster screen.
+   *
+   * Without it, abandoning a run and re-picking the same map would rebuild
+   * nothing — the site-change effect would see identical deps — and "new run"
+   * would silently drop the player back into the round they walked away from.
+   */
+  const [runId, setRunId] = useState(0);
 
   /*
    * The game is rebuilt when the SITE changes, which is what makes the card's
@@ -115,6 +134,15 @@ function Play() {
         e.preventDefault();
         setShowPerf((v) => !v);
       }
+      // The cheat menu. F4 because backquote is the perf overlay's. Opening it
+      // releases pointer lock — a menu you cannot click is a screenshot.
+      if (e.code === "F4" && !e.repeat && isDev) {
+        e.preventDefault();
+        setShowDev((v) => {
+          if (!v) document.exitPointerLock?.();
+          return !v;
+        });
+      }
       // Mute is presentation, not a sim command, so it never enters the replay.
       if (e.code === "KeyM" && !e.repeat) {
         e.preventDefault();
@@ -131,7 +159,7 @@ function Play() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see the note above:
     // the hero is applied by `setHero`, not by rebuilding the world.
-  }, [muster.site]);
+  }, [muster.site, runId]);
 
   /*
    * The hero is swapped in place instead. It is a render-only choice
@@ -149,6 +177,19 @@ function Play() {
     gameRef.current?.requestPointerLock();
   };
 
+  /**
+   * Back to the muster screen, on a fresh world.
+   *
+   * Bumping `runId` is the load-bearing half: returning to the menu has to
+   * *end* the run, not pause it, or the next "take the vigil" would resume a
+   * round the player had already abandoned — and the map preview behind the
+   * cards would be showing a half-played site.
+   */
+  const toMuster = (): void => {
+    setStarted(false);
+    setRunId((n) => n + 1);
+  };
+
   return (
     <div className="gh">
       <canvas ref={canvasRef} className="gh-canvas" />
@@ -156,13 +197,23 @@ function Play() {
       {hud && locked && <Hud hud={hud} />}
       {locked && muted && <div className="gh-muted">MUTED · M</div>}
       {showPerf && perf && <Perf perf={perf} />}
+      {isDev && showDev && hud && (
+        <DevMenu
+          hud={hud}
+          onCmd={(action, value) => gameRef.current?.debug(action, value)}
+          onClose={() => setShowDev(false)}
+        />
+      )}
 
       {/*
         * The muster screen shows until the first time the player rings in; after
-        * that, releasing the mouse returns to the run's own overlay (pause,
-        * death, the record) rather than back to a map picker. Re-mustering
-        * mid-run would mean discarding the run, and a menu that can silently
-        * throw away your best round is a menu that gets clicked by accident.
+        * that, releasing the mouse returns to the run's own overlay — pause,
+        * death, the record — which is where the way back to the menu lives.
+        *
+        * It is a *button on the pause card* rather than this branch flipping
+        * back on its own, because leaving mid-run discards the run. Confirming
+        * is the whole design: a menu that can silently throw away your best
+        * round is a menu that gets clicked by accident.
         */}
       {!locked &&
         (started ? (
@@ -170,6 +221,7 @@ function Play() {
             booting={booting}
             hud={hud}
             onPlay={start}
+            onMuster={toMuster}
             onDownload={() => gameRef.current?.downloadReplay()}
           />
         ) : (
@@ -183,6 +235,110 @@ function Play() {
             }
           />
         ))}
+    </div>
+  );
+}
+
+/**
+ * The dev cheat menu (§19.2) — `?dev` plus F4.
+ *
+ * Every button is a `CMD.debug` press into the command stream, so a cheated run
+ * is still deterministic, still replayable, and still hash-checked; the sim
+ * taints it (`debugUsed`) and the host keeps it off the leaderboard. The panel
+ * reads its truth back off the HUD snapshot rather than tracking its own state,
+ * so the toggles can never disagree with the sim about whether god mode is on.
+ */
+function DevMenu({
+  hud,
+  onCmd,
+  onClose,
+}: {
+  hud: HudState;
+  onCmd: (action: DbgAction, value?: number) => void;
+  onClose: () => void;
+}) {
+  const [round, setRound] = useState("10");
+
+  const jump = (): void => {
+    const r = Math.max(1, Math.round(Number(round) || 1));
+    onCmd(DBG.round, r);
+  };
+
+  return (
+    <div className="gh-dev">
+      <div className="gh-dev-head">
+        <b>DEV</b>
+        {hud.debugUsed && <span className="gh-dev-taint">off the board</span>}
+        <button className="gh-dev-x" onClick={onClose} aria-label="close">
+          ×
+        </button>
+      </div>
+
+      <div className="gh-dev-readout">
+        round {hud.round} · {hud.scrap} scrap · {hud.alive} up ·{" "}
+        {hud.remaining} to come
+      </div>
+
+      <div className="gh-dev-row">
+        <label>round</label>
+        <input
+          value={round}
+          inputMode="numeric"
+          onChange={(e) => setRound(e.target.value.replace(/[^0-9]/g, ""))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") jump();
+            e.stopPropagation(); // typing must not fire game binds (Q/E/R…)
+          }}
+        />
+        <button onClick={jump}>jump</button>
+        {[1, 5, 8, 10, 20].map((r) => (
+          <button key={r} onClick={() => onCmd(DBG.round, r)}>
+            {r}
+          </button>
+        ))}
+      </div>
+
+      <div className="gh-dev-row">
+        <label>scrap</label>
+        <button onClick={() => onCmd(DBG.scrap, 1000)}>+1k</button>
+        <button onClick={() => onCmd(DBG.scrap, 10000)}>+10k</button>
+        <button
+          data-on={hud.freeBuild || undefined}
+          onClick={() => onCmd(DBG.freeBuild, hud.freeBuild ? 0 : 1)}
+        >
+          free build {hud.freeBuild ? "· ON" : ""}
+        </button>
+      </div>
+
+      <div className="gh-dev-row">
+        <label>vigil</label>
+        <button
+          data-on={hud.god || undefined}
+          onClick={() => onCmd(DBG.god, hud.god ? 0 : 1)}
+        >
+          god {hud.god ? "· ON" : ""}
+        </button>
+        <button onClick={() => onCmd(DBG.heal)}>heal + vigil</button>
+      </div>
+
+      <div className="gh-dev-row">
+        <label>wave</label>
+        <button onClick={() => onCmd(DBG.killAll)}>kill all</button>
+        <button onClick={() => onCmd(DBG.endRound)}>end round</button>
+      </div>
+
+      <div className="gh-dev-row gh-dev-spawn">
+        <label>spawn</label>
+        {ENEMIES.map((d) => (
+          <button key={d.id} onClick={() => onCmd(DBG.spawn, d.id)}>
+            {d.name.toLowerCase()}
+          </button>
+        ))}
+      </div>
+
+      <div className="gh-dev-note">
+        F4 to toggle · any use keeps this run off the leaderboard
+      </div>
     </div>
   );
 }
@@ -319,10 +475,34 @@ function Hud({ hud }: { hud: HudState }) {
           ))}
         </div>
         <span className="gh-weapon">
-          {hud.reloading ? "RELOADING…" : "ABSOLUTION"}
+          {hud.reloading ? "RELOADING…" : hud.weaponName}
         </span>
+
+        {/*
+          * The two weapon abilities (§7.3). Placed with the gun rather than with
+          * the hotbar because they belong to what is in your hands, not to what
+          * you are about to build — the same reason the weapon took hotbar row 0.
+          */}
+        <div className="gh-abilities">
+          {hud.abilities.map((a, i) => (
+            <div
+              key={a.key}
+              className="gh-ability"
+              data-ready={a.ready >= 1 || undefined}
+              data-active={a.active || undefined}
+            >
+              <span className="gh-ability-key">{i === 0 ? "Q" : "E"}</span>
+              <span className="gh-ability-name">{a.name}</span>
+              {a.ready < 1 && <span className="gh-ability-cd">{a.secondsLeft}</span>}
+              <div className="gh-ability-bar">
+                <i style={{ width: `${Math.min(1, a.ready) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="gh-boot" data-ready={hud.bootReady >= 1 || undefined}>
-          <span className="gh-boot-key">E</span>
+          <span className="gh-boot-key">V</span>
           <span className="gh-boot-name">THE BOOT</span>
           <div className="gh-boot-bar">
             <i style={{ width: `${Math.min(1, hud.bootReady) * 100}%` }} />
@@ -357,6 +537,49 @@ function Hud({ hud }: { hud: HudState }) {
 
       <Hotbar hud={hud} />
     </>
+  );
+}
+
+/**
+ * The tally board.
+ *
+ * Renders nothing at all when the deployment has no database — `fetchBoard` answers
+ * `configured: false` rather than failing, so a clone of this repo with no Neon URL
+ * shows a title screen with no leaderboard and no explanation of why, which is the
+ * correct amount of explanation.
+ *
+ * Fetched once when it mounts, never polled. The board changes when somebody
+ * somewhere finishes a run; nobody is watching it live.
+ */
+function Board() {
+  const [state, setState] = useState<BoardState | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchBoard().then((s) => {
+      if (alive) setState(s);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!state || !state.configured || state.entries.length === 0) return null;
+
+  return (
+    <div className="gh-board">
+      <h3>THE TALLY BOARD</h3>
+      <ol>
+        {state.entries.slice(0, 8).map((e, i) => (
+          <li key={`${e.name}-${e.created_at}`}>
+            <span className="gh-board-rank">{i + 1}</span>
+            <span className="gh-board-name">{e.name}</span>
+            <span className="gh-board-round">R{e.round}</span>
+            <span className="gh-board-tally">{e.tally.toLocaleString()}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -495,6 +718,12 @@ function Hotbar({ hud }: { hud: HudState }) {
         </div>
       )}
 
+      {hud.denyReason && (
+        /* Under the crosshair, not in a corner: it answers a question the player is
+           asking *right now*, about the thing they are pointing at. */
+        <p className="gh-deny">{hud.denyReason}</p>
+      )}
+
       <div className="gh-slots">
         {hud.slots.map((s, i) => {
           const icon = s.icon ? icons[s.icon] : undefined;
@@ -571,15 +800,30 @@ function Overlay({
   booting,
   hud,
   onPlay,
+  onMuster,
   onDownload,
 }: {
   booting: boolean;
   hud: HudState | null;
   onPlay: () => void;
+  onMuster: () => void;
   onDownload: () => void;
 }) {
   const dead = hud?.phase === PHASE.lost;
   const best = hud?.bestRound ?? 0;
+  /*
+   * Two-step confirm, but only while the run is still alive.
+   *
+   * Leaving mid-run discards it, and this card is one keypress from the game —
+   * Escape releases the mouse, so the player arrives here constantly, mid-round,
+   * just to think. A single-click "back to menu" sitting next to "resume" would
+   * eventually eat somebody's best round.
+   *
+   * Once dead there is nothing left to lose, so the same button is a plain,
+   * unconfirmed "new run" — asking "are you sure?" about a run that is already
+   * over is the kind of dialogue that trains people to click through dialogues.
+   */
+  const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="gh-overlay">
@@ -592,7 +836,7 @@ function Overlay({
           {booting
             ? "WARMING SHADERS…"
             : dead
-              ? `Round ${hud?.round}. Tally ${hud?.tally.toLocaleString()}. Reload to keep the vigil.`
+              ? `Round ${hud?.round}. Tally ${hud?.tally.toLocaleString()}. Take it up again when you're ready.`
               : hud && hud.round > 1
                 ? `Round ${hud.round} is posted. Spend the scrap, then ring the bell.`
                 : "Wire the ground. Ring the bell. Stand in it."}
@@ -622,6 +866,15 @@ function Overlay({
           </dl>
         )}
 
+        {dead && hud?.banked && (
+          /* Quiet on purpose. A leaderboard on a hidden page should confirm it took
+             the run and otherwise stay out of the way — and when there is no database
+             configured this simply never appears, rather than explaining itself. */
+          <p className="gh-banked">TALLIED ON THE BOARD</p>
+        )}
+
+        <Board />
+
         {dead && (hud?.newBestRound || hud?.newBestTally) && (
           <p className="gh-newbest">
             {hud?.newBestRound && hud?.newBestTally
@@ -633,9 +886,35 @@ function Overlay({
         )}
 
         <div className="gh-actions">
-          <button className="gh-play" onClick={onPlay} disabled={booting}>
+          <button
+            className="gh-play"
+            onClick={() => {
+              setConfirming(false);
+              onPlay();
+            }}
+            disabled={booting}
+          >
             {booting ? "…" : dead ? "LOOK AWAY" : "TAKE THE VIGIL"}
           </button>
+
+          <button
+            className="gh-secondary"
+            data-confirm={confirming || undefined}
+            onClick={() => {
+              if (dead || confirming) onMuster();
+              else setConfirming(true);
+            }}
+          >
+            {dead ? "NEW RUN" : confirming ? "ABANDON IT?" : "MUSTER"}
+            <span>
+              {dead
+                ? "pick ground & Vigil"
+                : confirming
+                  ? "this round is lost"
+                  : "change ground or Vigil"}
+            </span>
+          </button>
+
           {dead && (hud?.replayBytes ?? 0) > 0 && (
             <button className="gh-secondary" onClick={onDownload}>
               SAVE REPLAY

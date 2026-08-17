@@ -116,6 +116,20 @@ await page.waitForFunction(
   },
   { timeout: 60000 },
 );
+/*
+ * Anchor every later move at the button we clicked.
+ *
+ * Puppeteer reports mouse moves as DELTAS from its own last position, and the trusted
+ * click that earns pointer lock leaves the cursor on the play button. Moving to any
+ * other coordinate afterwards is therefore one enormous delta that spins the camera
+ * off the map — which is why, for three attempts, only the very first sample of a
+ * sweep ever resolved and every one after it read -1. Panning from the anchor keeps
+ * every delta small and deliberate.
+ */
+const anchor = await page.$eval(".gh-play", (el) => {
+  const r = el.getBoundingClientRect();
+  return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+});
 await page.click(".gh-play");
 await page.waitForFunction(() => document.pointerLockElement !== null, { timeout: 15000 });
 
@@ -133,12 +147,14 @@ await beat();
 let st = await read();
 if (!st) throw new Error("no debug hook — the game did not boot");
 note.push(`armed wall trap: buildMode=${st.buildMode} mountSlots=${st.mountSlots}`);
-if (st.mountSlots !== 3) {
-  fail.push(`arming a wall trap offers ${st.mountSlots} mounts — Boot Hill authors 3`);
+/* Boot Hill derives a couple of hundred wall tiles now — walls are a lattice, not a
+   list of authored mounts, so this checks for "generous" rather than a magic number. */
+if (st.mountSlots < 50) {
+  fail.push(`arming a wall trap offers only ${st.mountSlots} wall tiles`);
 }
-// The marks are the visible half of the feature: no marks, no way to know where.
-if (st.marks !== 3) {
-  fail.push(`${st.marks} chalk marks drawn for 3 free mounts`);
+// The lattice is the visible half of the feature: no marks, no way to know where.
+if (st.marks < 50) {
+  fail.push(`${st.marks} wall tiles drawn against ${st.mountSlots} buildable`);
 }
 
 /*
@@ -154,24 +170,47 @@ if (st.marks !== 3) {
  * This is the same trap M0.9's upgrade-panel harness fell into. Not moving is the
  * reliable option; the sweep below is the fallback, in small relative nudges.
  */
-let found = st.aimSlot >= 0 ? st.aimSlot : -1;
+/* `canPlace`, not just "aimed at something". The spawn looks straight at Boot Hill's
+   crypt row, which is authored NO-BUILD — so the first thing the crosshair finds is a
+   face the game is right to refuse, and a harness that only checked "did I hit a wall
+   tile" would call that a bug. */
+let found = st.canPlace ? st.aimCell : -1;
 if (found >= 0) {
-  note.push(`already aimed at mount ${found} from the spawn (aimCell ${st.aimCell})`);
+  note.push(`already aimed at a buildable face from the spawn (aimCell ${found})`);
 }
-outer: for (let i = 0; found < 0 && i < 8; i++) {
-  for (const [dx, dy] of [[40, 0], [0, 25], [-40, 0], [0, -25]]) {
-    await page.mouse.move(800 + dx, 450 + dy);
-    await beat(320);
-    st = await read();
-    if (st && st.aimSlot >= 0) {
-      found = st.aimSlot;
-      note.push(`snapped to mount ${found} after nudging (aimCell ${st.aimCell})`);
-      break outer;
-    }
+/* Deltas have to ACCUMULATE. The first version nudged right, down, left, up — four
+   moves summing to zero — so it hovered over the same square metre of crypt for
+   thirty samples and reported that no buildable face existed anywhere. Panning in one
+   direction sweeps the room. */
+/* Pitch has to descend MONOTONICALLY as well as pan.
+   Puppeteer's first move is a delta from wherever the trusted play-button click left
+   the cursor — near the bottom of the screen — so moving to y=450 throws the camera at
+   the sky, and a pitch pattern that nets to zero leaves it there. Walking y downward
+   recovers from that no matter where the click left us. */
+/* Walk in first.
+   The crosshair rests ~8 degrees down (§7), so at range it passes UNDER a 4m wall —
+   from the spawn only the crypt row is close enough to be hit at all, and the crypt
+   row is exactly the face this map refuses. Closing the distance is what puts an
+   ordinary buildable wall under the crosshair, and it is also what a player does. */
+await page.keyboard.down("KeyA");
+await beat(2200);
+await page.keyboard.up("KeyA");
+await beat(400);
+
+let panX = anchor.x;
+for (let i = 0; found < 0 && i < 24; i++) {
+  panX += 40;
+  await page.mouse.move(panX, anchor.y - Math.floor(i / 6) * 30);
+  await beat(300);
+  st = await read();
+  if (i < 10) note.push(`  pan ${i}: aimCell=${st && st.aimCell} canPlace=${st && st.canPlace} marks=${st && st.marks}`);
+  if (st && st.canPlace) {
+    found = st.aimCell;
+    note.push(`found a buildable face after panning (aimCell ${found})`);
   }
 }
 if (found < 0) {
-  fail.push("swept the crypt row and never snapped to a wall mount (aimSlot stayed -1)");
+  fail.push("swept the walls and never found a buildable face");
 } else {
   // Place it. The click is at wherever the mouse already is, so the aim cannot
   // move between the check and the placement.
@@ -183,7 +222,7 @@ if (found < 0) {
   note.push(`after click: mounted=${st.mounted} (was ${before}) entities=${st.entities}`);
   if (st.mounted <= before) {
     fail.push(
-      `clicked on mount ${found} and no mounted trap appeared (mounted stayed ${st.mounted})`,
+      `clicked a buildable face (${found}) and no mounted trap appeared`,
     );
   }
 }

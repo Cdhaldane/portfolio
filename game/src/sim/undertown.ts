@@ -110,25 +110,55 @@ export const UNDERTOWN_OPENABLES: OpenableDef[] = [
  * Doorways are 3m: wide enough that the 0.45m agent radius leaves real clearance
  * after `bakeBlocked` inflates the jambs, narrow enough to still read as a door.
  */
-function wallX(out: Box[], x0: number, x1: number, z: number, gapAt?: number): void {
+/**
+ * `inward` shifts the wall half its own thickness into the building.
+ *
+ * `wallRun` centres a 0.6m wall on the line it is given, so a shell wall placed on the
+ * footprint edge protrudes 0.3m FURTHER than the solid mass it replaces — and an opened
+ * building then blocks more ground than the closed one did. That inverts the Boarding:
+ * opening the saloon pushed the Fall's path from 42.4m to 47.2m, five metres *longer*,
+ * because the shell claimed a lane cell the mass never touched.
+ *
+ * It was invisible while `bakeBlocked` over-padded every wall by a whole cell. The bake
+ * measures from each cell's centre now, so a 0.3m protrusion is a 0.3m protrusion.
+ */
+const SHELL = 0.3;
+
+function wallX(
+  out: Box[],
+  x0: number,
+  x1: number,
+  z: number,
+  gapAt?: number,
+  inward: 1 | -1 = 1,
+): void {
+  const zz = z + SHELL * inward;
   if (gapAt === undefined) {
-    wallRun(out, x0, z, x1, z, H);
+    wallRun(out, x0, zz, x1, zz, H);
     return;
   }
   const half = 1.5;
-  if (gapAt - half > x0) wallRun(out, x0, z, gapAt - half, z, H);
-  if (gapAt + half < x1) wallRun(out, gapAt + half, z, x1, z, H);
+  if (gapAt - half > x0) wallRun(out, x0, zz, gapAt - half, zz, H);
+  if (gapAt + half < x1) wallRun(out, gapAt + half, zz, x1, zz, H);
 }
 
 /** The same, along Z: a vertical wall at `x` with an optional doorway. */
-function wallZ(out: Box[], z0: number, z1: number, x: number, gapAt?: number): void {
+function wallZ(
+  out: Box[],
+  z0: number,
+  z1: number,
+  x: number,
+  gapAt?: number,
+  inward: 1 | -1 = 1,
+): void {
+  const xx = x + SHELL * inward;
   if (gapAt === undefined) {
-    wallRun(out, x, z0, x, z1, H);
+    wallRun(out, xx, z0, xx, z1, H);
     return;
   }
   const half = 1.5;
-  if (gapAt - half > z0) wallRun(out, x, z0, x, gapAt - half, H);
-  if (gapAt + half < z1) wallRun(out, x, gapAt + half, x, z1, H);
+  if (gapAt - half > z0) wallRun(out, xx, z0, xx, gapAt - half, H);
+  if (gapAt + half < z1) wallRun(out, xx, gapAt + half, xx, z1, H);
 }
 
 /**
@@ -163,10 +193,11 @@ function building(
     block(out, (x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, z1 - z0, H);
     return;
   }
-  wallX(out, x0, x1, z0, doors.north);
-  wallX(out, x0, x1, z1, doors.south);
-  wallZ(out, z0, z1, x0, doors.west);
-  wallZ(out, z0, z1, x1, doors.east);
+  // Each face shifted inward, so a shell occupies exactly the mass's footprint.
+  wallX(out, x0, x1, z0, doors.north, 1);
+  wallX(out, x0, x1, z1, doors.south, -1);
+  wallZ(out, z0, z1, x0, doors.west, 1);
+  wallZ(out, z0, z1, x1, doors.east, -1);
 }
 
 /** Solid party wall / untouched strata between two buildings. */
@@ -213,7 +244,12 @@ export function buildUndertown(open: readonly boolean[] = []): Box[] {
   // which is both what a frontier street looks like and what keeps the alley
   // sealed until somebody pays to open it.
   // South face (z=18) is Main Street; north face (z=6) is the alley.
-  mass(b, 2, 6, 4, 18);
+  /* Flush to the rock at x = 0, not x = 2.
+     The row is only "continuous" if it actually reaches the wall: a 1.7m gap between
+     the perimeter and the first mass is a corridor a 0.9m-wide body walks straight
+     down, into the alley this row exists to seal. It was invisible while `bakeBlocked`
+     over-padded every wall by a whole cell; the exact bake shows it. */
+  mass(b, 0, 6, 4, 18);
   building(b, 4, 6, 18, 18, is(OPEN.chapel), { south: 10, north: 10 });
   mass(b, 18, 6, 22, 18);
   building(b, 22, 6, 34, 18, is(OPEN.assay), { south: 28, north: 28 });
@@ -223,7 +259,7 @@ export function buildUndertown(open: readonly boolean[] = []): Box[] {
   building(b, 46, 6, 60, 18, is(OPEN.jail), { south: 52 });
   mass(b, 60, 6, 64, 18);
   building(b, 64, 6, 76, 18, is(OPEN.fetch), { south: 70, north: 70 });
-  mass(b, 76, 6, 78, 18);
+  mass(b, 76, 6, 80, 18);  // flush east, same reason
 
   // ── the street, z 18–30 ──────────────────────────────────────────────────
   // Boardwalks are 0.30m and buildable; the plaza mouth (x 26–46) has none.

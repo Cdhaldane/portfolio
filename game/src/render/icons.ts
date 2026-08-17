@@ -31,6 +31,8 @@ import {
 
 import { COLOR } from "./palette.ts";
 import { TRAP_MODELS, buildTrapGeometry } from "./models/traps.ts";
+import { buildRevolverGeometry } from "./models/hero.ts";
+import { WEAPONS } from "../sim/abilities.ts";
 
 /** Icon edge in device pixels. 96 is 2× the 48px slot — crisp on retina. */
 const SIZE = 96;
@@ -51,6 +53,20 @@ export type TrapIcons = Record<string, string>;
  * tests, a context-limited browser). The hotbar falls back to its text glyph, so
  * a missing icon is a cosmetic downgrade and never a crash.
  */
+/**
+ * Icons are keyed by the thing's own key — a trap's model name, a weapon's
+ * `WeaponDef.key`.
+ *
+ * This started as a single `"__weapon"` constant imported by `host/loop.ts`,
+ * which created a cycle (loop → icons → hero/scene → loop) and left the constant
+ * `undefined` at the moment `buildSlots` ran. The weapon row silently fell back
+ * to its text glyph while every trap rendered fine — a failure that looked
+ * exactly like "the geometry is broken" and wasn't.
+ *
+ * Keying off `WeaponDef.key` removes the import in the other direction entirely,
+ * and means each weapon gets its own picture the moment it has its own model.
+ */
+
 export function renderTrapIcons(keys: string[] = Object.keys(TRAP_MODELS)): TrapIcons {
   const out: TrapIcons = {};
 
@@ -81,8 +97,14 @@ export function renderTrapIcons(keys: string[] = Object.keys(TRAP_MODELS)): Trap
 
     const camera = new OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 
-    for (const name of keys) {
-      const geometry = buildTrapGeometry(name);
+    const weaponKeys = WEAPONS.map((wp) => wp.key);
+    for (const name of [...keys, ...weaponKeys]) {
+      /* Only Absolution has a model so far (models/hero.ts). The other three
+       * weapons share it until they are built, which is a placeholder the player
+       * can see rather than an empty slot they cannot. */
+      const geometry = weaponKeys.includes(name)
+        ? buildRevolverGeometry()
+        : buildTrapGeometry(name);
       const mesh = new Mesh(geometry, material);
       scene.add(mesh);
 

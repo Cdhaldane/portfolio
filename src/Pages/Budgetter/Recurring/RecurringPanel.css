@@ -88,10 +88,15 @@
 }
 
 /* "Paid from" account chip — neutral fill so it reads as metadata, not a
-   category. */
+   category. Clipped at 22ch (title carries the rest): the label is 40 free
+   chars and one unbroken account name must not push past the card edge. */
 .rec-from {
   color: var(--ink-soft);
   background: rgba(26, 26, 23, 0.07);
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 [data-theme="dark"] .rec-from {
@@ -259,6 +264,10 @@
   align-items: baseline;
   gap: 10px;
   min-width: 0;
+  /* A row can carry label + 3 chips; only the label shrinks, so on narrow
+     cards the chips must drop to the next line, not bleed under the amount. */
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 .rec-label {
@@ -354,7 +363,10 @@
   font-weight: 500;
 }
 
-@media (max-width: 640px) {
+/* 768px (site convention), not 640: a worst-case due string ("due the 28th ·
+   since 2025-04 · ended 2026-01") overflows the 4-column grid well above
+   640px. */
+@media (max-width: 768px) {
   .rec-row {
     grid-template-columns: 1fr auto;
     grid-template-areas: "main amount" "due actions";
@@ -368,10 +380,28 @@
   }
   .rec-due {
     grid-area: due;
+    /* The due string can't stay nowrap here — it alone can outgrow a 360px
+       card. Its ~1.6 line-height keeps two lines readable. */
+    white-space: normal;
+    min-width: 0;
   }
   .rec-actions {
     grid-area: actions;
     justify-self: end;
+  }
+  /* Fixed 90px/110px columns leave the bill's name ~50px at 360px — let
+     every column size to its content and give the label the slack. */
+  .rec-up-row {
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+  }
+  /* Touch ergonomics: ~40px targets. (The 16px input clamp that stops iOS
+     focus-zoom lives on the .bud shell.) */
+  .rec-btn {
+    min-height: 40px;
+  }
+  .rec-check {
+    padding: 8px 4px;
   }
 }
 

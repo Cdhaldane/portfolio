@@ -41,6 +41,13 @@ export const SFX = {
   launched: 23,
   windup: 24,
   runLost: 25,
+  abilityFire: 26,
+  abilityDenied: 27,
+  kegThrow: 28,
+  kegBlast: 29,
+  revenantRise: 30,
+  revenantShot: 31,
+  fanShot: 32,
 } as const;
 
 export type SfxId = (typeof SFX)[keyof typeof SFX];
@@ -195,6 +202,55 @@ export function render(id: SfxId, ctx: AudioContext, out: AudioNode, jitter: num
       tone(c, "sine", 120, 42, 0.85, 0.004, 0.2);
       noiseBurst(c, 0.35, 0.002, 0.1, "lowpass", 700, 180);
       return 0.28;
+
+    case SFX.abilityFire:
+      /* A weapon ability (§7.3). Deliberately unlike any trap: a struck bell
+       * over a short breath, so "I did that" never gets confused with "the
+       * machinery did that" in a loud round. */
+      tone(c, "triangle", 520, 260, 0.55, 0.002, 0.34);
+      metal(c, 1560, 0.22, 0.2);
+      noiseBurst(c, 0.18, 0.001, 0.12, "highpass", 2200, 900);
+      return 0.3;
+
+    case SFX.abilityDenied:
+      // Cooldown. A dull, closed sound — the opposite of the open bell above.
+      tone(c, "square", 180, 120, 0.09, 0.002, 0.07);
+      return 0.14;
+
+    case SFX.fanShot:
+      /* A fanned round: the same gun, hurried. Shorter tail and a touch brighter
+       * than SFX.revolver, so six of them in a row read as one continuous action
+       * rather than as the ordinary shot repeated — which at 4/sec would just
+       * sound like a stutter. */
+      metal(c, 1320, 0.42, 0.05);
+      noiseBurst(c, 0.5, 0.001, 0.07, "highpass", 1500, 800);
+      tone(c, "square", 150, 70, 0.3, 0.001, 0.05);
+      return 0.3;
+
+    case SFX.kegThrow:
+      // Underarm lob: a short scrape of rope and timber, no impact.
+      noiseBurst(c, 0.14, 0.01, 0.14, "bandpass", 620, 240, 1.2);
+      return 0.16;
+
+    case SFX.kegBlast:
+      // Powder, not a gunshot: low body, wide tail, deliberately louder than
+      // any trap so a detonation is never lost in a busy round.
+      tone(c, "sine", 90, 28, 0.95, 0.002, 0.5);
+      noiseBurst(c, 0.7, 0.001, 0.42, "lowpass", 1600, 300);
+      metal(c, 420, 0.3, 0.3);
+      return 0.42;
+
+    case SFX.revenantRise:
+      // Something coming up through the dirt. Rising pitch is the whole tell.
+      tone(c, "sawtooth", 70, 190, 0.4, 0.05, 0.55);
+      noiseBurst(c, 0.3, 0.02, 0.4, "lowpass", 900, 260);
+      return 0.3;
+
+    case SFX.revenantShot:
+      // A thinner, further-off revolver — an ally's gun, not yours.
+      metal(c, 1150, 0.3, 0.06);
+      noiseBurst(c, 0.22, 0.001, 0.09, "highpass", 1700, 700);
+      return 0.2;
 
     case SFX.bootWhiff:
       noiseBurst(c, 0.16, 0.02, 0.16, "bandpass", 1100, 380, 1.4);

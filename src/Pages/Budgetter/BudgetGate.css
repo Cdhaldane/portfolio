@@ -12,6 +12,9 @@
   --bad-text: #b23a1a; /* WCAG-passing status text (raw accent is 2.7:1) */
 
   min-height: 100vh;
+  /* dvh where supported: centering against iOS's large viewport pushes the
+     card below visual center while the toolbar is up. */
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   background:
@@ -131,8 +134,21 @@
   justify-content: flex-start;
 }
 
+/* Clerk's prebuilt card is a fixed 25rem — wider than a 360px phone's
+   column. Cap it to the gate's width; the card's internals are fluid. */
+.bud-gate-clerk .cl-rootBox,
+.bud-gate-clerk .cl-cardBox {
+  width: 100%;
+  max-width: 100%;
+}
+
 .bud-gate-back {
   margin-top: 28px;
+  /* Bare text link ~15px tall — give it a real touch target without
+     shifting the layout. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.78rem;
   letter-spacing: 0.08em;
@@ -143,6 +159,14 @@
 
 .bud-gate-back:hover {
   color: var(--blue);
+}
+
+/* Same iOS focus-zoom clamp as the app shell — Clerk's inputs default to
+   ~13px. !important because clerk-js injects its own high-specificity CSS. */
+@media (max-width: 768px) {
+  .bud-gate-clerk input {
+    font-size: 16px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -12,10 +12,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { CMD, type Command, type TickInput } from "../src/sim/commands.ts";
+import { CMD, DBG, type Command, type TickInput } from "../src/sim/commands.ts";
 import { EV } from "../src/sim/events.ts";
 import { hashWorld } from "../src/sim/hash.ts";
-import { buildLevel, cellOf, isPlaceable, tileOf } from "../src/sim/level.ts";
+import { buildLevel, cellOf, cellOfSlot, isPlaceable, tileOf } from "../src/sim/level.ts";
 import { step } from "../src/sim/step.ts";
 import {
   DUSTKIN,
@@ -36,7 +36,8 @@ import {
 } from "../src/sim/world.ts";
 import { SOURCE, damageEnemy, damagePlayer } from "../src/sim/systems/combat.ts";
 import { DEBUT_CAP, ENEMIES, ENEMY } from "../src/sim/enemies.ts";
-import { SITE } from "../src/sim/sites.ts";
+import { SITE, siteForRound } from "../src/sim/sites.ts";
+import { SURF } from "../src/sim/surfaces.ts";
 
 /**
  * A site has to leave enough build tiles to be defensible.
@@ -102,6 +103,32 @@ function sawEvent(w: World, kind: number): boolean {
   return false;
 }
 
+/**
+ * Trace the Sigil on the chalk circle nearest (x, z).
+ *
+ * It moved to the sigil family in M1.5 (§6 catalog #19), so it can no longer be put
+ * on open floor — a map traces four to six circles and where the Sigil goes is a
+ * decision the map makes half of.
+ */
+function traceSigil(w: World, defId: number, x: number, z: number): void {
+  let best = -1;
+  let bestD = Infinity;
+  for (let i = 0; i < w.level.slots.length; i++) {
+    const s = w.level.slots[i];
+    if (s.surface !== SURF.sigil) continue;
+    const d = Math.hypot(s.x - x, s.z - z);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  assert.ok(best >= 0, "the site traces no chalk circles");
+  run(w, 1, () => [
+    { t: CMD.selectSlot, slot: defId },
+    { t: CMD.place, cell: cellOfSlot(best) },
+  ]);
+}
+
 /** Place a trap directly, bypassing the aim plumbing. */
 function place(w: World, defId: number, x: number, z: number): void {
   // A trap's placement id is a BUILD TILE, never a nav cell (sim/level.ts).
@@ -147,7 +174,7 @@ function buildKillBox(w: World): void {
   place(w, TRAP.tar, 27, 17);
   place(w, TRAP.vent, 25, 17);
   place(w, TRAP.vent, 23, 17);
-  place(w, TRAP.sigil, 31, 17);
+  traceSigil(w, TRAP.sigil, 29, 17);
   assert.equal(w.traps.count, 5, "the kill-box failed to place");
 }
 
@@ -223,6 +250,136 @@ const LANE_TILES = (() => {
   }
   return tiles;
 })();
+
+describe("the event ring", () => {
+  it("gives every event kind a unique discriminant", () => {
+    /*
+     * Event ids are assigned by hand in three parallel feature branches, and a
+     * collision is silent: tsc does not flag duplicate values in a const object,
+     * and the symptom is one event playing another's sound (a keg detonation
+     * humming like a sigil). Found live when healPulse landed on kegThrown's 29.
+     */
+    const byValue = new Map<number, string>();
+    for (const [name, value] of Object.entries(EV)) {
+      const holder = byValue.get(value);
+      assert.equal(
+        holder,
+        undefined,
+        `EV.${name} and EV.${holder} share discriminant ${value}`,
+      );
+      byValue.set(value, name);
+    }
+  });
+});
+
+describe("the dev menu (CMD.debug, §19.2)", () => {
+  const dbg = (w: World, action: (typeof DBG)[keyof typeof DBG], value = 0): void => {
+    run(w, 1, () => [{ t: CMD.debug, action, value }]);
+  };
+
+  it("jumps to a round: build phase, right quota, clean slate", () => {
+    // Locked to the fixture map, so the jump is about the round, not travel.
+    const w = createWorld(31, SITE.creekPinch, true);
+    spawnEnemy(w, 20, 17, ENEMY.dustkin);
+    w.player.hp = 10;
+    w.vigil = 3;
+
+    dbg(w, DBG.round, 8);
+    assert.equal(w.round, 8);
+    assert.equal(w.phase, PHASE.build);
+    assert.equal(w.roundQuota, roundQuota(8));
+    assert.equal(w.enemies.count, 0, "the field must be cleared");
+    assert.equal(w.player.hp, w.player.maxHp, "arrive testing, not dying");
+    assert.equal(w.vigil, OBJECTIVE.startingVigil);
+    assert.equal(w.level.siteId, SITE.creekPinch, "a locked run must not travel");
+  });
+
+  it("a rotation run jumps to the round's own ground", () => {
+    // Same travel rule as playing there: moveSiteIfDue, not a second copy.
+    const w = createWorld(32, SITE.creekPinch);
+    dbg(w, DBG.round, 8);
+    assert.equal(w.level.siteId, siteForRound(8));
+  });
+
+  it("grants scrap, and free build makes traps and upgrades cost nothing", () => {
+    const w = newWorld(33);
+    const before = w.scrap;
+    dbg(w, DBG.scrap, 1000);
+    assert.equal(w.scrap, before + 1000);
+
+    dbg(w, DBG.freeBuild, 1);
+    const funded = w.scrap;
+    place(w, TRAP.jaws, 26.5, 17.5);
+    assert.equal(w.traps.count, 1, "the free trap must still place");
+    assert.equal(w.scrap, funded, "free build must not charge for the trap");
+
+    dbg(w, DBG.freeBuild, 0);
+    place(w, TRAP.tar, 29, 17);
+    assert.ok(w.scrap < funded, "prices must come back when toggled off");
+  });
+
+  it("god mode makes damagePlayer a no-op, and toggles back off", () => {
+    const w = newWorld(34);
+    dbg(w, DBG.god, 1);
+    damagePlayer(w, 50);
+    assert.equal(w.player.hp, w.player.maxHp, "god mode must eat the hit");
+
+    dbg(w, DBG.god, 0);
+    damagePlayer(w, 50);
+    assert.equal(w.player.hp, w.player.maxHp - 50);
+  });
+
+  it("ends the round the way the objective system would — payout included", () => {
+    const w = newWorld(35);
+    parkPlayer(w);
+    run(w, 1, () => [{ t: CMD.startWave }]);
+    spawnEnemy(w, 20, 17, ENEMY.dustkin);
+    spawnEnemy(w, 21, 17, ENEMY.dustkin);
+
+    const scrap = w.scrap;
+    const round = w.round;
+    // commandSystem runs before objectiveSystem in the same tick (§12.4), so
+    // one tick both empties the field and closes the round.
+    tick1(w, [{ t: CMD.debug, action: DBG.endRound, value: 0 }]);
+    assert.ok(sawEvent(w, EV.roundCleared), "the round must clear properly");
+    assert.equal(w.round, round + 1);
+    assert.equal(w.phase, PHASE.build);
+    assert.ok(w.scrap > scrap, "clearing must pay out, even a cheated clear");
+    assert.equal(w.kills, 0, "despawns are not kills");
+  });
+
+  it("spawns a chosen archetype at the gate", () => {
+    const w = newWorld(36);
+    dbg(w, DBG.spawn, ENEMY.coyote);
+    assert.equal(w.enemies.count, 1);
+    let found = -1;
+    for (let i = 0; i < w.enemies.alive.length; i++) {
+      if (w.enemies.alive[i]) found = i;
+    }
+    assert.ok(found >= 0);
+    assert.equal(w.enemies.defId[found], ENEMY.coyote);
+  });
+
+  it("taints the run — and stays deterministic, because cheats are commands", () => {
+    const script = (tick: number): Command[] | undefined => {
+      if (tick === 2) return [{ t: CMD.debug, action: DBG.round, value: 5 }];
+      if (tick === 4) return [{ t: CMD.debug, action: DBG.spawn, value: ENEMY.ironjaw }];
+      if (tick === 6) return [{ t: CMD.debug, action: DBG.scrap, value: 500 }];
+      if (tick === 8) return [{ t: CMD.startWave }];
+      return undefined;
+    };
+    const a = newWorld(37);
+    const b = newWorld(37);
+    run(a, 120, script);
+    run(b, 120, script);
+    assert.ok(a.debugUsed, "any debug command must taint the run");
+    assert.equal(
+      hashWorld(a),
+      hashWorld(b),
+      "the same cheats on the same seed must produce the same world",
+    );
+  });
+});
 
 describe("determinism (§13)", () => {
   // A scripted run that exercises input, the director, every trap, movement and
@@ -423,7 +580,7 @@ describe("the hotbar and the purse", () => {
   it("charges the armed trap's price, not a fixed one", () => {
     const w = newWorld(201);
     const start = w.scrap;
-    place(w, TRAP.sigil, 20, 17);
+    traceSigil(w, TRAP.sigil, 20, 17);
     assert.equal(w.traps.count, 1);
     assert.equal(w.scrap, start - TRAPS[TRAP.sigil].cost);
     assert.equal(w.traps.defId[0], TRAP.sigil);
@@ -432,7 +589,7 @@ describe("the hotbar and the purse", () => {
   it("refuses a trap you cannot afford", () => {
     const w = newWorld(202);
     w.scrap = TRAPS[TRAP.sigil].cost - 1;
-    place(w, TRAP.sigil, 20, 17);
+    traceSigil(w, TRAP.sigil, 20, 17);
     assert.equal(w.traps.count, 0);
     assert.equal(w.scrap, TRAPS[TRAP.sigil].cost - 1);
   });
@@ -461,7 +618,12 @@ describe("the hotbar and the purse", () => {
     const w = newWorld(205);
     const before = w.scrap;
     place(w, TRAP.jaws, w.level.rift.x, w.level.rift.z);
-    place(w, TRAP.jaws, 26, 5); // inside a wall stub
+    /* Inside a solid: the low blockhouse at (20, 8), whose 3.0 x 2.4 footprint is
+       big enough that a build tile's centre lands inside it. The old fixture aimed at
+       the 0.6m fence, and since the tile grew to 2m a fence no longer fills one — the
+       nearest tile centre is a metre clear of it, on open floor, and building beside a
+       fence is exactly what the coverage rule is meant to allow. */
+    place(w, TRAP.jaws, 21, 7);
     assert.equal(w.traps.count, 0);
     assert.equal(w.scrap, before);
 
@@ -723,6 +885,51 @@ describe("the roster (§8 — every enemy is an argument)", () => {
     assert.ok(w.spawnedByDef[ENEMY.buzzard] <= DEBUT_CAP, "a debut must be capped");
     assert.ok(w.spawnedByDef[ENEMY.dustkin] > 0, "the horde should still arrive");
   });
+
+  it("Hollow Preacher heals the flock — never itself, and not past full", () => {
+    const w = newWorld(506);
+    const p = spawnEnemy(w, 20, 17, ENEMY.preacher);
+    w.enemies.hp[p] = 30; // wounded, so self-healing would show
+    w.enemies.maxHp[p] = 65;
+    // Even clamped in a trap it keeps singing — traps must not be the answer
+    // to the anti-trap unit (sim/enemies.ts, the heal field's contract).
+    w.enemies.hold[p] = ticks(10);
+
+    const near = spawnEnemy(w, 22, 17, ENEMY.dustkin);
+    w.enemies.hp[near] = 10;
+    w.enemies.maxHp[near] = 45;
+    const far = spawnEnemy(w, 30, 17, ENEMY.dustkin); // 10m out, hymn is 8m
+    w.enemies.hp[far] = 10;
+    w.enemies.maxHp[far] = 45;
+
+    // Pin everyone, the same trick as the Buzzard kill-box test — this is a
+    // test of the aura, not of pathing.
+    for (let t = 0; t < ticks(2); t++) {
+      w.enemies.x[p] = 20;
+      w.enemies.z[p] = 17;
+      w.enemies.x[near] = 22;
+      w.enemies.z[near] = 17;
+      w.enemies.x[far] = 30;
+      w.enemies.z[far] = 17;
+      run(w, 1);
+    }
+
+    // 15 HP/s for 2s = +30, within a tick's rounding.
+    assert.ok(w.enemies.hp[near] > 35, "a wounded body in the hymn must heal");
+    assert.ok(w.enemies.hp[near] <= w.enemies.maxHp[near], "never past full");
+    assert.equal(w.enemies.hp[far], 10, "the hymn must have a radius");
+    assert.equal(w.enemies.hp[p], 30, "the Preacher must never heal itself");
+  });
+
+  it("the hymn cleanses slows, which is the anti-attrition argument", () => {
+    const w = newWorld(507);
+    spawnEnemy(w, 20, 17, ENEMY.preacher);
+    const i = spawnEnemy(w, 22, 17, ENEMY.dustkin);
+    w.enemies.slowed[i] = ticks(3);
+    w.enemies.slowFactor[i] = 0.5;
+    tick1(w);
+    assert.equal(w.enemies.slowed[i], 0, "a slowed body in the hymn must be cleansed");
+  });
 });
 
 describe("melee makes the player mortal", () => {
@@ -956,7 +1163,7 @@ describe("trap upgrades (§6 — exactly two, mutually exclusive)", () => {
 
   it("refuses an upgrade you cannot afford", () => {
     const w = newWorld(803);
-    place(w, TRAP.sigil, 20, 17);
+    traceSigil(w, TRAP.sigil, 20, 17);
     w.scrap = upgradeCost(TRAP.sigil) - 1;
     const before = w.scrap;
     run(w, 1, () => [{ t: CMD.upgrade, cell: tileOf(w.level, 20, 17), choice: 1 }]);

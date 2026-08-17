@@ -616,6 +616,9 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
+  /* The edit row (input + Save + Remove) outgrows a 360px card — drop it
+     under the category name instead of squeezing the name to nothing. */
+  flex-wrap: wrap;
   margin-bottom: 6px;
 }
 
@@ -671,6 +674,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .bdb-budget-edit input,
@@ -766,6 +770,54 @@
 
 .bdb-insight-row.is-bad {
   color: var(--bad-text);
+}
+
+/* ---- mobile ---- */
+
+/* Touch ergonomics: ~40px targets on everything tappable. (The 16px input
+   clamp that stops iOS focus-zoom lives on the .bud shell.) */
+@media (max-width: 768px) {
+  .bdb-toggle-btn,
+  .bdb-period-select {
+    min-height: 40px;
+  }
+  .bdb-chip--small,
+  .bdb-fresh-chip,
+  .bdb-budget-edit button {
+    min-height: 36px;
+  }
+  /* Text-only buttons: grow the hit area without moving the layout. */
+  .bdb-budget-nums {
+    padding: 10px 0;
+    margin: -10px 0;
+  }
+  .bdb-drill-all {
+    padding: 10px 0;
+  }
+}
+
+/* Category / merchant rows: at phone width the fixed columns leave the bar —
+   the actual visualization — a ~36px sliver. Give it its own full row. */
+@media (max-width: 480px) {
+  .bdb-cat {
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      "name value pct"
+      "bar bar bar";
+    row-gap: 5px;
+  }
+  .bdb-cat-name {
+    grid-area: name;
+  }
+  .bdb-cat-bar {
+    grid-area: bar;
+  }
+  .bdb-cat-value {
+    grid-area: value;
+  }
+  .bdb-cat-pct {
+    grid-area: pct;
+  }
 }
 
 .bdb-insight-row.is-good {

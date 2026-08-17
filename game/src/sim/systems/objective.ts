@@ -97,8 +97,11 @@ export function objectiveSystem(w: World): void {
  * full**, because losing a round's spending to a transition the player did not
  * choose would be a punishment for progressing. The scrap carries; the geometry
  * knowledge does not.
+ *
+ * Exported for the dev menu's round jump (systems/debug.ts), which must land on
+ * the same ground playing to that round would — one travel rule, not two.
  */
-function moveSiteIfDue(w: World): void {
+export function moveSiteIfDue(w: World): void {
   w.siteJustChanged = false;
   // The player picked this ground on the muster screen and the run stays on it.
   // Checked before `siteForRound` so a locked run never even asks.

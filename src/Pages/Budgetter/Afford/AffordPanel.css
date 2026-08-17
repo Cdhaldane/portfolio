@@ -114,6 +114,10 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
+  /* User-typed labels: one unbroken 60-char token must never widen the page. */
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-family: "Space Grotesk", sans-serif;
   font-weight: 600;
   font-size: 0.82rem;
@@ -570,6 +574,16 @@ select.afp-input option {
   color: var(--blue);
 }
 
+/* Comparison-table scenario names: clip at 18ch (title carries the rest) so
+   one long label can't add hundreds of px to every nowrap row. */
+.afp-link--clip {
+  display: block;
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .afp-error {
   font-size: 0.82rem;
   color: var(--bad-text);
@@ -595,6 +609,15 @@ select.afp-input option {
   font-size: 0.66rem;
   letter-spacing: 0.05em;
   color: var(--ink-soft);
+}
+
+/* The ellipsis has to live on a real inline box — text-overflow on the flex
+   container never clips its anonymous text child. */
+.afp-legend-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .afp-swatch {
@@ -905,6 +928,14 @@ select.afp-input option {
   overflow-y: auto;
 }
 
+/* The wrap scrolls vertically, so keep the column meanings on screen. Solid
+   surface: a translucent header over scrolling digits is unreadable. */
+.afp-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+}
+
 .afp-table {
   width: 100%;
   border-collapse: collapse;
@@ -981,6 +1012,26 @@ select.afp-input option {
   }
   .afp-meter-scale {
     flex-wrap: wrap;
+  }
+}
+
+/* Touch ergonomics: ~40px targets on everything tappable. (The 16px input
+   clamp that stops iOS focus-zoom lives on the .bud shell.) */
+@media (max-width: 768px) {
+  .afp-chip,
+  .afp-btn,
+  .afp-toggle-btn {
+    min-height: 40px;
+  }
+  .afp-chip--small {
+    min-height: 36px;
+  }
+  .afp-scenario {
+    padding: 12px 15px;
+  }
+  .afp-link {
+    padding: 10px 4px;
+    margin: -10px -4px;
   }
 }
 

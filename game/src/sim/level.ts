@@ -14,8 +14,17 @@
 
 import { DUSTKIN } from "./tuning.ts";
 import { OPEN_AIR, type Atmosphere } from "./atmosphere.ts";
+import { makeEnvSlots, type EnvSlots } from "./env.ts";
 import { type OpenableDef } from "./undertown.ts";
 import { siteDef, siteForRound, type GateDef } from "./sites.ts";
+import {
+  WALL_BASE,
+  buildWallTiles,
+  wallCensus,
+  wallOfCell,
+  type NoBuildRegion,
+  type WallTile,
+} from "./wallgrid.ts";
 import {
   SURF,
   censusOf,
@@ -41,9 +50,17 @@ export type { SurfaceCensus } from "./surfaces.ts";
  */
 export const SLOT_BASE = 1_000_000;
 
-/** The mount a synthetic cell id refers to, or -1 if it's an ordinary floor cell. */
+/**
+ * The mount a synthetic cell id refers to, or -1 for a floor tile or a wall tile.
+ *
+ * The upper bound is not decoration. Wall tiles live above `WALL_BASE`, which is also
+ * above `SLOT_BASE`, so without it a wall id decodes as a nonsense mount index — id
+ * 2,000,236 read back as "mount 1,000,236" and every caller that checked mounts
+ * before walls would have quietly taken the wrong branch.
+ */
 export function slotOfCell(cellIndex: number): number {
-  return cellIndex >= SLOT_BASE ? cellIndex - SLOT_BASE : -1;
+  if (cellIndex < SLOT_BASE || cellIndex >= WALL_BASE) return -1;
+  return cellIndex - SLOT_BASE;
 }
 
 export const cellOfSlot = (slot: number): number => SLOT_BASE + slot;
@@ -69,6 +86,14 @@ export const BOX = {
   deck: 4,
   /** Decor: headstones, troughs, wagons. Breaks sight, blocks nothing. */
   prop: 5,
+  /**
+   * Water, lava, a flooded cut — ground nothing walks on.
+   *
+   * The inverse of a prop: it stops movement and pathing while blocking neither sight
+   * nor shots. Flat (2cm), so a horizontal ray passes straight over it and the map
+   * still reads as open across it.
+   */
+  hazard: 6,
 } as const;
 
 export type BoxKind = (typeof BOX)[keyof typeof BOX];
@@ -89,6 +114,9 @@ export type BoxKind = (typeof BOX)[keyof typeof BOX];
 export function isSolidKind(kind: BoxKind): boolean {
   return kind !== BOX.step && kind !== BOX.deck && kind !== BOX.prop;
 }
+
+/** Flat ground you cannot cross. Handled apart from height everywhere it matters. */
+export const isHazardKind = (kind: BoxKind): boolean => kind === BOX.hazard;
 
 export interface Box {
   x0: number;
@@ -158,6 +186,15 @@ export interface Level {
    * being true, and the director makes roster decisions from it).
    */
   slots: SurfaceSlot[];
+  /**
+   * Every wall build tile, derived from the geometry (sim/wallgrid.ts).
+   *
+   * Rebuilt by `rebake`, because Undertown lets the player open buildings and a new
+   * doorway is new wall. Blockades are deliberately NOT a mounting surface: they are
+   * the player's own geometry and letting traps ride them would make a Brace a
+   * two-for-one, which is not what it costs.
+   */
+  wallTiles: WallTile[];
   rift: { x: number; z: number; radius: number };
   playerStart: { x: number; z: number; yaw: number };
   /** Sky, roof, fog and lighting. Presentation-only — no system reads it. */
@@ -195,15 +232,83 @@ export interface Level {
   blocked: Uint8Array;
   /** Cost-to-Rift per cell; Infinity where unreachable. */
   dist: Float32Array;
+  /** Authored faces that refuse traps. The exception, not the rule. */
+  noBuildWalls: NoBuildRegion[];
+  /** §4's one-shot environmental traps. At least one per site (MAPS §9 item 7). */
+  envSlots: EnvSlots;
+  /**
+   * Regions the flow field refuses to route through, with no geometry behind them.
+   *
+   * Shaft Nine's ore chutes: one-way drops the field "will not path down", but which
+   * the *player* can boot a body through for 6m of fall damage. MAPS §6 names the two
+   * options — a field per level with link cells, or non-navigable chutes — and calls
+   * the second "cheaper, correct for this map". This is that.
+   *
+   * It is deliberately not a `Box`: a box would stop the body as well as the path, and
+   * the whole point of a chute is that things can go down it.
+   */
+  navBlock: { x0: number; z0: number; x1: number; z1: number }[];
+  /** Regions of floor that accept arcane traps only (MAPS §9 item 5). */
+  unhallowed: { x0: number; z0: number; x1: number; z1: number }[];
   /** Scratch for `wouldSealLane`'s reachability passes. Never read outside it. */
   reachScratch: Uint8Array;
   reachQueue: Int32Array;
   /** Unit direction toward the Rift per cell. */
   flowX: Float32Array;
   flowZ: Float32Array;
+  /**
+   * Bumped by every `rebake`. Presentation reads it as "the routes may have
+   * moved" — it is what lets the ghost paths re-trace when a blockade goes up
+   * or comes down without diffing the field itself (sim/paths.ts).
+   */
+  bakeEpoch: number;
 }
 
 // ── flow field bake ────────────────────────────────────────────────────────
+
+/**
+ * Block the cells a `radius`-wide body genuinely cannot stand in.
+ *
+ * **Exact, not conservative, and the difference is half the map.**
+ *
+ * This used to inflate the box by the agent radius and then mark every cell the
+ * inflated band *touched*. Because a band that overhangs a cell by a millimetre claims
+ * the whole cell, a 2m wall blocked 4m of navigation and a 1-tile blockade consumed two
+ * tiles of passage. Every map was systematically narrower than it looked: Boot Hill's
+ * 4m orchard gap carried 2m of field, which is why three separate gaps had to be
+ * widened and why the player could see four open squares and be told a blockade would
+ * seal the last way through.
+ *
+ * The right test is the one a body actually has to pass: a cell is blocked when the
+ * distance from its **centre** to the box is less than the radius. Exact for a circular
+ * agent against an AABB, the same cost, and it makes a gap as wide as it looks.
+ */
+function markInflated(
+  level: Level,
+  x0: number,
+  z0: number,
+  x1: number,
+  z1: number,
+  radius: number,
+): void {
+  const { gw, gh, cell, blocked } = level;
+  const cx0 = Math.max(0, Math.floor((x0 - radius) / cell));
+  const cx1 = Math.min(gw - 1, Math.floor((x1 + radius) / cell));
+  const cz0 = Math.max(0, Math.floor((z0 - radius) / cell));
+  const cz1 = Math.min(gh - 1, Math.floor((z1 + radius) / cell));
+  const r2 = radius * radius;
+
+  for (let cz = cz0; cz <= cz1; cz++) {
+    const pz = (cz + 0.5) * cell;
+    const dz = Math.max(z0 - pz, 0, pz - z1);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      const px = (cx + 0.5) * cell;
+      const dx = Math.max(x0 - px, 0, px - x1);
+      // Centre inside the box gives dx = dz = 0, which is blocked, as it must be.
+      if (dx * dx + dz * dz < r2) blocked[cz * gw + cx] = 1;
+    }
+  }
+}
 
 function bakeBlocked(level: Level): void {
   const { gw, gh, cell, boxes, blocked } = level;
@@ -213,11 +318,19 @@ function bakeBlocked(level: Level): void {
     const box = boxes[i];
     // Only solid geometry tall enough to stop a walker blocks the field, and the
     // same predicate governs collision (see isSolidKind).
-    if (!isSolidKind(box.kind) || box.y1 < 1.0) continue;
-    const cx0 = Math.max(0, Math.floor((box.x0 - pad) / cell));
-    const cx1 = Math.min(gw - 1, Math.floor((box.x1 + pad) / cell));
-    const cz0 = Math.max(0, Math.floor((box.z0 - pad) / cell));
-    const cz1 = Math.min(gh - 1, Math.floor((box.z1 + pad) / cell));
+    /* Hazards are exempt from the height rule: water is 2cm tall and impassable, and
+       the 1m threshold exists to let bodies walk over kerbs, not lakes. */
+    if (!isSolidKind(box.kind)) continue;
+    if (!isHazardKind(box.kind) && box.y1 < 1.0) continue;
+    markInflated(level, box.x0, box.z0, box.x1, box.z1, pad);
+  }
+  // Authored no-path regions: a chute is a hole in the graph, not a wall.
+  for (let i = 0; i < level.navBlock.length; i++) {
+    const r = level.navBlock[i];
+    const cx0 = Math.max(0, Math.floor(r.x0 / cell));
+    const cx1 = Math.min(gw - 1, Math.floor(r.x1 / cell));
+    const cz0 = Math.max(0, Math.floor(r.z0 / cell));
+    const cz1 = Math.min(gh - 1, Math.floor(r.z1 / cell));
     for (let cz = cz0; cz <= cz1; cz++) {
       for (let cx = cx0; cx <= cx1; cx++) blocked[cz * gw + cx] = 1;
     }
@@ -226,13 +339,7 @@ function bakeBlocked(level: Level): void {
      They are padded identically: a body has to fit past one, not clip it. */
   for (let i = 0; i < level.blockBoxes.length; i++) {
     const box = level.blockBoxes[i];
-    const cx0 = Math.max(0, Math.floor((box.x0 - pad) / cell));
-    const cx1 = Math.min(gw - 1, Math.floor((box.x1 + pad) / cell));
-    const cz0 = Math.max(0, Math.floor((box.z0 - pad) / cell));
-    const cz1 = Math.min(gh - 1, Math.floor((box.z1 + pad) / cell));
-    for (let cz = cz0; cz <= cz1; cz++) {
-      for (let cx = cx0; cx <= cx1; cx++) blocked[cz * gw + cx] = 1;
-    }
+    markInflated(level, box.x0, box.z0, box.x1, box.z1, pad);
   }
 }
 
@@ -355,12 +462,26 @@ export function buildLevel(siteId: number = siteForRound(1)): Level {
     gates: def.gates,
     // Overwritten by `rebake` below; the floor count needs a baked field.
     census: censusOf(def.surfaces, 0, def.env),
-    slots: def.surfaces,
+    /*
+     * Authored WALL mounts are dropped: the wall lattice supersedes them.
+     *
+     * Filtered here rather than deleted from each map so no site file has to change
+     * — including `undertown.ts`, which is being written in parallel. Ceiling anchors
+     * and chalk sigils stay authored, because those genuinely are discrete places
+     * (one roof beam, one circle) rather than a surface with an extent.
+     */
+    slots: def.surfaces.filter((s) => s.surface !== SURF.wall),
+    wallTiles: [],
     rift: def.rift,
     playerStart: def.playerStart,
     atmosphere: def.atmosphere ?? OPEN_AIR,
     openables: def.openables ?? [],
     open: (def.openables ?? []).map(() => false),
+    noBuildWalls: def.noBuildWalls ?? [],
+    navBlock: def.navBlock ?? [],
+    unhallowed: def.unhallowed ?? [],
+    // Built after the boxes exist: each hangs above the ground it stands on.
+    envSlots: makeEnvSlots([], () => 0),
     blockTiles: new Uint8Array(tw * th),
     blockBoxes: [],
     blocked: new Uint8Array(gw * gh),
@@ -369,8 +490,12 @@ export function buildLevel(siteId: number = siteForRound(1)): Level {
     flowZ: new Float32Array(gw * gh),
     reachScratch: new Uint8Array(gw * gh),
     reachQueue: new Int32Array(gw * gh),
+    bakeEpoch: 0,
   };
   rebake(level);
+  /* After `rebake`, because each slot hangs above the ground beneath it and
+     `groundHeight` needs the boxes baked to answer. */
+  level.envSlots = makeEnvSlots(def.envSlots ?? [], (x, z) => groundHeight(level, x, z));
   return level;
 }
 
@@ -382,14 +507,20 @@ export function buildLevel(siteId: number = siteForRound(1)): Level {
  * grid is ~1.5k cells.
  */
 export function rebake(level: Level): void {
+  level.bakeEpoch++;
   bakeBlockades(level);
   bakeBlocked(level);
   bakeDistance(level);
   bakeFlow(level);
+  level.wallTiles = buildWallTiles(level, level.noBuildWalls);
+  // Walls are measured too, now that they are derived rather than listed.
+  const walls = wallCensus(level.wallTiles);
   // The census is recounted, never authored. Hollow Creek lets the player change
   // the geometry mid-site, so even the floor count is not a constant — and the
   // director makes roster decisions from these numbers (MAPS §3 G7).
   level.census = censusOf(level.slots, placeableCount(level), level.census.env);
+  level.census.wall = walls.wall;
+  level.census.noBuildWall = walls.noBuild;
 }
 
 /**
@@ -437,6 +568,14 @@ function bakeBlockades(level: Level): void {
  *     forever. "Do not take away a route that currently exists" is the honest
  *     version, and it still covers gates that open in later rounds, because those
  *     are reachable long before they are active.
+ *  3. **A gate is its spawn AREA, not one nav cell.** The first version tested the
+ *     cell under the gate's exact centre, and a blockade whose padded footprint
+ *     merely touched that cell read as a seal — even though the director scatters
+ *     spawns across the gate mouth and a body arriving beside the barricade walks
+ *     around it without breaking stride. Every false "can't place that" this rule
+ *     ever produced was this case: the lane was narrowed, the route survived, and
+ *     the single-cell test couldn't see it. A gate now counts as routed while ANY
+ *     cell in its spawn reach still reaches the Rift.
  */
 export function wouldSealLane(level: Level, tile: number): boolean {
   if (tile < 0 || tile >= level.blockTiles.length) return false;
@@ -445,21 +584,52 @@ export function wouldSealLane(level: Level, tile: number): boolean {
   const gates = level.gates;
   if (gates.length === 0) return false;
 
-  // Reachability as it stands, then as it would be.
+  // Reachability as it stands, then as it would be — same yardstick both times.
   reach(level, -1);
-  const before = level.reachScratch;
   const wasReachable: boolean[] = [];
   for (let i = 0; i < gates.length; i++) {
-    const c = cellOf(level, gates[i].x, gates[i].z);
-    wasReachable.push(c >= 0 && before[c] === 1);
+    wasReachable.push(gateReached(level, gates[i].x, gates[i].z));
   }
 
   reach(level, tile);
-  const after = level.reachScratch;
   for (let i = 0; i < gates.length; i++) {
     if (!wasReachable[i]) continue;
-    const c = cellOf(level, gates[i].x, gates[i].z);
-    if (c < 0 || after[c] !== 1) return true;
+    if (!gateReached(level, gates[i].x, gates[i].z)) return true;
+  }
+  return false;
+}
+
+/**
+ * How far from a gate's centre a body may actually start, metres: the director's
+ * ±1.4m spawn jitter plus a body radius, rounded up to whole cells. This is the
+ * radius `wouldSealLane` and the director both reason over — one constant, so the
+ * placement rule and the spawner can never disagree about what a gate is.
+ */
+export const GATE_SPAWN_REACH = 2;
+
+/** `gateHasRoute`, but over `wouldSealLane`'s flood scratch instead of the bake. */
+function gateReached(level: Level, gx: number, gz: number): boolean {
+  const seen = level.reachScratch;
+  for (let dz = -GATE_SPAWN_REACH; dz <= GATE_SPAWN_REACH; dz += level.cell) {
+    for (let dx = -GATE_SPAWN_REACH; dx <= GATE_SPAWN_REACH; dx += level.cell) {
+      const c = cellOf(level, gx + dx, gz + dz);
+      if (c >= 0 && seen[c] === 1) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * The post-bake truth `wouldSealLane` predicts: can a body spawned at this gate
+ * still route to the Rift? Exported so the tests hold the preview to exactly
+ * this yardstick, and nothing else.
+ */
+export function gateHasRoute(level: Level, gx: number, gz: number): boolean {
+  for (let dz = -GATE_SPAWN_REACH; dz <= GATE_SPAWN_REACH; dz += level.cell) {
+    for (let dx = -GATE_SPAWN_REACH; dx <= GATE_SPAWN_REACH; dx += level.cell) {
+      const c = cellOf(level, gx + dx, gz + dz);
+      if (c >= 0 && !level.blocked[c] && Number.isFinite(level.dist[c])) return true;
+    }
   }
   return false;
 }
@@ -507,9 +677,21 @@ function reach(level: Level, extraTile: number): void {
     const c = queue[head++];
     const x = c % gw;
     const z = (c / gw) | 0;
-    for (let d = 0; d < 4; d++) {
-      const nx = x + (d === 0 ? 1 : d === 1 ? -1 : 0);
-      const nz = z + (d === 2 ? 1 : d === 3 ? -1 : 0);
+    /*
+     * EIGHT-connected, because `bakeDistance` is.
+     *
+     * This was four, and the mismatch was a real bug rather than a rounding
+     * difference: a cell reachable only on a diagonal is reachable to the bake and not
+     * to a 4-neighbour flood, so `wouldSealLane` decided such a gate was *already*
+     * unreachable, skipped it, and cheerfully approved a blockade that cut it off. On
+     * Boot Hill that let 64 legal placements seal a gate one at a time.
+     *
+     * A preview walking different connectivity from the thing it previews is the same
+     * class of lie as a ghost path drawn by different code than the enemies steer by.
+     */
+    for (let d = 0; d < 8; d++) {
+      const nx = x + [1, -1, 0, 0, 1, 1, -1, -1][d];
+      const nz = z + [0, 0, 1, -1, 1, -1, 1, -1][d];
       if (nx < 0 || nz < 0 || nx >= gw || nz >= gh) continue;
       const n = nz * gw + nx;
       if (seen[n]) continue;
@@ -613,12 +795,16 @@ export function tileOf(level: Level, x: number, z: number): number {
 }
 
 export function tileCenterX(level: Level, tileId: number): number {
+  const w = wallOfCell(tileId);
+  if (w >= 0) return level.wallTiles[w]?.x ?? 0;
   const s = slotOfCell(tileId);
   if (s >= 0) return level.slots[s]?.x ?? 0;
   return ((tileId % level.tw) + 0.5) * level.tile;
 }
 
 export function tileCenterZ(level: Level, tileId: number): number {
+  const w = wallOfCell(tileId);
+  if (w >= 0) return level.wallTiles[w]?.z ?? 0;
   const s = slotOfCell(tileId);
   if (s >= 0) return level.slots[s]?.z ?? 0;
   return (((tileId / level.tw) | 0) + 0.5) * level.tile;
@@ -626,6 +812,8 @@ export function tileCenterZ(level: Level, tileId: number): number {
 
 /** Mount height, or the ground under a floor tile. */
 export function tileCenterY(level: Level, tileId: number): number {
+  const w = wallOfCell(tileId);
+  if (w >= 0) return level.wallTiles[w]?.y ?? 0;
   const s = slotOfCell(tileId);
   if (s >= 0) return level.slots[s]?.y ?? 0;
   return groundHeight(level, tileCenterX(level, tileId), tileCenterZ(level, tileId));
@@ -656,6 +844,13 @@ export function isPlaceableFor(
   tileId: number,
   surface: SurfaceClass,
 ): boolean {
+  /* Any exposed wall face takes iron unless the map says otherwise — the inversion
+     from M1.1, where a map listed the few faces that did (sim/wallgrid.ts). */
+  const w = wallOfCell(tileId);
+  if (w >= 0) {
+    const t = level.wallTiles[w];
+    return t !== undefined && !t.noBuild && surface === SURF.wall;
+  }
   const s = slotOfCell(tileId);
   if (s >= 0) {
     const slot = level.slots[s];
@@ -663,6 +858,30 @@ export function isPlaceableFor(
   }
   return surface === SURF.floor && isPlaceable(level, tileId);
 }
+
+/**
+ * Unhallowed ground: open floor that accepts **arcane traps only** (MAPS §9 item 5).
+ *
+ * A region rather than a mount — the Reliquary's floor is still floor, it simply
+ * refuses iron and powder. Kept separate from `isPlaceableFor` because it is a rule
+ * about the trap's *element*, not about the surface it sits on, and conflating the two
+ * is what would make "sigil" and "unhallowed" look like the same idea.
+ *
+ * No site declares any yet; Map 05 is the first, and §21 lists it first to cut. The
+ * rule lives here so the class is real rather than a name in an enum.
+ */
+export function isUnhallowedOk(level: Level, tileId: number, elem: number): boolean {
+  const x = tileCenterX(level, tileId);
+  const z = tileCenterZ(level, tileId);
+  for (let i = 0; i < level.unhallowed.length; i++) {
+    const r = level.unhallowed[i];
+    if (x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) return elem === ELEM_ARCANE;
+  }
+  return true;
+}
+
+/** ELEM.arcane, inlined: sim/level.ts must not depend on the trap catalog. */
+const ELEM_ARCANE = 4;
 
 /**
  * The mount a point is nearest to, as a cell id, or -1.
@@ -703,15 +922,43 @@ export function isPlaceable(level: Level, tileId: number): boolean {
   const z = tileCenterZ(level, tileId);
   const half = level.tile / 2;
 
-  // Reachable ground: a tile in a sealed void is not a trap bed.
-  const nav = cellOf(level, x, z);
-  if (nav < 0 || !isFinite(level.dist[nav])) return false;
+  /*
+   * Reachable ground: a tile in a sealed void is not a trap bed.
+   *
+   * ANY covered nav cell will do, and testing only the centre one was a bug. `dist`
+   * is Infinity throughout a wall's *inflated* skirt — which is a pathing fact, about
+   * where a body's centre may be, not a building one. A 48m map puts tile centres at
+   * 1.0 and 47.0, and only the far one lands inside the east wall's skirt, so the
+   * centre test killed one whole border and left the opposite one alive. Forty tiles,
+   * asymmetrically, for a reason no player could ever have guessed.
+   */
+  let reachable = false;
+  const cx0 = Math.max(0, Math.floor((x - half) / level.cell));
+  const cx1 = Math.min(level.gw - 1, Math.ceil((x + half) / level.cell) - 1);
+  const cz0 = Math.max(0, Math.floor((z - half) / level.cell));
+  const cz1 = Math.min(level.gh - 1, Math.ceil((z + half) / level.cell) - 1);
+  for (let cz = cz0; cz <= cz1 && !reachable; cz++) {
+    for (let cx = cx0; cx <= cx1; cx++) {
+      if (isFinite(level.dist[cz * level.gw + cx])) {
+        reachable = true;
+        break;
+      }
+    }
+  }
+  if (!reachable) return false;
 
-  // The Rift's own ring stays clear, footprint and all (§21.1 note 3).
+  /*
+   * The Rift's own ring stays clear (§21.1 note 3, G2) — measured to the tile
+   * CENTRE, not to its corner.
+   *
+   * Inflating the keep-out by half a tile turned a 2.2m ring into a 3.2m disc and
+   * quietly deleted a band of buildable floor right where the last stand happens.
+   * G2 asks that no trap be placed *in* the ring, which is a question about where
+   * the trap is, not about whether its tile overhangs.
+   */
   const dx = x - level.rift.x;
   const dz = z - level.rift.z;
-  const keepOut = level.rift.radius + half;
-  if (dx * dx + dz * dz < keepOut * keepOut) return false;
+  if (dx * dx + dz * dz < level.rift.radius * level.rift.radius) return false;
 
   /*
    * Floor traps are for the floor — but "the floor" is a *kind*, not a height
@@ -723,17 +970,42 @@ export function isPlaceable(level: Level, tileId: number): boolean {
   const x1 = x + half;
   const z0 = z - half;
   const z1 = z + half;
+  const area = level.tile * level.tile;
+  let covered = 0;
+
   for (let i = 0; i < level.boxes.length; i++) {
     const b = level.boxes[i];
     // AABB overlap of the tile footprint against the box.
     if (x1 <= b.x0 || x0 >= b.x1 || z1 <= b.z0 || z0 >= b.z1) continue;
-    if (b.noBuild) return false; // the author said so
-    if (b.kind === BOX.deck) continue; // boardwalks are buildable
+    if (b.kind === BOX.deck && !b.noBuild) continue; // boardwalks are buildable
     if (b.kind === BOX.prop) continue; // scenery does not block building
-    if (b.y1 < 1.0) return false; // steps and low cover: not a trap surface
-    return false; // any solid geometry under the footprint
+
+    /*
+     * Standing ON it is always refused — you cannot build on top of a wall, a
+     * pillar, or a plinth the author marked no-build.
+     */
+    const onIt = x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
+    if (onIt) return false;
+
+    covered += (Math.min(x1, b.x1) - Math.max(x0, b.x0)) *
+      (Math.min(z1, b.z1) - Math.max(z0, b.z0));
   }
-  return true;
+
+  /*
+   * OVERLAP IS A MATTER OF DEGREE, and treating it as a yes/no was a real bug.
+   *
+   * The first version of this refused a tile that touched any solid geometry at all.
+   * A perimeter wall is 0.6m thick and centred on the map boundary, so it reaches
+   * 0.3m — 15% — into the first tile, and that killed **every border tile on every
+   * map**: 76 of them on Boot Hill, plus a whole column beside each fence, right
+   * where a player most wants to build.
+   *
+   * A tile is a trap bed if it is *mostly* open floor. A quarter is the line: a wall
+   * or fence clipping an edge is fine, a crypt eating half the tile is not. The
+   * centre test above is what stops that generosity from letting anything sit inside
+   * a pillar.
+   */
+  return covered <= area * 0.25;
 }
 
 /**

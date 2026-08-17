@@ -1291,3 +1291,325 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/*
+ * The armed state of the two-step "abandon this run" confirm (ui/App.tsx).
+ *
+ * Oxblood, because §3 makes that the colour of damage done — and the only other
+ * place the UI spends it is the blood bar. A destructive confirm should not look
+ * like the button next to it.
+ */
+/*
+ * Filled, not tinted — and that is the point rather than the colour.
+ *
+ * The first pass only shifted the hue toward oxblood, and next to the ember
+ * outline of "take the vigil" it read as a second, slightly different red
+ * rectangle. Two warm outlines side by side is not a distinction anyone makes at
+ * a glance, and one of them ends the run. A solid block against an outline is a
+ * difference in *weight*, which survives being glanced at, being small, and
+ * being colourblind.
+ */
+.gh-secondary[data-confirm] {
+  border-color: var(--gh-oxblood, #7a1f24);
+  background: var(--gh-oxblood, #7a1f24);
+  color: var(--gh-sunbleach);
+}
+
+.gh-secondary[data-confirm] span {
+  color: var(--gh-sunbleach);
+  opacity: 0.85;
+}
+
+.gh-secondary[data-confirm]:hover {
+  background: #93262c;
+}
+
+/* ── leaderboard ───────────────────────────────────────────────────────────
+   One line, and only when a run actually reached the board. */
+
+.gh-banked {
+  margin: 6px 0 0;
+  font: 500 10px/1 var(--gh-mono, ui-monospace), monospace;
+  letter-spacing: 0.16em;
+  color: var(--gh-sage, #6f9a5e);
+  opacity: 0.85;
+}
+
+.gh-board {
+  margin: 14px 0 0;
+  width: 100%;
+  max-width: 340px;
+}
+
+.gh-board h3 {
+  margin: 0 0 6px;
+  font: 600 9px/1 var(--gh-mono, ui-monospace), monospace;
+  letter-spacing: 0.22em;
+  color: var(--gh-bone, #c9bfa8);
+  opacity: 0.55;
+}
+
+.gh-board ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+}
+
+.gh-board li {
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 6px;
+  background: rgba(11, 10, 12, 0.5);
+  font: 500 11px/1.3 var(--gh-mono, ui-monospace), monospace;
+  color: var(--gh-bone, #c9bfa8);
+}
+
+.gh-board-rank {
+  opacity: 0.4;
+}
+
+.gh-board-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gh-board-round {
+  color: var(--gh-lamp, #e8a33d);
+}
+
+.gh-board-tally {
+  opacity: 0.55;
+  font-size: 10px;
+}
+
+/* ── weapon abilities (§7.3) ───────────────────────────────────────────── */
+
+.gh-abilities {
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+}
+
+/*
+ * Same visual grammar as the Boot below it — key, name, sweep — because all
+ * three are the same kind of thing: a cooldown verb bound to one key. A
+ * different treatment would imply a different rule.
+ */
+.gh-ability {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 210px;
+  padding: 4px 8px 5px;
+  background: rgba(11, 10, 12, 0.62);
+  border: 1px solid rgba(201, 191, 168, 0.12);
+}
+
+.gh-ability-key {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  padding: 0 5px;
+  border: 1px solid rgba(201, 191, 168, 0.28);
+  color: var(--gh-bone);
+}
+
+.gh-ability-name {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--gh-grave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-ability-cd {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--gh-grave);
+}
+
+.gh-ability-bar {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: rgba(201, 191, 168, 0.14);
+  overflow: hidden;
+}
+
+.gh-ability-bar i {
+  display: block;
+  height: 100%;
+  background: var(--gh-bone);
+  transition: width 120ms linear;
+}
+
+.gh-ability[data-ready] {
+  border-color: rgba(201, 191, 168, 0.3);
+}
+
+.gh-ability[data-ready] .gh-ability-name {
+  color: var(--gh-bone);
+}
+
+.gh-ability[data-ready] .gh-ability-bar i {
+  background: var(--gh-lamp);
+}
+
+/* Running, not merely available — a 3s brace must not be invisible behind a
+   14s sweep, so the active state is louder than the ready state. */
+.gh-ability[data-active] {
+  border-color: var(--gh-hex);
+  box-shadow: 0 0 0 1px rgba(79, 240, 224, 0.35);
+}
+
+.gh-ability[data-active] .gh-ability-name {
+  color: var(--gh-hex);
+}
+
+.gh-ability[data-active] .gh-ability-bar i {
+  background: var(--gh-hex);
+  animation: gh-pulse 720ms ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-ability-bar i {
+    transition: none;
+  }
+  .gh-ability[data-active] .gh-ability-bar i {
+    animation: none;
+  }
+}
+
+/* ── why the crosshair refuses ─────────────────────────────────────────────
+   A red ghost says "no". This says which no. */
+
+.gh-deny {
+  position: absolute;
+  left: 50%;
+  bottom: 156px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 3px 9px;
+  white-space: nowrap;
+  font: 600 10px/1 var(--gh-mono, ui-monospace), monospace;
+  letter-spacing: 0.14em;
+  color: var(--gh-oxblood, #7c2b2b);
+  background: rgba(11, 10, 12, 0.72);
+  border-bottom: 1px solid var(--gh-oxblood, #7c2b2b);
+}
+
+/* ── the dev cheat menu (§19.2, ?dev + F4) ─────────────────────────────── */
+
+.gh-dev {
+  position: absolute;
+  top: 64px;
+  right: 16px;
+  z-index: 60; /* above the pause overlay: opening it releases pointer lock */
+  width: 300px;
+  padding: 10px 12px 8px;
+  background: rgba(11, 10, 12, 0.92);
+  border: 1px solid var(--gh-grave);
+  border-radius: 6px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--gh-bone);
+  pointer-events: auto;
+}
+
+.gh-dev-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  letter-spacing: 0.14em;
+}
+
+.gh-dev-head b {
+  color: var(--gh-lamp);
+}
+
+.gh-dev-taint {
+  color: var(--gh-oxblood);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.gh-dev-x {
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+}
+
+.gh-dev-readout {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--gh-ash);
+  color: var(--gh-sunbleach);
+  opacity: 0.8;
+}
+
+.gh-dev-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.gh-dev-row label {
+  width: 44px;
+  flex-shrink: 0;
+  color: var(--gh-dust, #6e6559);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+}
+
+.gh-dev-row input {
+  width: 44px;
+  padding: 3px 5px;
+  background: var(--gh-ash);
+  border: 1px solid var(--gh-grave);
+  border-radius: 3px;
+  color: var(--gh-sunbleach);
+  font: inherit;
+  text-align: center;
+}
+
+.gh-dev button {
+  padding: 3px 7px;
+  background: var(--gh-ash);
+  border: 1px solid var(--gh-grave);
+  border-radius: 3px;
+  color: var(--gh-bone);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.gh-dev button:hover {
+  border-color: var(--gh-lamp);
+  color: var(--gh-lamp);
+}
+
+.gh-dev button[data-on] {
+  background: var(--gh-lamp);
+  border-color: var(--gh-lamp);
+  color: var(--gh-void);
+}
+
+.gh-dev-note {
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--gh-ash);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+}

@@ -9,6 +9,7 @@ import { CMD, type TickInput } from "../commands.ts";
 import { EV } from "../events.ts";
 import {
   isPlaceableFor,
+  isUnhallowedOk,
   rebake,
   slotOfCell,
   tileCenterX,
@@ -17,11 +18,14 @@ import {
   wouldSealLane,
 } from "../level.ts";
 import { sideYaw } from "../surfaces.ts";
+import { wallOfCell } from "../wallgrid.ts";
 import { clamp } from "../math.ts";
 import { PLAYER, ticks } from "../tuning.ts";
 import { HOTBAR_SLOTS, TRAPS, trapDef, upgradeCost } from "../traps.ts";
 import { PHASE, addTrap, removeTrap, trapAtCell, type World } from "../world.ts";
 import { applyRoundScaling } from "./director.ts";
+import { fireAbility } from "./ability.ts";
+import { applyDebug } from "./debug.ts";
 
 /**
  * Building during combat carries a surcharge (§5): it stays possible, so you can
@@ -30,6 +34,7 @@ import { applyRoundScaling } from "./director.ts";
 export const COMBAT_SURCHARGE = 1.25;
 
 export function trapCost(w: World, defId: number): number {
+  if (w.freeBuild) return 0; // dev menu (systems/debug.ts)
   const base = trapDef(defId).cost;
   return w.phase === PHASE.combat ? Math.round(base * COMBAT_SURCHARGE) : base;
 }
@@ -65,6 +70,12 @@ export function commandSystem(w: World, input: TickInput): void {
         break;
       case CMD.boot:
         p.wantBoot = true;
+        break;
+      /* Abilities resolve immediately rather than latching an intent (§7.3):
+       * they are instantaneous verbs with their own cooldown, so there is no
+       * per-tick state for a later system to consume. */
+      case CMD.ability:
+        fireAbility(w, c.slot);
         break;
       case CMD.jump:
         p.jumpBuffer = PLAYER.jumpBufferTicks;
@@ -103,6 +114,9 @@ export function commandSystem(w: World, input: TickInput): void {
           w.events.push(EV.waveStarted, 0, 0, 0, w.round);
         }
         break;
+      case CMD.debug:
+        applyDebug(w, c.action, c.value);
+        break;
     }
   }
 }
@@ -128,7 +142,9 @@ function placeTrap(w: World, cell: number): void {
      * *trap* — only an obstacle can seal anything — and because it costs two grid
      * floods, which the other eight traps should not pay for on every placement.
      */
-    (def.blocks === true && wouldSealLane(w.level, cell))
+    (def.blocks === true && wouldSealLane(w.level, cell)) ||
+    // Unhallowed ground takes arcane and nothing else (MAPS §9 item 5).
+    !isUnhallowedOk(w.level, cell, def.elem)
   ) {
     w.events.push(
       EV.placeDenied,
@@ -142,8 +158,14 @@ function placeTrap(w: World, cell: number): void {
   const x = tileCenterX(w.level, cell);
   const z = tileCenterZ(w.level, cell);
   const y = tileCenterY(w.level, cell);
+  const wall = wallOfCell(cell);
   const slot = slotOfCell(cell);
-  const yaw = slot >= 0 ? sideYaw(w.level.slots[slot].side ?? 0) : 0;
+  const yaw =
+    wall >= 0
+      ? sideYaw(w.level.wallTiles[wall].side)
+      : slot >= 0
+        ? sideYaw(w.level.slots[slot].side ?? 0)
+        : 0;
   const id = addTrap(w, cell, x, z, defId, y, yaw);
   if (id < 0) {
     w.events.push(EV.placeDenied, x, y, z);
@@ -181,7 +203,7 @@ function upgradeTrap(w: World, cell: number, choice: 1 | 2): void {
     w.events.push(EV.placeDenied, x, 0, z);
     return;
   }
-  const cost = upgradeCost(w.traps.defId[id]);
+  const cost = w.freeBuild ? 0 : upgradeCost(w.traps.defId[id]);
   if (w.scrap < cost) {
     w.events.push(EV.placeDenied, x, 0, z);
     return;

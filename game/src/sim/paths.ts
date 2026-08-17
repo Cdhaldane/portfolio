@@ -94,13 +94,17 @@ export function tracePath(level: Level, gx: number, gz: number, out: number[]): 
 /**
  * A signature of everything a drawn path depends on.
  *
- * Cheaper than diffing the geometry and it catches all four things that move a
+ * Cheaper than diffing the geometry and it catches all five things that move a
  * lane: travelling to a new site, a round opening another gate, the player
- * buying a building, and the Rift itself moving. Presentation re-traces when
- * this changes and never otherwise — tracing is far too expensive for a frame.
+ * buying a building, the Rift itself moving — and the field being re-baked,
+ * which is how a blockade going up or coming down re-traces the preview
+ * (`bakeEpoch` bumps on every `rebake`; without it, placing a Dead Man's Brace
+ * left the ribbon drawing a route the bodies no longer take). Presentation
+ * re-traces when this changes and never otherwise — tracing is far too
+ * expensive for a frame.
  */
 export function pathSignature(level: Level, round: number): string {
   let open = "";
   for (let i = 0; i < level.open.length; i++) open += level.open[i] ? "1" : "0";
-  return `${level.siteId}:${round}:${open}:${level.rift.x},${level.rift.z}`;
+  return `${level.siteId}:${round}:${open}:${level.rift.x},${level.rift.z}:${level.bakeEpoch}`;
 }

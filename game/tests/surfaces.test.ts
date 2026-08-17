@@ -17,7 +17,6 @@ import { CMD, type Command, type TickInput } from "../src/sim/commands.ts";
 import {
   SLOT_BASE,
   buildLevel,
-  cellOf,
   cellOfSlot,
   isPlaceable,
   isPlaceableFor,
@@ -29,7 +28,8 @@ import {
 } from "../src/sim/level.ts";
 import { ENEMY } from "../src/sim/enemies.ts";
 import { SITE, SITES, siteDef } from "../src/sim/sites.ts";
-import { SURF, censusOf, sideNormalX, sideNormalZ, slotNearRay } from "../src/sim/surfaces.ts";
+import { SURF, censusOf, type SurfaceClass } from "../src/sim/surfaces.ts";
+import { wallCellOf } from "../src/sim/wallgrid.ts";
 import { REACH, TRAPS, trapDef } from "../src/sim/traps.ts";
 import { PHASE, createWorld, spawnEnemy, trapAtCell, type World } from "../src/sim/world.ts";
 import { step } from "../src/sim/step.ts";
@@ -108,9 +108,12 @@ describe("surface classes", () => {
     assert.equal(isPlaceableFor(level, floorCell, SURF.wall), false);
     assert.equal(isPlaceableFor(level, floorCell, SURF.ceiling), false);
 
-    const wallSlot = level.slots.findIndex((s) => s.surface === SURF.wall);
-    assert.ok(wallSlot >= 0, "Boot Hill authors no wall mount");
-    const wallCell = cellOfSlot(wallSlot);
+    /* Wall placements come from the derived lattice now, not from authored mounts
+       (sim/wallgrid.ts). The classes still may not be substituted for one another,
+       which is what this test is actually about. */
+    const wallIdx = level.wallTiles.findIndex((t) => !t.noBuild);
+    assert.ok(wallIdx >= 0, "Boot Hill derives no buildable wall tile");
+    const wallCell = wallCellOf(wallIdx);
     assert.equal(isPlaceableFor(level, wallCell, SURF.wall), true);
     assert.equal(isPlaceableFor(level, wallCell, SURF.floor), false);
     assert.equal(isPlaceableFor(level, wallCell, SURF.ceiling), false);
@@ -127,7 +130,7 @@ describe("surface classes", () => {
     assert.equal(w.traps.count, 0, "a wall trap was allowed onto open floor");
 
     armed(w, ID.tar); // a floor trap
-    const wallCell = cellOfSlot(w.level.slots.findIndex((s) => s.surface === SURF.wall));
+    const wallCell = wallCellOf(w.level.wallTiles.findIndex((t) => !t.noBuild));
     send(w, [{ t: CMD.place, cell: wallCell }]);
     assert.equal(w.traps.count, 0, "a floor trap was allowed onto a wall mount");
 
@@ -141,10 +144,10 @@ describe("surface classes", () => {
   it("mounts the trap at the authored height and facing", () => {
     const w = createWorld(7, SITE.bootHill);
     w.scrap = 900;
-    const si = w.level.slots.findIndex((s) => s.surface === SURF.wall);
-    const slot = w.level.slots[si];
+    const si = w.level.wallTiles.findIndex((t) => !t.noBuild);
+    const slot = w.level.wallTiles[si];
     armed(w, ID.ports);
-    send(w, [{ t: CMD.place, cell: cellOfSlot(si) }]);
+    send(w, [{ t: CMD.place, cell: wallCellOf(si) }]);
     assert.equal(w.traps.count, 1);
 
     assert.ok(Math.abs(w.traps.x[0] - slot.x) < 1e-4);
@@ -163,7 +166,7 @@ describe("surface classes", () => {
   it("lets one mount hold exactly one trap", () => {
     const w = createWorld(7, SITE.bootHill);
     w.scrap = 900;
-    const cell = cellOfSlot(w.level.slots.findIndex((s) => s.surface === SURF.wall));
+    const cell = wallCellOf(w.level.wallTiles.findIndex((t) => !t.noBuild));
     armed(w, ID.ports);
     send(w, [{ t: CMD.place, cell }]);
     assert.equal(w.traps.count, 1);
@@ -177,7 +180,7 @@ describe("surface classes", () => {
   it("charges for a mounted trap, and refunds the mount on sell", () => {
     const w = createWorld(7, SITE.bootHill);
     w.scrap = 500;
-    const cell = cellOfSlot(w.level.slots.findIndex((s) => s.surface === SURF.wall));
+    const cell = wallCellOf(w.level.wallTiles.findIndex((t) => !t.noBuild));
     armed(w, ID.ports);
     send(w, [{ t: CMD.place, cell }]);
     assert.equal(w.scrap, 500 - trapDef(ID.ports).cost);
@@ -206,79 +209,14 @@ describe("surface classes", () => {
   });
 });
 
-describe("mount picking", () => {
-  it("snaps to the mount you are looking at, and nothing behind you", () => {
-    const level = buildLevel(SITE.bootHill);
-    const si = level.slots.findIndex((s) => s.surface === SURF.wall);
-    const slot = level.slots[si];
-    const free = () => false;
-
-    // Standing 6m west of an east-facing mount, looking east at it.
-    const ox = slot.x - 6;
-    const oz = slot.z;
-    const oy = 1.6;
-    let dy = slot.y - oy;
-    let len = Math.hypot(6, dy);
-    assert.equal(slotNearRay(level.slots, SURF.wall, ox, oy, oz, 6 / len, dy / len, 0, free), si);
-
-    // Turned around: the same mount is behind us and must not be picked.
-    assert.equal(
-      slotNearRay(level.slots, SURF.wall, ox, oy, oz, -6 / len, dy / len, 0, free),
-      -1,
-      "picked a mount behind the player",
-    );
-
-    // Looking east but at the wrong class.
-    dy = slot.y - oy;
-    len = Math.hypot(6, dy);
-    assert.equal(
-      slotNearRay(level.slots, SURF.ceiling, ox, oy, oz, 6 / len, dy / len, 0, free),
-      -1,
-      "a wall mount answered a ceiling query",
-    );
-  });
-
-  it("never picks an occupied mount", () => {
-    const level = buildLevel(SITE.bootHill);
-    const si = level.slots.findIndex((s) => s.surface === SURF.wall);
-    const slot = level.slots[si];
-    const ox = slot.x - 6;
-    const dy = slot.y - 1.6;
-    const len = Math.hypot(6, dy);
-    const picked = slotNearRay(
-      level.slots,
-      SURF.wall,
-      ox,
-      1.6,
-      slot.z,
-      6 / len,
-      dy / len,
-      0,
-      (i) => i === si,
-    );
-    assert.notEqual(picked, si, "handed back a mount that already has a trap on it");
-  });
-
-  it("faces a wall mount out into the lane", () => {
-    // A trap bolted to an east face must throw bodies east, or Scattergun Ports
-    // would shove them into the wall it is bolted to.
-    const level = buildLevel(SITE.bootHill);
-    for (const s of level.slots) {
-      if (s.surface !== SURF.wall) continue;
-      const nx = sideNormalX(s.side ?? 0);
-      const nz = sideNormalZ(s.side ?? 0);
-      assert.equal(Math.abs(nx) + Math.abs(nz), 1, "a wall normal is not axis-aligned");
-      // One step along the normal must be walkable ground, or the trap faces rock.
-      const ahead = cellOf(level, s.x + nx * 1.5, s.z + nz * 1.5);
-      assert.ok(ahead >= 0, `mount at ${s.x},${s.z} faces off the map`);
-      assert.equal(
-        level.blocked[ahead],
-        0,
-        `mount at ${s.x},${s.z} faces into blocked geometry`,
-      );
-    }
-  });
-});
+/*
+ * The "mount picking" block that lived here is gone, not broken.
+ *
+ * It tested `slotNearRay` against authored WALL mounts, and walls are a derived
+ * lattice now — picked by an exact raycast in `wallTileAtRay`, covered by
+ * tests/wallgrid.test.ts. `slotNearRay` still serves ceilings and sigils, which are
+ * genuinely discrete anchors and still snap.
+ */
 
 describe("reach", () => {
   /*
@@ -416,6 +354,9 @@ describe("the surface census", () => {
     for (const def of SITES) {
       const level = buildLevel(def.id);
       const counted = censusOf(def.surfaces, level.census.floor, def.env);
+      // Walls are measured off the lattice, not counted off the mount list.
+      counted.wall = level.census.wall;
+      counted.noBuildWall = level.census.noBuildWall;
       assert.deepEqual(
         level.census,
         counted,
@@ -450,10 +391,11 @@ describe("the surface census", () => {
           s.x >= 0 && s.x <= def.width && s.z >= 0 && s.z <= def.depth,
           `${def.key}: mount ${i} is outside the map`,
         );
-        if (s.surface === SURF.wall) {
-          assert.ok(s.side !== undefined, `${def.key}: wall mount ${i} has no facing`);
-          assert.ok(s.y > 0.5 && s.y < 3, `${def.key}: wall mount ${i} at y=${s.y}`);
-        }
+        assert.notEqual(
+          s.surface,
+          SURF.wall,
+          `${def.key}: authored wall mounts are superseded by the lattice`,
+        );
         if (s.surface === SURF.ceiling) {
           assert.ok(s.y > 2.5, `${def.key}: ceiling anchor ${i} hangs at only ${s.y}m`);
         }
@@ -469,8 +411,42 @@ describe("the surface census", () => {
      */
     const c = siteDef(SITE.bootHill);
     const level = buildLevel(SITE.bootHill);
-    assert.equal(level.census.wall, 3, "Boot Hill's three crypt faces changed count");
+    /* Wall scarcity is gone by design — every exposed face is buildable since the
+       lattice landed. What stays scarce is the roof, and what stays authored is the
+       refusal painted across the crypt row. */
+    assert.ok(level.census.wall > 100, "the wall lattice should be generous");
+    assert.ok(level.census.noBuildWall > 0, "the crypt row must still refuse iron");
     assert.equal(level.census.ceiling, 1, "Boot Hill has exactly one roof anchor");
     assert.equal(c.env, 1, "the hanging tree is the one env hook");
+  });
+});
+
+describe("nothing is counted that cannot be used", () => {
+  it("gives every surface a site authors at least one trap that can use it", () => {
+    /*
+     * The guard for the gap this test was written after finding.
+     *
+     * Every site authored chalk circles, the census counted them, and
+     * `siteCanAnswer` could gate a whole archetype on `sigil >= 4` — while no trap in
+     * the catalog could be traced on one, because the Sigil of Nine had shipped as a
+     * floor trap instead of a sigil-family trap (§6 catalog #19). Authored data that
+     * nothing consumes does not look broken; it looks finished.
+     */
+    const consumers = new Set(TRAPS.map((d) => d.surface));
+    const NAMES = ["floor", "wall", "ceiling", "sigil", "unhallowed"];
+
+    for (const def of SITES) {
+      const level = buildLevel(def.id);
+      const authored = new Set<SurfaceClass>(level.slots.map((s) => s.surface));
+      if (level.wallTiles.length > 0) authored.add(SURF.wall);
+      if (level.census.floor > 0) authored.add(SURF.floor);
+
+      for (const surface of authored) {
+        assert.ok(
+          consumers.has(surface),
+          `${def.key} authors ${NAMES[surface]} placements and no trap can use one`,
+        );
+      }
+    }
   });
 });

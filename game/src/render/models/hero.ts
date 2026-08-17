@@ -746,6 +746,27 @@ export interface HeroParts {
  * ceiling exists for the eventual sculpted mesh, and the test asserts we are
  * under it rather than near it.
  */
+/**
+ * The revolver on its own, for the hotbar icon (§7 decision 17).
+ *
+ * Decision 17 says a slot's picture comes from the thing itself rather than from
+ * a drawn asset, so the weapon row uses the same `revolver()` the hero carries —
+ * one source, and a gun that can never drift from its own icon.
+ *
+ * Re-oriented on the way out. In the hero's hand the barrel runs along local −Y
+ * and the grip along +Z, because that hangs correctly off a raised arm; an icon
+ * wants the gun lying in its own plane, barrel to the right and grip down. The
+ * rotation is here rather than in `icons.ts` so the awkward axis convention
+ * stays a fact about the hand, not something every caller has to know.
+ */
+export function buildRevolverGeometry(): BufferGeometry {
+  const g = buildGeometry(revolver);
+  g.rotateX(-Math.PI / 2);
+  g.rotateY(Math.PI);
+  g.computeBoundingBox();
+  return g;
+}
+
 export const HERO_TRI_BUDGET = 24000;
 
 interface BodySpec {

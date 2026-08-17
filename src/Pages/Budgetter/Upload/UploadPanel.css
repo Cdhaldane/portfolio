@@ -151,7 +151,7 @@
   cursor: default;
 }
 
-input[type="file"] {
+.upl input[type="file"] {
   font-family: "Inter", system-ui, sans-serif;
   font-size: 0.88rem;
   color: var(--ink-soft);
@@ -187,6 +187,10 @@ input[type="file"] {
 .upl-mapping-row select {
   flex: 1 1 220px;
   max-width: 320px;
+  /* Headerless CSVs put a ~40ch sample in the option text; without this the
+     flex item's min-width:auto keeps the select at its intrinsic ~300px and
+     pushes the whole step wider than a phone. */
+  min-width: 0;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.8rem;
   color: var(--ink);
@@ -365,6 +369,9 @@ input[type="file"] {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.78rem;
   color: var(--ink);
+  /* Raw CSV cell values are single unbroken quoted tokens — wrap them
+     rather than pushing the diagnostic wider than a phone. */
+  overflow-wrap: anywhere;
 }
 
 /* ---- actions ---- */
@@ -411,6 +418,31 @@ input[type="file"] {
 .upl-secondary:hover {
   border-color: var(--ink-soft);
   color: var(--ink);
+}
+
+/* Touch ergonomics. (The 16px input clamp that stops iOS focus-zoom lives
+   on the .bud shell.) */
+@media (max-width: 768px) {
+  /* "+ Add a new account" is a bare text link ~13px tall — grow its hit
+     area without moving the layout. */
+  .upl-link {
+    padding: 12px 4px;
+    margin: -12px -4px;
+    margin-top: -2px;
+  }
+}
+
+/* PDF review table: at phone width the nowrap date/amount cells leave the
+   merchant ~66px — reclaim the padding instead. */
+@media (max-width: 480px) {
+  .upl-pdftable th,
+  .upl-pdftable td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .upl-pdftable th {
+    letter-spacing: 0.03em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

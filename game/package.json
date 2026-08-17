@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/audio.test.ts tests/blockade.test.ts tests/models.test.ts tests/replay.test.ts tests/sim.test.ts tests/sites.test.ts tests/surfaces.test.ts"
+    "test": "node --experimental-strip-types --test tests/abilities.test.ts tests/audio.test.ts tests/blockade.test.ts tests/env.test.ts tests/geometry.test.ts tests/leaderboard.test.ts tests/models.test.ts tests/replay.test.ts tests/sim.test.ts tests/sites.test.ts tests/summons.test.ts tests/surfaces.test.ts tests/wallgrid.test.ts tests/walls.test.ts"
   },
   "dependencies": {
     "portfolio": "file:..",

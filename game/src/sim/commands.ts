@@ -26,9 +26,39 @@ export const CMD = {
   sell: 11,
   boot: 12,
   upgrade: 13,
+  ability: 14,
+  /** Dev-menu cheats (§19.2). A real command so replays stay deterministic. */
+  debug: 15,
 } as const;
 
 export type CmdKind = (typeof CMD)[keyof typeof CMD];
+
+/**
+ * Debug actions (sim/systems/debug.ts). These run through the command stream —
+ * NOT by poking the world from the host — because a poked world diverges from
+ * its own replay at the next hash checkpoint and reports itself as a §13
+ * determinism bug. A cheat that is recorded is just input.
+ */
+export const DBG = {
+  /** Jump to round `value` and return to the build phase. */
+  round: 0,
+  /** Add `value` scrap. */
+  scrap: 1,
+  /** `value` ≠ 0: traps and upgrades cost nothing. */
+  freeBuild: 2,
+  /** `value` ≠ 0: the player takes no damage. */
+  god: 3,
+  /** Refill player HP and the Vigil. */
+  heal: 4,
+  /** Despawn every enemy. No kill credit, no scrap — it never happened. */
+  killAll: 5,
+  /** Clear the current round as if the wave had been fought out. */
+  endRound: 6,
+  /** Spawn one enemy of archetype `value` at the first active gate. */
+  spawn: 7,
+} as const;
+
+export type DbgAction = (typeof DBG)[keyof typeof DBG];
 
 export type Command =
   /** Stick/WASD intent in camera space, each axis in [-1, 1]. */
@@ -53,7 +83,11 @@ export type Command =
   /** The Boot: kick a body into your own machinery (§7). */
   | { t: typeof CMD.boot }
   /** Upgrade the trap in a cell down one of its two branches (§6). */
-  | { t: typeof CMD.upgrade; cell: number; choice: 1 | 2 };
+  | { t: typeof CMD.upgrade; cell: number; choice: 1 | 2 }
+  /** Fire a weapon ability (§7.3). `slot` is 0 for `Q`, 1 for `E`. */
+  | { t: typeof CMD.ability; slot: 0 | 1 }
+  /** A dev-menu cheat (see `DBG`). Recorded like any other input. */
+  | { t: typeof CMD.debug; action: DbgAction; value: number };
 
 export interface TickInput {
   tick: number;

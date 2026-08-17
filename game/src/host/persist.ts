@@ -22,6 +22,8 @@ export const MAX_RUNS = 20;
 export interface RunRecord {
   round: number;
   tally: number;
+  /** Ash this run paid out (§10). Stored so the ledger can be re-read. */
+  ash: number;
   kills: number;
   leaks: number;
   durationMs: number;
@@ -36,8 +38,31 @@ export interface Profile {
   bestRound: number;
   bestTally: number;
   runsPlayed: number;
+  /** Unspent Ash — the meta currency (§10). */
+  ash: number;
+  /** Total ever earned, so the Coffin can show progress that spending can't undo. */
+  ashLifetime: number;
   /** Most recent first, capped. */
   runs: RunRecord[];
+}
+
+/**
+ * Ash paid for a finished run (§10, decision 20).
+ *
+ * `floor(tally / 1000) × (1 + highestRound / 20)`.
+ *
+ * Both terms are load-bearing and neither is sufficient: Tally alone would pay a
+ * short flashy run, highest round alone would pay turtling. The product only
+ * rewards surviving deep *while* killing well — and since Tally is dominated by
+ * combo hands (§5), the fast route to a weapon runs through kill boxes rather
+ * than through playing more.
+ *
+ * Deliberately steep. A round-22 run scoring 46,000 pays ~96, against weapon
+ * prices of 400–900.
+ */
+export function ashForRun(tally: number, highestRound: number): number {
+  if (tally <= 0 || highestRound <= 0) return 0;
+  return Math.floor(Math.floor(tally / 1000) * (1 + highestRound / 20));
 }
 
 export function emptyProfile(playerKey: string): Profile {
@@ -47,6 +72,8 @@ export function emptyProfile(playerKey: string): Profile {
     bestRound: 0,
     bestTally: 0,
     runsPlayed: 0,
+    ash: 0,
+    ashLifetime: 0,
     runs: [],
   };
 }
@@ -61,13 +88,20 @@ export function recordRun(
   profile: Profile,
   outcome: ReplayOutcome,
   seed: number,
-): { profile: Profile; newBestRound: boolean; newBestTally: boolean } {
+): {
+  profile: Profile;
+  newBestRound: boolean;
+  newBestTally: boolean;
+  ashEarned: number;
+} {
   const newBestRound = outcome.round > profile.bestRound;
   const newBestTally = outcome.tally > profile.bestTally;
+  const ashEarned = ashForRun(outcome.tally, outcome.round);
 
   const run: RunRecord = {
     round: outcome.round,
     tally: outcome.tally,
+    ash: ashEarned,
     kills: outcome.kills,
     leaks: outcome.leaks,
     durationMs: outcome.durationMs,
@@ -81,10 +115,13 @@ export function recordRun(
       bestRound: Math.max(profile.bestRound, outcome.round),
       bestTally: Math.max(profile.bestTally, outcome.tally),
       runsPlayed: profile.runsPlayed + 1,
+      ash: profile.ash + ashEarned,
+      ashLifetime: profile.ashLifetime + ashEarned,
       runs: [run, ...profile.runs].slice(0, MAX_RUNS),
     },
     newBestRound,
     newBestTally,
+    ashEarned,
   };
 }
 
@@ -99,6 +136,10 @@ export function normalize(raw: unknown, fallbackKey: string): Profile {
     bestRound: Number.isFinite(p.bestRound) ? Number(p.bestRound) : 0,
     bestTally: Number.isFinite(p.bestTally) ? Number(p.bestTally) : 0,
     runsPlayed: Number.isFinite(p.runsPlayed) ? Number(p.runsPlayed) : 0,
+    /* Profiles saved before Ash existed have neither field. They load with zero
+     * rather than NaN, which is the whole reason this function is here. */
+    ash: Number.isFinite(p.ash) ? Number(p.ash) : 0,
+    ashLifetime: Number.isFinite(p.ashLifetime) ? Number(p.ashLifetime) : 0,
     runs: Array.isArray(p.runs)
       ? p.runs
           .filter((r): r is RunRecord => typeof r === "object" && r !== null)

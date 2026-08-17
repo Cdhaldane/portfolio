@@ -35,7 +35,15 @@ export function playerMoveSystem(w: World): void {
     wishZ /= wishLen;
   }
 
-  const maxSpeed = p.sprinting && !p.aiming ? PLAYER.sprintSpeed : PLAYER.walkSpeed;
+  /* Rooted by a brace (§7.3 Steady): the cost half of the ability. Speed goes to
+   * zero rather than input being ignored, so the player keeps camera control and
+   * the deceleration reads as bracing rather than as a dropped input. */
+  const maxSpeed =
+    p.rootTicks > 0
+      ? 0
+      : p.sprinting && !p.aiming
+        ? PLAYER.sprintSpeed
+        : PLAYER.walkSpeed;
   const accel = p.grounded ? PLAYER.groundAccel : PLAYER.airAccel;
   const targetX = wishX * maxSpeed;
   const targetZ = wishZ * maxSpeed;
@@ -128,6 +136,9 @@ export function playerWeaponSystem(w: World): void {
   }
 
   if (canAct && p.wantFire) {
+    /* A burst fires on its own cadence, in `freeFireSystem` — not from this
+     * input path. Holding the trigger during one must not add shots. */
+    if (p.freeShots > 0) return;
     if (p.ammo <= 0) {
       // Dry fire auto-reloads — nobody enjoys being told to press R.
       p.reloadTicks = REVOLVER.reloadTicks;
@@ -141,4 +152,44 @@ export function playerWeaponSystem(w: World): void {
       hitscan(w);
     }
   }
+}
+
+/**
+ * The burst half of Fan the Hammer (§7.3).
+ *
+ * Separate from `playerWeaponSystem` and driven by its own clock rather than by
+ * the trigger, for two reasons:
+ *
+ *  1. **It used to dump the whole cylinder in six ticks.** The old path let a
+ *     burst shot bypass `fireCooldown` and returned immediately, so holding fire
+ *     emptied six rounds in a tenth of a second — an instant shotgun, not the
+ *     "second and a half" the ability promises. The cadence is the ability.
+ *  2. **Fanning is one action, not six.** You thumb the hammer and the gun
+ *     empties; making the player hold a button through it would turn a verb into
+ *     a chore, and it would let them stop halfway and bank the rest.
+ *
+ * It deliberately never touches `ammo`, so a burst cannot leave the player dry
+ * when it ends — the cylinder is exactly as they left it.
+ */
+export function freeFireSystem(w: World): void {
+  const p = w.player;
+  if (p.freeShots <= 0) return;
+
+  // A burst does not continue through the build phase or a death.
+  if (w.phase === PHASE.lost || p.buildMode) {
+    p.freeShots = 0;
+    return;
+  }
+
+  if (p.freeFireDelay > 0) {
+    p.freeFireDelay--;
+    return;
+  }
+
+  p.freeShots--;
+  p.freeFireDelay = p.freeFireInterval;
+  p.fireCooldown = Math.max(p.fireCooldown, p.freeFireInterval);
+  w.shotsFired++;
+  w.events.push(EV.fanShot, p.x, p.y + 1.35, p.z, p.freeShots);
+  hitscan(w);
 }

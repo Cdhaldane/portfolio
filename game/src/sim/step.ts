@@ -16,6 +16,7 @@ import { directorSystem } from "./systems/director.ts";
 import {
   enemyCollisionSystem,
   enemyMoveSystem,
+  healSystem,
   meleeSystem,
   playerPushSystem,
   separationSystem,
@@ -23,9 +24,11 @@ import {
 } from "./systems/enemy.ts";
 import { bootSystem, comboSystem } from "./systems/combat.ts";
 import { objectiveSystem } from "./systems/objective.ts";
-import { playerMoveSystem, playerWeaponSystem } from "./systems/player.ts";
+import { freeFireSystem, playerMoveSystem, playerWeaponSystem } from "./systems/player.ts";
 import { trapSystem } from "./systems/trap.ts";
 import type { World } from "./world.ts";
+import { abilityCooldownSystem } from "./systems/ability.ts";
+import { summonSystem } from "./systems/summons.ts";
 
 /** Copy current transforms into the `p*` mirrors that render interpolates from. */
 function snapshotPrevious(w: World): void {
@@ -50,7 +53,9 @@ export function step(w: World, input: TickInput): void {
 
   commandSystem(w, input); //  1
   directorSystem(w); //  2
+  abilityCooldownSystem(w);
   statusSystem(w); //  3
+  healSystem(w); //  3b (the Preacher's hymn — after statuses decay, before melee)
   meleeSystem(w); //  4  (the melee half of ThinkSystem)
   // 5 NavSystem        — worker paths for exception units, M3
   enemyMoveSystem(w); //  6  (flow-field locomotion)
@@ -58,9 +63,11 @@ export function step(w: World, input: TickInput): void {
   playerMoveSystem(w); //  6/8 (player half)
   playerPushSystem(w); //  7  (player vs crowd)
   enemyCollisionSystem(w); //  8
-  trapSystem(w); //  9
+  trapSystem(w);
+  summonSystem(w); //  9
   bootSystem(w); // 10 (the Boot, before the gun: kick then shoot)
-  playerWeaponSystem(w); // 10 (hitscan) + 11/12 via damageEnemy
+  playerWeaponSystem(w);
+  freeFireSystem(w); // 10 (hitscan) + 11/12 via damageEnemy
   comboSystem(w); // 13 (poker hands)
   objectiveSystem(w); // 14
   // 15 EventFlushSystem — the host drains the ring after presenting

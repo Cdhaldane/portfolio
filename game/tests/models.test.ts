@@ -362,6 +362,8 @@ describe("trap models", () => {
      */
     const corner = (BUILD_TILE / 2) * Math.SQRT2;
     for (const def of TRAPS) {
+      // Chalk is traced on an authored circle, not on a build tile, so the
+      // cover-your-own-tile rule does not apply to it.
       if (def.surface !== SURF.floor) continue;
       assert.ok(
         def.radius >= corner,
@@ -384,10 +386,15 @@ describe("trap models", () => {
 
   it("sits on the floor and fits its placement cell", () => {
     for (const def of TRAPS) {
-      // Mounted traps are authored centred on their mount, not standing on the
-      // floor — see the convention note in render/models/traps.ts. They get their
-      // own envelope in the next test.
-      if (def.surface !== SURF.floor) continue;
+      /*
+       * Floor-LYING, which is not the same as the floor family.
+       *
+       * A chalk sigil belongs to the sigil family because of where it may be traced,
+       * but it is drawn flat on the ground exactly like a bear trap, so it is authored
+       * with its base at y = 0 and takes the floor rules. Only wall and ceiling mounts
+       * are authored around their bracket.
+       */
+      if (def.surface === SURF.wall || def.surface === SURF.ceiling) continue;
       const s = statsFor(def.key);
       assert.ok(
         s.minY >= -1e-6,
@@ -424,7 +431,7 @@ describe("trap models", () => {
      * wall of iron without the geometry eating them.
      */
     for (const def of TRAPS) {
-      if (def.surface === SURF.floor) continue;
+      if (def.surface !== SURF.wall && def.surface !== SURF.ceiling) continue;
       const s = statsFor(def.key);
       const bracket = 0.7 * TRAP_MODEL_SCALE;
       assert.ok(

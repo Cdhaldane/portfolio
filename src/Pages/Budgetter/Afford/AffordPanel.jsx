@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   fmtMoney,
   fmtMoneyExact,
@@ -380,6 +380,19 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
     };
   }, [plan, loan]);
 
+  // On narrow screens the chart scrolls (min-width 640px) and the bar that
+  // matters — the buy month — usually starts off-screen to the right. Center
+  // it once per projection change; a no-op when the chart fits (or while the
+  // loading/error states render and the wrap doesn't exist yet).
+  const flowWrapRef = useRef(null);
+  useEffect(() => {
+    const wrap = flowWrapRef.current;
+    if (!wrap || wrap.scrollWidth <= wrap.clientWidth + 1) return;
+    const bandW = (VBW - PAD.l - PAD.r) / flow.bars.length;
+    const frac = (PAD.l + (flow.buyIndex + 0.5) * bandW) / VBW;
+    wrap.scrollLeft = Math.max(0, frac * wrap.scrollWidth - wrap.clientWidth / 2);
+  }, [flow.buyIndex, flow.bars.length]);
+
   // ---- scenario persistence ----
 
   const selectPlan = (row) => {
@@ -535,6 +548,9 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
   const baseY = PAD.t + plotH;
   const hOf = (cents) => (cents / flow.yMax) * plotH;
   const flowTick = axisFormat(flow.yMax);
+  // Label every month when they fit; every Nth when the buy month is far out
+  // and 40+ bands would smear 3-char labels into each other.
+  const xLabelStep = Math.max(1, Math.ceil(flow.bars.length / 14));
 
   // Chart 2 geometry.
   const balW = VBW - BAL_PAD.l - BAL_PAD.r;
@@ -940,7 +956,8 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
               <span className="afp-swatch afp-swatch--base" /> Today's spending
             </span>
             <span className="afp-legend-item">
-              <span className="afp-swatch afp-swatch--car" /> {plan.label}
+              <span className="afp-swatch afp-swatch--car" />{" "}
+              <span className="afp-legend-text">{plan.label}</span>
             </span>
             {baseline.hasIncome && (
               <span className="afp-legend-item">
@@ -963,7 +980,7 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
             </button>
           ))}
         </div>
-        <div className="afp-chartwrap">
+        <div className="afp-chartwrap" ref={flowWrapRef}>
           <div className="afp-chartinner">
             <svg
               viewBox={`0 0 ${VBW} ${VBH}`}
@@ -1085,9 +1102,11 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
                         {fmtMoney(b.total)}
                       </text>
                     )}
-                    <text className="afp-xlabel" x={cx} y={VBH - 12}>
-                      {b.label}
-                    </text>
+                    {(isBuy || i % xLabelStep === 0) && (
+                      <text className="afp-xlabel" x={cx} y={VBH - 12}>
+                        {b.label}
+                      </text>
+                    )}
                     {isBuy && (
                       <text className="afp-xmark" x={cx} y={VBH - 2}>
                         ▲
@@ -1287,6 +1306,11 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
             Every dollar you'll hand over the counter
             {plan.cashDownCents > 0 && `, after the ${fmtMoney(plan.cashDownCents)} down`}
           </p>
+          {/* Same scroll contract as the charts above — unwrapped, a 360px
+              phone would scale the 720-unit viewBox to ~39% and render the
+              labels at ~4px. */}
+          <div className="afp-chartwrap">
+            <div className="afp-chartinner">
           <svg
             viewBox="0 0 720 42"
             className="afp-split"
@@ -1331,6 +1355,8 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
               );
             })()}
           </svg>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1459,7 +1485,12 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
                   return (
                     <tr key={row.id} className={activeId === row.id ? "is-active" : ""}>
                       <th scope="row">
-                        <button type="button" className="afp-link" onClick={() => selectPlan(row)}>
+                        <button
+                          type="button"
+                          className="afp-link afp-link--clip"
+                          title={row.label}
+                          onClick={() => selectPlan(row)}
+                        >
                           {row.label}
                         </button>
                       </th>

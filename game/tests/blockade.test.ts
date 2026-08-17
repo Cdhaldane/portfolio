@@ -22,6 +22,7 @@ import { CMD, type Command, type TickInput } from "../src/sim/commands.ts";
 import {
   buildLevel,
   cellOf,
+  gateHasRoute,
   isPlaceable,
   rebake,
   tileCenterX,
@@ -31,11 +32,12 @@ import {
   type Level,
 } from "../src/sim/level.ts";
 import { resolveCircle } from "../src/sim/geom.ts";
+import { pathSignature } from "../src/sim/paths.ts";
 import { SITE } from "../src/sim/sites.ts";
 import { TRAPS } from "../src/sim/traps.ts";
 import { PHASE, createWorld, spawnEnemy, trapAtCell, type World } from "../src/sim/world.ts";
 import { step } from "../src/sim/step.ts";
-import { PLAYER } from "../src/sim/tuning.ts";
+import { DUSTKIN, PLAYER } from "../src/sim/tuning.ts";
 
 const EMPTY: Command[] = [];
 const BRACE = TRAPS.find((d) => d.blocks === true)!.id;
@@ -55,12 +57,14 @@ function brace(w: World, x: number, z: number): number {
   return tile;
 }
 
-/** Every nav cell the Rift can reach, by flooding `dist`. */
-function reachableGates(level: Level): boolean[] {
-  return level.gates.map((g) => {
-    const c = cellOf(level, g.x, g.z);
-    return c >= 0 && Number.isFinite(level.dist[c]);
-  });
+/**
+ * Every gate's routability, by the yardstick the rule actually promises:
+ * `gateHasRoute` — a body spawned in the gate's spawn area can reach the Rift.
+ * The old exact-cell version quietly demanded more (the gate's own centre cell
+ * staying walkable), and that gap is precisely where the false refusals lived.
+ */
+function routableGates(level: Level): boolean[] {
+  return level.gates.map((g) => gateHasRoute(level, g.x, g.z));
 }
 
 describe("the Dead Man's Brace", () => {
@@ -74,11 +78,11 @@ describe("the Dead Man's Brace", () => {
   it("blocks the flow field where it stands", () => {
     const w = createWorld(3, SITE.bootHill);
     w.scrap = 2000;
-    const tile = tileOf(w.level, 27, 17);
-    const nav = cellOf(w.level, 27, 17);
+    const tile = tileOf(w.level, 23, 17);
+    const nav = cellOf(w.level, 23, 17);
     assert.equal(w.level.blocked[nav], 0, "the fixture cell should start walkable");
 
-    brace(w, 27, 17);
+    brace(w, 23, 17);
     assert.ok(trapAtCell(w, tile) >= 0, "the blockade was not placed");
     assert.equal(w.level.blockTiles[tile], 1, "the tile was not flagged");
     assert.equal(w.level.blocked[nav], 1, "the flow field walked straight through it");
@@ -96,7 +100,7 @@ describe("the Dead Man's Brace", () => {
     const before = Array.from(w.level.blocked);
     const distBefore = Array.from(w.level.dist);
 
-    const tile = brace(w, 27, 17);
+    const tile = brace(w, 23, 17);
     assert.notDeepEqual(Array.from(w.level.blocked), before, "placing changed nothing");
 
     send(w, [{ t: CMD.sell, cell: tile }]);
@@ -144,16 +148,18 @@ describe("the Dead Man's Brace", () => {
         refused > 0,
         `${site}: every single tile accepted a blockade — the seal rule never fired`,
       );
+      /*
+       * The invariant, by the rule's own yardstick: a gate's spawn AREA keeps a
+       * route. A gate's exact centre cell is allowed to end up inside a padded
+       * footprint — the director relocates spawns within GATE_SPAWN_REACH — so
+       * demanding the centre stay walkable would re-introduce the false-refusal
+       * bug as a test failure.
+       */
       assert.deepEqual(
-        reachableGates(w.level),
+        routableGates(w.level),
         w.level.gates.map(() => true),
         `${site}: a gate lost its route after ${placed} legal blockades`,
       );
-      // A route existing is not enough: bodies have to be able to walk it.
-      for (const g of w.level.gates) {
-        const c = cellOf(w.level, g.x, g.z);
-        assert.equal(w.level.blocked[c], 0, `${site}: gate (${g.x}, ${g.z}) got walled in`);
-      }
     }
   });
 
@@ -169,7 +175,7 @@ describe("the Dead Man's Brace", () => {
       send(w, [{ t: CMD.place, cell: tile }]);
     }
     assert.deepEqual(
-      reachableGates(w.level),
+      routableGates(w.level),
       w.level.gates.map(() => true),
       "the pinch was sealed shut",
     );
@@ -203,16 +209,16 @@ describe("the Dead Man's Brace", () => {
      * baking each candidate and comparing.
      */
     const level = buildLevel(SITE.bootHill);
+    const routedBefore = routableGates(level);
     for (let tile = 0; tile < level.blockTiles.length; tile += 5) {
       if (!isPlaceable(level, tile)) continue;
       const predicted = wouldSealLane(level, tile);
 
       level.blockTiles[tile] = 1;
       rebake(level);
-      const actual = level.gates.some((g) => {
-        const c = cellOf(level, g.x, g.z);
-        return c < 0 || !Number.isFinite(level.dist[c]);
-      });
+      const actual = level.gates.some(
+        (g, i) => routedBefore[i] && !gateHasRoute(level, g.x, g.z),
+      );
       level.blockTiles[tile] = 0;
       rebake(level);
 
@@ -225,10 +231,111 @@ describe("the Dead Man's Brace", () => {
     }
   });
 
+  it("allows narrowing a gate mouth when the spawn area keeps a route", () => {
+    /*
+     * The false-refusal bug, pinned. A blockade whose padded footprint merely
+     * covered a gate's exact centre cell used to read as a seal — even though the
+     * director scatters spawns across the mouth and a body arriving beside the
+     * barricade walks around it. Every placeable tile that swallows a gate's
+     * centre but leaves the spawn area routed must now be accepted; the ones that
+     * genuinely strand the area must still be refused.
+     */
+    const level = buildLevel(SITE.bootHill);
+    // The baked skirt: half a tile of blockade plus the agent-radius padding.
+    const pad = level.tile / 2 + DUSTKIN.radius;
+    let narrowings = 0;
+
+    for (let tile = 0; tile < level.blockTiles.length; tile++) {
+      if (!isPlaceable(level, tile)) continue;
+      const cx = tileCenterX(level, tile);
+      const cz = tileCenterZ(level, tile);
+      if (!level.gates.some((g) => Math.abs(g.x - cx) <= pad && Math.abs(g.z - cz) <= pad)) {
+        continue;
+      }
+
+      // Ground truth for this mouth tile, by actually baking it.
+      const routedBefore = routableGates(level);
+      level.blockTiles[tile] = 1;
+      rebake(level);
+      const staysRouted = level.gates.every(
+        (g, i) => !routedBefore[i] || gateHasRoute(level, g.x, g.z),
+      );
+      level.blockTiles[tile] = 0;
+      rebake(level);
+
+      if (!staysRouted) continue; // a genuine seal — refusing it is correct
+      narrowings++;
+      assert.equal(
+        wouldSealLane(level, tile),
+        false,
+        `tile ${tile} at (${cx}, ${cz}) narrows a gate mouth without sealing it — must be allowed`,
+      );
+    }
+    assert.ok(narrowings > 0, "fixture found no legal mouth tiles — the regression is untested");
+  });
+
+  it("spawns beside a mouth barricade, and the preview re-traces", () => {
+    /*
+     * The two halves of "the barricade works": bodies still arrive (from a spawn
+     * cell that routes, not from inside the padded skirt), and the ghost path
+     * signature moves so the drawn lane follows the field it previews. The
+     * signature is the whole fix — pathSignature ignored blockades entirely, so
+     * placing one left the ribbon drawing a route the bodies no longer take.
+     */
+    const w = createWorld(11, SITE.bootHill);
+    w.scrap = 2000;
+
+    // First placeable tile that swallows a gate's centre cell and is legal.
+    const pad = w.level.tile / 2 + DUSTKIN.radius;
+    let mouthTile = -1;
+    for (let tile = 0; tile < w.level.blockTiles.length && mouthTile < 0; tile++) {
+      if (!isPlaceable(w.level, tile)) continue;
+      const cx = tileCenterX(w.level, tile);
+      const cz = tileCenterZ(w.level, tile);
+      const covers = w.level.gates.some(
+        (g) => Math.abs(g.x - cx) <= pad && Math.abs(g.z - cz) <= pad,
+      );
+      if (covers && !wouldSealLane(w.level, tile)) mouthTile = tile;
+    }
+    assert.ok(mouthTile >= 0, "no legal mouth tile on Boot Hill — fixture broke");
+
+    const sigBefore = pathSignature(w.level, w.round);
+    w.player.slot = BRACE;
+    w.player.buildMode = true;
+    send(w, [{ t: CMD.place, cell: mouthTile }]);
+    assert.ok(trapAtCell(w, mouthTile) >= 0, "the legal mouth barricade was refused");
+    assert.notEqual(
+      pathSignature(w.level, w.round),
+      sigBefore,
+      "placing a blockade did not move the path signature — the preview would go stale",
+    );
+
+    // Now the bodies. Every spawn must stand on a cell that routes to the Rift.
+    send(w, [{ t: CMD.startWave }]);
+    const seen = new Uint8Array(w.enemies.alive.length);
+    let spawns = 0;
+    for (let t = 0; t < 900; t++) {
+      send(w);
+      for (let i = 0; i < w.enemies.alive.length; i++) {
+        if (!w.enemies.alive[i] || seen[i]) continue;
+        seen[i] = 1;
+        spawns++;
+        const c = cellOf(w.level, w.enemies.x[i], w.enemies.z[i]);
+        assert.ok(c >= 0, "a body spawned off the grid");
+        assert.equal(
+          w.level.blocked[c],
+          0,
+          `a body spawned inside the blocked skirt at (${w.enemies.x[i].toFixed(1)}, ${w.enemies.z[i].toFixed(1)})`,
+        );
+      }
+    }
+    assert.ok(spawns > 3, `only ${spawns} bodies arrived past the mouth barricade`);
+  });
+
   it("stops bodies and not the player", () => {
     // Promise 3, at the collision layer where the difference actually lives.
     const level = buildLevel(SITE.bootHill);
-    const tile = tileOf(level, 27, 17);
+    const tile = tileOf(level, 23, 17);
     level.blockTiles[tile] = 1;
     rebake(level);
 
@@ -291,7 +398,7 @@ describe("the Dead Man's Brace", () => {
     const w = createWorld(3, SITE.bootHill);
     w.scrap = 500;
     const def = TRAPS[BRACE];
-    const tile = brace(w, 27, 17);
+    const tile = brace(w, 23, 17);
     assert.equal(w.scrap, 500 - def.cost, "the blockade was free");
     send(w, [{ t: CMD.sell, cell: tile }]);
     assert.ok(w.scrap > 500 - def.cost, "selling refunded nothing");
@@ -302,7 +409,7 @@ describe("the Dead Man's Brace", () => {
     // price, mark the instance, and resolve straight back to the base def.
     const w = createWorld(3, SITE.bootHill);
     w.scrap = 2000;
-    const tile = brace(w, 27, 17);
+    const tile = brace(w, 23, 17);
     const purse = w.scrap;
     send(w, [{ t: CMD.upgrade, cell: tile, choice: 1 }]);
     assert.equal(w.scrap, purse, "charged for an upgrade that does not exist");

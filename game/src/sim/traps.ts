@@ -391,7 +391,19 @@ export const TRAPS: TrapDef[] = [
     cost: 90,
     elem: ELEM.arcane,
     trigger: TRIGGER.aura,
-    surface: SURF.floor,
+    /*
+     * CHALK, not floor — §6's catalog puts this in the sigil family (#19), and it
+     * shipped on the floor by mistake.
+     *
+     * That mistake had a cost: every site authored sigil slots, the census counted
+     * them, `siteCanAnswer` could gate on them, and nothing in the game could use
+     * one. Meanwhile the strongest amplifier in the catalog was placeable on any of
+     * ~330 floor tiles, which is not what a 90-scrap +50% aura is meant to be.
+     *
+     * Scarce is the point. Boot Hill traces four circles, Hollow Creek six: where the
+     * Sigil goes is a decision the map makes half of.
+     */
+    surface: SURF.sigil,
     reach: REACH.ground,
     cooldown: 0,
     radius: 4.0,

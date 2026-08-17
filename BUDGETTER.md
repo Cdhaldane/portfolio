@@ -51,8 +51,8 @@ is shown to the inviter once and can never be looked up again. Nobody has to
 copy Clerk user ids around, and a leaked database row is not redeemable.
 
 A join never merges or discards data: if the joiner's own household already
-holds transactions, cards, bills, income or budgets, the join is refused with
-an explanation instead of orphaning them. Removal is a soft `removed_at`, so
+holds transactions, cards, bills, income, budgets or saved purchase plans,
+the join is refused with an explanation instead of orphaning them. Removal is a soft `removed_at`, so
 a departed member's imports and edits stay in the ledger, still credited to
 them by name.
 

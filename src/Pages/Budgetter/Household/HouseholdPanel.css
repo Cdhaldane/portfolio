@@ -315,6 +315,9 @@
   color: var(--blue-deep);
   /* Selectable for people who prefer to copy it by hand. */
   user-select: all;
+  /* Today's codes are 9 chars and always fit; if the format ever grows,
+     wrap instead of pushing past the card edge. */
+  overflow-wrap: anywhere;
 }
 
 .hh-code-actions {
@@ -408,6 +411,25 @@
   color: var(--ink-soft);
   min-width: 96px;
   text-align: right;
+}
+
+/* Touch ergonomics: ~40px targets. (The 16px input clamp that stops iOS
+   focus-zoom lives on the .bud shell.) */
+@media (max-width: 768px) {
+  .hh-btn {
+    min-height: 40px;
+  }
+  /* "rename" is a bare ~14px text button beside the household name — grow
+     its hit area without moving the layout. The dashed underline moves from
+     border-bottom to text-decoration so it stays attached to the text
+     instead of hanging below the new padding. */
+  .hh-inline {
+    padding: 12px 6px;
+    margin: -12px -6px;
+    border-bottom: none;
+    text-decoration: underline dashed;
+    text-underline-offset: 3px;
+  }
 }
 
 @media (max-width: 620px) {
