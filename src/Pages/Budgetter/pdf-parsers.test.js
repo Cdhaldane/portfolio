@@ -4,7 +4,12 @@
 // descriptions with the amount on either visual line, the Sport Chek
 // re-itemization table, and the interest-rate table whose first row starts
 // with the word "Purchases".
-import { parseTriangleStatement, parseTdStatement, parseStatementPdf } from "./pdf-parsers";
+import {
+  parseTriangleStatement,
+  parseTdStatement,
+  parseAmexStatement,
+  parseStatementPdf,
+} from "./pdf-parsers";
 
 const seg = (text, x) => ({ x, text });
 
@@ -290,6 +295,176 @@ describe("parseTdStatement", () => {
   });
 });
 
+// Fixtures mirror a real August 2026 Amex Cobalt statement (cardmember name
+// swapped): the page-1 account summary, "Reference AT…" lines under
+// payments, refunds negative inline among purchases, the page-3 header
+// interleaving mid-section, the "Total of New Transactions for" line whose
+// cardmember name wraps BELOW the amount, the membership fee under "Other
+// Account Transactions", the interest-rate table whose first row starts with
+// "Purchases", and the Membership Rewards re-itemization (numeric dates).
+describe("parseAmexStatement", () => {
+  const AMEX_LINES = [
+    // -- page 1 --
+    "American Express Cobalt Card",
+    "Statement of Account",
+    "Page 1 / 8",
+    "Prepared For Account Number Opening Date Closing Date",
+    "ALEX SAMPLE XXXX XXXXX4 81001 Jul 16, 2026 Aug 15, 2026",
+    "ACCOUNT SUMMARY",
+    "Previous Balance $1,065.63",
+    "Less Payments $1,065.63",
+    "Less Other Credits $0.00",
+    "Plus Interest $0.00",
+    "Plus Purchases $1,149.67",
+    "Plus Fees $15.99",
+    "Equals New Balance $1,165.66",
+    "Minimum Amount Due on Sep 5, 2026 $10.00",
+    "Statement includes payments and charges received by Aug 15, 2026",
+    // -- page 2 --
+    "Your Transactions",
+    "Transaction Date Posting Date Details Amount ($)",
+    "New Payments",
+    "Jul 16 Jul 16 PAYMENT RECEIVED - THANK YOU -500.00",
+    "Reference AT261970007000010015308",
+    "Jul 24 Jul 24 PAYMENT RECEIVED - THANK YOU -565.63",
+    "Reference AT262050007000010016507",
+    "Total of Payment Activity -1,065.63",
+    "New Transactions for ALEX SAMPLE",
+    "Jul 16 Jul 17 SHEIN DISTRIBUTION CANA TORONTO -26.25",
+    "Jul 17 Jul 18 AMZN MKTP CA*I32BC7R13 866-216-1072 79.09",
+    "Jul 17 Jul 19 FOODLAND #3396 BOWMANVI ENNISMORE 15.37",
+    "Jul 19 Jul 19 AMZN MKTP CA*VW1WW7MJ3 866-216-1072 20.87",
+    "Jul 19 Jul 20 IKEA BURLINGTON BURLINGTON 293.62",
+    "Jul 19 Jul 20 HOUSE FITNESS PETERBOROUGH 28.25",
+    "Jul 20 Jul 21 AMZN MKTP CA*X324O8J83 866-216-1072 28.80",
+    "Jul 24 Jul 24 AD FREE FOR PRIMEVIDEO PRIME VIDEO 3.38",
+    "Jul 25 Jul 25 AIRWALXHK*STYLEVANA AIR HK 187.73",
+    "Jul 26 Jul 27 WIKIPEDIA GIFT SAN FRANCISCO 2.75",
+    "Jul 27 Jul 28 PARKHILL ANIMAL HOSPIT SELWYN 214.70",
+    "Jul 31 Aug 1 AMAZON.CA PRIME MEMBER AMAZON.CA/PRI 5.64",
+    "Aug 2 Aug 3 HOUSE FITNESS PETERBOROUGH 28.25",
+    // -- page-3 header interleaves MID-SECTION and must not disturb it --
+    "American Express Cobalt Card",
+    "Statement of Account",
+    "Page 3 / 8",
+    "Prepared For Account Number Opening Date Closing Date",
+    "ALEX SAMPLE XXXX XXXXX4 81001 Jul 16, 2026 Aug 15, 2026",
+    "Your Transactions",
+    "Transaction Date Posting Date Details Amount ($)",
+    "Aug 3 Aug 4 AMZN MKTP CA*567JX5CB1 866-216-1072 25.98",
+    "Aug 3 Aug 4 AMZN MKTP CA*561SL6LK0 866-216-1072 22.59",
+    "Aug 3 Aug 4 AMZN MKTP CA*561O70ZI0 866-216-1072 19.20",
+    "Aug 3 Aug 4 AMZN MKTP CA*563GK1FC2 866-216-1072 18.07",
+    "Aug 4 Aug 6 FRESHCO #2927 PETERBORO PETERBOROUGH 47.25",
+    "Aug 6 Aug 7 APPLE.COM/BILL TORONTO 3.35",
+    "Aug 8 Aug 8 STATEMENT HOUSE Peterborough 33.90",
+    "Aug 9 Aug 9 AMZN MKTP CA 866-216-1072 -22.59",
+    "Aug 9 Aug 9 AMZN MKTP CA 866-216-1072 -25.98",
+    "Aug 9 Aug 10 LOVISA 60308 PETERBOROUGH 86.98",
+    "Aug 11 Aug 12 FLOWERTOWN CANNABIS INC BRIDGENORTH 21.46",
+    "Aug 13 Aug 14 AMAZON.CA*5H4QL9S71 866-216-1072 9.03",
+    "Aug 14 Aug 14 WAL-MART 3071 3071 PETERBOROUGH 20.35",
+    "Aug 14 Aug 14 AMAZON.CA*5H0L68981 866-216-1072 7.88",
+    // cardmember name wraps BELOW the total's visual line
+    "Total of New Transactions for 1,149.67",
+    "ALEX SAMPLE",
+    "Other Account Transactions",
+    "Aug 15 Aug 15 MEMBERSHIP FEE INSTALLMENT 15.99",
+    "Total of Other Account Transactions 15.99",
+    // -- pages 4-8: nothing below may contribute rows --
+    "About Your Credit Limit",
+    "About Your Interest Rates",
+    "Purchases 0.0603% 0.00 21.99% 21.99% 25.99% 29.99%",
+    "About Your Statement",
+    "Membership Rewards",
+    "Account Summary from 07/16/2026 to 08/15/2026",
+    "07/19/2026 FOODLAND #3396 BOWMANVI ENNISMORE $15.37 77",
+    "08/06/2026 FRESHCO #2927 PETERBORO PETERBOROUGH $47.25 236",
+    "5 pts/$1 Eligible Food/Drink $62.62 313",
+    "Your Offers and Account Information",
+  ];
+
+  const result = parseAmexStatement(AMEX_LINES);
+
+  it("parses the statement", () => {
+    expect(result.ok).toBe(true);
+  });
+
+  it("finds exactly the 30 real rows (2 payments + 27 transactions + 1 fee)", () => {
+    expect(result.rows).toHaveLength(30);
+  });
+
+  it("takes the period from the Opening/Closing Date header", () => {
+    expect(result.period.label).toBe("Jul 16, 2026 – Aug 15, 2026");
+  });
+
+  it("uses the transaction date with the period's year", () => {
+    expect(result.rows[0].postedDate).toBe("2026-07-16");
+    expect(result.rows.at(-1).postedDate).toBe("2026-08-15");
+    const prime = result.rows.find((r) => r.merchantRaw.includes("PRIME MEMBER"));
+    expect(prime.postedDate).toBe("2026-07-31");
+  });
+
+  it("keeps payments negative and untouched by their Reference lines", () => {
+    const payments = result.rows.filter((r) => r.merchantRaw === "PAYMENT RECEIVED - THANK YOU");
+    expect(payments.map((r) => r.amountCents)).toEqual([-50000, -56563]);
+    expect(result.rows.some((r) => /reference|AT2619/i.test(r.merchantRaw))).toBe(false);
+  });
+
+  it("keeps refunds negative inline among purchases", () => {
+    const shein = result.rows.find((r) => r.merchantRaw.startsWith("SHEIN"));
+    expect(shein.amountCents).toBe(-2625);
+  });
+
+  it("imports the membership fee from Other Account Transactions", () => {
+    const fee = result.rows.find((r) => r.merchantRaw === "MEMBERSHIP FEE INSTALLMENT");
+    expect(fee.amountCents).toBe(1599);
+  });
+
+  it("cross-checks all three stated totals, including the wrapped-name one", () => {
+    expect(result.checks).toHaveLength(3);
+    expect(result.checks.every((c) => c.ok)).toBe(true);
+    const purchases = result.checks.find((c) => c.key === "purchases");
+    expect(purchases.statedCents).toBe(114967);
+    expect(purchases.parsedCents).toBe(114967);
+    const payments = result.checks.find((c) => c.key === "payments");
+    expect(payments.statedCents).toBe(-106563);
+  });
+
+  it("imports nothing from the rewards re-itemization or rate tables", () => {
+    expect(result.rows.filter((r) => r.merchantRaw.includes("FOODLAND"))).toHaveLength(1);
+    expect(result.rows.some((r) => /21\.99|Eligible/i.test(r.merchantRaw))).toBe(false);
+  });
+
+  it("assigns each side of a Dec→Jan statement its own year", () => {
+    const wrap = parseAmexStatement([
+      "American Express Cobalt Card",
+      "ALEX SAMPLE XXXX XXXXX4 81001 Dec 16, 2026 Jan 15, 2027",
+      "New Transactions for ALEX SAMPLE",
+      "Dec 20 Dec 21 FRESHCO #2927 PETERBORO PETERBOROUGH 50.00",
+      "Jan 3 Jan 4 TIM HORTONS #4821 PETERBOROUGH 5.25",
+      "Total of New Transactions for 55.25",
+    ]);
+    expect(wrap.ok).toBe(true);
+    expect(wrap.rows.map((r) => r.postedDate)).toEqual(["2026-12-20", "2027-01-03"]);
+  });
+
+  it("rejects a PDF with no opening/closing dates", () => {
+    const other = parseAmexStatement(["Some other bank", "Jan 01 Jan 02 THING 5.00"]);
+    expect(other.ok).toBe(false);
+    expect(other.error).toMatch(/opening\/closing/i);
+  });
+
+  it("rejects an Amex-looking PDF with no readable rows", () => {
+    const empty = parseAmexStatement([
+      "ALEX SAMPLE XXXX XXXXX4 81001 Jul 16, 2026 Aug 15, 2026",
+      "New Payments",
+      "Total of Payment Activity 0.00",
+    ]);
+    expect(empty.ok).toBe(false);
+  });
+});
+
 describe("parseStatementPdf (bank detection)", () => {
   it("routes Triangle statements by their period line", () => {
     const r = parseStatementPdf([
@@ -310,6 +485,18 @@ describe("parseStatementPdf (bank detection)", () => {
     ]);
     expect(r.ok).toBe(true);
     expect(r.rows[0].merchantRaw).toBe("SUBWAY 14653 PETERBOROUGH");
+  });
+
+  it("routes Amex statements by their brand text", () => {
+    const r = parseStatementPdf([
+      "Amex Bank of Canada",
+      "ALEX SAMPLE XXXX XXXXX4 81001 Jul 16, 2026 Aug 15, 2026",
+      "New Transactions for ALEX SAMPLE",
+      "Jul 19 Jul 20 IKEA BURLINGTON BURLINGTON 293.62",
+      "Total of New Transactions for 293.62",
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.rows[0].merchantRaw).toBe("IKEA BURLINGTON BURLINGTON");
   });
 
   it("rejects PDFs from unknown banks", () => {

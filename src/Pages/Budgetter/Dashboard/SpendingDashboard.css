@@ -205,6 +205,24 @@
   gap: 2px;
 }
 
+/* "household" marker on numbers that ignore the Mine scope — fixed bills,
+   income, savings, budgets aren't modeled per person, so in Mine view they
+   declare themselves instead of silently mixing scopes. */
+.bdb-scope-chip {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 7px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 .bdb-toggle-btn {
   font-family: "Space Grotesk", sans-serif;
   font-weight: 600;

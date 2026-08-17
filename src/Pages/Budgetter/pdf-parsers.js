@@ -1,6 +1,5 @@
-// Pure statement-PDF parsing for banks that don't offer CSV export —
-// currently Canadian Tire / Triangle Mastercard, whose site only hands out
-// PDF statements. Takes the *text lines* already extracted from the PDF
+// Pure statement-PDF parsing — Canadian Tire / Triangle Mastercard, TD, and
+// American Express. Takes the *text lines* already extracted from the PDF
 // (see pdf-extract.js, kept separate so this stays unit-testable without
 // pdf.js) and returns the same {postedDate, merchantRaw, amountCents} rows
 // the CSV path produces. Verified against a real July 2026 Triangle
@@ -503,18 +502,153 @@ export function parseTdStatement(lines) {
   return { ok: true, rows, period, checks, sections: { purchases, payments } };
 }
 
+// ---- Amex ----
+//
+// Verified against a real August 2026 Cobalt statement. Amex's layout is the
+// tamest of the three:
+// - No period line; every page header prints the opening and closing dates
+//   side by side ("Jul 16, 2026  Aug 15, 2026") under "Opening Date /
+//   Closing Date" — the first line carrying two adjacent full dates is it.
+// - Sections: "New Payments" (payments, negative), "New Transactions for
+//   <CARDMEMBER>" (one per cardmember, refunds negative inline) and "Other
+//   Account Transactions" (fees — the monthly membership fee lives here).
+//   Each closes with a "Total of …" line to cross-check; the New
+//   Transactions total's cardmember name sometimes wraps BELOW the amount's
+//   visual line, so the total regex doesn't require it.
+// - Rows never wrap ("Jul 16 Jul 17 SHEIN DISTRIBUTION CANA TORONTO -26.25"),
+//   so there is deliberately NO continuation handling: anything that isn't a
+//   row, a section marker or a total ("Reference AT…" under payments, page
+//   furniture, the interleaved page-3 header) is simply ignored.
+// - The Membership Rewards summary re-itemizes charges with NUMERIC dates
+//   (07/19/2026), which can't match the month-name row shape — and the
+//   "About Your …" / offers pages reset the section anyway.
+const AMEX_MARKER_RE = /american express|amex bank of canada/i;
+const AMEX_PERIOD_RE = new RegExp(
+  `${MONTH_RE}[a-z]*\\.?\\s+(\\d{1,2}),?\\s+(\\d{4})\\s+${MONTH_RE}[a-z]*\\.?\\s+(\\d{1,2}),?\\s+(\\d{4})`,
+  "i"
+);
+const AMEX_SECTION_STARTS = [
+  [/^new payments$/i, "payments"],
+  [/^new transactions\b/i, "purchases"],
+  [/^other account transactions$/i, "other"],
+];
+const AMEX_SECTION_EXIT = /^(membership rewards|about your|your offers)/i;
+const AMEX_TOTAL_RE = new RegExp(
+  `^total of (payment activity|new transactions|other account transactions)\\b.*?${AMOUNT_RE}(?:\\s|$)`,
+  "i"
+);
+const AMEX_TOTAL_SECTION = {
+  "payment activity": "payments",
+  "new transactions": "purchases",
+  "other account transactions": "other",
+};
+
+/**
+ * Parse an American Express statement from extracted PDF lines. Same
+ * contract as the Triangle/TD parsers: {ok, rows, period, checks, sections}
+ * with every section's stated total compared against the parsed sum, so a
+ * layout redesign fails loudly instead of importing garbage.
+ */
+export function parseAmexStatement(lines) {
+  const texts = lines.map((l) => cleanLine(typeof l === "string" ? l : l.text));
+
+  let period = null;
+  for (const t of texts) {
+    const m = t.match(AMEX_PERIOD_RE);
+    if (m) {
+      period = periodFromSpan(m);
+      if (period) break;
+    }
+  }
+  if (!period) {
+    return {
+      ok: false,
+      error:
+        "Couldn't find the opening/closing dates in this PDF — it doesn't look like an Amex statement.",
+    };
+  }
+
+  const rows = [];
+  const sums = {};
+  const stated = {};
+  let section = null;
+
+  for (const text of texts) {
+    if (!text) continue;
+
+    const total = text.match(AMEX_TOTAL_RE);
+    if (total) {
+      const key = AMEX_TOTAL_SECTION[total[1].toLowerCase()];
+      // Accumulate: a shared account prints one "Total of New Transactions
+      // for <NAME>" per cardmember.
+      stated[key] = (stated[key] || 0) + parseAmountToCents(total[2]);
+      section = null;
+      continue;
+    }
+
+    const start = AMEX_SECTION_STARTS.find(([re]) => re.test(text));
+    if (start) {
+      section = start[1];
+      continue;
+    }
+
+    if (AMEX_SECTION_EXIT.test(text)) {
+      section = null;
+      continue;
+    }
+
+    if (!section) continue;
+
+    const full = text.match(TX_FULL);
+    if (full) {
+      const row = makeRow(full[1], full[2], full[5], full[6], period);
+      if (row) {
+        rows.push(row);
+        sums[section] = (sums[section] || 0) + row.amountCents;
+      }
+    }
+    // Everything else inside a section is furniture — see layout notes.
+  }
+
+  if (!rows.length) {
+    return {
+      ok: false,
+      error:
+        "Found the statement dates but no transactions — if this Amex statement looks different from usual, the parser needs updating.",
+    };
+  }
+
+  const AMEX_CHECK_LABELS = {
+    payments: "Payment activity",
+    purchases: "New transactions",
+    other: "Other account charges",
+  };
+  const checks = Object.keys(stated)
+    .filter((key) => stated[key] != null)
+    .map((key) => ({
+      key,
+      label: AMEX_CHECK_LABELS[key] || key,
+      statedCents: stated[key],
+      parsedCents: sums[key] || 0,
+      ok: stated[key] === (sums[key] || 0),
+    }));
+
+  return { ok: true, rows, period, checks, sections: sums };
+}
+
 /**
  * Detect which bank produced a statement PDF and parse accordingly.
  * Triangle prints "For the period: … to …"; TD prints
- * "STATEMENT PERIOD: … to …".
+ * "STATEMENT PERIOD: … to …"; Amex is recognized by its brand text.
  */
 export function parseStatementPdf(lines) {
   const texts = lines.map((l) => cleanLine(typeof l === "string" ? l : l.text));
   if (texts.some((t) => PERIOD_RE.test(t))) return parseTriangleStatement(lines);
   if (texts.some((t) => TD_PERIOD_RE.test(t))) return parseTdStatement(lines);
+  if (texts.some((t) => AMEX_MARKER_RE.test(t))) return parseAmexStatement(lines);
   return {
     ok: false,
     error:
-      "Couldn't recognize this PDF — Canadian Tire (Triangle) and TD statements are supported so far.",
+      "Couldn't recognize this PDF — Amex, Canadian Tire (Triangle) and TD statements are supported so far.",
   };
 }

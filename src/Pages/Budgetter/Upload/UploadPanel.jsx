@@ -102,9 +102,9 @@ const UploadPanel = ({ onImported }) => {
     setParsed(null);
     setPdfInfo(null);
 
-    // Statement PDFs (Canadian Tire / Triangle, TD) are parsed client-side
-    // (pdf.js, lazily loaded) into the same rows the CSV path produces. The
-    // raw file still never leaves the browser.
+    // Statement PDFs (Amex, Canadian Tire / Triangle, TD) are parsed
+    // client-side (pdf.js, lazily loaded) into the same rows the CSV path
+    // produces. The raw file still never leaves the browser.
     if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
       if (file.size > MAX_PDF_BYTES) {
         setFileError("That PDF is bigger than a statement should be — double check it.");
@@ -306,10 +306,10 @@ const UploadPanel = ({ onImported }) => {
         <p className="upl-num">02</p>
         <h2 className="upl-h">Upload a statement</h2>
         <p className="upl-hint">
-          CSV exported from your bank's statement page — or, for Canadian Tire
-          / Triangle and TD, the PDF statement itself. Either way the file is
-          parsed right here in your browser and never sent to the server; only
-          the rows you confirm are.
+          CSV exported from your bank's statement page — or, for Amex,
+          Canadian Tire / Triangle and TD, the PDF statement itself. Either
+          way the file is parsed right here in your browser and never sent to
+          the server; only the rows you confirm are.
         </p>
         <input
           ref={fileInputRef}

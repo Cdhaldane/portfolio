@@ -31,37 +31,51 @@ const CATS = {
   uncategorized: [0, 0, 3000, 0, 8000, 0, 0, 2500, 0, 0, 4200, 31900],
 };
 
+// mine_* mock: "your" cards carry roughly 60% of the household's spending,
+// varying by category index so the Mine/Household toggle visibly reshapes
+// the chart in the preview.
 const months = [];
-for (const [category, amounts] of Object.entries(CATS)) {
+Object.entries(CATS).forEach(([category, amounts], c) => {
   amounts.forEach((cents, i) => {
     if (cents > 0) {
+      const tx = Math.max(1, Math.round(cents / 4000));
+      const mineShare = [0.8, 0.55, 0.4, 0.7, 0.5, 0.65, 0.5, 0.6][c % 8];
       months.push({
         month: MONTHS[i],
         category,
         spend_cents: cents,
-        tx_count: Math.max(1, Math.round(cents / 4000)),
+        tx_count: tx,
+        mine_cents: Math.round(cents * mineShare),
+        mine_tx_count: Math.max(1, Math.round(tx * mineShare)),
       });
     }
   });
-}
+});
 
 const merchants = [];
+// [merchant row..., mineShare] — 1 = all yours, 0 = all theirs.
+const pushMerchant = (month, merchant_clean, spend_cents, tx_count, mineShare) =>
+  merchants.push({
+    month,
+    merchant_clean,
+    spend_cents,
+    tx_count,
+    mine_cents: Math.round(spend_cents * mineShare),
+    mine_tx_count: Math.round(tx_count * mineShare),
+  });
 MONTHS.forEach((month, i) => {
-  merchants.push(
-    { month, merchant_clean: "FRESHCO", spend_cents: 32000 + (i % 4) * 2500, tx_count: 4 },
-    { month, merchant_clean: "AMZN MKTP CA", spend_cents: 9000 + (i % 3) * 900, tx_count: 3 },
-    { month, merchant_clean: "MCDONALD'S", spend_cents: 5400 + (i % 5) * 700, tx_count: 3 },
-    { month, merchant_clean: "AYLMER ESSO", spend_cents: 12000 + (i % 2) * 1400, tx_count: 2 }
-  );
+  pushMerchant(month, "FRESHCO", 32000 + (i % 4) * 2500, 4, 0.5);
+  pushMerchant(month, "AMZN MKTP CA", 9000 + (i % 3) * 900, 3, 1);
+  pushMerchant(month, "MCDONALD'S", 5400 + (i % 5) * 700, 3, 0.67);
+  pushMerchant(month, "AYLMER ESSO", 12000 + (i % 2) * 1400, 2, 0);
   if (i >= 9) {
-    // Stable last-3-months charge — should trip the subscription detector.
-    merchants.push({ month, merchant_clean: "CRUNCHYROLL", spend_cents: 1149, tx_count: 1 });
+    // Stable last-3-months charge — should trip the subscription detector
+    // (yours, so it shows in both scopes).
+    pushMerchant(month, "CRUNCHYROLL", 1149, 1, 1);
   }
   if (i === 11) {
-    merchants.push(
-      { month, merchant_clean: "OLYMPIA RESTAURANT", spend_cents: 24301, tx_count: 1 },
-      { month, merchant_clean: "SHOPPERS DRUG MART", spend_cents: 13797, tx_count: 3 }
-    );
+    pushMerchant(month, "OLYMPIA RESTAURANT", 24301, 1, 1);
+    pushMerchant(month, "SHOPPERS DRUG MART", 13797, 3, 0.33);
   }
 });
 
@@ -214,6 +228,8 @@ const DevPreview = () => {
             fetchJson={fetchJson}
             onMutate={() => {}}
             onOpenTransactions={() => {}}
+            shared
+            youUserId="user_preview"
           />
         ) : (
           <AffordPanel refreshToken={0} fetchJson={fetchJson} onMutate={() => {}} />

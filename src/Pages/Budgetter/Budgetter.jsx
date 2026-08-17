@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { budgetFetch } from "./api";
+import { activeMembers } from "./members";
 import SpendingDashboard from "./Dashboard/SpendingDashboard";
 import UploadPanel from "./Upload/UploadPanel";
 import TransactionsList from "./Transactions/TransactionsList";
@@ -88,6 +89,12 @@ const Budgetter = () => {
 
   const identity =
     user?.primaryEmailAddress?.emailAddress || user?.fullName || "you";
+
+  // Shared = 2+ active members. Drives the dashboard's Mine/Household toggle
+  // and the Transactions default of "your cards" — solo households see
+  // neither (nothing to scope).
+  const sharedHousehold = activeMembers(household.data?.members || []).length > 1;
+  const youUserId = household.data?.you?.userId;
 
   const refreshDashboard = () => setRefreshToken((t) => t + 1);
 
@@ -187,6 +194,8 @@ const Budgetter = () => {
           <SpendingDashboard
             refreshToken={refreshToken}
             fetchJson={fetchJson}
+            shared={sharedHousehold}
+            youUserId={youUserId}
             onMutate={() => listRef.current?.refresh()}
             onOpenTransactions={(category) => {
               listRef.current?.setFilters({ category });
@@ -203,7 +212,7 @@ const Budgetter = () => {
             ref={listRef}
             onMutate={refreshDashboard}
             members={household.data?.members}
-            youUserId={household.data?.you?.userId}
+            youUserId={youUserId}
           />
         </div>
         <div hidden={tab !== "monthly"} className="bud-monthly">

@@ -238,13 +238,23 @@ re-uploads. Change it only deliberately.
   in a solo household), and the CSV export carries an `AddedBy` column
 - ✅ Per-person view: cards are assigned to a member (`member_user_id`), so
   spend-per-person is correct no matter who uploaded the statement
+- ✅ Mine/Household scope: in a shared household the dashboard's SPENDING
+  analytics (chart, categories, merchants, movers, subscriptions,
+  drill-downs) default to the caller's own cards, with a toggle up to the
+  whole household; the Transactions list likewise defaults to "Your cards"
+  (a combined whose-card / added-by filter). Household-level numbers —
+  fixed bills, income, savings, budgets — are NEVER scoped (they aren't
+  modeled per person); in Mine view they carry a "household" chip instead.
+  The summary ships `mine_*` columns beside the household sums (derived
+  from the verified caller, never a request field), so the toggle is a
+  client-side flip, not a refetch. Solo households see none of this.
 - ✅ CSV upload: Amex format verified against a real statement (41/41 rows);
   generic column-mapping UI for any other bank; dry-run review before commit
-- ✅ PDF upload: Canadian Tire / Triangle and TD statements parsed
+- ✅ PDF upload: Amex, Canadian Tire / Triangle and TD statements parsed
   in-browser (pdf.js) with bank auto-detection, each verified against real
-  statements; stated totals (section totals / "CALCULATING YOUR BALANCE")
-  cross-checked against parsed sums so layout drift fails loudly instead of
-  importing garbage
+  statements; stated totals (section totals / "CALCULATING YOUR BALANCE" /
+  Amex's "Total of …" lines) cross-checked against parsed sums so layout
+  drift fails loudly instead of importing garbage
 - ✅ Auto-categorization: ~95 built-in rules + personal overrides + backfill
 - ✅ Dashboard: KPI tiles (latest month + delta + sparkline, fixed monthly,
   average, uncategorized), stacked card+fixed bar chart (12 months / years),
@@ -313,8 +323,10 @@ computationally (script-checked, not eyeballed):
   step is the safety net until a real export is seen. (Triangle and TD are
   handled via their PDF statements instead; Amex CSV is verified.)
 - The PDF parsers are layout-based (Triangle: section headings + "Total …"
-  lines; TD: row shape + the balance box). A statement redesign breaks them
-  loudly — totals mismatch or zero rows — never silently.
+  lines; TD: row shape + the balance box; Amex: "New Payments" / "New
+  Transactions for …" / "Other Account Transactions" sections + their
+  "Total of …" lines). A statement redesign breaks them loudly — totals
+  mismatch or zero rows — never silently.
 - "Safe to spend / left this month" math is still out of scope (income
   tracking itself is done — see the feature matrix). The Afford tab answers
   the *next-purchase* version of that question, not the day-to-day one.
@@ -356,16 +368,20 @@ computationally (script-checked, not eyeballed):
    records its author; the value is in mutations (deleted a bill, edited an
    amount), which aren't currently recorded anywhere.
 4. ~~TD + Triangle parsers~~ — both done via PDF import, verified against
-   real statements (TD June 2026, Triangle June+July 2026). TD *CSV* mapping
-   remains unverified but is covered by the manual-mapping fallback.
+   real statements (TD June 2026, Triangle June+July 2026), and Amex PDF
+   followed (verified against a real August 2026 Cobalt statement, so a
+   member without CSV access can upload too). TD *CSV* mapping remains
+   unverified but is covered by the manual-mapping fallback.
 5. OFX/QFX import (richer than CSV, includes bank transaction ids —
    would also make dedup exact instead of heuristic).
 6. "Left to spend this month" — income and fixed costs are both modelled now,
    so this is mostly assembly plus a day-pro-rated pace indicator. The Afford
    tab already owns the trailing-baseline maths (`Afford/loan.js`
    `spendBaseline`), which is the reusable half.
-7. Per-account (and now per-member) filtering surfaced in the dashboard; the
-   API already supports both.
+7. ~~Per-account (and now per-member) filtering surfaced in the dashboard~~ —
+   done as the Mine/Household scope toggle (dashboard) plus the whose-card /
+   added-by filter (Transactions, `cardOf` param). Per-account filtering in
+   the dashboard remains unexposed (the API supports it).
 8. Plaid/Flinks connection — **only if** manual monthly uploads become a
    chore; explicitly a liability trade, feature-flagged, TD first.
 

@@ -64,7 +64,13 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
 
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
-  const [addedBy, setAddedBy] = useState("");
+  // Combined member filter: "" (everything), "card:<id>" (whose card the
+  // charge is on — ownership), or "added:<id>" (who imported the row —
+  // attribution; a different question, see BUDGETTER.md). In a shared
+  // household it DEFAULTS to your own cards. null = untouched, so the
+  // default can settle once the async household fetch lands without ever
+  // stomping an explicit choice.
+  const [who, setWho] = useState(null);
   const [exporting, setExporting] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -80,23 +86,30 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
   const memberList = useMemo(() => activeMembers(members || []), [members]);
   const shared = memberList.length > 1;
 
+  const effectiveWho = who ?? (shared && youUserId ? `card:${youUserId}` : "");
+  const whoKind = effectiveWho ? effectiveWho.slice(0, effectiveWho.indexOf(":")) : "";
+  const whoId = effectiveWho ? effectiveWho.slice(effectiveWho.indexOf(":") + 1) : "";
+  const cardOf = whoKind === "card" ? whoId : "";
+  const addedBy = whoKind === "added" ? whoId : "";
+
   // Monotonic sequence: a response only applies if no newer load() started
   // after it — kills the refresh()-vs-Load-more race (stale page appended
   // onto a fresh page 0, duplicate keys).
   const loadSeq = useRef(0);
-  const filtersRef = useRef({ q: "", category: "", addedBy: "" });
-  filtersRef.current = { q, category, addedBy };
+  const filtersRef = useRef({ q: "", category: "", addedBy: "", cardOf: "" });
+  filtersRef.current = { q, category, addedBy, cardOf };
 
   const load = useCallback(
     async (offset = 0) => {
       const seq = ++loadSeq.current;
       setLoading(true);
       setError("");
-      const { q: fq, category: fc, addedBy: fa } = filtersRef.current;
+      const { q: fq, category: fc, addedBy: fa, cardOf: fo } = filtersRef.current;
       const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
       if (fq) params.set("q", fq);
       if (fc) params.set("category", fc);
       if (fa) params.set("addedBy", fa);
+      if (fo) params.set("cardOf", fo);
       const { res, data } = await budgetFetch(
         getToken,
         `/api/budget/transactions?${params}`
@@ -118,11 +131,12 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
     [getToken]
   );
 
-  // Initial load + debounced reload when filters change.
+  // Initial load + debounced reload when filters change. effectiveWho also
+  // moves when the household fetch first lands (the "your cards" default).
   useEffect(() => {
     const t = setTimeout(() => load(0), q ? 350 : 0);
     return () => clearTimeout(t);
-  }, [load, q, category, addedBy]);
+  }, [load, q, category, effectiveWho]);
 
   useImperativeHandle(
     ref,
@@ -147,6 +161,7 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
       if (q) params.set("q", q);
       if (category) params.set("category", category);
       if (addedBy) params.set("addedBy", addedBy);
+      if (cardOf) params.set("cardOf", cardOf);
       const { res, data } = await budgetFetch(getToken, `/api/budget/transactions?${params}`);
       if (!res.ok || !data) break;
       all.push(...data.transactions);
@@ -228,7 +243,7 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
     }
   };
 
-  const hasFilters = Boolean(q || category || addedBy);
+  const hasFilters = Boolean(q || category || effectiveWho);
 
   if (!configured) {
     return (
@@ -266,16 +281,27 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
         {shared && (
           <select
             className="txl-catfilter"
-            value={addedBy}
-            onChange={(e) => setAddedBy(e.target.value)}
-            aria-label="Filter by who added it"
+            value={effectiveWho}
+            onChange={(e) => setWho(e.target.value)}
+            aria-label="Filter by whose card, or by who added it"
           >
-            <option value="">Anyone added</option>
-            {memberList.map((m) => (
-              <option key={m.userId} value={m.userId}>
-                {memberLabel(m, youUserId)}
-              </option>
-            ))}
+            <option value="">Everything</option>
+            <optgroup label="Whose card">
+              {memberList.map((m) => (
+                <option key={`card:${m.userId}`} value={`card:${m.userId}`}>
+                  {m.userId === youUserId
+                    ? "Your cards"
+                    : `${memberLabel(m, youUserId)}'s cards`}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Who added it">
+              {memberList.map((m) => (
+                <option key={`added:${m.userId}`} value={`added:${m.userId}`}>
+                  Added by {m.userId === youUserId ? "you" : memberLabel(m, youUserId)}
+                </option>
+              ))}
+            </optgroup>
           </select>
         )}
         <button

@@ -57,6 +57,10 @@ module.exports = async (req, res) => {
       // "Show me only the rows Sarah added." Unknown ids simply match
       // nothing — the household filter is what enforces access.
       const addedBy = String(req.query?.addedBy || "").trim().slice(0, 80) || null;
+      // "Only charges on X's cards" — account OWNERSHIP (member_user_id),
+      // which is a different question from addedBy (who imported the row).
+      // Same posture: unknown ids match nothing inside the household.
+      const cardOf = String(req.query?.cardOf || "").trim().slice(0, 80) || null;
 
       // Period scoping for dashboard drill-downs: month=YYYY-MM or
       // year=YYYY (month wins). Expressed as a [from, to) date range so the
@@ -98,6 +102,7 @@ module.exports = async (req, res) => {
            AND (${qLike}::text IS NULL OR t.merchant_clean LIKE ${qLike})
            AND (${category || null}::text IS NULL OR t.category = ${category})
            AND (${addedBy}::text IS NULL OR t.user_id = ${addedBy})
+           AND (${cardOf}::text IS NULL OR a.member_user_id = ${cardOf})
            AND (${from}::date IS NULL OR t.posted_date >= ${from})
            AND (${to}::date IS NULL OR t.posted_date < ${to})
          ORDER BY t.posted_date DESC, t.id DESC

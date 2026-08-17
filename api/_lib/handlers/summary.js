@@ -40,15 +40,25 @@ module.exports = async (req, res) => {
 
     // Amounts are weighted by count_pct (100 = full, 50 = split, 0 =
     // excluded) so reimbursed/shared charges don't distort totals.
+    //
+    // mine_* columns: the same sums restricted to accounts whose CARD belongs
+    // to the caller (member_user_id — ownership, never who uploaded). They
+    // ship alongside the household totals so the dashboard's Mine/Household
+    // toggle is a client-side flip, not a refetch — and they're derived from
+    // the verified caller, never a request parameter.
     const months = await sql`
-      SELECT to_char(posted_date, 'YYYY-MM') AS month,
-             category,
-             SUM(ROUND(amount_cents * count_pct / 100.0))::int AS spend_cents,
-             COUNT(*) FILTER (WHERE count_pct > 0)::int AS tx_count
-        FROM budget_transactions
-       WHERE household_id = ${household.id} AND amount_cents > 0
+      SELECT to_char(t.posted_date, 'YYYY-MM') AS month,
+             t.category,
+             SUM(ROUND(t.amount_cents * t.count_pct / 100.0))::int AS spend_cents,
+             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count,
+             COALESCE(SUM(ROUND(t.amount_cents * t.count_pct / 100.0))
+               FILTER (WHERE a.member_user_id = ${userId}), 0)::int AS mine_cents,
+             COUNT(*) FILTER (WHERE t.count_pct > 0 AND a.member_user_id = ${userId})::int AS mine_tx_count
+        FROM budget_transactions t
+        JOIN budget_accounts a ON a.id = t.account_id
+       WHERE t.household_id = ${household.id} AND t.amount_cents > 0
        GROUP BY 1, 2
-      HAVING SUM(ROUND(amount_cents * count_pct / 100.0)) > 0
+      HAVING SUM(ROUND(t.amount_cents * t.count_pct / 100.0)) > 0
        ORDER BY 1 ASC
     `;
 
@@ -56,14 +66,18 @@ module.exports = async (req, res) => {
     // the subscription detector. Fine at personal scale; if a user ever has
     // thousands of distinct merchants this becomes a windowed query.
     const merchants = await sql`
-      SELECT to_char(posted_date, 'YYYY-MM') AS month,
-             merchant_clean,
-             SUM(ROUND(amount_cents * count_pct / 100.0))::int AS spend_cents,
-             COUNT(*) FILTER (WHERE count_pct > 0)::int AS tx_count
-        FROM budget_transactions
-       WHERE household_id = ${household.id} AND amount_cents > 0
+      SELECT to_char(t.posted_date, 'YYYY-MM') AS month,
+             t.merchant_clean,
+             SUM(ROUND(t.amount_cents * t.count_pct / 100.0))::int AS spend_cents,
+             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count,
+             COALESCE(SUM(ROUND(t.amount_cents * t.count_pct / 100.0))
+               FILTER (WHERE a.member_user_id = ${userId}), 0)::int AS mine_cents,
+             COUNT(*) FILTER (WHERE t.count_pct > 0 AND a.member_user_id = ${userId})::int AS mine_tx_count
+        FROM budget_transactions t
+        JOIN budget_accounts a ON a.id = t.account_id
+       WHERE t.household_id = ${household.id} AND t.amount_cents > 0
        GROUP BY 1, 2
-      HAVING SUM(ROUND(amount_cents * count_pct / 100.0)) > 0
+      HAVING SUM(ROUND(t.amount_cents * t.count_pct / 100.0)) > 0
        ORDER BY 1 ASC
     `;
 
