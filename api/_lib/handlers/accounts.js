@@ -133,9 +133,13 @@ module.exports = async (req, res) => {
       let memberUserId = current.member_user_id || current.user_id;
       if (req.body?.memberUserId !== undefined) {
         memberUserId = String(req.body.memberUserId || "");
-        const members = await activeMemberIds(sql, household.id);
-        if (!members.includes(memberUserId)) {
-          return res.status(400).json({ error: "That person isn't in this household." });
+        // Only an ownership CHANGE needs validating — a card still assigned
+        // to a departed member (kept for history) must stay editable.
+        if (memberUserId !== (current.member_user_id || current.user_id)) {
+          const members = await activeMemberIds(sql, household.id);
+          if (!members.includes(memberUserId)) {
+            return res.status(400).json({ error: "That person isn't in this household." });
+          }
         }
       }
 

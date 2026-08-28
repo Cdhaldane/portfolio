@@ -24,8 +24,8 @@ What that implies:
 - **Two kinds of money leave a household:** variable card spending (statements)
   and fixed monthly payments that never hit a card — mortgage, insurance,
   hydro, water. Budgetter models both: card data is imported, fixed costs are
-  declared once in the Monthly tab and overlaid onto every month they're
-  active.
+  declared once in the Income & bills tab and overlaid onto every month
+  they're active.
 - **Categories should mostly just work.** ~95 built-in Canadian merchant rules
   categorize on upload; personal rules (created by "apply to matching
   transactions") always override the built-ins; anything left gets a one-click
@@ -130,10 +130,13 @@ budget_transactions    account_id, batch_id, posted_date,
 budget_category_rules  pattern -> category   UNIQUE(household_id, pattern)
 budget_budgets         category, monthly_cents  UNIQUE(household_id, category)
 budget_recurring       label, category, amount_cents, due_day,
-                       start_month, end_month, on_card, paid_from
-                                              (fixed monthly payments)
-budget_income          label, amount_cents, cadence,
-                       start_month, end_month        (paycheques etc.)
+                       start_month, end_month, on_card, paid_from,
+                       member_user_id (whose bill; NULL = shared —
+                       split evenly in per-person views)    (bills)
+budget_income          label, amount_cents, cadence, start_month,
+                       end_month, member_user_id (whose income —
+                       always owned; backfilled to creator)
+                                                 (paycheques etc.)
 budget_plans           label, price_cents, tax_bps, down_cents,
                        trade_in_cents, apr_bps, term_months,
                        insurance_cents, fuel_cents, maintenance_cents,
@@ -150,10 +153,13 @@ same arithmetic. It is also the one table created *after* households existed:
 (nothing to backfill), and its index is created in the unconditional DDL block
 because the version-gated migration never runs again on an existing database.
 
-⚠️ **Two different questions about "whose":** `budget_accounts.member_user_id`
-is *whose card it is* and drives spend-per-person; `user_id` is *who typed it
-in*. One member can import everything and the per-person split still comes
-out right. Don't conflate them.
+⚠️ **Two different questions about "whose":** `member_user_id` (on accounts,
+recurring, income) is *ownership* — whose card, whose bill, whose paycheque —
+and drives every per-person number; `user_id` is *who typed it in*
+(attribution). One member can import and enter everything and the per-person
+split still comes out right. Don't conflate them. Recurring is the one place
+NULL ownership means something: a shared household bill, split evenly in
+per-person math.
 
 ⚠️ **Hash scope invariant:** `dedup_hash` is salted with the household
 **owner's** user id (`household.hashScope`), never the caller's. For every
@@ -184,7 +190,7 @@ excluded from spend, so a statement payment never double-counts against
 income.
 
 **No double-counting rule:** a recurring item flagged `on_card` (cell phone
-or streaming billed to a tracked credit card) is listed in the Monthly tab
+or streaming billed to a tracked credit card) is listed in the Income & bills tab
 and its due date is reminded about, but it is **excluded from every
 dashboard number** — the real charges arrive via statement upload and those
 are what count. The subscription detector's "Track" button always sets
@@ -238,16 +244,36 @@ re-uploads. Change it only deliberately.
   in a solo household), and the CSV export carries an `AddedBy` column
 - ✅ Per-person view: cards are assigned to a member (`member_user_id`), so
   spend-per-person is correct no matter who uploaded the statement
-- ✅ Mine/Household scope: in a shared household the dashboard's SPENDING
-  analytics (chart, categories, merchants, movers, subscriptions,
-  drill-downs) default to the caller's own cards, with a toggle up to the
-  whole household; the Transactions list likewise defaults to "Your cards"
-  (a combined whose-card / added-by filter). Household-level numbers —
-  fixed bills, income, savings, budgets — are NEVER scoped (they aren't
-  modeled per person); in Mine view they carry a "household" chip instead.
-  The summary ships `mine_*` columns beside the household sums (derived
-  from the verified caller, never a request field), so the toggle is a
-  client-side flip, not a refetch. Solo households see none of this.
+- ✅ Household / per-member scope: in a shared household the dashboard has
+  one pill per member plus Household, and EVERYTHING answers for the active
+  scope — chart, categories (incl. bill shares), merchants, movers,
+  subscriptions, drill-downs, and the tiles. A member's numbers are real:
+  their cards' charges + their own bills + an even 1/N share of shared
+  bills, against their own income — so per-person savings is arithmetic,
+  not an estimate. Budgets are the one deliberate exception (household
+  caps; chipped "household" in a member scope). The summary splits
+  months/merchants rows per card owner (`member_user_id`, grouped
+  server-side — consumers must sum across rows), so the pills are a
+  client-side flip, not a refetch. The Transactions list defaults to "Your
+  cards" (combined whose-card / added-by filter). Solo households see none
+  of this.
+- ✅ Saved-by-month chart: diverging bars around a $0 baseline (sage above,
+  coral below — position carries the sign, words ride in the tooltip/labels)
+  tracking income − money out per month or year in the active scope.
+- ✅ Custom dropdown (`src/Pages/Budgetter/Dropdown.jsx`, `.bdd-*`) replaces
+  every native `<select>`: the OS paints native option popups, which ignored
+  the theme entirely (grey-on-white options in dark mode). ARIA select-only
+  combobox pattern (focus stays on the trigger, aria-activedescendant,
+  arrows/Home/End/type-ahead/Esc), option groups + disabled options, spring
+  pop-in with staggered rows and a self-drawing checkmark, drop-up near the
+  viewport bottom, closes on outside click/scroll like a native select. The
+  popup is PORTALED into the `.bud` wrapper — in place it would be clipped
+  by overflow-hidden lists and mispositioned by backdrop-filter cards; on
+  `<body>` it would lose the theme tokens.
+- ✅ Per-person card on the dashboard: side-by-side money out / income /
+  kept for both members in the selected period; tapping a person focuses
+  the whole dashboard on them. (Replaced the Household tab's spend-per-
+  person list — that tab is pure admin now.)
 - ✅ CSV upload: Amex format verified against a real statement (41/41 rows);
   generic column-mapping UI for any other bank; dry-run review before commit
 - ✅ PDF upload: Amex, Canadian Tire / Triangle and TD statements parsed
@@ -322,6 +348,16 @@ computationally (script-checked, not eyeballed):
 - The TD CSV layout is still an unverified guess — the mapping-confirmation
   step is the safety net until a real export is seen. (Triangle and TD are
   handled via their PDF statements instead; Amex CSV is verified.)
+- Removing a member deliberately does NOT rewrite their data: their cards,
+  personal bills and income keep the departed owner (soft-remove keeps names
+  resolving), stay in Household-scope numbers, and simply have no scope pill
+  anymore. The remaining member can still edit those rows — the PATCH
+  handlers only validate an ownership CHANGE against active members — and
+  should End or reassign them as real life dictates. Auto-reassigning (or
+  auto-sharing) on removal would silently rewrite per-person history.
+- Shared bills split evenly (1/N per active member, rounded per bill).
+  Income-proportional splits are a possible future refinement; even splits
+  are predictable and match how this household actually operates.
 - The PDF parsers are layout-based (Triangle: section headings + "Total …"
   lines; TD: row shape + the balance box; Amex: "New Payments" / "New
   Transactions for …" / "Other Account Transactions" sections + their
@@ -338,7 +374,7 @@ computationally (script-checked, not eyeballed):
   pricing insurance for you.
 - A purchase scenario is not a commitment: it never enters the dashboard's
   numbers until "Bought it" writes real `budget_recurring` rows. That's a
-  one-way door by design (delete them in the Monthly tab), and the button
+  one-way door by design (delete them in the Income & bills tab), and the button
   latches after a successful push so a second click can't duplicate them.
 - No category-rules management UI (rules are created via apply-to-future;
   a wrong rule currently needs a DB edit — planned below).

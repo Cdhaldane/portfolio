@@ -11,6 +11,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { budgetFetch } from "../api";
 import { CATEGORIES as CATEGORY_SUGGESTIONS } from "../categories";
 import { activeMembers, memberLabel, labelForUserId } from "../members";
+import Dropdown from "../Dropdown";
 import "./TransactionsList.css";
 
 const PAGE_SIZE = 100;
@@ -264,45 +265,44 @@ const TransactionsList = forwardRef(({ onMutate, members, youUserId }, ref) => {
           onChange={(e) => setQ(e.target.value)}
           aria-label="Search merchants"
         />
-        <select
-          className="txl-catfilter"
+        <Dropdown
+          variant="pill"
+          ariaLabel="Filter by category"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          aria-label="Filter by category"
-        >
-          <option value="">All categories</option>
-          <option value="uncategorized">uncategorized</option>
-          {CATEGORY_SUGGESTIONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setCategory(v)}
+          options={[
+            { value: "", label: "All categories" },
+            { value: "uncategorized", label: "uncategorized" },
+            ...CATEGORY_SUGGESTIONS.map((c) => ({ value: c, label: c })),
+          ]}
+        />
         {shared && (
-          <select
-            className="txl-catfilter"
+          <Dropdown
+            variant="pill"
+            ariaLabel="Filter by whose card, or by who added it"
             value={effectiveWho}
-            onChange={(e) => setWho(e.target.value)}
-            aria-label="Filter by whose card, or by who added it"
-          >
-            <option value="">Everything</option>
-            <optgroup label="Whose card">
-              {memberList.map((m) => (
-                <option key={`card:${m.userId}`} value={`card:${m.userId}`}>
-                  {m.userId === youUserId
-                    ? "Your cards"
-                    : `${memberLabel(m, youUserId)}'s cards`}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Who added it">
-              {memberList.map((m) => (
-                <option key={`added:${m.userId}`} value={`added:${m.userId}`}>
-                  Added by {m.userId === youUserId ? "you" : memberLabel(m, youUserId)}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+            onChange={(v) => setWho(v)}
+            groups={[
+              { label: "", options: [{ value: "", label: "Everything" }] },
+              {
+                label: "Whose card",
+                options: memberList.map((m) => ({
+                  value: `card:${m.userId}`,
+                  label:
+                    m.userId === youUserId
+                      ? "Your cards"
+                      : `${memberLabel(m, youUserId)}'s cards`,
+                })),
+              },
+              {
+                label: "Who added it",
+                options: memberList.map((m) => ({
+                  value: `added:${m.userId}`,
+                  label: `Added by ${m.userId === youUserId ? "you" : memberLabel(m, youUserId)}`,
+                })),
+              },
+            ]}
+          />
         )}
         <button
           type="button"

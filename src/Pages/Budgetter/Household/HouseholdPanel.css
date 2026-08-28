@@ -358,16 +358,14 @@
   color: var(--ink-soft);
 }
 
-/* ---- card ownership + spend ---- */
-.hh-cards,
-.hh-spend {
+/* ---- card ownership ---- */
+.hh-cards {
   list-style: none;
   margin: 14px 0 0;
   padding: 0;
 }
 
-.hh-cards li,
-.hh-spend li {
+.hh-cards li {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -389,28 +387,9 @@
   color: var(--ink-soft);
 }
 
-.hh-cards select {
+.hh-cards .bdd {
   flex: none;
   max-width: 46%;
-}
-
-.hh-spend-name {
-  flex: 1 1 auto;
-  font-size: 0.94rem;
-}
-
-.hh-spend-latest {
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 600;
-  font-size: 1.05rem;
-}
-
-.hh-spend-window {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.7rem;
-  color: var(--ink-soft);
-  min-width: 96px;
-  text-align: right;
 }
 
 /* Touch ergonomics: ~40px targets. (The 16px input clamp that stops iOS
@@ -441,16 +420,11 @@
     width: 100%;
     padding-left: 48px;
   }
-  .hh-cards li,
-  .hh-spend li {
+  .hh-cards li {
     flex-wrap: wrap;
   }
-  .hh-cards select {
+  .hh-cards .bdd {
     max-width: 100%;
     width: 100%;
-  }
-  .hh-spend-window {
-    text-align: left;
-    min-width: 0;
   }
 }

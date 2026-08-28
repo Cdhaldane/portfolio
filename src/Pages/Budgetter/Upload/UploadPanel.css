@@ -184,6 +184,20 @@
   flex: 1 1 auto;
 }
 
+/* Sizing hooks for the custom dropdowns (the component styles itself). */
+.upl-account-dd {
+  width: 100%;
+  max-width: 360px;
+}
+
+.upl-mapping-row .bdd {
+  flex: 1 1 220px;
+  max-width: 320px;
+  /* Headerless CSVs put a ~40ch sample in the label; without this the flex
+     item's min-width:auto would push the whole step wider than a phone. */
+  min-width: 0;
+}
+
 .upl-mapping-row select {
   flex: 1 1 220px;
   max-width: 320px;

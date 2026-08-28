@@ -10,21 +10,27 @@ import {
   addMonths,
   CADENCES,
 } from "../format";
+import { activeMembers, memberLabel, labelForUserId } from "../members";
+import Dropdown from "../Dropdown";
 import "./RecurringPanel.css";
 
 /*
- * Income sources — the top half of the Monthly tab. A source is an amount +
- * cadence (weekly pay, biweekly pay, monthly salary…) normalized to a
- * monthly average for the dashboard's savings math. Same [start, end]
- * window model as monthly payments: "End" stops it going forward, history
- * stays correct. Shares RecurringPanel.css (.rec-*).
+ * Income sources — the top half of the Income & bills tab. A source is an
+ * amount + cadence (weekly pay, biweekly pay, monthly salary…) normalized to
+ * a monthly average for the dashboard's savings math. Same [start, end]
+ * window model as bills: "End" stops it going forward, history stays
+ * correct. Shares RecurringPanel.css (.rec-*).
+ *
+ * Every source belongs to a member (defaults to you) — that's what powers
+ * the dashboard's per-person income and savings. The "whose" select and the
+ * owner chip only appear in a shared household.
  */
-const EMPTY_FORM = { label: "", amount: "", cadence: "weekly", startMonth: "" };
+const EMPTY_FORM = { label: "", amount: "", cadence: "weekly", startMonth: "", memberUserId: "" };
 
 const cadenceLabel = (value) =>
   CADENCES.find((c) => c.value === value)?.label || value;
 
-const IncomePanel = ({ onMutate, refreshToken }) => {
+const IncomePanel = ({ onMutate, refreshToken, members, youUserId }) => {
   const { getToken } = useAuth();
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -33,6 +39,9 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(EMPTY_FORM);
+
+  const memberList = useMemo(() => activeMembers(members || []), [members]);
+  const shared = memberList.length > 1;
 
   const load = useCallback(async () => {
     const { res, data } = await budgetFetch(getToken, "/api/budget/income");
@@ -78,6 +87,7 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
         amountCents,
         cadence: form.cadence,
         startMonth: form.startMonth || undefined,
+        memberUserId: form.memberUserId || undefined, // server defaults to you
       }),
     });
     setBusy(false);
@@ -97,6 +107,7 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
       amount: String(item.amount_cents / 100),
       cadence: item.cadence,
       startMonth: item.start_month || "",
+      memberUserId: item.member_user_id || youUserId || "",
     });
   };
 
@@ -108,6 +119,11 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
       return;
     }
     setBusy(true);
+    // Send the owner only when it actually changed — the server keeps the
+    // current owner when the key is absent, which keeps rows attributed to
+    // a departed member editable (and their history intact).
+    const curOwner = items.find((i) => i.id === id)?.member_user_id || "";
+    const ownerChanged = (editForm.memberUserId || "") !== curOwner;
     const { res, data } = await budgetFetch(getToken, "/api/budget/income", {
       method: "PATCH",
       body: JSON.stringify({
@@ -116,6 +132,9 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
         amountCents,
         cadence: editForm.cadence,
         startMonth: editForm.startMonth || undefined,
+        ...(ownerChanged && editForm.memberUserId
+          ? { memberUserId: editForm.memberUserId }
+          : {}),
       }),
     });
     setBusy(false);
@@ -181,16 +200,40 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
               value={editForm.amount}
               onChange={(e) => setEditForm((f) => ({ ...f, amount: e.target.value }))}
             />
-            <select
+            <Dropdown
+              ariaLabel="How often it lands"
               value={editForm.cadence}
-              onChange={(e) => setEditForm((f) => ({ ...f, cadence: e.target.value }))}
-            >
-              {CADENCES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setEditForm((f) => ({ ...f, cadence: v }))}
+              options={CADENCES.map((c) => ({ value: c.value, label: c.label }))}
+            />
+            {shared && (
+              <Dropdown
+                ariaLabel="Whose income"
+                value={editForm.memberUserId}
+                onChange={(v) => setEditForm((f) => ({ ...f, memberUserId: v }))}
+                options={[
+                  // a departed owner still displays (kept for history) but
+                  // can't be re-picked once changed away
+                  ...(editForm.memberUserId &&
+                  !memberList.some((m) => m.userId === editForm.memberUserId)
+                    ? [
+                        {
+                          value: editForm.memberUserId,
+                          label: `${labelForUserId(editForm.memberUserId, members || [], youUserId)} (left)`,
+                          disabled: true,
+                        },
+                      ]
+                    : []),
+                  ...memberList.map((m) => ({
+                    value: m.userId,
+                    label:
+                      memberLabel(m, youUserId) === "You"
+                        ? "Yours"
+                        : `${memberLabel(m, youUserId)}'s`,
+                  })),
+                ]}
+              />
+            )}
             <input
               type="month"
               className="rec-input-month"
@@ -220,6 +263,14 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
               <span className="rec-cat rec-cat--income">
                 {fmtMoneyExact(item.amount_cents)} {cadenceLabel(item.cadence)}
               </span>
+              {shared && (
+                <span
+                  className="rec-cat rec-person"
+                  title="Whose income this is — drives the per-person dashboard"
+                >
+                  {labelForUserId(item.member_user_id, memberList, youUserId)}
+                </span>
+              )}
             </div>
             <span className="rec-due">
               {item.start_month < thisMonth ? `since ${item.start_month}` : ""}
@@ -286,16 +337,29 @@ const IncomePanel = ({ onMutate, refreshToken }) => {
           value={form.amount}
           onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
         />
-        <select
+        <Dropdown
+          ariaLabel="How often it lands"
           value={form.cadence}
-          onChange={(e) => setForm((f) => ({ ...f, cadence: e.target.value }))}
-        >
-          {CADENCES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setForm((f) => ({ ...f, cadence: v }))}
+          options={CADENCES.map((c) => ({ value: c.value, label: c.label }))}
+        />
+        {shared && (
+          <Dropdown
+            ariaLabel="Whose income — defaults to yours"
+            value={form.memberUserId}
+            onChange={(v) => setForm((f) => ({ ...f, memberUserId: v }))}
+            options={[
+              // empty value = the server's default: you
+              { value: "", label: "Yours" },
+              ...memberList
+                .filter((m) => m.userId !== youUserId)
+                .map((m) => ({
+                  value: m.userId,
+                  label: `${memberLabel(m, youUserId)}'s`,
+                })),
+            ]}
+          />
+        )}
         <input
           type="month"
           className="rec-input-month"

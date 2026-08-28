@@ -31,38 +31,72 @@ const CATS = {
   uncategorized: [0, 0, 3000, 0, 8000, 0, 0, 2500, 0, 0, 4200, 31900],
 };
 
-// mine_* mock: "your" cards carry roughly 60% of the household's spending,
-// varying by category index so the Mine/Household toggle visibly reshapes
-// the chart in the preview.
+// Two mock members so the Household/You/Sam scope pills and the per-person
+// card are all exercised: rows are split per card owner exactly like the
+// real summary (one row per member per month+category).
+const YOU = "user_preview";
+const PARTNER = "user_partner";
+const MOCK_MEMBERS = [
+  { userId: YOU, displayName: null, role: "owner", isYou: true, removedAt: null },
+  { userId: PARTNER, displayName: "Sam", role: "member", isYou: false, removedAt: null },
+];
+
 const months = [];
 Object.entries(CATS).forEach(([category, amounts], c) => {
   amounts.forEach((cents, i) => {
     if (cents > 0) {
       const tx = Math.max(1, Math.round(cents / 4000));
-      const mineShare = [0.8, 0.55, 0.4, 0.7, 0.5, 0.65, 0.5, 0.6][c % 8];
-      months.push({
-        month: MONTHS[i],
-        category,
-        spend_cents: cents,
-        tx_count: tx,
-        mine_cents: Math.round(cents * mineShare),
-        mine_tx_count: Math.max(1, Math.round(tx * mineShare)),
-      });
+      const yourShare = [0.8, 0.55, 0.4, 0.7, 0.5, 0.65, 0.5, 0.6][c % 8];
+      const yours = Math.round(cents * yourShare);
+      const yourTx = Math.min(tx, Math.max(1, Math.round(tx * yourShare)));
+      if (yours > 0) {
+        months.push({
+          month: MONTHS[i],
+          category,
+          member_user_id: YOU,
+          spend_cents: yours,
+          tx_count: yourTx,
+        });
+      }
+      if (cents - yours > 0) {
+        months.push({
+          month: MONTHS[i],
+          category,
+          member_user_id: PARTNER,
+          spend_cents: cents - yours,
+          // never manufacture a phantom transaction — 0 is honest here
+          tx_count: Math.max(0, tx - yourTx),
+        });
+      }
     }
   });
 });
 
 const merchants = [];
-// [merchant row..., mineShare] — 1 = all yours, 0 = all theirs.
-const pushMerchant = (month, merchant_clean, spend_cents, tx_count, mineShare) =>
-  merchants.push({
-    month,
-    merchant_clean,
-    spend_cents,
-    tx_count,
-    mine_cents: Math.round(spend_cents * mineShare),
-    mine_tx_count: Math.round(tx_count * mineShare),
-  });
+// mineShare: 1 = all on your cards, 0 = all on Sam's, else split into one
+// row per owner (the real summary's shape).
+const pushMerchant = (month, merchant_clean, spend_cents, tx_count, mineShare) => {
+  const yours = Math.round(spend_cents * mineShare);
+  const yourTx = Math.min(tx_count, Math.round(tx_count * mineShare));
+  if (yours > 0) {
+    merchants.push({
+      month,
+      merchant_clean,
+      member_user_id: YOU,
+      spend_cents: yours,
+      tx_count: Math.max(1, yourTx),
+    });
+  }
+  if (spend_cents - yours > 0) {
+    merchants.push({
+      month,
+      merchant_clean,
+      member_user_id: PARTNER,
+      spend_cents: spend_cents - yours,
+      tx_count: Math.max(0, tx_count - yourTx),
+    });
+  }
+};
 MONTHS.forEach((month, i) => {
   pushMerchant(month, "FRESHCO", 32000 + (i % 4) * 2500, 4, 0.5);
   pushMerchant(month, "AMZN MKTP CA", 9000 + (i % 3) * 900, 3, 1);
@@ -70,7 +104,7 @@ MONTHS.forEach((month, i) => {
   pushMerchant(month, "AYLMER ESSO", 12000 + (i % 2) * 1400, 2, 0);
   if (i >= 9) {
     // Stable last-3-months charge — should trip the subscription detector
-    // (yours, so it shows in both scopes).
+    // (yours, so it shows in both your scope and household).
     pushMerchant(month, "CRUNCHYROLL", 1149, 1, 1);
   }
   if (i === 11) {
@@ -89,14 +123,15 @@ const MOCK_SUMMARY = {
     { category: "Shopping", monthly_cents: 25000 },
   ],
   recurring: [
-    { id: 1, label: "Mortgage", category: "Housing", amount_cents: 185000, due_day: 1, start_month: "2025-08", end_month: null },
-    { id: 2, label: "Car insurance", category: "Bills", amount_cents: 22000, due_day: 15, start_month: "2025-08", end_month: null },
-    { id: 3, label: "Hydro", category: "Bills", amount_cents: 11850, due_day: 22, start_month: "2025-08", end_month: null },
-    { id: 4, label: "Netflix", category: "Subscriptions", amount_cents: 2099, due_day: 8, start_month: "2026-01", end_month: null, on_card: true },
+    { id: 1, label: "Mortgage", category: "Housing", amount_cents: 185000, due_day: 1, start_month: "2025-08", end_month: null, member_user_id: null },
+    { id: 2, label: "Car insurance", category: "Bills", amount_cents: 22000, due_day: 15, start_month: "2025-08", end_month: null, member_user_id: YOU },
+    { id: 3, label: "Hydro", category: "Bills", amount_cents: 11850, due_day: 22, start_month: "2025-08", end_month: null, member_user_id: null },
+    { id: 4, label: "Netflix", category: "Subscriptions", amount_cents: 2099, due_day: 8, start_month: "2026-01", end_month: null, on_card: true, member_user_id: null },
   ],
   income: [
-    { id: 1, label: "Paycheque", amount_cents: 90000, cadence: "weekly", start_month: "2025-08", end_month: null },
-    { id: 2, label: "Side projects", amount_cents: 25000, cadence: "monthly", start_month: "2025-08", end_month: null },
+    { id: 1, label: "Paycheque", amount_cents: 90000, cadence: "weekly", start_month: "2025-08", end_month: null, member_user_id: YOU },
+    { id: 2, label: "Sam's paycheque", amount_cents: 105000, cadence: "biweekly", start_month: "2025-08", end_month: null, member_user_id: PARTNER },
+    { id: 3, label: "Side projects", amount_cents: 25000, cadence: "monthly", start_month: "2025-08", end_month: null, member_user_id: YOU },
   ],
   accounts: [
     { id: 1, label: "Amex Gold", bank: "amex", last_tx_date: "2026-07-17", tx_count: 412 },
@@ -212,7 +247,7 @@ const DevPreview = () => {
           </button>
           <button type="button" className="bud-tab">Upload</button>
           <button type="button" className="bud-tab">Transactions</button>
-          <button type="button" className="bud-tab">Monthly</button>
+          <button type="button" className="bud-tab">Income & bills</button>
           <button
             type="button"
             className={`bud-tab ${tab === "afford" ? "is-active" : ""}`}
@@ -229,7 +264,8 @@ const DevPreview = () => {
             onMutate={() => {}}
             onOpenTransactions={() => {}}
             shared
-            youUserId="user_preview"
+            youUserId={YOU}
+            members={MOCK_MEMBERS}
           />
         ) : (
           <AffordPanel refreshToken={0} fetchJson={fetchJson} onMutate={() => {}} />

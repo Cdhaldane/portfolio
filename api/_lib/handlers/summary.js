@@ -41,23 +41,20 @@ module.exports = async (req, res) => {
     // Amounts are weighted by count_pct (100 = full, 50 = split, 0 =
     // excluded) so reimbursed/shared charges don't distort totals.
     //
-    // mine_* columns: the same sums restricted to accounts whose CARD belongs
-    // to the caller (member_user_id — ownership, never who uploaded). They
-    // ship alongside the household totals so the dashboard's Mine/Household
-    // toggle is a client-side flip, not a refetch — and they're derived from
-    // the verified caller, never a request parameter.
+    // Rows are additionally grouped by the CARD OWNER (member_user_id —
+    // ownership, never who uploaded), so the dashboard's Household/You/Them
+    // scope is a client-side filter, not a refetch. Consumers must sum
+    // across rows: there can be one row per member per (month, category).
     const months = await sql`
       SELECT to_char(t.posted_date, 'YYYY-MM') AS month,
              t.category,
+             COALESCE(a.member_user_id, a.user_id) AS member_user_id,
              SUM(ROUND(t.amount_cents * t.count_pct / 100.0))::int AS spend_cents,
-             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count,
-             COALESCE(SUM(ROUND(t.amount_cents * t.count_pct / 100.0))
-               FILTER (WHERE a.member_user_id = ${userId}), 0)::int AS mine_cents,
-             COUNT(*) FILTER (WHERE t.count_pct > 0 AND a.member_user_id = ${userId})::int AS mine_tx_count
+             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count
         FROM budget_transactions t
         JOIN budget_accounts a ON a.id = t.account_id
        WHERE t.household_id = ${household.id} AND t.amount_cents > 0
-       GROUP BY 1, 2
+       GROUP BY 1, 2, 3
       HAVING SUM(ROUND(t.amount_cents * t.count_pct / 100.0)) > 0
        ORDER BY 1 ASC
     `;
@@ -68,15 +65,13 @@ module.exports = async (req, res) => {
     const merchants = await sql`
       SELECT to_char(t.posted_date, 'YYYY-MM') AS month,
              t.merchant_clean,
+             COALESCE(a.member_user_id, a.user_id) AS member_user_id,
              SUM(ROUND(t.amount_cents * t.count_pct / 100.0))::int AS spend_cents,
-             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count,
-             COALESCE(SUM(ROUND(t.amount_cents * t.count_pct / 100.0))
-               FILTER (WHERE a.member_user_id = ${userId}), 0)::int AS mine_cents,
-             COUNT(*) FILTER (WHERE t.count_pct > 0 AND a.member_user_id = ${userId})::int AS mine_tx_count
+             COUNT(*) FILTER (WHERE t.count_pct > 0)::int AS tx_count
         FROM budget_transactions t
         JOIN budget_accounts a ON a.id = t.account_id
        WHERE t.household_id = ${household.id} AND t.amount_cents > 0
-       GROUP BY 1, 2
+       GROUP BY 1, 2, 3
       HAVING SUM(ROUND(t.amount_cents * t.count_pct / 100.0)) > 0
        ORDER BY 1 ASC
     `;
@@ -89,14 +84,14 @@ module.exports = async (req, res) => {
     `;
 
     const recurring = await sql`
-      SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card
+      SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, member_user_id
         FROM budget_recurring
        WHERE household_id = ${household.id}
        ORDER BY amount_cents DESC, label ASC
     `;
 
     const income = await sql`
-      SELECT id, label, amount_cents, cadence, start_month, end_month
+      SELECT id, label, amount_cents, cadence, start_month, end_month, member_user_id
         FROM budget_income
        WHERE household_id = ${household.id}
        ORDER BY amount_cents DESC, label ASC

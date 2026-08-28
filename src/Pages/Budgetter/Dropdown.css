@@ -1,0 +1,278 @@
+/* Custom dropdown (.bdd-*) — the app-wide <select> replacement. Reads
+   --ink/--line/--blue/etc. from the ancestor .bud wrapper (the popup is
+   portaled INTO .bud, so tokens and [data-theme] both keep applying).
+   Solid backgrounds on trigger and popup — glass under a floating list
+   reads as mush, same reasoning as the old native-select rules. */
+
+.bdd {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ---- trigger ---- */
+.bdd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  color: var(--ink);
+  background-color: #f5f7f1;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .bdd-btn {
+  background-color: #1d1f1a;
+}
+
+.bdd-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+}
+
+.bdd-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.bdd-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.bdd-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Two looks: "field" matches the form inputs, "pill" matches the toolbar
+   pills (period picker, transaction filters). */
+.bdd--field .bdd-btn {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.88rem;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.bdd--pill .bdd-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 7px 14px;
+}
+
+.bdd-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bdd-chev {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--ink-soft);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bdd-btn.is-open .bdd-chev {
+  transform: rotate(-180deg);
+}
+
+/* ---- popup ---- */
+.bdd-pop {
+  position: fixed;
+  z-index: 60;
+  padding: 5px;
+  background: #f5f7f1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 44px -16px rgba(26, 26, 23, 0.45);
+  max-height: 288px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform-origin: top center;
+  animation: bdd-pop-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+[data-theme="dark"] .bdd-pop {
+  background: #1d1f1a;
+  box-shadow: 0 18px 44px -16px rgba(0, 0, 0, 0.65);
+}
+
+.bdd-pop.is-up {
+  transform-origin: bottom center;
+  animation-name: bdd-pop-in-up;
+}
+
+@keyframes bdd-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bdd-pop-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bdd-pop--pill {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.bdd-pop--field {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.88rem;
+}
+
+/* ---- options ---- */
+.bdd-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  /* cascade: each row drops in a beat after the one above */
+  animation: bdd-opt-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 16ms);
+}
+
+@keyframes bdd-opt-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.bdd-pop.is-up .bdd-opt {
+  animation-name: bdd-opt-in-up;
+}
+
+@keyframes bdd-opt-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hover and keyboard share one highlight (pointerenter syncs them). */
+.bdd-opt.is-active {
+  background: rgba(47, 107, 255, 0.1);
+}
+
+[data-theme="dark"] .bdd-opt.is-active {
+  background: rgba(110, 147, 255, 0.16);
+}
+
+.bdd-opt.is-selected {
+  font-weight: 600;
+}
+
+.bdd-opt.is-off {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bdd-opt-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Checkmark draws itself in. */
+.bdd-check {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--blue-deep);
+}
+
+[data-theme="dark"] .bdd-check {
+  color: var(--blue);
+}
+
+.bdd-check path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: bdd-check-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+}
+
+@keyframes bdd-check-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Group headers (e.g. "Whose card" / "Who added it") — presentational. */
+.bdd-group {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 9px 11px 4px;
+  animation: bdd-opt-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bdd-group + .bdd-group,
+.bdd-opt + .bdd-group {
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- touch ---- */
+@media (max-width: 768px) {
+  .bdd-btn {
+    min-height: 40px;
+  }
+  .bdd-opt {
+    min-height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bdd-btn,
+  .bdd-chev {
+    transition: none;
+  }
+  .bdd-pop,
+  .bdd-opt,
+  .bdd-group,
+  .bdd-check path {
+    animation: none;
+  }
+  .bdd-check path {
+    stroke-dashoffset: 0;
+  }
+}

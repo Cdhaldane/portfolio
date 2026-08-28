@@ -11,6 +11,7 @@ import {
   incomeForMonth,
 } from "../format";
 import { niceMax, topRoundedBar, endRoundedBar } from "../chart";
+import Dropdown from "../Dropdown";
 import {
   amortize,
   purchaseCosts,
@@ -497,7 +498,7 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
       });
       if (!res.ok || !data?.ok) {
         setSaving(false);
-        setSaveError(data?.error || "Couldn't add that to Monthly payments.");
+        setSaveError(data?.error || "Couldn't add that to the bills list.");
         return;
       }
       created.push(`${item.label} (${fmtMoneyExact(item.amountCents)}/mo)`);
@@ -604,12 +605,12 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
               </>
             ) : (
               <>
-                Upload a statement and add your income in the Monthly tab and
-                the recommendation below fills itself in
+                Upload a statement and add your income in the Income & bills
+                tab and the recommendation below fills itself in
               </>
             )}
             ; nothing on this page touches your ledger until you push it into
-            Monthly payments.
+            your bills.
           </p>
         </div>
       </div>
@@ -653,20 +654,15 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
           {field("down", "Cash down")}
           {field("tradeIn", "Trade-in")}
           {field("apr", "Interest rate %")}
-          <label className="afp-field">
+          <div className="afp-field">
             <span className="afp-field-label">Term</span>
-            <select
-              className="afp-input"
+            <Dropdown
+              ariaLabel="Loan term"
               value={form.term}
-              onChange={(e) => setForm((f) => ({ ...f, term: e.target.value }))}
-            >
-              {TERMS.map((t) => (
-                <option key={t} value={String(t)}>
-                  {t} months
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={(v) => setForm((f) => ({ ...f, term: v }))}
+              options={TERMS.map((t) => ({ value: String(t), label: `${t} months` }))}
+            />
+          </div>
           <label className="afp-field">
             <span className="afp-field-label">Buying in</span>
             <input
@@ -743,7 +739,7 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
             <p className="afp-tile-sub">
               {limits.known
                 ? "for everything the car costs"
-                : "add income in the Monthly tab"}
+                : "add income in the Income & bills tab"}
             </p>
           </div>
           <div className="afp-tile">
@@ -829,7 +825,7 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
               No income on file, so there's nothing to measure this against.
               Add your paycheques in the{" "}
               <button type="button" className="afp-link" onClick={() => onOpenMonthly?.()}>
-                Monthly tab
+                Income & bills tab
               </button>{" "}
               and this page will tell you what fits.
             </p>
@@ -911,9 +907,9 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
         <div className="afp-push">
           {alreadyPushed ? (
             <p className="afp-push-done">
-              ✓ Added {pushed.text} to Monthly payments.{" "}
+              ✓ Added {pushed.text} to the household's bills.{" "}
               <button type="button" className="afp-link" onClick={() => onOpenMonthly?.()}>
-                Open the Monthly tab
+                Open the Income & bills tab
               </button>
             </p>
           ) : (
@@ -924,7 +920,7 @@ const AffordPanel = ({ fetchJson, refreshToken, onMutate, onOpenMonthly }) => {
                 onClick={pushToMonthly}
                 disabled={saving || loan.payment <= 0}
               >
-                Bought it — add to Monthly payments
+                Bought it — add to the household's bills
               </button>
               <p className="afp-push-hint">
                 Creates the payment (ending{" "}

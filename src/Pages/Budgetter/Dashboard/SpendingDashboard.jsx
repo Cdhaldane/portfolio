@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CATEGORIES } from "../categories";
-import { niceMax, topRoundedBar } from "../chart";
+import { niceMax, topRoundedBar, bottomRoundedBar } from "../chart";
 import {
   fmtMoney,
   fmtMoneyExact,
@@ -11,17 +11,28 @@ import {
   incomeForMonth,
   recurringActiveIn,
 } from "../format";
+import { activeMembers, memberLabel, memberInitials } from "../members";
+import Dropdown from "../Dropdown";
 import "./SpendingDashboard.css";
 
 /*
  * Spending dashboard — card spending from uploaded statements PLUS the
- * fixed monthly payments managed in the Monthly tab, overlaid per month.
+ * bills and income managed in the Income & bills tab, overlaid per month.
+ *
+ * In a shared household everything on this page answers for ONE scope at a
+ * time — the whole household or a single member — driven by the pills in
+ * the controls row. A member's numbers are real, not estimates: their cards'
+ * charges, their own bills plus an even 1/N share of shared bills, and their
+ * own income sources. Budgets are the one deliberate exception (a household
+ * cap tracked against one person would under-report) and say so with a chip.
  *
  * Chart design per the dataviz method: spending is a magnitude job, so the
  * palette is the blue ramp only — card spend in --blue, fixed costs in
  * --blue-deep (two steps of one ramp, separated by lightness and a 2px
- * surface gap, with a legend because there are now two series). Sage/coral
- * remain status-only and always ride with signed text.
+ * surface gap, with a legend because there are now two series). The saved
+ * chart is a polarity job: diverging bars around a $0 baseline where the
+ * POSITION carries the sign and sage/coral only reinforce it, always beside
+ * signed words.
  *
  * Receives fetchJson(path, options) from the parent instead of touching
  * Clerk directly, so the dev-only preview route can render it with mock
@@ -32,27 +43,28 @@ const VBW = 720;
 const VBH = 240;
 const PAD = { l: 48, r: 10, t: 22, b: 28 };
 const SEG_GAP = 2; // surface gap between stacked segments, in viewBox px
+const SAV_VBH = 190; // saved-by-month chart height (same width contract)
+const SAV_PAD = { l: 48, r: 10, t: 22, b: 26 };
 
 const titleCase = (s) =>
   s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
 
 // month key -> { card, txCount, byCategory: Map } (card spending only).
-// mineOnly reads the per-caller columns the summary ships alongside the
-// household totals (charges on cards assigned to you, whoever uploaded).
-const buildMonthIndex = (rows, mineOnly) => {
+// The summary splits rows by card owner; pass a member user id to keep only
+// that person's charges, or null for the whole household. Always sums with
+// += — several rows can share a (month, category).
+const buildMonthIndex = (rows, member) => {
   const index = new Map();
   for (const row of rows) {
-    const cents = mineOnly ? row.mine_cents || 0 : row.spend_cents;
-    const count = mineOnly ? row.mine_tx_count || 0 : row.tx_count;
-    if (mineOnly && cents <= 0 && count <= 0) continue;
+    if (member && row.member_user_id !== member) continue;
     let entry = index.get(row.month);
     if (!entry) {
       entry = { card: 0, txCount: 0, byCategory: new Map() };
       index.set(row.month, entry);
     }
-    entry.card += cents;
-    entry.txCount += count;
-    entry.byCategory.set(row.category, (entry.byCategory.get(row.category) || 0) + cents);
+    entry.card += row.spend_cents;
+    entry.txCount += row.tx_count;
+    entry.byCategory.set(row.category, (entry.byCategory.get(row.category) || 0) + row.spend_cents);
   }
   return index;
 };
@@ -65,16 +77,16 @@ const SpendingDashboard = ({
   onOpenUpload,
   shared,
   youUserId,
+  members,
 }) => {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [granularity, setGranularity] = useState("months");
-  // Whose analytics. In a shared household the SPENDING analytics (chart,
-  // categories, merchants, subscriptions) default to the caller's own cards;
-  // the toggle zooms out to the whole household. Household-level numbers —
-  // fixed bills, income, savings, budgets — are never scoped (they aren't
-  // modeled per person); in Mine view they just carry a "household" chip.
+  // Whose money is on screen: "household", "mine" (the signed-in caller — a
+  // sentinel rather than an id so the stored preference means "me" for
+  // whoever opens this browser), or another member's user id. Defaults to
+  // your own view; solo households are always effectively household.
   const [scope, setScope] = useState(() => {
     try {
       return localStorage.getItem("bud-dash-scope") || "mine";
@@ -82,7 +94,6 @@ const SpendingDashboard = ({
       return "mine";
     }
   });
-  const mine = Boolean(shared) && scope === "mine";
   const setScopePersist = (next) => {
     setScope(next);
     try {
@@ -91,8 +102,25 @@ const SpendingDashboard = ({
       /* storage blocked — the toggle still works for this session */
     }
   };
+  const memberList = useMemo(() => activeMembers(members || []), [members]);
+  const memberCount = Math.max(1, memberList.length);
+  // The member whose money is on screen, or null for the whole household.
+  // A stored id whose member has since left falls back to household.
+  const scopeMember = useMemo(() => {
+    if (!shared || scope === "household") return null;
+    const id = scope === "mine" ? youUserId : scope;
+    return id && memberList.some((m) => m.userId === id) ? id : null;
+  }, [shared, scope, youUserId, memberList]);
+  const personal = scopeMember != null;
+  const scopeLabel = personal
+    ? memberLabel(
+        memberList.find((m) => m.userId === scopeMember),
+        youUserId
+      )
+    : null;
   const [selected, setSelected] = useState(null);
   const [tip, setTip] = useState(null);
+  const [savTip, setSavTip] = useState(null);
   const [catBusy, setCatBusy] = useState(false);
   const [trackBusy, setTrackBusy] = useState(null);
 
@@ -124,24 +152,61 @@ const SpendingDashboard = ({
   const income = useMemo(() => data?.income || [], [data]);
   const hasIncome = income.length > 0;
 
-  // Two parallel indexes: monthIndexAll is ALWAYS the whole household —
-  // savings and budget math read it, and it anchors the month window so the
-  // chart's x-axis doesn't shift when the scope flips. monthIndex is the
-  // active analytics scope everything spending-shaped reads.
-  const monthIndexAll = useMemo(() => buildMonthIndex(data?.months || [], false), [data]);
+  // The active scope's bills and income. A member's bills are the ones they
+  // own in full plus an even 1/N share of shared (unowned) bills — marked
+  // _share so the UI can say so; their income is whatever sources they own.
+  // Household scope passes both lists through untouched, so every formula
+  // downstream is scope-agnostic.
+  const scopedRecurring = useMemo(() => {
+    if (!scopeMember) return recurring;
+    const out = [];
+    for (const r of recurring) {
+      if (r.member_user_id === scopeMember) out.push(r);
+      else if (!r.member_user_id)
+        out.push({ ...r, amount_cents: Math.round(r.amount_cents / memberCount), _share: true });
+    }
+    return out;
+  }, [recurring, scopeMember, memberCount]);
+  const scopedIncome = useMemo(
+    () => (scopeMember ? income.filter((s) => s.member_user_id === scopeMember) : income),
+    [income, scopeMember]
+  );
+  const hasScopedIncome = scopedIncome.length > 0;
+
+  // Two parallel indexes: monthIndexAll is ALWAYS the whole household — the
+  // budgets card reads it, and it anchors the month window so the chart's
+  // x-axis doesn't shift when the scope flips. monthIndex is the active
+  // scope everything else reads.
+  const monthIndexAll = useMemo(() => buildMonthIndex(data?.months || [], null), [data]);
   const monthIndex = useMemo(
-    () => (mine ? buildMonthIndex(data?.months || [], true) : monthIndexAll),
-    [data, mine, monthIndexAll]
+    () => (scopeMember ? buildMonthIndex(data?.months || [], scopeMember) : monthIndexAll),
+    [data, scopeMember, monthIndexAll]
   );
 
-  // Merchant rows in the active scope (top merchants + subscription detector).
+  // Merchant rows aggregated to (month, merchant) in the active scope. The
+  // API splits rows per card owner, so this ALWAYS re-aggregates — the
+  // subscription detector's "exactly once a month" test needs true totals,
+  // not one member's slice clobbering another's.
   const merchantRows = useMemo(() => {
-    const rows = data?.merchants || [];
-    if (!mine) return rows;
-    return rows
-      .map((r) => ({ ...r, spend_cents: r.mine_cents || 0, tx_count: r.mine_tx_count || 0 }))
-      .filter((r) => r.spend_cents > 0 || r.tx_count > 0);
-  }, [data, mine]);
+    const acc = new Map();
+    for (const r of data?.merchants || []) {
+      if (scopeMember && r.member_user_id !== scopeMember) continue;
+      const k = `${r.month} ${r.merchant_clean}`;
+      const cur = acc.get(k);
+      if (cur) {
+        cur.spend_cents += r.spend_cents;
+        cur.tx_count += r.tx_count;
+      } else {
+        acc.set(k, {
+          month: r.month,
+          merchant_clean: r.merchant_clean,
+          spend_cents: r.spend_cents,
+          tx_count: r.tx_count,
+        });
+      }
+    }
+    return [...acc.values()].filter((r) => r.spend_cents > 0 || r.tx_count > 0);
+  }, [data, scopeMember]);
 
   const monthKeys = useMemo(() => [...monthIndexAll.keys()].sort(), [monthIndexAll]);
   const latestMonth = monthKeys[monthKeys.length - 1] || null;
@@ -152,11 +217,11 @@ const SpendingDashboard = ({
       for (let m = 1; m <= 12; m++) {
         const key = `${year}-${String(m).padStart(2, "0")}`;
         if (latestMonth && key > latestMonth) break;
-        sum += fixedForMonth(recurring, key);
+        sum += fixedForMonth(scopedRecurring, key);
       }
       return sum;
     },
-    [recurring, latestMonth]
+    [scopedRecurring, latestMonth]
   );
 
   const incomeForYear = useCallback(
@@ -165,11 +230,11 @@ const SpendingDashboard = ({
       for (let m = 1; m <= 12; m++) {
         const key = `${year}-${String(m).padStart(2, "0")}`;
         if (latestMonth && key > latestMonth) break;
-        sum += incomeForMonth(income, key);
+        sum += incomeForMonth(scopedIncome, key);
       }
       return sum;
     },
-    [income, latestMonth]
+    [scopedIncome, latestMonth]
   );
 
   // Bar series: last 12 calendar months (gaps zero-filled) or one per year.
@@ -184,11 +249,8 @@ const SpendingDashboard = ({
       while (key <= latestMonth) {
         const entry = monthIndex.get(key);
         const card = entry?.card || 0;
-        // Mine view charts only your cards: the fixed overlay and income
-        // benchmark are household-level and would misread against one
-        // person's bars.
-        const fixed = mine ? 0 : fixedForMonth(recurring, key);
-        const monthIncome = mine ? 0 : incomeForMonth(income, key);
+        const fixed = fixedForMonth(scopedRecurring, key);
+        const monthIncome = incomeForMonth(scopedIncome, key);
         out.push({
           key,
           label: monthShort(key),
@@ -204,19 +266,26 @@ const SpendingDashboard = ({
       }
       return out;
     }
+    // Years anchor on the HOUSEHOLD month keys (like the months window does)
+    // so a member scope with no card rows in a year still charts their bills
+    // and income — and the series can never come back empty, which would
+    // trip the "no data" early return and unmount every control.
     const byYear = new Map();
+    for (const k of monthKeys) {
+      const year = k.slice(0, 4);
+      if (!byYear.has(year)) byYear.set(year, { card: 0, txCount: 0 });
+    }
     for (const [key, entry] of monthIndex) {
-      const year = key.slice(0, 4);
-      const y = byYear.get(year) || { card: 0, txCount: 0 };
+      const y = byYear.get(key.slice(0, 4));
+      if (!y) continue;
       y.card += entry.card;
       y.txCount += entry.txCount;
-      byYear.set(year, y);
     }
     return [...byYear.entries()]
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .map(([year, v]) => {
-        const fixed = mine ? 0 : fixedForYear(year);
-        const yearIncome = mine ? 0 : incomeForYear(year);
+        const fixed = fixedForYear(year);
+        const yearIncome = incomeForYear(year);
         return {
           key: year,
           label: year,
@@ -229,7 +298,7 @@ const SpendingDashboard = ({
           txCount: v.txCount,
         };
       });
-  }, [granularity, latestMonth, monthKeys, monthIndex, recurring, income, fixedForYear, incomeForYear, mine]);
+  }, [granularity, latestMonth, monthKeys, monthIndex, scopedRecurring, scopedIncome, fixedForYear, incomeForYear]);
 
   // Every period selectable in the dropdown — newest first. Months run the
   // full calendar range from the first data month, NOT just the chart's
@@ -258,7 +327,7 @@ const SpendingDashboard = ({
   // Changing period, granularity or scope invalidates an open drill-down.
   useEffect(() => {
     setDrill(null);
-  }, [selected, granularity, mine]);
+  }, [selected, granularity, scopeMember]);
 
   const toggleDrill = useCallback(
     async (category) => {
@@ -271,9 +340,9 @@ const SpendingDashboard = ({
       const params = new URLSearchParams({ category, limit: "200" });
       if (selected.length === 7) params.set("month", selected);
       else params.set("year", selected);
-      // Mine view drills into your cards' charges only, matching the rows
-      // that produced the number being drilled.
-      if (mine && youUserId) params.set("cardOf", youUserId);
+      // A member scope drills into that member's cards only, matching the
+      // rows that produced the number being drilled.
+      if (scopeMember) params.set("cardOf", scopeMember);
       const { res, data: body } = await fetchJson(`/api/budget/transactions?${params}`);
       setDrill((cur) => {
         if (!cur || cur.category !== category) return cur; // superseded
@@ -283,17 +352,17 @@ const SpendingDashboard = ({
         return { ...cur, loading: false, rows: body.transactions || [] };
       });
     },
-    [drill, selected, fetchJson, mine, youUserId]
+    [drill, selected, fetchJson, scopeMember]
   );
 
   // Fixed (recurring) items that contribute to a category in the selected
   // period — shown at the top of the drill-down, since they aren't card
-  // transactions and won't come back from the API. Mine view charts cards
-  // only, so household bills stay out of its drill-downs too.
+  // transactions and won't come back from the API. In a member scope the
+  // scoped list already carries their share of shared bills (_share).
   const drillFixedItems = useMemo(() => {
-    if (!drill || !selected || mine) return [];
+    if (!drill || !selected) return [];
     const isMonth = selected.length === 7;
-    return recurring
+    return scopedRecurring
       .map((item) => {
         if (item.category !== drill.category || item.on_card) return null;
         if (isMonth) {
@@ -308,7 +377,7 @@ const SpendingDashboard = ({
         return n > 0 ? { ...item, monthsActive: n } : null;
       })
       .filter(Boolean);
-  }, [drill, selected, recurring, latestMonth, mine]);
+  }, [drill, selected, scopedRecurring, latestMonth]);
 
   // The selected period's numbers. Usually straight out of the chart series,
   // but a month picked from the dropdown can predate the charted window —
@@ -320,8 +389,8 @@ const SpendingDashboard = ({
     if (!selected || selected.length !== 7) return null;
     const entry = monthIndex.get(selected);
     const card = entry?.card || 0;
-    const fixed = mine ? 0 : fixedForMonth(recurring, selected);
-    const monthIncome = mine ? 0 : incomeForMonth(income, selected);
+    const fixed = fixedForMonth(scopedRecurring, selected);
+    const monthIncome = incomeForMonth(scopedIncome, selected);
     return {
       key: selected,
       label: monthShort(selected),
@@ -333,17 +402,17 @@ const SpendingDashboard = ({
       saved: monthIncome > 0 ? monthIncome - (card + fixed) : null,
       txCount: entry?.txCount || 0,
     };
-  }, [series, selected, monthIndex, recurring, income, mine]);
+  }, [series, selected, monthIndex, scopedRecurring, scopedIncome]);
   const hasFixed = recurring.length > 0;
-  // The chart's fixed segments / income ticks exist only in household scope.
-  const chartHasFixed = !mine && hasFixed;
-  const chartHasIncome = !mine && hasIncome;
+  // Whether the ACTIVE scope has fixed segments / income ticks to draw.
+  const chartHasFixed = scopedRecurring.length > 0;
+  const chartHasIncome = hasScopedIncome;
 
-  // Card (+ optionally fixed) spending by category for a period, from a
-  // given index — the scoped analytics and the always-household budget math
-  // share this shape.
+  // Card + fixed spending by category for a period, from a given month
+  // index and recurring list — the scoped analytics and the always-household
+  // budget math share this shape.
   const categoryTotalsFor = useCallback(
-    (periodKey, index, includeFixed) => {
+    (periodKey, index, recurringList) => {
       const sums = new Map();
       if (!periodKey) return sums;
       const isMonth = periodKey.length === 7;
@@ -354,12 +423,11 @@ const SpendingDashboard = ({
           sums.set(cat, (sums.get(cat) || 0) + cents);
         }
       }
-      if (!includeFixed) return sums;
       const monthsInPeriod = isMonth
         ? [periodKey]
         : Array.from({ length: 12 }, (_, i) => `${periodKey}-${String(i + 1).padStart(2, "0")}`)
             .filter((k) => !latestMonth || k <= latestMonth);
-      for (const item of recurring) {
+      for (const item of recurringList) {
         if (item.on_card) continue; // real charges already in card data
         for (const mk of monthsInPeriod) {
           if (recurringActiveIn(item, mk)) {
@@ -369,21 +437,21 @@ const SpendingDashboard = ({
       }
       return sums;
     },
-    [recurring, latestMonth]
+    [latestMonth]
   );
 
-  // Active-scope merge: household view folds fixed bills into categories;
-  // Mine view is your cards only (the bills are household money).
+  // Active-scope merge: categories fold in the scope's bills (a member's own
+  // plus their share of shared ones) alongside their cards.
   const mergedByCategory = useCallback(
-    (periodKey) => categoryTotalsFor(periodKey, monthIndex, !mine),
-    [categoryTotalsFor, monthIndex, mine]
+    (periodKey) => categoryTotalsFor(periodKey, monthIndex, scopedRecurring),
+    [categoryTotalsFor, monthIndex, scopedRecurring]
   );
 
   // Budgets keep score against the WHOLE household in either scope — a
   // household cap tracked against one person's charges would under-report.
   const householdSpentByCategory = useMemo(
-    () => categoryTotalsFor(selected, monthIndexAll, true),
-    [categoryTotalsFor, selected, monthIndexAll]
+    () => categoryTotalsFor(selected, monthIndexAll, recurring),
+    [categoryTotalsFor, selected, monthIndexAll, recurring]
   );
 
   const breakdown = useMemo(() => {
@@ -401,7 +469,7 @@ const SpendingDashboard = ({
   const maxBreakdown = breakdown.length ? breakdown[0].cents : 0;
 
   // Top merchants for the selected period (card data only — fixed items are
-  // already itemized by name in the Monthly tab).
+  // already itemized by name in the Income & bills tab).
   const topMerchants = useMemo(() => {
     if (!selected) return [];
     const isMonth = selected.length === 7;
@@ -427,7 +495,7 @@ const SpendingDashboard = ({
   const movers = useMemo(() => {
     if (granularity !== "months" || !selected) return [];
     const prevKey = addMonths(selected, -1);
-    if (!monthIndex.has(prevKey) && fixedForMonth(recurring, prevKey) === 0) return [];
+    if (!monthIndex.has(prevKey) && fixedForMonth(scopedRecurring, prevKey) === 0) return [];
     const cur = mergedByCategory(selected);
     const prev = mergedByCategory(prevKey);
     const cats = new Set([...cur.keys(), ...prev.keys()]);
@@ -440,7 +508,7 @@ const SpendingDashboard = ({
       .filter((m) => Math.abs(m.delta) >= 500)
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
       .slice(0, 3);
-  }, [granularity, selected, monthIndex, recurring, mergedByCategory]);
+  }, [granularity, selected, monthIndex, scopedRecurring, mergedByCategory]);
 
   // Subscription detector: merchant charged EXACTLY ONCE per month in >=2
   // of the last 3 data months, with stable amounts, and not already tracked
@@ -511,7 +579,7 @@ const SpendingDashboard = ({
       await load();
       onMutate?.();
     } else {
-      setError(body?.error || "Couldn't add that to Monthly payments.");
+      setError(body?.error || "Couldn't add that to the bills list.");
     }
   };
 
@@ -539,21 +607,21 @@ const SpendingDashboard = ({
     }
   };
 
-  // KPI tiles. Spend/average/sparkline follow the active scope; savings is
-  // ALWAYS household (income − household card − fixed) — income and bills
-  // aren't per-person, so a "mine" savings number would be fiction.
+  // KPI tiles — every number answers for the active scope: a member's tiles
+  // use their cards, their bills (incl. their share of shared ones), and
+  // their own income, so "saved" is real per-person math, not an estimate.
   const tiles = useMemo(() => {
     if (!latestMonth) return null;
     const totalFor = (key) =>
-      (monthIndex.get(key)?.card || 0) + (mine ? 0 : fixedForMonth(recurring, key));
+      (monthIndex.get(key)?.card || 0) + fixedForMonth(scopedRecurring, key);
     const savedFor = (key) => {
-      const inc = incomeForMonth(income, key);
+      const inc = incomeForMonth(scopedIncome, key);
       if (inc <= 0) return null;
-      return inc - ((monthIndexAll.get(key)?.card || 0) + fixedForMonth(recurring, key));
+      return inc - totalFor(key);
     };
     const prevKey = addMonths(latestMonth, -1);
     const hasPrev =
-      monthIndex.has(prevKey) || (!mine && fixedForMonth(recurring, prevKey) > 0);
+      monthIndex.has(prevKey) || fixedForMonth(scopedRecurring, prevKey) > 0;
     const floor = addMonths(latestMonth, -11);
     const start = monthKeys[0] > floor ? monthKeys[0] : floor;
     const spark = [];
@@ -569,7 +637,7 @@ const SpendingDashboard = ({
       }
       k = addMonths(k, 1);
     }
-    const latestIncome = incomeForMonth(income, latestMonth);
+    const latestIncome = incomeForMonth(scopedIncome, latestMonth);
     const latestSaved = savedFor(latestMonth);
     const prevSaved = hasPrev ? savedFor(prevKey) : null;
     return {
@@ -577,12 +645,12 @@ const SpendingDashboard = ({
       latestTotal: totalFor(latestMonth),
       delta: hasPrev ? totalFor(latestMonth) - totalFor(prevKey) : null,
       prevLabel: hasPrev ? monthShort(prevKey) : null,
-      fixedNow: fixedForMonth(recurring, latestMonth),
+      fixedNow: fixedForMonth(scopedRecurring, latestMonth),
       avg: spark.length
         ? Math.round(spark.reduce((a, b) => a + b, 0) / spark.length)
         : 0,
       spark,
-      // savings story (only when income is configured)
+      // savings story (only when the scope has income configured)
       latestIncome,
       latestSaved,
       savedRate:
@@ -594,10 +662,10 @@ const SpendingDashboard = ({
       windowSaved,
       windowSavedMonths,
     };
-  }, [latestMonth, monthIndex, monthIndexAll, monthKeys, recurring, income, mine]);
+  }, [latestMonth, monthIndex, monthKeys, scopedRecurring, scopedIncome]);
 
   // Savings for the SELECTED period, for the insights card — same
-  // household-always definition as the tile, month or year.
+  // scope-true definition as the tile, month or year.
   const selectedSavings = useMemo(() => {
     if (!selected) return null;
     const keys =
@@ -605,14 +673,65 @@ const SpendingDashboard = ({
         ? [selected]
         : Array.from({ length: 12 }, (_, i) => `${selected}-${String(i + 1).padStart(2, "0")}`)
             .filter((k) => !latestMonth || k <= latestMonth);
-    const inc = keys.reduce((s, k) => s + incomeForMonth(income, k), 0);
+    const inc = keys.reduce((s, k) => s + incomeForMonth(scopedIncome, k), 0);
     if (inc <= 0) return null;
     const out = keys.reduce(
-      (s, k) => s + (monthIndexAll.get(k)?.card || 0) + fixedForMonth(recurring, k),
+      (s, k) => s + (monthIndex.get(k)?.card || 0) + fixedForMonth(scopedRecurring, k),
       0
     );
     return { income: inc, saved: inc - out };
-  }, [selected, latestMonth, income, monthIndexAll, recurring]);
+  }, [selected, latestMonth, scopedIncome, monthIndex, scopedRecurring]);
+
+  // Per-person comparison for the selected period — always BOTH members,
+  // whatever scope is active (it's the side-by-side the scope pills switch
+  // between). Card spend attributes by card owner; bills by owner + even
+  // share of shared; income by owner.
+  const peopleStats = useMemo(() => {
+    if (!shared || !selected || memberList.length < 2) return [];
+    const keys =
+      selected.length === 7
+        ? [selected]
+        : Array.from({ length: 12 }, (_, i) => `${selected}-${String(i + 1).padStart(2, "0")}`)
+            .filter((k) => !latestMonth || k <= latestMonth);
+    // member userId -> month -> card cents, straight off the raw rows
+    const cardBy = new Map();
+    for (const r of data?.months || []) {
+      let inner = cardBy.get(r.member_user_id);
+      if (!inner) {
+        inner = new Map();
+        cardBy.set(r.member_user_id, inner);
+      }
+      inner.set(r.month, (inner.get(r.month) || 0) + r.spend_cents);
+    }
+    // Per-bill share rounding, EXACTLY like scopedRecurring builds a member's
+    // list — round(sum/N) instead would disagree with the member's own tiles
+    // by a cent per bill.
+    const sharedShares = recurring
+      .filter((r) => !r.member_user_id)
+      .map((r) => ({ ...r, amount_cents: Math.round(r.amount_cents / memberCount) }));
+    return memberList.map((m) => {
+      const bills = [
+        ...recurring.filter((r) => r.member_user_id === m.userId),
+        ...sharedShares,
+      ];
+      const ownIncome = income.filter((s) => s.member_user_id === m.userId);
+      let out = 0;
+      let inc = 0;
+      for (const k of keys) {
+        out += cardBy.get(m.userId)?.get(k) || 0;
+        out += fixedForMonth(bills, k);
+        inc += incomeForMonth(ownIncome, k);
+      }
+      return {
+        userId: m.userId,
+        label: memberLabel(m, youUserId),
+        out,
+        income: inc,
+        saved: inc > 0 ? inc - out : null,
+      };
+    });
+  }, [shared, selected, memberList, latestMonth, data, recurring, income, memberCount, youUserId]);
+  const maxPersonOut = peopleStats.reduce((mx, p) => Math.max(mx, p.out), 0);
 
   // ----- render -----
 
@@ -654,6 +773,21 @@ const SpendingDashboard = ({
   );
   const heightFor = (cents) => (cents / yMax) * plotH;
   const baseY = PAD.t + plotH;
+
+  // Saved-by-month chart: diverging bars around a $0 baseline. One linear
+  // scale spans the nice-rounded extremes on each side, so a dollar is the
+  // same height above and below zero; the baseline sits wherever that puts
+  // it. Same horizontal geometry as chart 1 — the months line up.
+  const savPlotH = SAV_VBH - SAV_PAD.t - SAV_PAD.b;
+  const savedVals = series.map((s) => s.saved ?? 0);
+  const savHiRaw = Math.max(0, ...savedVals);
+  const savLoRaw = Math.max(0, ...savedVals.map((v) => -v));
+  const savHi = savHiRaw > 0 ? niceMax(savHiRaw) : 0;
+  const savLo = savLoRaw > 0 ? niceMax(savLoRaw) : 0;
+  const savRange = savHi + savLo || 100;
+  const savScale = savPlotH / savRange;
+  const savZeroY = SAV_PAD.t + savHi * savScale;
+  const savedMonths = series.filter((s) => s.saved != null).length;
 
   const budgets = data?.budgets || [];
   const budgetCategoryOptions = CATEGORIES.filter(
@@ -751,12 +885,9 @@ const SpendingDashboard = ({
             )}
           </div>
 
-          {hasIncome && tiles.latestSaved != null ? (
+          {hasScopedIncome && tiles.latestSaved != null ? (
             <div className="bdb-tile">
-              <p className="bdb-tile-label">
-                {monthLong(tiles.latestKey)} saved
-                {mine && <span className="bdb-scope-chip">household</span>}
-              </p>
+              <p className="bdb-tile-label">{monthLong(tiles.latestKey)} saved</p>
               <p
                 className={`bdb-tile-value ${
                   tiles.latestSaved > 0 ? "is-good" : tiles.latestSaved < 0 ? "is-bad" : ""
@@ -790,33 +921,31 @@ const SpendingDashboard = ({
           ) : (
             <div className="bdb-tile">
               <p className="bdb-tile-label">
-                Fixed monthly
-                {mine && <span className="bdb-scope-chip">household</span>}
+                {personal ? "Bills / month" : "Fixed monthly"}
               </p>
               <p className="bdb-tile-value">{fmtMoney(tiles.fixedNow, { compact: true })}</p>
               <p className="bdb-tile-sub">
-                {recurring.length
+                {scopedRecurring.length
                   ? `${
-                      recurring.filter(
+                      scopedRecurring.filter(
                         (r) => recurringActiveIn(r, latestMonth) && !r.on_card
                       ).length
-                    } payments · Monthly tab`
-                  : "add bills in the Monthly tab"}
+                    } payments${personal ? " incl. shared splits" : ""} · Income & bills tab`
+                  : "add bills in the Income & bills tab"}
               </p>
             </div>
           )}
 
-          {hasIncome ? (
+          {hasScopedIncome ? (
             <div className="bdb-tile">
-              <p className="bdb-tile-label">
-                Income per month
-                {mine && <span className="bdb-scope-chip">household</span>}
-              </p>
+              <p className="bdb-tile-label">Income per month</p>
               <p className="bdb-tile-value">≈ {fmtMoney(tiles.latestIncome, { compact: true })}</p>
               <p className="bdb-tile-sub">
-                {income.filter((s) => recurringActiveIn(s, latestMonth)).length} source
-                {income.filter((s) => recurringActiveIn(s, latestMonth)).length === 1 ? "" : "s"}{" "}
-                · Monthly tab
+                {scopedIncome.filter((s) => recurringActiveIn(s, latestMonth)).length} source
+                {scopedIncome.filter((s) => recurringActiveIn(s, latestMonth)).length === 1
+                  ? ""
+                  : "s"}{" "}
+                · Income & bills tab
               </p>
             </div>
           ) : (
@@ -824,7 +953,7 @@ const SpendingDashboard = ({
               <p className="bdb-tile-label">Average per month</p>
               <p className="bdb-tile-value">{fmtMoney(tiles.avg, { compact: true })}</p>
               <p className="bdb-tile-sub">
-                {mine ? "your cards, charted window" : "card + fixed, charted window"}
+                {personal ? "cards + bill share, charted window" : "card + fixed, charted window"}
               </p>
             </div>
           )}
@@ -845,25 +974,40 @@ const SpendingDashboard = ({
 
       {/* ---- controls ---- */}
       <div className="bdb-controls">
-        {/* Whose analytics — only a question worth asking when the ledger is
-            actually shared. */}
+        {/* Whose money — one pill per member plus the whole household. Only
+            a question worth asking when the ledger is actually shared. */}
         {shared && (
-          <div className="bdb-toggle" role="tablist" aria-label="Whose spending">
-            {[
-              ["mine", "Mine"],
-              ["household", "Household"],
-            ].map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={scope === key}
-                className={`bdb-toggle-btn ${scope === key ? "is-active" : ""}`}
-                onClick={() => setScopePersist(key)}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="bdb-toggle" role="tablist" aria-label="Whose money">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!personal}
+              className={`bdb-toggle-btn ${!personal ? "is-active" : ""}`}
+              onClick={() => setScopePersist("household")}
+            >
+              Household
+            </button>
+            {memberList.map((m) => {
+              const label = memberLabel(m, youUserId);
+              const active = scopeMember === m.userId;
+              return (
+                <button
+                  key={m.userId}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`bdb-toggle-btn bdb-toggle-btn--person ${active ? "is-active" : ""}`}
+                  onClick={() =>
+                    setScopePersist(m.userId === youUserId ? "mine" : m.userId)
+                  }
+                >
+                  <span className="bdb-scope-ava" aria-hidden="true">
+                    {memberInitials(label)}
+                  </span>
+                  {label}
+                </button>
+              );
+            })}
           </div>
         )}
         <div className="bdb-toggle" role="tablist" aria-label="Granularity">
@@ -886,26 +1030,24 @@ const SpendingDashboard = ({
 
         {/* Same state the chart's bar-click sets — this is just the explicit,
             always-visible way to move the cards below to another period. */}
-        <select
-          className="bdb-period-select"
+        <Dropdown
+          variant="pill"
+          ariaLabel={`Show ${granularity === "months" ? "month" : "year"}`}
           value={selected || ""}
-          onChange={(e) => setSelected(e.target.value)}
-          aria-label={`Show ${granularity === "months" ? "month" : "year"}`}
-        >
-          {periodOptions.map((k) => (
-            <option key={k} value={k}>
-              {k.length === 7 ? monthLong(k) : k}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setSelected(v)}
+          options={periodOptions.map((k) => ({
+            value: k,
+            label: k.length === 7 ? monthLong(k) : k,
+          }))}
+        />
       </div>
 
       {/* ---- stacked bar chart ---- */}
       <div className="bdb-card">
         <div className="bdb-card-head">
           <h2 className="bdb-h">
-            {mine ? "Your spending" : "Spending"} by{" "}
-            {granularity === "months" ? "month" : "year"}
+            {scopeLabel ? (scopeLabel === "You" ? "Your spending" : `${scopeLabel}'s spending`) : "Spending"}{" "}
+            by {granularity === "months" ? "month" : "year"}
           </h2>
           {(chartHasFixed || chartHasIncome) && (
             <div className="bdb-legend" aria-hidden="true">
@@ -934,11 +1076,9 @@ const SpendingDashboard = ({
             viewBox={`0 0 ${VBW} ${VBH}`}
             className="bdb-chart"
             role="img"
-            aria-label={`${
-              mine
-                ? "Bar chart of your cards' spending"
-                : "Stacked bar chart of card and fixed spending"
-            } per ${granularity === "months" ? "month" : "year"}`}
+            aria-label={`Stacked bar chart of ${
+              scopeLabel ? `${scopeLabel === "You" ? "your" : `${scopeLabel}'s`} ` : ""
+            }card and fixed spending per ${granularity === "months" ? "month" : "year"}`}
           >
             {[0.5, 1].map((f) => (
               <g key={f}>
@@ -1092,13 +1232,293 @@ const SpendingDashboard = ({
         </div>
       </div>
 
+      {/* ---- saved by month (diverging) ---- */}
+      {chartHasIncome && savedMonths > 0 ? (
+        <div className="bdb-card">
+          <div className="bdb-card-head">
+            <h2 className="bdb-h">
+              {scopeLabel
+                ? scopeLabel === "You"
+                  ? "What you kept"
+                  : `What ${scopeLabel} kept`
+                : "What the household kept"}{" "}
+              by {granularity === "months" ? "month" : "year"}
+              <span className="bdb-h-sub"> · income − money out</span>
+            </h2>
+          </div>
+          <div className="bdb-chartwrap">
+            <div className="bdb-chartinner">
+              <svg
+                viewBox={`0 0 ${VBW} ${SAV_VBH}`}
+                className="bdb-chart"
+                role="img"
+                aria-label={`Diverging bar chart of money ${
+                  scopeLabel ? `${scopeLabel === "You" ? "you" : scopeLabel} kept` : "the household kept"
+                } per ${granularity === "months" ? "month" : "year"} — bars above zero are savings, below are overspend`}
+              >
+                {/* Extreme tick labels only render when they clear the $0
+                    label — a lopsided scale (saved $50 / overspent $2,000)
+                    would otherwise overprint the two 10px texts. */}
+                {savHi > 0 && (
+                  <g>
+                    <line
+                      className="bdb-grid"
+                      x1={PAD.l}
+                      x2={VBW - PAD.r}
+                      y1={SAV_PAD.t}
+                      y2={SAV_PAD.t}
+                    />
+                    {savHi * savScale >= 14 && (
+                      <text className="bdb-tick" x={PAD.l - 6} y={SAV_PAD.t + 3}>
+                        {fmtMoney(savHi, { compact: true })}
+                      </text>
+                    )}
+                  </g>
+                )}
+                {savLo > 0 && (
+                  <g>
+                    <line
+                      className="bdb-grid"
+                      x1={PAD.l}
+                      x2={VBW - PAD.r}
+                      y1={savZeroY + savLo * savScale}
+                      y2={savZeroY + savLo * savScale}
+                    />
+                    {savLo * savScale >= 14 && (
+                      <text
+                        className="bdb-tick"
+                        x={PAD.l - 6}
+                        y={savZeroY + savLo * savScale + 3}
+                      >
+                        −{fmtMoney(savLo, { compact: true })}
+                      </text>
+                    )}
+                  </g>
+                )}
+                {/* the $0 baseline is the diverging midpoint */}
+                <line className="bdb-axis" x1={PAD.l} x2={VBW - PAD.r} y1={savZeroY} y2={savZeroY} />
+                <text className="bdb-tick" x={PAD.l - 6} y={savZeroY + 3}>
+                  $0
+                </text>
+
+                {series.map((s, i) => {
+                  const x = PAD.l + i * bandW + (bandW - barW) / 2;
+                  const cx = x + barW / 2;
+                  const isSelected = s.key === selected;
+                  if (s.saved == null) {
+                    // No income recorded for this band — an axis label with
+                    // no bar reads honestly as "unknown", not "$0 saved".
+                    return (
+                      <g key={s.key}>
+                        <text className="bdb-xlabel" x={cx} y={SAV_VBH - 8}>
+                          {s.label}
+                        </text>
+                      </g>
+                    );
+                  }
+                  const h = Math.abs(s.saved) * savScale;
+                  const pos = s.saved >= 0;
+                  const showSavTip = () =>
+                    setSavTip({
+                      leftPct: Math.min(90, Math.max(10, (cx / VBW) * 100)),
+                      // Floor at 52%: this chart is shorter than chart 1, so
+                      // the same 45% would let a 3-row tip clip at the top of
+                      // the scroll wrap.
+                      topPct: Math.max(52, ((pos ? savZeroY - h : savZeroY) / SAV_VBH) * 100),
+                      title: s.longLabel,
+                      value: `${pos ? "saved" : "overspent"} ${fmtMoney(Math.abs(s.saved))}`,
+                      rows: [
+                        { key: "income", label: "income", value: fmtMoney(s.income) },
+                        // neutral key — the blue "card" key means card-only
+                        // in the chart above, and this value is card + bills
+                        { key: "out", label: "money out", value: fmtMoney(s.total) },
+                      ],
+                    });
+                  return (
+                    <g key={s.key} className={isSelected ? "is-selected" : ""}>
+                      {h > 0.5 ? (
+                        <path
+                          className={`bdb-sav ${pos ? "bdb-sav--pos" : "bdb-sav--neg"}`}
+                          d={
+                            pos
+                              ? topRoundedBar(x, savZeroY - h, barW, h)
+                              : bottomRoundedBar(x, savZeroY, barW, h)
+                          }
+                        />
+                      ) : (
+                        // Broke-even months still get a visible mark on the line.
+                        <line
+                          className="bdb-sav-zero"
+                          x1={x}
+                          x2={x + barW}
+                          y1={savZeroY}
+                          y2={savZeroY}
+                        />
+                      )}
+                      {isSelected && (
+                        <text
+                          className="bdb-bar-label"
+                          x={cx}
+                          y={pos ? Math.max(10, savZeroY - h - 6) : Math.min(SAV_VBH - 18, savZeroY + h + 12)}
+                        >
+                          {s.saved < 0 ? "−" : ""}
+                          {fmtMoney(Math.abs(s.saved), { compact: true })}
+                        </text>
+                      )}
+                      <text className="bdb-xlabel" x={cx} y={SAV_VBH - 8}>
+                        {s.label}
+                      </text>
+                      <rect
+                        className="bdb-hit"
+                        x={PAD.l + i * bandW}
+                        y={SAV_PAD.t}
+                        width={bandW}
+                        height={savPlotH}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`${s.longLabel}: ${
+                          s.saved >= 0 ? "saved" : "overspent"
+                        } ${fmtMoney(Math.abs(s.saved))} of ${fmtMoney(s.income)} income`}
+                        onMouseEnter={showSavTip}
+                        onMouseLeave={() => setSavTip(null)}
+                        onFocus={showSavTip}
+                        onBlur={() => setSavTip(null)}
+                        onClick={() => setSelected(s.key)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelected(s.key);
+                          }
+                        }}
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+              {savTip && (
+                <div
+                  className="bdb-tip"
+                  style={{ left: `${savTip.leftPct}%`, top: `${savTip.topPct}%` }}
+                >
+                  <strong>{savTip.value}</strong>
+                  <span>{savTip.title}</span>
+                  {savTip.rows.map((r) => (
+                    <span key={r.key} className="bdb-tip-row">
+                      <i className={`bdb-tip-key bdb-tip-key--${r.key}`} />
+                      {r.value} {r.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bdb-card">
+          <h2 className="bdb-h">
+            {scopeLabel ? `What ${scopeLabel === "You" ? "you" : scopeLabel} kept` : "What you kept"}
+            <span className="bdb-h-sub"> · income − money out</span>
+          </h2>
+          <p className="bdb-sub">
+            {hasScopedIncome
+              ? `${
+                  personal
+                    ? scopeLabel === "You"
+                      ? "Your"
+                      : `${scopeLabel}'s`
+                    : "The household's"
+                } income sources don't overlap the charted ${
+                  granularity === "months" ? "months" : "years"
+                } — adjust a source's start or end month in the Income & bills tab to fill them in.`
+              : personal
+              ? `No income sources for ${
+                  scopeLabel === "You" ? "you" : scopeLabel
+                } yet — assign paycheques in the Income & bills tab and this chart starts tracking what's kept each month.`
+              : "Add income in the Income & bills tab and this chart starts tracking what the household keeps each month."}
+          </p>
+        </div>
+      )}
+
+      {/* ---- per person ---- */}
+      {peopleStats.length > 1 && (
+        <div className="bdb-card">
+          <h2 className="bdb-h">
+            Per person
+            {selectedEntry && <span className="bdb-h-sub"> · {selectedEntry.longLabel}</span>}
+          </h2>
+          <div className="bdb-people">
+            {peopleStats.map((p) => {
+              const active = scopeMember === p.userId;
+              return (
+                <button
+                  key={p.userId}
+                  type="button"
+                  className={`bdb-person ${active ? "is-active" : ""}`}
+                  aria-pressed={active}
+                  aria-describedby="bdb-people-note"
+                  onClick={() =>
+                    setScopePersist(
+                      active ? "household" : p.userId === youUserId ? "mine" : p.userId
+                    )
+                  }
+                  title={
+                    active
+                      ? "Back to the household view"
+                      : `Focus the dashboard on ${p.label === "You" ? "your" : `${p.label}'s`} money`
+                  }
+                >
+                  <span className="bdb-person-head">
+                    <span className="bdb-person-ava" aria-hidden="true">
+                      {memberInitials(p.label)}
+                    </span>
+                    <span className="bdb-person-name">{p.label}</span>
+                  </span>
+                  <span className="bdb-person-row">
+                    <span className="bdb-person-k">money out</span>
+                    <span className="bdb-person-v">{fmtMoney(p.out)}</span>
+                  </span>
+                  <span className="bdb-person-bar" aria-hidden="true">
+                    <span
+                      className="bdb-cat-fill"
+                      style={{ width: `${maxPersonOut ? (p.out / maxPersonOut) * 100 : 0}%` }}
+                    />
+                  </span>
+                  <span className="bdb-person-row">
+                    <span className="bdb-person-k">income</span>
+                    <span className="bdb-person-v">
+                      {p.income > 0 ? `≈ ${fmtMoney(p.income)}` : "—"}
+                    </span>
+                  </span>
+                  <span className="bdb-person-row">
+                    <span className="bdb-person-k">{p.saved != null && p.saved < 0 ? "short" : "kept"}</span>
+                    <span
+                      className={`bdb-person-v ${
+                        p.saved == null ? "" : p.saved >= 0 ? "is-good" : "is-bad"
+                      }`}
+                    >
+                      {p.saved == null
+                        ? "—"
+                        : `${p.saved < 0 ? "−" : ""}${fmtMoney(Math.abs(p.saved))}`}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="bdb-people-note" id="bdb-people-note">
+            Cards count for whoever owns them; shared bills split evenly. Tap a person to focus
+            the whole dashboard on them.
+          </p>
+        </div>
+      )}
+
       <div className="bdb-grid2">
         {/* ---- category breakdown ---- */}
         <div className="bdb-card">
           <h2 className="bdb-h">
             {selectedEntry ? selectedEntry.longLabel : ""} by category
-            {mine ? (
-              <span className="bdb-h-sub"> · your cards</span>
+            {personal ? (
+              <span className="bdb-h-sub"> · cards + bill share</span>
             ) : (
               hasFixed && <span className="bdb-h-sub"> · card + fixed</span>
             )}
@@ -1149,7 +1569,12 @@ const SpendingDashboard = ({
                             <span className="bdb-drill-date" title="Monthly payment">
                               ↻ monthly
                             </span>
-                            <span className="bdb-drill-merchant">{item.label}</span>
+                            <span className="bdb-drill-merchant">
+                              {item.label}
+                              {item._share && (
+                                <em className="bdb-drill-flag"> your share of shared</em>
+                              )}
+                            </span>
                             <span className="bdb-drill-amount">
                               {item.monthsActive > 1
                                 ? `${fmtMoneyExact(item.amount_cents)} × ${item.monthsActive}`
@@ -1223,7 +1648,7 @@ const SpendingDashboard = ({
             {granularity === "months" && selectedEntry ? (
               <span className="bdb-h-sub">· {selectedEntry.longLabel}</span>
             ) : null}
-            {mine && <span className="bdb-scope-chip">household</span>}
+            {personal && <span className="bdb-scope-chip">household</span>}
           </h2>
 
           {granularity === "years" ? (
@@ -1295,17 +1720,15 @@ const SpendingDashboard = ({
               </div>
 
               <div className="bdb-budget-new">
-                <select
+                <Dropdown
+                  ariaLabel="Budget category"
                   value={newBudget.category}
-                  onChange={(e) => setNewBudget((v) => ({ ...v, category: e.target.value }))}
-                >
-                  <option value="">Category…</option>
-                  {budgetCategoryOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setNewBudget((b) => ({ ...b, category: v }))}
+                  options={[
+                    { value: "", label: "Category…" },
+                    ...budgetCategoryOptions.map((c) => ({ value: c, label: c })),
+                  ]}
+                />
                 <input
                   placeholder="$ / month"
                   inputMode="decimal"
@@ -1392,10 +1815,7 @@ const SpendingDashboard = ({
 
           {selectedSavings && selectedEntry && (
             <div className="bdb-insight-block">
-              <p className="bdb-insight-h">
-                Savings · {selectedEntry.longLabel}
-                {mine && <span className="bdb-scope-chip">household</span>}
-              </p>
+              <p className="bdb-insight-h">Savings · {selectedEntry.longLabel}</p>
               <p
                 className={`bdb-insight-row ${
                   selectedSavings.saved >= 0 ? "is-good" : "is-bad"

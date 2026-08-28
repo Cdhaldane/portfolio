@@ -103,6 +103,18 @@
   background: rgba(238, 242, 233, 0.09);
 }
 
+/* "Whose" chip — the person an income source or a personal bill belongs to.
+   Sage tint like the income chip family: it's ownership metadata, not a
+   category. */
+.rec-person {
+  color: var(--ink-soft);
+  background: rgba(111, 154, 94, 0.14);
+}
+
+[data-theme="dark"] .rec-person {
+  background: rgba(151, 194, 131, 0.14);
+}
+
 /* Income variants (IncomePanel shares this stylesheet). */
 .rec-total--income .rec-total-value {
   color: var(--good-text);

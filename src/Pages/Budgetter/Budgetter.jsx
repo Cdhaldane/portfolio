@@ -87,6 +87,30 @@ const Budgetter = () => {
     if (check.state === "ok") loadHousehold();
   }, [check.state, loadHousehold]);
 
+  // One-time courtesy: a member with no display name yet gets their Clerk
+  // first name, so the household reads "Minh" everywhere instead of
+  // "Member tdet" the first time each person opens the app. Self-rename
+  // only, and never overwrites a name anyone has set (here or in the
+  // Household tab — which stays the place to change it).
+  const namedSelfRef = useRef(false);
+  useEffect(() => {
+    if (namedSelfRef.current) return;
+    const you = household.data?.members?.find((m) => m.isYou);
+    if (!you || you.displayName) return;
+    const firstName = String(user?.firstName || user?.fullName || "")
+      .trim()
+      .split(/\s+/)[0];
+    if (!firstName) return;
+    namedSelfRef.current = true; // one attempt per session, success or not
+    (async () => {
+      const { res, data } = await fetchJson("/api/budget/household", {
+        method: "PATCH",
+        body: JSON.stringify({ displayName: firstName }),
+      });
+      if (res.ok && data?.ok) loadHousehold();
+    })();
+  }, [household.data, user, fetchJson, loadHousehold]);
+
   const identity =
     user?.primaryEmailAddress?.emailAddress || user?.fullName || "you";
 
@@ -175,7 +199,7 @@ const Budgetter = () => {
             ["dashboard", "Dashboard"],
             ["upload", "Upload"],
             ["transactions", "Transactions"],
-            ["monthly", "Monthly"],
+            ["monthly", "Income & bills"],
             ["afford", "Afford"],
             ["household", "Household"],
           ].map(([key, label]) => (
@@ -196,7 +220,14 @@ const Budgetter = () => {
             fetchJson={fetchJson}
             shared={sharedHousehold}
             youUserId={youUserId}
-            onMutate={() => listRef.current?.refresh()}
+            members={household.data?.members}
+            onMutate={() => {
+              // The dashboard's "Track" writes a bill — the already-mounted
+              // Income & bills lists must hear about it (same reason
+              // AffordPanel's onMutate bumps monthlyToken).
+              listRef.current?.refresh();
+              setMonthlyToken((t) => t + 1);
+            }}
             onOpenTransactions={(category) => {
               listRef.current?.setFilters({ category });
               setTab("transactions");
@@ -216,8 +247,18 @@ const Budgetter = () => {
           />
         </div>
         <div hidden={tab !== "monthly"} className="bud-monthly">
-          <IncomePanel onMutate={refreshDashboard} refreshToken={monthlyToken} />
-          <RecurringPanel onMutate={refreshDashboard} refreshToken={monthlyToken} />
+          <IncomePanel
+            onMutate={refreshDashboard}
+            refreshToken={monthlyToken}
+            members={household.data?.members}
+            youUserId={youUserId}
+          />
+          <RecurringPanel
+            onMutate={refreshDashboard}
+            refreshToken={monthlyToken}
+            members={household.data?.members}
+            youUserId={youUserId}
+          />
         </div>
         <div hidden={tab !== "afford"}>
           <AffordPanel

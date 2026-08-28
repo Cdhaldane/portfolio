@@ -205,9 +205,33 @@
   gap: 2px;
 }
 
-/* "household" marker on numbers that ignore the Mine scope — fixed bills,
-   income, savings, budgets aren't modeled per person, so in Mine view they
-   declare themselves instead of silently mixing scopes. */
+/* Member pills: the monogram carries identity (color never does — the same
+   signature gradient paints every member, like the Household tab avatars). */
+.bdb-toggle-btn--person {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.bdb-scope-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--sage));
+  color: #fff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+
+/* "household" marker on the one card that deliberately ignores a member
+   scope — budgets are household caps, and tracking them against one person
+   would under-report. It declares itself instead of silently mixing scopes. */
 .bdb-scope-chip {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.58rem;
@@ -240,6 +264,17 @@
 .bdb-toggle-btn.is-active {
   color: #fff;
   background: var(--blue);
+}
+
+/* Dark mode remaps --blue to a light #6e93ff — white text on it is 2.9:1.
+   Dark ink (--paper resolves to #121310 here) reads at ~6.5:1. */
+[data-theme="dark"] .bdb-toggle-btn.is-active {
+  color: var(--paper);
+}
+
+[data-theme="dark"] .bdb-toggle-btn.is-active .bdb-scope-ava {
+  /* keep the monogram legible against the active pill */
+  box-shadow: 0 0 0 1px rgba(18, 19, 16, 0.4);
 }
 
 /* ---- error banner (refresh failed after data loaded) ---- */
@@ -386,6 +421,41 @@
   opacity: 0.75;
 }
 
+/* ---- saved-by-month (diverging) ----
+   A polarity job: POSITION above/below the $0 baseline carries the sign;
+   sage/coral only reinforce it and every reading surface (tooltip, aria,
+   direct label) says "saved"/"overspent" in words — never color alone.
+   Same recessive-fill + full-opacity-hairline recipe as .bdb-seg. */
+.bdb-sav {
+  stroke-width: 1;
+  transition: fill-opacity 0.2s ease;
+}
+
+.bdb-sav--pos {
+  fill: var(--sage);
+  stroke: var(--sage);
+  fill-opacity: 0.55;
+}
+
+.bdb-sav--neg {
+  fill: var(--accent);
+  stroke: var(--accent);
+  fill-opacity: 0.55;
+}
+
+.bdb-chart g.is-selected .bdb-sav,
+.bdb-chart g:hover .bdb-sav {
+  fill-opacity: 1;
+}
+
+/* Broke-even months: a bold tick on the baseline instead of an invisible
+   zero-height bar. */
+.bdb-sav-zero {
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
 .bdb-hit {
   fill: transparent;
   cursor: pointer;
@@ -456,7 +526,8 @@
 }
 
 .bdb-tip-key--income,
-.bdb-tip-key--saved {
+.bdb-tip-key--saved,
+.bdb-tip-key--out {
   background: currentColor;
   opacity: 0.6;
 }
@@ -790,6 +861,112 @@
   color: var(--bad-text);
 }
 
+/* ---- per person ----
+   One tile per member, side by side — the at-a-glance you-vs-them the scope
+   pills switch between. The whole tile is a button: tapping focuses the
+   dashboard on that person (tapping again returns to household). */
+.bdb-people {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.bdb-person {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px 16px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bdb-person:hover {
+  border-color: var(--blue);
+}
+
+.bdb-person.is-active {
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.bdb-person-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.bdb-person-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--sage));
+  color: #fff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.bdb-person-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.bdb-person-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bdb-person-k {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.bdb-person-v {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bdb-person-v.is-good {
+  color: var(--good-text);
+}
+
+.bdb-person-v.is-bad {
+  color: var(--bad-text);
+}
+
+/* Shared-scale money-out bar (same mark as the category rows). */
+.bdb-person-bar {
+  display: block;
+  height: 10px;
+  margin: -2px 0 2px;
+}
+
+.bdb-people-note {
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 12px 0 0;
+}
+
 /* ---- mobile ---- */
 
 /* Touch ergonomics: ~40px targets on everything tappable. (The 16px input
@@ -895,7 +1072,11 @@
   .bdb-meter-fill {
     transition: none;
   }
-  .bdb-seg {
+  .bdb-seg,
+  .bdb-sav {
+    transition: none;
+  }
+  .bdb-person {
     transition: none;
   }
 }

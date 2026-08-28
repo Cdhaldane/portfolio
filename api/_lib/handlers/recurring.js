@@ -5,17 +5,23 @@
 // [start_month, end_month], so editing an item retroactively fixes history
 // and there's no cron job to break.
 //
+// A bill may be OWNED by one member (member_user_id) or shared by the whole
+// household (NULL, the default — mortgage, hydro). The per-member dashboard
+// math counts owned bills in full for their owner and splits shared ones
+// evenly among active members.
+//
 //   GET    -> list all items (active and ended)
 //   POST   -> { label, category, amountCents, dueDay?, startMonth?, endMonth?,
-//              onCard?, paidFrom? }
+//              onCard?, paidFrom?, memberUserId? }
 //              endMonth on create is for a cost with a KNOWN finish — a car
 //              loan's last payment, a 12-month contract — so the dashboard
 //              stops counting it on its own with nothing to remember later.
-//   PATCH  -> { id, ...same fields..., endMonth? }  partial update
+//   PATCH  -> { id, ...same fields..., endMonth?, memberUserId? }  partial
+//              update; memberUserId null makes the bill shared again
 //   DELETE -> ?id=N  remove entirely (PATCH endMonth to stop-but-keep-history)
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
-const { resolveHousehold } = require("../budget-household");
+const { resolveHousehold, activeMemberIds } = require("../budget-household");
 
 const LABEL_MAX = 60;
 const CATEGORY_MAX = 40;
@@ -51,7 +57,7 @@ module.exports = async (req, res) => {
 
     if (req.method === "GET") {
       const recurring = await sql`
-        SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
+        SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from, member_user_id
           FROM budget_recurring
          WHERE household_id = ${household.id}
          ORDER BY amount_cents DESC, label ASC
@@ -72,6 +78,16 @@ module.exports = async (req, res) => {
       const onCard = req.body?.onCard === true;
       const paidFrom =
         req.body?.paidFrom == null ? null : String(req.body.paidFrom).trim() || null;
+      // NULL = shared household bill (the default); a named owner must be an
+      // active member (same check as card assignment).
+      let memberUserId = null;
+      if (req.body?.memberUserId) {
+        memberUserId = String(req.body.memberUserId);
+        const members = await activeMemberIds(sql, household.id);
+        if (!members.includes(memberUserId)) {
+          return res.status(400).json({ error: "That person isn't in this household." });
+        }
+      }
 
       if (!label || label.length > LABEL_MAX) {
         return res.status(400).json({ error: 'A label is required (e.g. "Mortgage").' });
@@ -96,9 +112,9 @@ module.exports = async (req, res) => {
       }
 
       const [item] = await sql`
-        INSERT INTO budget_recurring (user_id, household_id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from)
-        VALUES (${userId}, ${household.id}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${endMonth}, ${onCard}, ${paidFrom})
-        RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
+        INSERT INTO budget_recurring (user_id, household_id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from, member_user_id)
+        VALUES (${userId}, ${household.id}, ${label}, ${category}, ${amountCents}, ${dueDay}, ${startMonth}, ${endMonth}, ${onCard}, ${paidFrom}, ${memberUserId})
+        RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from, member_user_id
       `;
       return res.status(201).json({ ok: true, item });
     }
@@ -109,12 +125,27 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "A valid id is required." });
       }
       const existing = await sql`
-        SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
+        SELECT id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from, member_user_id
           FROM budget_recurring
          WHERE id = ${id} AND household_id = ${household.id}
       `;
       if (!existing.length) return res.status(404).json({ error: "No such item." });
       const cur = existing[0];
+
+      // Nullable merge like paidFrom: explicit null makes the bill shared
+      // again. Only an ownership CHANGE is validated against active members —
+      // a bill still attributed to a departed member (soft-removed, kept for
+      // history) must stay editable.
+      let memberUserId = cur.member_user_id;
+      if (req.body?.memberUserId !== undefined) {
+        memberUserId = req.body.memberUserId == null ? null : String(req.body.memberUserId);
+        if (memberUserId != null && memberUserId !== cur.member_user_id) {
+          const members = await activeMemberIds(sql, household.id);
+          if (!members.includes(memberUserId)) {
+            return res.status(400).json({ error: "That person isn't in this household." });
+          }
+        }
+      }
 
       const label =
         req.body?.label != null ? String(req.body.label).trim() : cur.label;
@@ -171,9 +202,9 @@ module.exports = async (req, res) => {
         UPDATE budget_recurring
            SET label = ${label}, category = ${category}, amount_cents = ${amountCents},
                due_day = ${dueDay}, start_month = ${startMonth}, end_month = ${endMonth},
-               on_card = ${onCard}, paid_from = ${paidFrom}
+               on_card = ${onCard}, paid_from = ${paidFrom}, member_user_id = ${memberUserId}
          WHERE id = ${id} AND household_id = ${household.id}
-        RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from
+        RETURNING id, label, category, amount_cents, due_day, start_month, end_month, on_card, paid_from, member_user_id
       `;
       return res.status(200).json({ ok: true, item });
     }

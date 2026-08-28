@@ -4,6 +4,7 @@ import { budgetFetch } from "../api";
 import { parseCsvFile, applyMapping, MAPPING_FIELDS } from "../parsers";
 import { parseStatementPdf } from "../pdf-parsers";
 import { fmtMoneyExact } from "../format";
+import Dropdown from "../Dropdown";
 import "./UploadPanel.css";
 
 const BANKS = [
@@ -240,19 +241,17 @@ const UploadPanel = ({ onImported }) => {
         ) : accounts.length === 0 && !showNewAccount ? (
           <p className="upl-hint">No accounts yet — add the first one below.</p>
         ) : accounts.length > 0 ? (
-          <select
-            className="upl-select"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
+          <Dropdown
+            className="upl-account-dd"
+            ariaLabel="Which card the statement belongs to"
+            value={String(accountId)}
+            onChange={(v) => setAccountId(v)}
             disabled={step !== "setup"}
-          >
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.label}
-                {a.last4 ? ` ····${a.last4}` : ""}
-              </option>
-            ))}
-          </select>
+            options={accounts.map((a) => ({
+              value: String(a.id),
+              label: `${a.label}${a.last4 ? ` ····${a.last4}` : ""}`,
+            }))}
+          />
         ) : null}
 
         {step === "setup" && (
@@ -267,16 +266,12 @@ const UploadPanel = ({ onImported }) => {
 
         {showNewAccount && step === "setup" && (
           <form className="upl-newaccount" onSubmit={createAccount}>
-            <select
+            <Dropdown
+              ariaLabel="Bank"
               value={newAccount.bank}
-              onChange={(e) => setNewAccount((v) => ({ ...v, bank: e.target.value }))}
-            >
-              {BANKS.map((b) => (
-                <option key={b.value} value={b.value}>
-                  {b.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setNewAccount((a) => ({ ...a, bank: v }))}
+              options={BANKS.map((b) => ({ value: b.value, label: b.label }))}
+            />
             <input
               type="text"
               placeholder='Label, e.g. "Amex Cobalt"'
@@ -334,32 +329,33 @@ const UploadPanel = ({ onImported }) => {
 
           <div className="upl-mapping-grid">
             {MAPPING_FIELDS.map((f) => (
-              <label key={f.key} className="upl-mapping-row">
+              <div key={f.key} className="upl-mapping-row">
                 <span>
                   {f.label}
                   {f.required && " *"}
                 </span>
-                <select
-                  value={mapping[f.key] ?? ""}
-                  onChange={(e) =>
+                <Dropdown
+                  ariaLabel={`Which column holds the ${f.label.toLowerCase()}`}
+                  value={mapping[f.key] == null ? "" : String(mapping[f.key])}
+                  onChange={(v) =>
                     setMapping((m) => ({
                       ...m,
-                      [f.key]: e.target.value === "" ? undefined : Number(e.target.value),
+                      [f.key]: v === "" ? undefined : Number(v),
                     }))
                   }
-                >
-                  <option value="">—</option>
-                  {(parsed.headerRow || sampleRow || []).map((_, i) => (
-                    <option key={i} value={i}>
-                      {parsed.headerRow
+                  options={[
+                    { value: "", label: "—" },
+                    ...(parsed.headerRow || sampleRow || []).map((_, i) => ({
+                      value: String(i),
+                      label: parsed.headerRow
                         ? parsed.headerRow[i]
                         : `Column ${i + 1}${
                             sampleRow?.[i] ? ` (e.g. "${String(sampleRow[i]).slice(0, 24)}")` : ""
-                          }`}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                          }`,
+                    })),
+                  ]}
+                />
+              </div>
             ))}
           </div>
 

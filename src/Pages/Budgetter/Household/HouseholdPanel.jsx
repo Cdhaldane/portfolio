@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { budgetFetch } from "../api";
 import { fmtMoney } from "../format";
-import { activeMembers, memberLabel, memberInitials, labelForUserId } from "../members";
+import { activeMembers, memberLabel, memberInitials } from "../members";
+import Dropdown from "../Dropdown";
 import "./HouseholdPanel.css";
 
 /*
@@ -463,46 +464,24 @@ const HouseholdPanel = ({ data, loading, error, onReload, onMutate }) => {
                   {account.label}
                   {account.last4 && <span className="hh-last4">••{account.last4}</span>}
                 </span>
-                <select
+                <Dropdown
+                  ariaLabel={`Who owns ${account.label}`}
                   value={account.memberUserId || ""}
                   disabled={busy}
-                  onChange={(e) => assignCard(account.id, e.target.value)}
-                  aria-label={`Who owns ${account.label}`}
-                >
-                  {active.map((member) => (
-                    <option key={member.userId} value={member.userId}>
-                      {memberLabel(member, youId)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => assignCard(account.id, v)}
+                  options={active.map((member) => ({
+                    value: member.userId,
+                    label: memberLabel(member, youId),
+                  }))}
+                />
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {shared && (data?.spendByMember || []).length > 0 && (
-        <section className="hh-card">
-          <h3 className="hh-h3">Card spend per person</h3>
-          <p className="hh-sub">
-            {data.latestMonth
-              ? `Latest month (${data.latestMonth}) and the trailing 12, weighted by any
-                 splits or exclusions you've set.`
-              : "Weighted by any splits or exclusions you've set."}
-          </p>
-          <ul className="hh-spend">
-            {data.spendByMember.map((row) => (
-              <li key={row.userId}>
-                <span className="hh-spend-name">
-                  {labelForUserId(row.userId, members, youId)}
-                </span>
-                <span className="hh-spend-latest">{fmtMoney(row.latestCents)}</span>
-                <span className="hh-spend-window">{fmtMoney(row.windowCents)} / 12 mo</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Spend-per-person moved to the dashboard's "Per person" card, where
+          it sits beside income and savings — this tab stays pure admin. */}
     </div>
   );
 };

@@ -9,15 +9,21 @@ import {
   recurringActiveIn,
   addMonths,
 } from "../format";
+import { activeMembers, memberLabel, labelForUserId } from "../members";
+import Dropdown from "../Dropdown";
 import "./RecurringPanel.css";
 
 /*
- * Monthly payments manager — the fixed costs that never hit a card
- * statement (mortgage, insurance, hydro, water…). Items live in
- * budget_recurring with a [start_month, end_month] window; the dashboard
- * overlays them onto every month in that window, so editing an amount here
- * retroactively corrects history (that's a feature: you're modelling the
- * bill, not bookkeeping each payment).
+ * Bills manager — the fixed costs that never hit a card statement
+ * (mortgage, insurance, hydro, water…). Items live in budget_recurring with
+ * a [start_month, end_month] window; the dashboard overlays them onto every
+ * month in that window, so editing an amount here retroactively corrects
+ * history (that's a feature: you're modelling the bill, not bookkeeping
+ * each payment).
+ *
+ * A bill is SHARED by default (the whole household's — the per-person
+ * dashboard splits it evenly), or it can belong to one member ("Whose
+ * bill"). Ownership UI only appears in a shared household.
  */
 const EMPTY_FORM = {
   label: "",
@@ -27,6 +33,7 @@ const EMPTY_FORM = {
   onCard: false,
   paidFrom: "",
   startMonth: "",
+  memberUserId: "",
 };
 
 const ordinal = (n) => {
@@ -35,7 +42,7 @@ const ordinal = (n) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-const RecurringPanel = ({ onMutate, refreshToken }) => {
+const RecurringPanel = ({ onMutate, refreshToken, members, youUserId }) => {
   const { getToken } = useAuth();
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -44,6 +51,9 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(EMPTY_FORM);
+
+  const memberList = useMemo(() => activeMembers(members || []), [members]);
+  const shared = memberList.length > 1;
 
   const load = useCallback(async () => {
     const { res, data } = await budgetFetch(getToken, "/api/budget/recurring");
@@ -129,6 +139,7 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
         onCard: form.onCard,
         paidFrom: form.paidFrom.trim() || null,
         startMonth: form.startMonth || undefined,
+        memberUserId: form.memberUserId || null, // null = shared household bill
       }),
     });
     setBusy(false);
@@ -151,6 +162,7 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
       onCard: Boolean(item.on_card),
       paidFrom: item.paid_from || "",
       startMonth: item.start_month || "",
+      memberUserId: item.member_user_id || "",
     });
   };
 
@@ -162,6 +174,11 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
       return;
     }
     setBusy(true);
+    // Send the owner only when it actually changed — the server keeps the
+    // current owner when the key is absent, which keeps bills attributed to
+    // a departed member editable (and their history intact).
+    const curOwner = items.find((i) => i.id === id)?.member_user_id || "";
+    const ownerChanged = (editForm.memberUserId || "") !== curOwner;
     const { res, data } = await budgetFetch(getToken, "/api/budget/recurring", {
       method: "PATCH",
       body: JSON.stringify({
@@ -173,6 +190,7 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
         onCard: editForm.onCard,
         paidFrom: editForm.paidFrom.trim() || null,
         startMonth: editForm.startMonth || undefined,
+        ...(ownerChanged ? { memberUserId: editForm.memberUserId || null } : {}),
       }),
     });
     setBusy(false);
@@ -234,16 +252,12 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
               maxLength={60}
               onChange={(e) => setEditForm((f) => ({ ...f, label: e.target.value }))}
             />
-            <select
+            <Dropdown
+              ariaLabel="Category"
               value={editForm.category}
-              onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setEditForm((f) => ({ ...f, category: v }))}
+              options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+            />
             <input
               className="rec-input-amount"
               inputMode="decimal"
@@ -268,6 +282,35 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
               value={editForm.paidFrom}
               onChange={(e) => setEditForm((f) => ({ ...f, paidFrom: e.target.value }))}
             />
+            {shared && (
+              <Dropdown
+                ariaLabel="Whose bill"
+                value={editForm.memberUserId}
+                onChange={(v) => setEditForm((f) => ({ ...f, memberUserId: v }))}
+                options={[
+                  { value: "", label: "Shared" },
+                  // a departed owner still displays (kept for history) but
+                  // can't be re-picked once changed away
+                  ...(editForm.memberUserId &&
+                  !memberList.some((m) => m.userId === editForm.memberUserId)
+                    ? [
+                        {
+                          value: editForm.memberUserId,
+                          label: `${labelForUserId(editForm.memberUserId, members || [], youUserId)} (left)`,
+                          disabled: true,
+                        },
+                      ]
+                    : []),
+                  ...memberList.map((m) => ({
+                    value: m.userId,
+                    label:
+                      memberLabel(m, youUserId) === "You"
+                        ? "Yours"
+                        : `${memberLabel(m, youUserId)}'s`,
+                  })),
+                ]}
+              />
+            )}
             <input
               type="month"
               className="rec-input-month"
@@ -314,6 +357,14 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
                   on card
                 </span>
               )}
+              {shared && item.member_user_id && (
+                <span
+                  className="rec-cat rec-person"
+                  title="This bill belongs to one person — it counts only in their per-person view"
+                >
+                  {labelForUserId(item.member_user_id, memberList, youUserId)}
+                </span>
+              )}
             </div>
             <span className="rec-due">
               {item.due_day ? `due the ${ordinal(item.due_day)}` : " "}
@@ -352,13 +403,16 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
     <div className="rec">
       <div className="rec-head">
         <div>
-          <h2 className="rec-h">Monthly payments</h2>
+          <h2 className="rec-h">Bills</h2>
           <p className="rec-sub">
             Fixed costs — mortgage, insurance, hydro. The dashboard folds
-            these into every month they're active. For bills charged to a
-            card you upload (cell phone, streaming), tick{" "}
-            <em>billed to my card</em>: they're listed and reminded about
-            here, but the statement charges are what count — never both.
+            these into every month they're active.
+            {shared &&
+              " Bills are shared by default (split evenly in per-person views); mark one as someone's if it's theirs alone."}{" "}
+            For bills charged to a card you upload (cell phone, streaming),
+            tick <em>billed to my card</em>: they're listed and reminded
+            about here, but the statement charges are what count — never
+            both.
           </p>
         </div>
         <div className="rec-total">
@@ -379,16 +433,12 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
           maxLength={60}
           onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
         />
-        <select
+        <Dropdown
+          ariaLabel="Category"
           value={form.category}
-          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+          options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+        />
         <input
           className="rec-input-amount"
           placeholder="$ / month"
@@ -418,6 +468,24 @@ const RecurringPanel = ({ onMutate, refreshToken }) => {
             <option key={p} value={p} />
           ))}
         </datalist>
+        {shared && (
+          <Dropdown
+            ariaLabel="Whose bill — shared splits evenly in per-person views"
+            title="Shared bills split evenly between you in per-person views; a personal bill counts only for its owner"
+            value={form.memberUserId}
+            onChange={(v) => setForm((f) => ({ ...f, memberUserId: v }))}
+            options={[
+              { value: "", label: "Shared" },
+              ...memberList.map((m) => ({
+                value: m.userId,
+                label:
+                  memberLabel(m, youUserId) === "You"
+                    ? "Yours"
+                    : `${memberLabel(m, youUserId)}'s`,
+              })),
+            ]}
+          />
+        )}
         <input
           type="month"
           className="rec-input-month"

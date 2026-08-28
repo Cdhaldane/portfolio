@@ -335,6 +335,13 @@ function ensureTables(sql) {
         ALTER TABLE budget_recurring
           ADD COLUMN IF NOT EXISTS paid_from TEXT
       `;
+      // member_user_id: whose bill this is. NULL = shared household bill —
+      // the per-member dashboard math splits shared bills evenly among
+      // active members. Same additive pattern as on_card/paid_from.
+      await sql`
+        ALTER TABLE budget_recurring
+          ADD COLUMN IF NOT EXISTS member_user_id TEXT
+      `;
       await sql`
         CREATE TABLE IF NOT EXISTS budget_income (
           id SERIAL PRIMARY KEY,
@@ -347,6 +354,18 @@ function ensureTables(sql) {
           end_month TEXT,
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
+      `;
+      // member_user_id: whose income this is. Unlike bills, income is always
+      // owned by someone in a shared ledger — the idempotent backfill (rows
+      // predate the column) assigns existing sources to whoever created
+      // them, and the handler always sets an owner on new rows.
+      await sql`
+        ALTER TABLE budget_income
+          ADD COLUMN IF NOT EXISTS member_user_id TEXT
+      `;
+      await sql`
+        UPDATE budget_income SET member_user_id = user_id
+         WHERE member_user_id IS NULL
       `;
 
       // Big-purchase scenarios for the Afford tab. Born after households

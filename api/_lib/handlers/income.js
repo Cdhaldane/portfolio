@@ -6,13 +6,17 @@
 // biweekly ×26/12, semimonthly ×2) — no payday-calendar math on purpose:
 // savings-per-month reads best against a steady income baseline.
 //
+// Every source is OWNED by a household member (member_user_id) — that's what
+// makes per-person income and savings on the dashboard real numbers. The
+// owner defaults to whoever creates the source and must be an active member.
+//
 //   GET    -> list all sources
-//   POST   -> { label, amountCents, cadence, startMonth? }
-//   PATCH  -> { id, ...same fields..., endMonth? }
+//   POST   -> { label, amountCents, cadence, startMonth?, memberUserId? }
+//   PATCH  -> { id, ...same fields..., endMonth?, memberUserId? }
 //   DELETE -> ?id=N
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
-const { resolveHousehold } = require("../budget-household");
+const { resolveHousehold, activeMemberIds } = require("../budget-household");
 
 const LABEL_MAX = 60;
 const AMOUNT_MAX = 100_000_000;
@@ -44,7 +48,7 @@ module.exports = async (req, res) => {
 
     if (req.method === "GET") {
       const income = await sql`
-        SELECT id, label, amount_cents, cadence, start_month, end_month
+        SELECT id, label, amount_cents, cadence, start_month, end_month, member_user_id
           FROM budget_income
          WHERE household_id = ${household.id}
          ORDER BY amount_cents DESC, label ASC
@@ -57,6 +61,16 @@ module.exports = async (req, res) => {
       const amountCents = Number(req.body?.amountCents);
       const cadence = String(req.body?.cadence || "monthly");
       const startMonth = String(req.body?.startMonth || currentMonth());
+      // Owner defaults to the creator; naming someone else requires them to
+      // be an active member (same check as card assignment).
+      let memberUserId = userId;
+      if (req.body?.memberUserId) {
+        memberUserId = String(req.body.memberUserId);
+        const members = await activeMemberIds(sql, household.id);
+        if (!members.includes(memberUserId)) {
+          return res.status(400).json({ error: "That person isn't in this household." });
+        }
+      }
 
       if (!label || label.length > LABEL_MAX) {
         return res.status(400).json({ error: 'A label is required (e.g. "Paycheque").' });
@@ -72,9 +86,9 @@ module.exports = async (req, res) => {
       }
 
       const [item] = await sql`
-        INSERT INTO budget_income (user_id, household_id, label, amount_cents, cadence, start_month)
-        VALUES (${userId}, ${household.id}, ${label}, ${amountCents}, ${cadence}, ${startMonth})
-        RETURNING id, label, amount_cents, cadence, start_month, end_month
+        INSERT INTO budget_income (user_id, household_id, label, amount_cents, cadence, start_month, member_user_id)
+        VALUES (${userId}, ${household.id}, ${label}, ${amountCents}, ${cadence}, ${startMonth}, ${memberUserId})
+        RETURNING id, label, amount_cents, cadence, start_month, end_month, member_user_id
       `;
       return res.status(201).json({ ok: true, item });
     }
@@ -85,12 +99,27 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "A valid id is required." });
       }
       const existing = await sql`
-        SELECT id, label, amount_cents, cadence, start_month, end_month
+        SELECT id, user_id, label, amount_cents, cadence, start_month, end_month, member_user_id
           FROM budget_income
          WHERE id = ${id} AND household_id = ${household.id}
       `;
       if (!existing.length) return res.status(404).json({ error: "No such source." });
       const cur = existing[0];
+
+      // Income is always owned: a null/absent memberUserId keeps the current
+      // owner (falling back to the creator for pre-column rows). Only an
+      // ownership CHANGE is validated — rows still attributed to a departed
+      // member (soft-removed, kept for history) must stay editable.
+      let memberUserId = cur.member_user_id || cur.user_id || userId;
+      if (req.body?.memberUserId) {
+        memberUserId = String(req.body.memberUserId);
+        if (memberUserId !== cur.member_user_id) {
+          const members = await activeMemberIds(sql, household.id);
+          if (!members.includes(memberUserId)) {
+            return res.status(400).json({ error: "That person isn't in this household." });
+          }
+        }
+      }
 
       const label = req.body?.label != null ? String(req.body.label).trim() : cur.label;
       const amountCents =
@@ -124,9 +153,10 @@ module.exports = async (req, res) => {
       const [item] = await sql`
         UPDATE budget_income
            SET label = ${label}, amount_cents = ${amountCents}, cadence = ${cadence},
-               start_month = ${startMonth}, end_month = ${endMonth}
+               start_month = ${startMonth}, end_month = ${endMonth},
+               member_user_id = ${memberUserId}
          WHERE id = ${id} AND household_id = ${household.id}
-        RETURNING id, label, amount_cents, cadence, start_month, end_month
+        RETURNING id, label, amount_cents, cadence, start_month, end_month, member_user_id
       `;
       return res.status(200).json({ ok: true, item });
     }

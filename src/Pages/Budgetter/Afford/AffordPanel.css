@@ -199,6 +199,11 @@
   outline-offset: 1px;
 }
 
+/* The Term dropdown fills its form-grid cell like any .afp-input. */
+.afp-field .bdd {
+  width: 100%;
+}
+
 select.afp-input option {
   color: var(--ink);
   background: #f5f7f1;
