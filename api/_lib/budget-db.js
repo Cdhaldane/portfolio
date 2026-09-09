@@ -242,6 +242,16 @@ function ensureTables(sql) {
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
       `;
+      // kind: 'card' or 'chequing'. A chequing/debit statement is mostly
+      // money *moving* rather than money spent — card payments, internal
+      // transfers, bills already declared in the Income & bills tab — so
+      // the upload path has to classify those rows instead of importing
+      // them all as spending (see api/_lib/budget-chequing.js). Defaults to
+      // 'card', which is what every account created before this was.
+      await sql`
+        ALTER TABLE budget_accounts
+          ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'card'
+      `;
       await sql`
         CREATE TABLE IF NOT EXISTS budget_upload_batches (
           id SERIAL PRIMARY KEY,
@@ -416,13 +426,18 @@ function ensureTables(sql) {
   return ensured;
 }
 
-/** Does this account belong to this household? Every ingest/list call checks. */
-async function accountInHousehold(sql, accountId, householdId) {
+/**
+ * The account, but only if it belongs to this household — the tenancy check
+ * every ingest call makes. Returns the row (callers need its `kind`) or
+ * null; a caller must never take the account id from the request as proof
+ * of anything.
+ */
+async function accountForHousehold(sql, accountId, householdId) {
   const rows = await sql`
-    SELECT id FROM budget_accounts
+    SELECT id, bank, label, kind FROM budget_accounts
      WHERE id = ${accountId} AND household_id = ${householdId}
   `;
-  return rows.length > 0;
+  return rows.length ? rows[0] : null;
 }
 
-module.exports = { getSql, ensureTables, accountInHousehold, SCHEMA_VERSION };
+module.exports = { getSql, ensureTables, accountForHousehold, SCHEMA_VERSION };

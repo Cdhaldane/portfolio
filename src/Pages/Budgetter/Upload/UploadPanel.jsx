@@ -11,8 +11,21 @@ const BANKS = [
   { value: "amex", label: "Amex" },
   { value: "td", label: "TD" },
   { value: "triangle", label: "Canadian Tire / Triangle" },
+  { value: "kawartha", label: "Kawartha / Libro" },
   { value: "other", label: "Other" },
 ];
+
+// A chequing account is imported differently from a card: most of its rows
+// are money moving (transfers, card payments, bills already declared in the
+// Income & bills tab) rather than money spent, so the review step asks about
+// each one. The kind is fixed at creation — see api/_lib/handlers/accounts.js.
+const KINDS = [
+  { value: "card", label: "Credit card" },
+  { value: "chequing", label: "Chequing / debit" },
+];
+// Kawartha statements are always bank accounts, so picking that bank
+// pre-selects the right kind rather than making the user think about it.
+const KIND_FOR_BANK = { kawartha: "chequing" };
 
 // A real statement CSV is a few hundred KB at most — this is a sanity cap,
 // not a real limit (the server's own MAX_ROWS_PER_UPLOAD is the hard one).
@@ -36,7 +49,12 @@ const UploadPanel = ({ onImported }) => {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [showNewAccount, setShowNewAccount] = useState(false);
-  const [newAccount, setNewAccount] = useState({ bank: "amex", label: "", last4: "" });
+  const [newAccount, setNewAccount] = useState({
+    bank: "amex",
+    label: "",
+    last4: "",
+    kind: "card",
+  });
   const [accountError, setAccountError] = useState("");
   const [creatingAccount, setCreatingAccount] = useState(false);
 
@@ -52,6 +70,9 @@ const UploadPanel = ({ onImported }) => {
   const [mappedRows, setMappedRows] = useState([]);
   const [mapErrors, setMapErrors] = useState([]);
   const [preview, setPreview] = useState(null);
+  // index-in-submitted-rows -> countPct the user chose, overriding the
+  // server's suggestion for that row.
+  const [overrides, setOverrides] = useState({});
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -90,7 +111,7 @@ const UploadPanel = ({ onImported }) => {
       setAccounts((prev) => [...prev, data.account]);
       setAccountId(String(data.account.id));
       setShowNewAccount(false);
-      setNewAccount({ bank: "amex", label: "", last4: "" });
+      setNewAccount({ bank: "amex", label: "", last4: "", kind: "card" });
     } else {
       setAccountError(data?.error || "Couldn't create that account.");
     }
@@ -174,6 +195,7 @@ const UploadPanel = ({ onImported }) => {
     setBusy(false);
     if (res.ok && data?.ok) {
       setPreview(data);
+      setOverrides({});
       setStep("review");
     } else {
       setApiError(data?.error || "Couldn't reach the server — try again.");
@@ -192,6 +214,25 @@ const UploadPanel = ({ onImported }) => {
     await submitDryRun(rows);
   };
 
+  /*
+   * Rows for the commit call. For a card upload this is just the parsed
+   * rows. For a chequing one, each row the dry-run previewed also carries
+   * the countPct that was settled on — the server's suggestion, or the
+   * user's override. Rows the preview didn't mention (duplicates, rejects)
+   * are sent bare and the server re-derives everything, so a mismatch here
+   * can only ever be more conservative, never a silent double-count.
+   */
+  const rowsForCommit = () => {
+    const bare = stripPreview(mappedRows);
+    if (!preview?.rows?.length) return bare;
+    const chosen = new Map(
+      preview.rows.map((r) => [r.index, overrides[r.index] ?? r.countPct])
+    );
+    return bare.map((row, i) =>
+      chosen.has(i) ? { ...row, countPct: chosen.get(i) } : row
+    );
+  };
+
   const confirmImport = async () => {
     setBusy(true);
     setApiError("");
@@ -200,7 +241,7 @@ const UploadPanel = ({ onImported }) => {
       body: JSON.stringify({
         accountId: Number(accountId),
         filename: fileName,
-        rows: stripPreview(mappedRows),
+        rows: rowsForCommit(),
         commit: true,
       }),
     });
@@ -223,18 +264,33 @@ const UploadPanel = ({ onImported }) => {
     setMappedRows([]);
     setMapErrors([]);
     setPreview(null);
+    setOverrides({});
     setResult(null);
     setApiError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const sampleRow = parsed?.rows?.[0];
+  const selectedAccount = accounts.find((a) => String(a.id) === String(accountId));
+
+  // Chequing review: what each row is currently set to, and what that adds
+  // up to. Deposits are excluded from the total because a credit never
+  // counts as spending whatever its count_pct says.
+  const treatmentRows = preview?.rows || [];
+  const pctFor = (row) => overrides[row.index] ?? row.countPct;
+  const countedCents = treatmentRows.reduce(
+    (sum, r) => (r.amountCents > 0 && pctFor(r) > 0 ? sum + r.amountCents : sum),
+    0
+  );
+  const skippedCount = treatmentRows.filter((r) => r.amountCents > 0 && pctFor(r) === 0).length;
+  const setPct = (index, countPct) =>
+    setOverrides((prev) => ({ ...prev, [index]: countPct }));
 
   return (
     <div className="upl">
       <section className="upl-step">
         <p className="upl-num">01</p>
-        <h2 className="upl-h">Which card?</h2>
+        <h2 className="upl-h">Which account?</h2>
 
         {!accountsLoaded ? (
           <p className="upl-hint">Loading accounts…</p>
@@ -243,13 +299,15 @@ const UploadPanel = ({ onImported }) => {
         ) : accounts.length > 0 ? (
           <Dropdown
             className="upl-account-dd"
-            ariaLabel="Which card the statement belongs to"
+            ariaLabel="Which account the statement belongs to"
             value={String(accountId)}
             onChange={(v) => setAccountId(v)}
             disabled={step !== "setup"}
             options={accounts.map((a) => ({
               value: String(a.id),
-              label: `${a.label}${a.last4 ? ` ····${a.last4}` : ""}`,
+              label: `${a.label}${a.last4 ? ` ····${a.last4}` : ""}${
+                a.kind === "chequing" ? " · chequing" : ""
+              }`,
             }))}
           />
         ) : null}
@@ -269,8 +327,16 @@ const UploadPanel = ({ onImported }) => {
             <Dropdown
               ariaLabel="Bank"
               value={newAccount.bank}
-              onChange={(v) => setNewAccount((a) => ({ ...a, bank: v }))}
+              onChange={(v) =>
+                setNewAccount((a) => ({ ...a, bank: v, kind: KIND_FOR_BANK[v] || a.kind }))
+              }
               options={BANKS.map((b) => ({ value: b.value, label: b.label }))}
+            />
+            <Dropdown
+              ariaLabel="Is this a credit card or a bank account?"
+              value={newAccount.kind}
+              onChange={(v) => setNewAccount((a) => ({ ...a, kind: v }))}
+              options={KINDS.map((k) => ({ value: k.value, label: k.label }))}
             />
             <input
               type="text"
@@ -289,6 +355,11 @@ const UploadPanel = ({ onImported }) => {
                 setNewAccount((v) => ({ ...v, last4: e.target.value.replace(/\D/g, "") }))
               }
             />
+            <p className="upl-hint upl-kindnote">
+              {newAccount.kind === "chequing"
+                ? "Chequing statements get an extra review step: transfers, credit-card payments and bills you already track are held back so they don't count twice."
+                : "Every row on a card statement is treated as spending (payments and refunds excepted)."}
+            </p>
             <button type="submit" disabled={creatingAccount}>
               {creatingAccount ? "Adding…" : "Add account"}
             </button>
@@ -302,9 +373,9 @@ const UploadPanel = ({ onImported }) => {
         <h2 className="upl-h">Upload a statement</h2>
         <p className="upl-hint">
           CSV exported from your bank's statement page — or, for Amex,
-          Canadian Tire / Triangle and TD, the PDF statement itself. Either
-          way the file is parsed right here in your browser and never sent to
-          the server; only the rows you confirm are.
+          Canadian Tire / Triangle, TD and Kawartha / Libro, the PDF
+          statement itself. Either way the file is parsed right here in your
+          browser and never sent to the server; only the rows you confirm are.
         </p>
         <input
           ref={fileInputRef}
@@ -313,6 +384,12 @@ const UploadPanel = ({ onImported }) => {
           onChange={onFileChange}
           disabled={!accountId || step !== "setup"}
         />
+        {selectedAccount?.kind === "chequing" && (
+          <p className="upl-hint upl-kindnote">
+            {selectedAccount.label} is a chequing account, so you'll get a
+            row-by-row review before anything is imported.
+          </p>
+        )}
         {fileError && <p className="upl-error">{fileError}</p>}
       </section>
 
@@ -445,6 +522,32 @@ const UploadPanel = ({ onImported }) => {
             </p>
           )}
 
+          {/* Bank statements print a running balance, which proves each row
+              individually: previous balance + this row = the balance printed
+              beside it. A mismatch names the exact row that went wrong. */}
+          {pdfInfo.chainMismatches?.length > 0 ? (
+            <div className="upl-chain upl-chain--bad">
+              <p>
+                {pdfInfo.chainMismatches.length} row
+                {pdfInfo.chainMismatches.length === 1 ? "" : "s"} disagree with the
+                statement's own running balance — the amount or its sign was misread:
+              </p>
+              <ul>
+                {pdfInfo.chainMismatches.slice(0, 5).map((m, i) => (
+                  <li key={i}>
+                    {m.postedDate} {m.merchantRaw} — balance should be{" "}
+                    {fmtMoneyExact(m.expectedCents)}, statement says{" "}
+                    {fmtMoneyExact(m.statedCents)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : pdfInfo.kind === "chequing" ? (
+            <p className="upl-chain upl-chain--ok">
+              ✓ Every row agrees with the running balance printed beside it.
+            </p>
+          ) : null}
+
           <div className="upl-pdftable-wrap">
             <table className="upl-pdftable">
               <thead>
@@ -510,6 +613,87 @@ const UploadPanel = ({ onImported }) => {
             </div>
           </div>
 
+          {treatmentRows.length > 0 && (
+            <div className="upl-treat">
+              <p className="upl-hint">
+                A chequing statement is mostly money <em>moving</em>, not money
+                spent. These rows are all imported either way — the ones set to
+                skip are stored at 0% so they stay on the record without
+                counting. Flip anything Budgetter read wrong.
+              </p>
+              <p className="upl-treat-total">
+                <strong>{fmtMoneyExact(countedCents)}</strong> will count as
+                spending
+                {skippedCount > 0 && `, ${skippedCount} debit${
+                  skippedCount === 1 ? "" : "s"
+                } held back`}
+                .
+              </p>
+
+              <div className="upl-pdftable-wrap">
+                <table className="upl-pdftable">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Counts?</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {treatmentRows.map((r) => {
+                      const counted = pctFor(r) > 0;
+                      const isDeposit = r.amountCents < 0;
+                      return (
+                        <tr
+                          key={r.index}
+                          className={!isDeposit && !counted ? "upl-tr--skipped" : ""}
+                        >
+                          <td>{r.postedDate}</td>
+                          <td>
+                            <span className="upl-treat-name">{r.merchantClean}</span>
+                            <span className="upl-treat-meta">
+                              {r.category}
+                              {r.reason ? ` — ${r.reason}` : ""}
+                              {r.billMatch?.confidence === "likely" ? " (a guess)" : ""}
+                            </span>
+                          </td>
+                          <td className={isDeposit ? "upl-amount--credit" : ""}>
+                            {fmtMoneyExact(r.amountCents)}
+                          </td>
+                          <td>
+                            {isDeposit ? (
+                              <span className="upl-treat-na">money in</span>
+                            ) : (
+                              <span className="upl-seg">
+                                <button
+                                  type="button"
+                                  aria-pressed={counted}
+                                  className={counted ? "is-on" : ""}
+                                  onClick={() => setPct(r.index, 100)}
+                                >
+                                  Count
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-pressed={!counted}
+                                  className={!counted ? "is-on" : ""}
+                                  onClick={() => setPct(r.index, 0)}
+                                >
+                                  Skip
+                                </button>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {mapErrors.length > 0 && (
             <p className="upl-hint">
               {mapErrors.length} row(s) were unreadable with this mapping and were dropped
@@ -554,7 +738,11 @@ const UploadPanel = ({ onImported }) => {
           <h2 className="upl-h">Imported</h2>
           <p className="upl-hint">
             {result.insertedCount} new transaction{result.insertedCount === 1 ? "" : "s"} added
-            {result.duplicateCount ? `, ${result.duplicateCount} duplicate(s) skipped` : ""}.
+            {result.duplicateCount ? `, ${result.duplicateCount} duplicate(s) skipped` : ""}
+            {result.excludedCount
+              ? `. ${result.excludedCount} imported at 0% — on the record, out of the totals`
+              : ""}
+            .
           </p>
           <div className="upl-actions">
             <button type="button" className="upl-primary" onClick={reset}>

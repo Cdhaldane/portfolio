@@ -9,11 +9,18 @@
 // PATCH -> relabel a card or reassign whose card it is (member_user_id). That
 //          assignment is what spend-per-person reads: the uploader of a
 //          statement is not necessarily the person who spent the money.
+//
+// "kind" is 'card' or 'chequing' and is IMMUTABLE after creation: it decides
+// how uploads to this account are interpreted (a chequing statement needs
+// its transfers and card payments excluded — see budget-chequing.js), so
+// flipping it later would leave already-imported rows classified under rules
+// that no longer apply. Delete and re-import instead.
 const { requireUser, sendAuthError } = require("../budget-auth");
 const { getSql, ensureTables } = require("../budget-db");
 const { resolveHousehold, activeMemberIds } = require("../budget-household");
 
-const BANKS = ["amex", "td", "triangle", "other"];
+const BANKS = ["amex", "td", "triangle", "kawartha", "other"];
+const KINDS = ["card", "chequing"];
 const LABEL_MAX = 60;
 
 // Visa/Mastercard/Amex PANs run 13-19 digits, with or without separators.
@@ -41,7 +48,7 @@ module.exports = async (req, res) => {
 
     if (req.method === "GET") {
       const accounts = await sql`
-        SELECT id, bank, label, last4, created_at,
+        SELECT id, bank, label, last4, kind, created_at,
                COALESCE(member_user_id, user_id) AS member_user_id,
                user_id AS added_by
           FROM budget_accounts
@@ -52,8 +59,9 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "POST") {
-      const { bank, label, last4 } = req.body || {};
+      const { bank, label, last4, kind } = req.body || {};
       const cleanBank = BANKS.includes(bank) ? bank : "other";
+      const cleanKind = KINDS.includes(kind) ? kind : "card";
       const cleanLabel = String(label || "").trim();
 
       if (!cleanLabel) {
@@ -77,7 +85,7 @@ module.exports = async (req, res) => {
         cleanLast4 = String(last4).trim();
         if (!/^\d{4}$/.test(cleanLast4)) {
           return res.status(400).json({
-            error: "Only the last 4 digits — never the full card number.",
+            error: "Only the last 4 digits — never the full card or account number.",
           });
         }
       }
@@ -94,9 +102,9 @@ module.exports = async (req, res) => {
       }
 
       const inserted = await sql`
-        INSERT INTO budget_accounts (user_id, household_id, member_user_id, bank, label, last4)
-        VALUES (${userId}, ${household.id}, ${memberUserId}, ${cleanBank}, ${cleanLabel}, ${cleanLast4})
-        RETURNING id, bank, label, last4, member_user_id, created_at
+        INSERT INTO budget_accounts (user_id, household_id, member_user_id, bank, label, last4, kind)
+        VALUES (${userId}, ${household.id}, ${memberUserId}, ${cleanBank}, ${cleanLabel}, ${cleanLast4}, ${cleanKind})
+        RETURNING id, bank, label, last4, kind, member_user_id, created_at
       `;
       return res.status(201).json({ ok: true, account: inserted[0] });
     }
@@ -147,7 +155,7 @@ module.exports = async (req, res) => {
         UPDATE budget_accounts
            SET label = ${label}, member_user_id = ${memberUserId}
          WHERE id = ${id} AND household_id = ${household.id}
-        RETURNING id, bank, label, last4, member_user_id, created_at
+        RETURNING id, bank, label, last4, kind, member_user_id, created_at
       `;
       return res.status(200).json({ ok: true, account });
     }

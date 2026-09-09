@@ -14,10 +14,17 @@ const MIN_DATE_MS = Date.UTC(2000, 0, 1);
 
 /**
  * Validate + coerce one client-submitted row. Returns either
- * { valid: true, postedDate, merchantRaw, amountCents } or
- * { valid: false, reason }. Never trusts anything beyond these three raw
- * fields — merchant_clean, category, and dedup_hash are always derived
- * server-side from merchantRaw, never accepted from the client.
+ * { valid: true, postedDate, merchantRaw, amountCents, countPct } or
+ * { valid: false, reason }. Never trusts anything beyond these raw fields —
+ * merchant_clean, category, and dedup_hash are always derived server-side
+ * from merchantRaw, never accepted from the client.
+ *
+ * `countPct` is the one client-supplied *decision* (how much of the row
+ * counts toward totals — a chequing upload uses it to exclude transfers,
+ * card payments and already-declared bills). It is validated to the same
+ * 0-100 integer range as the transactions PATCH endpoint, and left
+ * undefined when absent so the caller can substitute its own server-side
+ * default rather than silently counting the row in full.
  */
 function normalizeRow(row) {
   const merchantRaw = String(row?.merchantRaw ?? "").trim();
@@ -46,7 +53,15 @@ function normalizeRow(row) {
     return { valid: false, reason: "Amount is missing or out of a sane range." };
   }
 
-  return { valid: true, postedDate: dateStr, merchantRaw, amountCents };
+  let countPct;
+  if (row?.countPct !== undefined && row?.countPct !== null) {
+    countPct = Number(row.countPct);
+    if (!Number.isInteger(countPct) || countPct < 0 || countPct > 100) {
+      return { valid: false, reason: "countPct must be a whole number from 0 to 100." };
+    }
+  }
+
+  return { valid: true, postedDate: dateStr, merchantRaw, amountCents, countPct };
 }
 
 /**
@@ -173,11 +188,20 @@ const DEFAULT_RULE_MATCHERS = DEFAULT_CATEGORY_RULES.map(([pattern, category]) =
  * rules in a deterministic order (longest pattern first — see the ORDER BY
  * at each call site); empty patterns are skipped defensively since
  * "".includes matches everything.
+ *
+ * `extraRules` ({re, category}[]) slot in BETWEEN the two, for rules that
+ * apply to one kind of statement only — a chequing upload's card-payment
+ * and transfer rules, which must beat the generic merchant defaults ("…
+ * CANADIAN TIRE MASTERCARD" is a card payment, not Shopping) while still
+ * yielding to whatever the user set by hand.
  */
-function categoryFor(merchantClean, rules) {
+function categoryFor(merchantClean, rules, extraRules = []) {
   for (const rule of rules) {
     if (!rule.pattern) continue;
     if (merchantClean.includes(rule.pattern.toUpperCase())) return rule.category;
+  }
+  for (const { re, category } of extraRules) {
+    if (re.test(merchantClean)) return category;
   }
   for (const { re, category } of DEFAULT_RULE_MATCHERS) {
     if (re.test(merchantClean)) return category;

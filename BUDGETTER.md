@@ -21,11 +21,13 @@ What that implies:
   public consumer APIs; aggregators (Plaid/Flinks) mean handing over banking
   credentials. Uploading a CSV the bank already provides keeps the app out of
   the credential business entirely — 80% of the security problem deleted.
-- **Two kinds of money leave a household:** variable card spending (statements)
-  and fixed monthly payments that never hit a card — mortgage, insurance,
-  hydro, water. Budgetter models both: card data is imported, fixed costs are
-  declared once in the Income & bills tab and overlaid onto every month
-  they're active.
+- **Three kinds of money leave a household:** variable card spending
+  (statements), debit/chequing spending (bank statements), and fixed monthly
+  payments — mortgage, insurance, hydro, water. Budgetter models all three:
+  card and bank data are imported, fixed costs are declared once in the
+  Income & bills tab and overlaid onto every month they're active.
+  Chequing accounts are a different *kind* of import, not just another bank
+  — see "Chequing imports" below.
 - **Categories should mostly just work.** ~95 built-in Canadian merchant rules
   categorize on upload; personal rules (created by "apply to matching
   transactions") always override the built-ins; anything left gets a one-click
@@ -122,7 +124,9 @@ budget_household_members  household_id, user_id, role, display_name,
                        WHERE removed_at IS NULL  — one ACTIVE household each
 budget_household_invites  household_id, code_hash UNIQUE, label, created_by,
                        expires_at, redeemed_by, redeemed_at
-budget_accounts        bank, label, last4, member_user_id (whose card)
+budget_accounts        bank, label, last4, member_user_id (whose card),
+                       kind ('card' | 'chequing' — immutable after
+                       creation; decides how uploads are interpreted)
 budget_upload_batches  account_id, filename, row/inserted/duplicate/rejected counts
 budget_transactions    account_id, batch_id, posted_date,
                        merchant_raw, merchant_clean, amount_cents,
@@ -218,12 +222,18 @@ match = idempotent without a sent-log. `?dryRun=1` previews without sending.
 browser: parse CSV (papaparse) → detect/confirm column mapping → normalize
 rows → **dry-run** (server previews new/duplicate/rejected counts) → user
 confirms → **commit** (strict `commit === true`).
-PDF statements (Canadian Tire / Triangle, which offers no CSV) take a
-parallel client-side path: pdf.js (lazy chunk) extracts text lines →
-`pdf-parsers.js` state machine finds the transaction tables, infers years
-from the statement period, and cross-checks parsed sums against the
-statement's own printed "Total …" lines → user reviews the extracted rows →
-same dry-run/commit. The raw PDF never leaves the browser either.
+PDF statements (Canadian Tire / Triangle, which offers no CSV; also Amex,
+TD and Kawartha / Libro) take a parallel client-side path: pdf.js (lazy
+chunk) extracts text lines → `pdf-parsers.js` state machine finds the
+transaction tables, infers years from the statement period, and cross-checks
+parsed sums against the statement's own printed "Total …" lines → user
+reviews the extracted rows → same dry-run/commit. The raw PDF never leaves
+the browser either.
+
+A **chequing** account inserts one more step between dry-run and commit: the
+dry-run returns a per-row *treatment* (keyed by the row's index in the
+submitted array) and the review table lets the user confirm or flip each one
+before committing. See "Chequing imports".
 Server: re-validate → clean merchant → occurrence-aware dedup hash (the Nth
 identical same-day tuple is a *real* repeat purchase, not a duplicate) →
 user rules then default rules (longest-pattern-first, word-boundary matching
@@ -232,6 +242,93 @@ for defaults) → single-transaction bulk insert with `ON CONFLICT DO NOTHING`.
 ⚠️ **Invariant:** `dedup_hash` includes `merchant_clean`. Changing
 `cleanMerchant()` re-keys affected rows and can double-import on overlapping
 re-uploads. Change it only deliberately.
+
+### Chequing imports
+
+A card statement is almost all spending — import every row and the dashboard
+is right. A **bank account statement is not**, and treating one like a card
+actively corrupts the numbers. On the real August 2026 Kawartha statement
+this was built against, **$4,894.85 left the account and only $239.90 of it
+was spending.** The rest:
+
+| Row | Why it isn't spending |
+|---|---|
+| `Online Bill Payment Canadian Tire Mastercard` −$1,105.70 | Pays a card whose charges are **already imported** from its own statement. Counting it counts that spending twice. |
+| `Withdrawal Weekly deposit from Charlie` −$500 ×5 | Transfer to the household's joint chequing account. ~$2,500/mo of invented spending, and a wrecked savings rate. |
+| `AVISO FNCL` −$25 ×5, `MD Tfr to …6011` −$62.90 | Investment contributions and internal transfers — savings, not spending. |
+| `407 ETR` −$573.86, `AVIVA INSURANCE` −$187.49 | Fixed bills **already declared** in the Income & bills tab, which the dashboard overlays onto every active month. |
+| `Payroll Deposit NATIONAL SHUNT SERVICE LTD` +$999.65 ×4 | Income. Credits never count as spend, and `budget_income` stays the source of truth for what comes in. |
+
+`api/_lib/budget-chequing.js` (pure, unit-tested) handles this in two parts:
+
+1. **`CHEQUING_RULES`** — word-boundary patterns for card payments,
+   transfers and savings, each carrying a category, a `countPct` and a
+   human-readable reason. They slot into `categoryFor()` as `extraRules`,
+   **between** the user's own rules and the built-in merchant defaults, so
+   "… CANADIAN TIRE MASTERCARD" is a card payment rather than Shopping.
+2. **`matchDeclaredBill()`** — compares each debit against the household's
+   live `budget_recurring` rows. `high` confidence = the bill's own words
+   appear in the description, or the amount matches to the cent in an active
+   month; `likely` = within 5% (or $2) **and** within 3 days of the declared
+   due day. Nothing else matches.
+
+**Excluded, not dropped.** A held-back row is still imported, at
+`count_pct = 0`. `amount_cents` is never rewritten, so the bank's own record
+stays auditable, the row shows in the Transactions list with a 0% chip, and
+one click promotes it back to counting. Dropping rows would silently lose
+data the statement actually reported.
+
+⚠️ **Precedence matters, in this order** (and a regression test pins it):
+
+1. **A pattern rule that excludes the row wins outright.** A description
+   that says TRANSFER or names a credit card has identified itself and must
+   not be second-guessed by a heuristic on amount and date. This is not
+   hypothetical: the Aug 28 **$500.00** transfer lands on the 28th, which is
+   also the declared due day of a **$540** toll bill — under the original
+   (looser, bill-first) matching it was claimed as that bill. Mislabelling a
+   transfer is the harmless version; the same coincidence on a real purchase
+   would have **hidden** it.
+2. Then a declared bill — the household declared it and the dashboard
+   already counts the declaration, so the imported duplicate gives way.
+3. Then a pattern rule that only categorizes (tolls, a loan payment, cash).
+4. Otherwise ordinary spending.
+
+⚠️ **A false bill match hides real spending; a miss only double-counts
+something visible in the review table.** That asymmetry is why the `likely`
+window is tight and why bills whose amount genuinely swings are matched by
+label (exact) rather than amount.
+
+This is the mirror image of the `on_card` rule: there, a declared bill
+charged to a tracked card is excluded from dashboard math because the real
+charge arrives by upload. Here the declared bill stays the source of truth
+and the imported duplicate is excluded — same principle, opposite side. The
+alternative (let the real debit count and exclude the declaration) would
+need an `on_card`-style flag on `budget_recurring`; deliberately not built,
+because the declared row is also what drives the reminder emails.
+
+⚠️ **Sign inversion.** A bank statement is written from the bank's side:
+debits negative, credits positive. Budgetter's convention is "positive =
+money out". `parseKawarthaStatement` negates every amount on the way out, so
+a chequing withdrawal aggregates exactly like a card charge and a deposit
+drops out of spend totals exactly like a card credit. Misrouting a bank
+statement to a card parser would invert every sign, which is why
+`parseStatementPdf` tests the Kawartha marker **first**.
+
+**Trust boundary.** `countPct` is the one client-supplied *decision* the
+upload endpoint accepts, validated to the same 0–100 integer range as the
+transactions PATCH. A row arriving without one falls back to the **server's**
+own suggestion, never to a bare 100 — a client bug cannot silently resurrect
+the double-counting the suggestions exist to prevent. A stale personal
+category rule can change a row's *label* but never its `countPct`.
+
+**The running-balance check.** Kawartha prints a balance after every row,
+which makes `previous + amount == printed` a per-row proof that the amount
+*and its sign* were read correctly — much stronger than the card parsers'
+section subtotals, which can only catch an error somewhere in a whole
+section. `chainMismatches` names the exact offending row in the review UI,
+alongside the statement's own "Total Debits"/"Total Credits" and closing
+balance as independent checks. The balance itself is never sent to the
+server.
 
 ## 5. Feature matrix (current)
 
@@ -276,11 +373,21 @@ re-uploads. Change it only deliberately.
   person list — that tab is pure admin now.)
 - ✅ CSV upload: Amex format verified against a real statement (41/41 rows);
   generic column-mapping UI for any other bank; dry-run review before commit
-- ✅ PDF upload: Amex, Canadian Tire / Triangle and TD statements parsed
-  in-browser (pdf.js) with bank auto-detection, each verified against real
-  statements; stated totals (section totals / "CALCULATING YOUR BALANCE" /
-  Amex's "Total of …" lines) cross-checked against parsed sums so layout
-  drift fails loudly instead of importing garbage
+- ✅ PDF upload: Amex, Canadian Tire / Triangle, TD and Kawartha / Libro
+  statements parsed in-browser (pdf.js) with bank auto-detection, each
+  verified against real statements; stated totals (section totals /
+  "CALCULATING YOUR BALANCE" / Amex's "Total of …" lines / a bank
+  statement's Total Debits & Credits) cross-checked against parsed sums so
+  layout drift fails loudly instead of importing garbage
+- ✅ **Chequing / debit import** (Kawartha / Libro, verified against a real
+  Aug–Sep 2026 statement): accounts carry a `kind`, signs are inverted into
+  Budgetter's money-out convention, and a row-by-row review holds back card
+  payments, internal transfers, savings contributions and bills already
+  declared in the Income & bills tab — at `count_pct = 0`, so they stay on
+  the record without counting. Verified end to end: the fixture's $4,894.85
+  of debits resolves to $239.90 of spending. Every row is checked against
+  the statement's own running balance, so a misread digit or a dropped minus
+  sign is caught on the exact row that caused it.
 - ✅ Auto-categorization: ~95 built-in rules + personal overrides + backfill
 - ✅ Dashboard: KPI tiles (latest month + delta + sparkline, fixed monthly,
   average, uncategorized), stacked card+fixed bar chart (12 months / years),
@@ -361,8 +468,29 @@ computationally (script-checked, not eyeballed):
 - The PDF parsers are layout-based (Triangle: section headings + "Total …"
   lines; TD: row shape + the balance box; Amex: "New Payments" / "New
   Transactions for …" / "Other Account Transactions" sections + their
-  "Total of …" lines). A statement redesign breaks them loudly — totals
+  "Total of …" lines; Kawartha: one date per row, two money columns, and the
+  running balance). A statement redesign breaks them loudly — totals
   mismatch or zero rows — never silently.
+- **A Kawartha statement covering two accounts with activity is refused**,
+  not blended. The fixture's second account (a registered one) is dormant,
+  so the common case works; a month where both moved needs splitting first.
+  Rows are attributed to the `… ACCOUNT <number>` heading above them.
+- **Chequing spend lands in the same aggregates as card spend.** That's
+  arithmetically right — it's all real spending, and the Afford tab's
+  trailing baseline gets *more* accurate for it — but some dashboard copy
+  still says "card" where it now means "card + chequing". Labels only; no
+  number is wrong.
+- Reference numbers in chequing descriptions are stripped before storage:
+  a 7+ digit run is masked to its last four (`Deposit Transfer from
+  (…6011)`) and a per-transaction trace code (`DB567F0200000000020`) is
+  dropped entirely. The masking parentheses are load-bearing —
+  `cleanMerchant()` strips a *trailing* digit run, and the closing bracket
+  is what stops it eating the mask.
+- The chequing rules include a few patterns specific to this household's
+  statements (`AVISO FNCL`, `NSLSC`, `407 ETR`, `WEEKLY DEPOSIT FROM`),
+  in the same spirit as the ~95 hardcoded Canadian merchant defaults. A
+  rules-management UI (roadmap #2) is where these would eventually become
+  editable rather than compiled in.
 - "Safe to spend / left this month" math is still out of scope (income
   tracking itself is done — see the feature matrix). The Afford tab answers
   the *next-purchase* version of that question, not the day-to-day one.
@@ -409,12 +537,21 @@ computationally (script-checked, not eyeballed):
    member without CSV access can upload too). TD *CSV* mapping remains
    unverified but is covered by the manual-mapping fallback.
 5. OFX/QFX import (richer than CSV, includes bank transaction ids —
-   would also make dedup exact instead of heuristic).
-6. "Left to spend this month" — income and fixed costs are both modelled now,
+   would also make dedup exact instead of heuristic). Most valuable for the
+   chequing path, where transfer/payment detection is currently pattern work.
+6. **Transfer pairing** — a $500 debit out of chequing and the matching
+   credit into the joint account are currently two independent excluded
+   rows. Pairing them (same amount, opposite sign, both tracked accounts,
+   within a day or two) would let the app *prove* a transfer rather than
+   infer it from wording, and show a real savings flow.
+7. **Reconcile declared income against imported payroll** — the deposits are
+   now labelled but income stays a declared cadence average, so a raise or a
+   missed cheque doesn't surface. Deliberately deferred (see §1).
+8. "Left to spend this month" — income and fixed costs are both modelled now,
    so this is mostly assembly plus a day-pro-rated pace indicator. The Afford
    tab already owns the trailing-baseline maths (`Afford/loan.js`
    `spendBaseline`), which is the reusable half.
-7. ~~Per-account (and now per-member) filtering surfaced in the dashboard~~ —
+9. ~~Per-account (and now per-member) filtering surfaced in the dashboard~~ —
    done as the Mine/Household scope toggle (dashboard) plus the whose-card /
    added-by filter (Transactions, `cardOf` param). Per-account filtering in
    the dashboard remains unexposed (the API supports it).

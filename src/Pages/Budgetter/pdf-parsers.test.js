@@ -8,8 +8,11 @@ import {
   parseTriangleStatement,
   parseTdStatement,
   parseAmexStatement,
+  parseKawarthaStatement,
   parseStatementPdf,
+  maskReferences,
 } from "./pdf-parsers";
+import { KAWARTHA_LINES } from "./__fixtures__/kawarthaStatement";
 
 const seg = (text, x) => ({ x, text });
 
@@ -503,5 +506,162 @@ describe("parseStatementPdf (bank detection)", () => {
     const r = parseStatementPdf(["Some Other Bank", "Jan 01 Jan 02 THING 5.00"]);
     expect(r.ok).toBe(false);
     expect(r.error).toMatch(/recognize/i);
+  });
+});
+
+describe("parseKawarthaStatement", () => {
+  const result = parseKawarthaStatement(KAWARTHA_LINES);
+
+  test("recognizes the statement and its period", () => {
+    expect(result.ok).toBe(true);
+    expect(result.kind).toBe("chequing");
+    expect(result.bank).toBe("kawartha");
+    expect(result.period).toMatchObject({
+      startMonth: 8,
+      startYear: 2026,
+      endMonth: 9,
+      endYear: 2026,
+    });
+    expect(result.accountLast4).toBe("6011");
+  });
+
+  test("finds every transaction and no page furniture", () => {
+    // 17 debits + 9 credits across three pages; "Balance Forward" is not a
+    // transaction, and the ad panel, rate tables and footers contribute none.
+    expect(result.rows).toHaveLength(26);
+    expect(result.rows.filter((r) => r.amountCents > 0)).toHaveLength(17);
+    expect(result.rows.filter((r) => r.amountCents < 0)).toHaveLength(9);
+  });
+
+  test("every stated total and the closing balance reconcile", () => {
+    // -4,894.85 debits / 4,123.60 credits, in the statement's own signs.
+    expect(result.checks.find((c) => c.key === "debits")).toMatchObject({
+      statedCents: -489485,
+      parsedCents: -489485,
+      ok: true,
+    });
+    expect(result.checks.find((c) => c.key === "credits")).toMatchObject({
+      statedCents: 412360,
+      parsedCents: 412360,
+      ok: true,
+    });
+    expect(result.checks.find((c) => c.key === "balance")).toMatchObject({
+      statedCents: 208847,
+      parsedCents: 208847,
+      ok: true,
+    });
+    expect(result.checks.every((c) => c.ok)).toBe(true);
+  });
+
+  test("the running balance proves every row, one by one", () => {
+    expect(result.chainMismatches).toEqual([]);
+    expect(result.openingCents).toBe(285972);
+    expect(result.closingCents).toBe(208847);
+  });
+
+  test("inverts the bank's signs into Budgetter's money-out convention", () => {
+    // Statement prints a withdrawal as -500.00; Budgetter counts money out
+    // as positive so it aggregates like a card charge.
+    const weekly = result.rows.find((r) => r.merchantRaw.includes("Weekly deposit"));
+    expect(weekly).toMatchObject({
+      postedDate: "2026-08-07",
+      merchantRaw: "Withdrawal Weekly deposit from Charlie",
+      amountCents: 50000,
+      _statementCents: -50000,
+    });
+    // A deposit becomes negative, so it drops out of every spend total the
+    // same way a card credit does.
+    const payroll = result.rows.find((r) => r.merchantRaw.includes("NATIONAL SHUNT"));
+    expect(payroll).toMatchObject({ postedDate: "2026-08-12", amountCents: -99965 });
+  });
+
+  test("joins wrapped descriptions, including lowercase fragments", () => {
+    const merchants = result.rows.map((r) => r.merchantRaw);
+    expect(merchants).toContain("Withdrawal Weekly deposit from Charlie");
+    expect(merchants).toContain("Online Bill Payment Canadian Tire Mastercard");
+    expect(merchants).toContain("Online Bill Payment Home Depot - Citi Cards");
+    expect(merchants).toContain("Online Bill Payment 407 ETR");
+    expect(merchants).toContain("Point Of Sale Withdrawal ALMOST PERFECT");
+  });
+
+  test("masks account numbers and drops per-transaction trace codes", () => {
+    const merchants = result.rows.map((r) => r.merchantRaw);
+    // 12-digit internal account number -> last four only.
+    expect(merchants).toContain("Deposit Transfer from (…6011)");
+    expect(merchants).toContain("Withdrawal MD Tfr to (…6011) CK");
+    // Weekly-changing trace code dropped entirely, so the five AVISO rows
+    // share one merchant name instead of five.
+    expect(merchants.filter((m) => m === "External Withdrawal Miscellaneous Payments AVISO FNCL"))
+      .toHaveLength(5);
+    // No long digit run survives anywhere in what would be stored.
+    expect(merchants.some((m) => /\d{7,}/.test(m))).toBe(false);
+  });
+
+  test("ignores the second account when it has no activity", () => {
+    // Its "Balance Forward 0.00" must not become a transaction, and its
+    // rate tables must not be joined onto the last real row.
+    expect(result.rows.some((r) => r.merchantRaw.includes("Balance Forward"))).toBe(false);
+    expect(result.rows[result.rows.length - 1]).toMatchObject({
+      postedDate: "2026-09-04",
+      merchantRaw: "Deposit Transfer from (…6011)",
+    });
+  });
+
+  test("refuses to blend two accounts that both have activity", () => {
+    const twoActive = KAWARTHA_LINES.map((l) =>
+      l === "There is no activity for this account."
+        ? "Aug15 Point Of Sale Withdrawal -10.00 -10.00"
+        : l
+    );
+    const bad = parseKawarthaStatement(twoActive);
+    expect(bad.ok).toBe(false);
+    expect(bad.error).toMatch(/2 accounts with activity/);
+    expect(bad.error).toContain("…6011");
+    expect(bad.error).toContain("…1777");
+  });
+
+  test("a misread amount breaks the balance chain loudly", () => {
+    const typo = KAWARTHA_LINES.map((l) =>
+      l === "Aug26 Point Of Sale Withdrawal -14.81 3,175.26"
+        ? "Aug26 Point Of Sale Withdrawal -74.81 3,175.26"
+        : l
+    );
+    const bad = parseKawarthaStatement(typo);
+    expect(bad.ok).toBe(true); // rows still parse…
+    expect(bad.chainMismatches).toHaveLength(1); // …but the row is flagged
+    expect(bad.chainMismatches[0]).toMatchObject({
+      postedDate: "2026-08-26",
+      expectedCents: 311526,
+      statedCents: 317526,
+    });
+    // and the stated totals disagree too, independently
+    expect(bad.checks.find((c) => c.key === "debits").ok).toBe(false);
+  });
+
+  test("a dropped minus sign is caught even though the digits are right", () => {
+    const flipped = KAWARTHA_LINES.map((l) =>
+      l === "Aug13 Online Bill Payment -1,105.70 2,190.77"
+        ? "Aug13 Online Bill Payment 1,105.70 2,190.77"
+        : l
+    );
+    const bad = parseKawarthaStatement(flipped);
+    expect(bad.chainMismatches).toHaveLength(1);
+    expect(bad.checks.find((c) => c.key === "balance").ok).toBe(false);
+  });
+
+  test("rejects a PDF that isn't a Kawartha statement", () => {
+    expect(parseKawarthaStatement(["Some other bank", "Total Debits -1.00"])).toMatchObject({
+      ok: false,
+    });
+  });
+});
+
+describe("maskReferences", () => {
+  test("keeps short numbers that are part of a merchant name", () => {
+    expect(maskReferences("Online Bill Payment 407 ETR")).toBe("Online Bill Payment 407 ETR");
+    expect(maskReferences("NSLSC 1187632")).toBe("NSLSC (…7632)");
+    expect(maskReferences("AVISO FNCL DB567F0200000000020")).toBe("AVISO FNCL");
+    expect(maskReferences("SERVICE LTD CPT DX993119")).toBe("SERVICE LTD CPT");
+    expect(maskReferences("158160206011 CK")).toBe("(…6011) CK");
   });
 });

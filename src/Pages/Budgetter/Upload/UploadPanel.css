@@ -260,6 +260,9 @@
 .upl-pdftable-wrap {
   max-height: 320px;
   overflow-y: auto;
+  /* The chequing review adds a Counts? column — wide content scrolls inside
+     its own box instead of widening the page. */
+  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 12px;
   margin-bottom: 16px;
@@ -462,5 +465,133 @@
 @media (prefers-reduced-motion: reduce) {
   .upl-step {
     animation: none;
+  }
+}
+
+/* ---- account kind note ---- */
+/* Sits both inside the (flex, wrapping) new-account form and on its own in
+   the upload step, so it claims a full row in the first and behaves as an
+   ordinary block in the second. */
+.upl-kindnote {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  max-width: 62ch;
+}
+
+/* ---- running-balance check (bank statements) ---- */
+.upl-chain {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  margin: 0 0 14px;
+}
+
+.upl-chain--ok {
+  color: var(--good-text);
+}
+
+.upl-chain--bad {
+  color: var(--bad-text);
+}
+
+.upl-chain--bad p {
+  margin: 0 0 6px;
+}
+
+.upl-chain--bad ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ---- chequing row-by-row treatment ---- */
+.upl-treat {
+  margin-bottom: 4px;
+}
+
+.upl-treat-total {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.upl-treat-total strong {
+  font-size: 1.25rem;
+  color: var(--blue-deep);
+}
+
+.upl-treat-name {
+  display: block;
+}
+
+.upl-treat-meta {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.upl-treat-na {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* A skipped row stays legible — it IS being imported — but recedes, and
+   the strikethrough on the amount says which number stops counting. */
+.upl-tr--skipped .upl-treat-name {
+  color: var(--ink-soft);
+}
+
+.upl-tr--skipped td:nth-child(3) {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+/* Count / Skip segmented control */
+.upl-seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+
+.upl-seg button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 5px 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s;
+}
+
+.upl-seg button:hover {
+  color: var(--ink);
+}
+
+.upl-seg button.is-on {
+  background: var(--blue);
+  color: #fff;
+}
+
+.upl-seg button:focus-visible {
+  outline: 2px solid var(--blue-deep);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upl-seg button {
+    transition: none;
   }
 }
