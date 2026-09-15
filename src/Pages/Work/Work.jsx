@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -64,6 +64,51 @@ const Work = () => {
     my.set(e.clientY);
   };
 
+  // Scroll weight. The list lags a few pixels behind the page while the wheel
+  // is moving and eases back to rest when it stops, so the column reads as
+  // having mass instead of being painted on. One CSS variable, never a
+  // per-frame React state write (CLAUDE.md §3); the loop is started by the
+  // scroll listener and shuts itself down once the list has settled, so an
+  // idle page holds no rAF open.
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || reduce) return undefined;
+
+    let raf = 0;
+    let lastY = window.scrollY;
+    let drag = 0;
+
+    const loop = () => {
+      const y = window.scrollY;
+      const v = y - lastY;
+      lastY = y;
+
+      // Negative so the list trails the direction of travel.
+      const target = Math.max(-14, Math.min(14, -v * 0.55));
+      drag += (target - drag) * 0.12;
+
+      if (Math.abs(drag) < 0.05 && v === 0) {
+        el.style.setProperty("--drag", "0px");
+        raf = 0;
+        return;
+      }
+      el.style.setProperty("--drag", drag.toFixed(2) + "px");
+      raf = requestAnimationFrame(loop);
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [reduce]);
+
   return (
     <div className="wk" onPointerMove={onMove}>
       <Seo
@@ -113,14 +158,19 @@ const Work = () => {
       </header>
 
       {/* ---------------- PROJECT LIST ---------------- */}
-      <section className="wk-list" aria-label="Projects">
+      <section className="wk-list" aria-label="Projects" ref={listRef}>
         {PROJECTS.map((p, i) => (
           <motion.div
             key={p.slug}
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
-            transition={{ type: "spring", stiffness: 90, damping: 16 }}
+            transition={{
+              type: "spring",
+              stiffness: 90,
+              damping: 16,
+              delay: i * 0.08,
+            }}
           >
             <Link
               className="wk-item"
@@ -130,7 +180,21 @@ const Work = () => {
               onMouseLeave={() => setActive((a) => (a === i ? null : a))}
             >
               <span className="wk-item-index">0{i + 1}</span>
-              <span className="wk-item-name">{p.name}</span>
+              {/* Split so the row can run the site's signature per-letter
+                  lift on hover — the same gesture as the Landing and Work
+                  headline type, scaled down to a list row. */}
+              <span className="wk-item-name" aria-label={p.name}>
+                {p.name.split("").map((ch, j) => (
+                  <span
+                    className="wk-item-char"
+                    key={j}
+                    aria-hidden="true"
+                    style={{ "--j": j }}
+                  >
+                    {ch}
+                  </span>
+                ))}
+              </span>
               <span className="wk-item-meta">{p.discipline}</span>
               <img
                 className="wk-item-thumb"

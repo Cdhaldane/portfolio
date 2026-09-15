@@ -1,6 +1,9 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
-import Spinner from "./DevComponents/Spinner/Spinner";
+import { Routes, Route, useLocation } from "react-router-dom";
+import PageTransition, {
+  DelayedFallback,
+} from "./Components/PageTransition/PageTransition";
+import SmoothScroll from "./Components/SmoothScroll/SmoothScroll";
 import ThemeSwitch from "./DevComponents/ThemeSwitch/ThemeSwitch";
 import AppSidebar from "./Components/AppSidebar/AppSidebar";
 import DashboardGate from "./Pages/Dashboard/DashboardGate";
@@ -53,46 +56,54 @@ const BudgetPreview =
     : null;
 
 const App = () => {
+  // Held here and handed to both <PageTransition> and <Routes>: during an exit
+  // the outgoing page must keep rendering the route it was mounted with, not
+  // the one being navigated to.
+  const location = useLocation();
+
   return (
     <div className="main">
       <ThemeSwitch className="global-theme" />
       <AppSidebar />
+      <SmoothScroll />
       <Analytics />
       <SpeedInsights />
       <CommandPalette />
-      <Suspense fallback={<Spinner />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/work" element={<WorkPage />} />
-          <Route path="/work/edusim" element={<Edusim />} />
-          <Route path="/work/vxnessa" element={<Vxnessa />} />
-          <Route path="/work/marz" element={<Marz />} />
-          <Route path="/work/timeslot" element={<Timeslot />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/showcase" element={<Showcase />} />
-          <Route path="/guestbook" element={<Guestbook />} />
-          <Route path="/writing" element={<Writing />} />
-          <Route path="/writing/:slug" element={<Post />} />
-          <Route path="/dashboard" element={<DashboardGate />}>
-            <Route index element={<Dashboard />} />
-            <Route path="imposter" element={<ImposterGame />} />
-            <Route path="crossword" element={<MiniCrossword />} />
-            <Route path="wavelength" element={<Wavelength />} />
-            <Route path="fishbowl" element={<Fishbowl />} />
-            <Route path="reckoning" element={<DeadReckoning />} />
-          </Route>
-          <Route path="/gallows-hymn" element={<GallowsHymn />} />
-          <Route path="/budgetter" element={<BudgetGate />}>
-            <Route index element={<Budgetter />} />
-          </Route>
-          {BudgetPreview && (
-            <Route path="/budgetter-preview" element={<BudgetPreview />} />
-          )}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      <PageTransition location={location}>
+        <Suspense fallback={<DelayedFallback />}>
+          <Routes location={location}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/work" element={<WorkPage />} />
+            <Route path="/work/edusim" element={<Edusim />} />
+            <Route path="/work/vxnessa" element={<Vxnessa />} />
+            <Route path="/work/marz" element={<Marz />} />
+            <Route path="/work/timeslot" element={<Timeslot />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/showcase" element={<Showcase />} />
+            <Route path="/guestbook" element={<Guestbook />} />
+            <Route path="/writing" element={<Writing />} />
+            <Route path="/writing/:slug" element={<Post />} />
+            <Route path="/dashboard" element={<DashboardGate />}>
+              <Route index element={<Dashboard />} />
+              <Route path="imposter" element={<ImposterGame />} />
+              <Route path="crossword" element={<MiniCrossword />} />
+              <Route path="wavelength" element={<Wavelength />} />
+              <Route path="fishbowl" element={<Fishbowl />} />
+              <Route path="reckoning" element={<DeadReckoning />} />
+            </Route>
+            <Route path="/gallows-hymn" element={<GallowsHymn />} />
+            <Route path="/budgetter" element={<BudgetGate />}>
+              <Route index element={<Budgetter />} />
+            </Route>
+            {BudgetPreview && (
+              <Route path="/budgetter-preview" element={<BudgetPreview />} />
+            )}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </PageTransition>
     </div>
   );
 };

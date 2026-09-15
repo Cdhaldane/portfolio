@@ -607,82 +607,6 @@
 }
 
 /* ============================================================
-   TESTIMONIALS — featured layout
-   ============================================================ */
-.sv-testimonials {
-  max-width: 1100px;
-  margin: 0 auto 8rem;
-  padding: 0 6vw;
-}
-.sv-quotes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-.sv-quote {
-  position: relative;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding: 2rem;
-  border-radius: 20px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition:
-    transform 0.4s ease,
-    box-shadow 0.4s ease;
-}
-.sv-quote:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 44px rgba(26, 26, 23, 0.12);
-}
-.sv-quote.featured {
-  grid-row: span 2;
-  background: var(--ink);
-  color: var(--paper);
-  justify-content: space-between;
-}
-.sv-quote > i {
-  font-size: 1.4rem;
-  color: var(--blue);
-}
-.sv-quote.featured > i {
-  color: var(--accent);
-}
-.sv-quote blockquote {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-.sv-quote.featured blockquote {
-  font-size: 1.3rem;
-  line-height: 1.5;
-  font-weight: 500;
-}
-.sv-quote figcaption {
-  display: flex;
-  flex-direction: column;
-}
-.sv-quote-name {
-  font-weight: 600;
-  color: var(--blue);
-}
-.sv-quote.featured .sv-quote-name {
-  color: var(--light);
-}
-.sv-quote-role {
-  font-size: 0.8rem;
-  color: var(--text);
-  font-family: "Inter", sans-serif;
-}
-.sv-quote.featured .sv-quote-role {
-  color: var(--light);
-}
-
-/* ============================================================
    CTA BAND
    ============================================================ */
 .sv-cta-band {
@@ -750,12 +674,6 @@
   .sv-steps {
     grid-template-columns: repeat(2, 1fr);
     gap: 2.5rem 1.5rem;
-  }
-  .sv-quotes {
-    grid-template-columns: 1fr;
-  }
-  .sv-quote.featured {
-    grid-row: auto;
   }
   .sv-row {
     grid-template-columns: auto 1fr;

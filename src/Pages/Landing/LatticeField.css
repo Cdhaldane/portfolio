@@ -1,0 +1,98 @@
+/* ============================================================
+   LatticeField — the interactive grid in the hero's right-hand
+   space. Sits above the ambient layers (aurora/grid/grain, z 0)
+   and below the hero content (z 2), so the name and nav always
+   win if they ever overlap it.
+   ============================================================ */
+
+.lp-lattice {
+  position: absolute;
+  top: 0;
+  /* The name is clamp(3rem, 12vw, 11rem), so its right edge tracks the
+     viewport until it caps out around 1900px wide. The 800px floor keeps
+     the field clear of it just above the breakpoint, where 52% alone
+     would land inside "HALDANE"; past ~1540px the percentage takes over
+     and the field stays centred in the remaining space. Stops short of
+     the vertical .lp-meta rail at right: 1.8rem. */
+  left: max(52%, 800px);
+  right: 4.5rem;
+  /* Clears the .lp-ticker marquee pinned to the bottom. */
+  bottom: 3.6rem;
+  z-index: 1;
+  /* Never intercepts a click — the component tracks the pointer on
+     the window and converts into canvas space instead. */
+  pointer-events: none;
+  /* Fades the lattice out at the edges so it dissolves into the
+     page rather than ending on a hard rectangle, picking up where
+     .lp-grid's radial mask leaves off. */
+  mask-image: radial-gradient(
+    ellipse 75% 70% at 50% 50%,
+    #000 35%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 75% 70% at 50% 50%,
+    #000 35%,
+    transparent 100%
+  );
+  opacity: 0;
+  animation: lpLatticeIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards;
+}
+
+.lp-lattice-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Affordance: the field is interactive but nothing else on the page
+   is, so it needs one. Retires itself the moment the pointer comes
+   near — it has done its job by then. */
+.lp-lattice-hint {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  color: var(--ink);
+  opacity: 0;
+  animation: lpHintIn 0.8s ease 2.2s forwards;
+  transition: opacity 0.5s ease;
+}
+.lp-lattice-hint[data-seen="true"] {
+  opacity: 0 !important;
+  animation: none;
+}
+
+@keyframes lpLatticeIn {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes lpHintIn {
+  to {
+    opacity: 0.32;
+  }
+}
+
+/* Below this the hero fills the width and there is no empty space left
+   to fill, so the field is removed outright rather than squeezed into a
+   sliver. Set at 1280 rather than the page's own 1100 breakpoint because
+   the field needs ~400px to read as a lattice at all — and it spares
+   phones and tablets the rAF loop entirely. */
+@media (max-width: 1279px) {
+  .lp-lattice {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-lattice {
+    opacity: 1;
+    animation: none;
+  }
+  .lp-lattice-hint {
+    display: none;
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import "./AppSidebar.css";
 
@@ -25,6 +26,7 @@ const HIDE_SIDEBAR_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn"];
  */
 const AppSidebar = () => {
   const location = useLocation();
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     let raf = 0;
@@ -56,16 +58,33 @@ const AppSidebar = () => {
 
   return (
     <aside className="ab-rail" aria-label="Navigation and scroll progress">
-      {isHome ? (
-        <span className="ab-rail-mark" aria-hidden="true">
-          CH
-        </span>
-      ) : (
-        <Link className="ab-rail-home" to="/">
-          <i className="fa-solid fa-arrow-left" />
-          <span>HOME</span>
-        </Link>
-      )}
+      {/*
+        The one piece of rail chrome that changes per route. Crossfading it ties
+        the rail to the page transition instead of letting it snap a frame
+        early; the fixed-height slot keeps the progress spine from shifting as
+        the two swap.
+      */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={isHome ? "mark" : "home"}
+          className="ab-rail-slot"
+          initial={{ opacity: 0, y: reduce ? 0 : 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduce ? 0 : -6 }}
+          transition={{ duration: reduce ? 0.1 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {isHome ? (
+            <span className="ab-rail-mark" aria-hidden="true">
+              CH
+            </span>
+          ) : (
+            <Link className="ab-rail-home" to="/">
+              <i className="fa-solid fa-arrow-left" />
+              <span>HOME</span>
+            </Link>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       <div className="ab-rail-progress" aria-hidden="true">
         <span className="ab-rail-track" />

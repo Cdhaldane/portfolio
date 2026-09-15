@@ -203,3 +203,18 @@
 @media (max-width: 520px) {
   .gb-name-input { max-width: 100%; }
 }
+
+/* ============================================================
+   REDUCED MOTION
+   Movement is dropped; short opacity fades are kept so state
+   changes stay legible rather than teleporting (CLAUDE.md §6).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .gb *,
+  .gb *::before,
+  .gb *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

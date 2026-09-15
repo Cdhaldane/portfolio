@@ -208,3 +208,18 @@
 .wr-missing a {
   color: var(--blue-deep);
 }
+
+/* ============================================================
+   REDUCED MOTION
+   Movement is dropped; short opacity fades are kept so state
+   changes stay legible rather than teleporting (CLAUDE.md §6).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .wr *,
+  .wr *::before,
+  .wr *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

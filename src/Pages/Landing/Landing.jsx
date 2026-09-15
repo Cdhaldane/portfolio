@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Seo from "../../Components/Seo/Seo";
+import LatticeField from "./LatticeField";
 
 import "./Landing.css";
 
@@ -103,6 +104,10 @@ const Landing = () => {
       <div className="lp-spotlight" aria-hidden="true" />
       <div className="lp-grid" aria-hidden="true" />
       <div className="lp-grain" aria-hidden="true" />
+
+      {/* Picks the 72px grid up where .lp-grid's radial mask drops it and
+          gives it physics — see LatticeField.jsx. */}
+      <LatticeField />
 
       <main className="lp-hero">
         <motion.p

@@ -107,27 +107,6 @@ const FAQ = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "Charlie took our vague idea and turned it into a site that actually brings in customers. Fast, communicative, and genuinely cared about getting it right.",
-    name: "Client Name",
-    role: "Owner, Local Business",
-  },
-  {
-    quote:
-      "The whole process was painless. He handled the design, the build and the launch, and explained everything in plain language.",
-    name: "Client Name",
-    role: "Founder, Startup",
-  },
-  {
-    quote:
-      "Our old website was slow and dated. The redesign loads instantly and looks fantastic on phones.",
-    name: "Client Name",
-    role: "Manager, Service Co.",
-  },
-];
-
 // Shared entrance variants for scroll-into-view sections.
 const fadeUp = {
   hidden: { opacity: 0, y: 36, filter: "blur(6px)" },
@@ -411,43 +390,6 @@ const Services = () => {
               </summary>
               <p>{f.a}</p>
             </motion.details>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* ---------------- TESTIMONIALS ---------------- */}
-      <section className="sv-testimonials">
-        <motion.p
-          className="sv-kicker"
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={viewport}
-          transition={{ duration: 0.5 }}
-        >
-          What clients say
-        </motion.p>
-        <motion.div
-          className="sv-quotes"
-          variants={stagger}
-          initial="hidden"
-          whileInView="show"
-          viewport={viewport}
-        >
-          {TESTIMONIALS.map((t, i) => (
-            <motion.figure
-              className={`sv-quote${i === 0 ? " featured" : ""}`}
-              key={i}
-              variants={fadeUp}
-              transition={{ type: "spring", stiffness: 90, damping: 16 }}
-              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 18 } }}
-            >
-              <i className="fa-solid fa-quote-left" aria-hidden="true" />
-              <blockquote>{t.quote}</blockquote>
-              <figcaption>
-                <span className="sv-quote-name">{t.name}</span>
-                <span className="sv-quote-role">{t.role}</span>
-              </figcaption>
-            </motion.figure>
           ))}
         </motion.div>
       </section>

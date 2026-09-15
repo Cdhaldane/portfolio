@@ -32,18 +32,17 @@ const getInitialDarkMode = () => {
 
 function ThemeSwitch({ className = "", organization }) {
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
-  const sunRef = useRef(null);
-  const moonRef = useRef(null);
+
+  // Gates the travel animation so the thumb does not fly across the pill on
+  // first paint — it should only animate in response to an actual toggle.
+  const [hasToggled, setHasToggled] = useState(false);
+  const mounted = useRef(false);
   const location = useLocation();
 
   useEffect(() => {
     if (!isDarkMode) {
-      moonRef.current?.classList.remove("switch-active");
-      sunRef.current?.classList.add("switch-active");
       document.body.classList.add("light-mode");
     } else {
-      moonRef.current?.classList.add("switch-active");
-      sunRef.current?.classList.remove("switch-active");
       document.body.classList.remove("light-mode");
     }
 
@@ -57,7 +56,6 @@ function ThemeSwitch({ className = "", organization }) {
     localStorage.setItem("isDarkMode", isDarkMode);
 
     if (!organization) return;
-
 
     const defaultLightPrimary = "#4b4b4b";
     const defaultDarkPrimary = "#88f188";
@@ -89,6 +87,16 @@ function ThemeSwitch({ className = "", organization }) {
     }
   }, [isDarkMode, organization, location.pathname]);
 
+  // Arm the animation only after the first real change of mode, so a remount
+  // (or a route change) never replays the travel.
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    setHasToggled(true);
+  }, [isDarkMode]);
+
   // Stay in sync when the theme is flipped elsewhere (e.g. the ⌘K command
   // palette), which updates storage then dispatches a "themechange" event.
   useEffect(() => {
@@ -98,26 +106,34 @@ function ThemeSwitch({ className = "", organization }) {
   }, []);
 
   return (
-    <div className={`theme-switch ${className}`}>
-      <label className="switch">
-        <i
-          ref={sunRef}
-          className="fa-solid fa-sun"
+    <div
+      className={`theme-switch ${className}`}
+      data-toggled={hasToggled ? "true" : "false"}
+    >
+      {/* A group of two buttons rather than clickable <i> tags: the control is
+          now reachable by keyboard and announces its state. The former <label>
+          wrapped no form control, so it announced nothing. */}
+      <div className="switch" role="group" aria-label="Colour theme">
+        <span className={`slider-theme ${isDarkMode ? "slider-moon" : "slider-sun"}`} aria-hidden="true" />
+        <button
+          type="button"
+          className={`ts-seg ${!isDarkMode ? "switch-active" : ""}`}
           onClick={() => setIsDarkMode(false)}
-          aria-label="Activate Light Mode"
-        ></i>
-        <div
-          className={`slider-theme ${
-            isDarkMode ? "slider-moon" : "slider-sun"
-          }`}
-        ></div>
-        <i
-          ref={moonRef}
-          className="fa-solid fa-moon"
+          aria-pressed={!isDarkMode}
+        >
+          <i className="fa-solid fa-sun" aria-hidden="true"></i>
+          <span className="ts-sr">Light mode</span>
+        </button>
+        <button
+          type="button"
+          className={`ts-seg ${isDarkMode ? "switch-active" : ""}`}
           onClick={() => setIsDarkMode(true)}
-          aria-label="Activate Dark Mode"
-        ></i>
-      </label>
+          aria-pressed={isDarkMode}
+        >
+          <i className="fa-solid fa-moon" aria-hidden="true"></i>
+          <span className="ts-sr">Dark mode</span>
+        </button>
+      </div>
     </div>
   );
 }

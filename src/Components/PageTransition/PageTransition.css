@@ -1,0 +1,12 @@
+/*
+ * The transition wrapper sits between `.main` and every page root, so it has to
+ * stay layout-neutral: no padding, no width, no containment. It only carries
+ * the inline `opacity` framer-motion writes during a navigation.
+ *
+ * `will-change` is deliberately omitted — the wrapper animates for ~400ms per
+ * navigation, and holding a compositor layer for the entire page between those
+ * moments costs more than it saves (CLAUDE.md §5).
+ */
+.page-transition {
+  isolation: isolate;
+}

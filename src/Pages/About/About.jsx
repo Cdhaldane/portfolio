@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import Lenis from "lenis";
 import Seo from "../../Components/Seo/Seo";
 import "./About.css";
 
@@ -131,22 +130,8 @@ const About = () => {
     return () => io.disconnect();
   }, []);
 
-  // Lenis — buttery inertial smooth scrolling that makes every scroll-linked
-  // animation on the page feel intentional. Respects reduced-motion.
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
-    let raf = 0;
-    const loop = (time) => {
-      lenis.raf(time);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      lenis.destroy();
-    };
-  }, []);
+  // Lenis now lives at the app root (<SmoothScroll />) so every route shares
+  // the same inertial feel, not just this page.
 
   // Count-up stats.
   useEffect(() => {

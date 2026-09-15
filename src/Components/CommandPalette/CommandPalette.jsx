@@ -177,7 +177,13 @@ const CommandPalette = () => {
           <kbd className="cmdk-kbd">esc</kbd>
         </div>
 
-        <div className="cmdk-list" id="cmdk-list" role="listbox" ref={listRef}>
+        <div
+          className="cmdk-list"
+          id="cmdk-list"
+          role="listbox"
+          ref={listRef}
+          data-lenis-prevent
+        >
           {filtered.length === 0 && (
             <div className="cmdk-empty">No matches for “{query.trim()}”.</div>
           )}

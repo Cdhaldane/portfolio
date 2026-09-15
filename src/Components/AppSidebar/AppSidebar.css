@@ -41,6 +41,19 @@
   background: rgba(18, 19, 16, 0.55);
 }
 
+/*
+ * Fixed-height slot for the mark/HOME swap. The monogram is one line and the
+ * HOME link is an icon stacked over a label, so without a reserved height the
+ * progress spine below would jump by ~18px on every navigation.
+ */
+.ab-rail-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  flex: none;
+}
+
 /* HOME link */
 .ab-rail-home {
   display: flex;
