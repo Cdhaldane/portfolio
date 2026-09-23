@@ -1,0 +1,612 @@
+/* Season picker, targets, the line, calendar, simulator, seasons, wrap
+   card, toast, and the easter-egg modes. Same tokens + radius system as
+   Bowler.css (cards 18 · inputs 10 · buttons pill). */
+
+.bw-seasonbar,
+.bw-duo,
+.bw-heat,
+.bw-sim,
+.bw-seasons {
+  max-width: 1180px;
+  margin: 0 auto clamp(48px, 7vw, 88px);
+}
+
+/* ---- top bar extras ---- */
+.bw-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bw-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  color: var(--bw-ink);
+  cursor: pointer;
+}
+.bw-icon-btn[aria-pressed="true"] {
+  background: var(--bw-accent);
+  color: var(--bw-accent-ink);
+}
+
+/* ---- season pills ---- */
+.bw-seasonbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.bw-season-pill {
+  height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  color: var(--bw-ink-soft);
+  font: 600 0.92rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+  transition: background 200ms var(--bw-ease), color 200ms;
+}
+.bw-season-pill.is-on {
+  background: var(--bw-ink);
+  color: var(--bw-card);
+  box-shadow: none;
+}
+
+/* ---- duo: line board + targets, asymmetric ---- */
+.bw-duo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(16px, 3vw, 32px);
+  align-items: start;
+}
+.bw-duo > * {
+  margin: 0;
+}
+/* The line needs two nights each; until then targets get the full row. */
+.bw-duo:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+/* ---- next week's line: departure-board styling ---- */
+.bw-line-board {
+  padding: clamp(20px, 3vw, 28px);
+  border-radius: 18px;
+  background: #121216;
+  color: #f5ecdc;
+  box-shadow: var(--bw-shadow);
+}
+.bw-line-board .bw-chip {
+  box-shadow: 0 0 0 2px #121216;
+}
+.bw-line-head .bw-h2 {
+  margin-bottom: 6px;
+}
+.bw-line-disclaimer,
+.bw-line-foot {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #b9adc4;
+}
+.bw-line-foot {
+  margin-top: 14px;
+}
+.bw-line-table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+.bw-line-table thead th {
+  font: 600 0.72rem "IBM Plex Mono", monospace;
+  color: #b9adc4;
+  text-align: right;
+}
+.bw-line-table thead th:first-child,
+.bw-line-table tbody th {
+  text-align: left;
+}
+.bw-line-table tbody th {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bw-line-table td {
+  text-align: right;
+}
+.bw-line-table tr.is-fav th::after {
+  content: "FAV";
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f2b84b;
+  color: #121216;
+  font: 700 0.62rem "IBM Plex Mono", monospace;
+  vertical-align: middle;
+}
+.bw-flip {
+  display: inline-flex;
+  gap: 2px;
+}
+.bw-flip-cell {
+  display: inline-grid;
+  place-items: center;
+  min-width: 0.95em;
+  padding: 3px 1px;
+  border-radius: 3px;
+  background: linear-gradient(#26262c 50%, #1b1b20 50%);
+  color: #ffc94a;
+  font: 700 1.05rem "IBM Plex Mono", monospace;
+  animation: bw-flip 520ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(var(--d) * 70ms + 200ms);
+}
+
+/* ---- targets ---- */
+.bw-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.bw-goals-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-family: "Bungee", sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+}
+.bw-goals ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-goal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-goal-label {
+  margin: 0;
+  font-weight: 700;
+}
+.bw-goal-detail {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--bw-ink-soft);
+}
+.bw-rack {
+  display: grid;
+  gap: 2px;
+  flex: none;
+}
+.bw-rack-row {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+.bw-rack-pin {
+  width: 7px;
+  height: 11px;
+  border-radius: 4px 4px 3px 3px;
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+}
+.bw-rack-pin.is-up {
+  background: var(--bw-accent);
+  box-shadow: none;
+}
+
+/* ---- calendar heatmap ---- */
+.bw-heat-scroll {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.bw-heat-grid {
+  display: grid;
+  gap: 6px;
+  width: max-content;
+}
+.bw-heat-row {
+  display: grid;
+  grid-template-columns: 110px repeat(var(--weeks), 22px);
+  gap: 4px;
+  align-items: center;
+}
+.bw-heat-month {
+  font: 0.7rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+  white-space: nowrap;
+}
+.bw-heat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.bw-heat-cell {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--hue) calc(var(--lvl) * 18% + 8%), var(--bw-surface));
+}
+.bw-heat-cell--cha { --hue: var(--bw-cha); }
+.bw-heat-cell--van { --hue: var(--bw-van); }
+.bw-heat-cell--legend { --hue: var(--bw-ink); display: inline-block; width: 14px; height: 14px; }
+.bw-heat-cell.is-empty {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+}
+.bw-heat-cell:not(.is-empty):not(.bw-heat-cell--legend) {
+  transition: transform 150ms var(--bw-ease);
+}
+.bw-heat-cell:not(.is-empty):not(.bw-heat-cell--legend):hover {
+  transform: scale(1.25);
+}
+.bw-heat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: var(--bw-ink-soft);
+}
+.bw-heat-legend .bw-heat-cell--legend:first-of-type { margin-left: 6px; }
+.bw-heat-legend .bw-heat-cell--legend:last-of-type { margin-right: 6px; }
+
+/* ---- handicap simulator ---- */
+.bw-sim {
+  padding: clamp(20px, 3vw, 36px);
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+.bw-sim-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+.bw-sim-head .bw-h2 {
+  margin: 0;
+}
+.bw-sim-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 4vw, 48px);
+}
+.bw-sim-dial {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.bw-sim-dial label {
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-sim-big {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(2.6rem, 6vw, 3.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bw-sim input[type="range"] {
+  width: 100%;
+  accent-color: var(--bw-accent);
+  height: 28px;
+}
+.bw-sim-out {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 6px 0 0;
+}
+.bw-sim-out dt {
+  font-size: 0.8rem;
+  color: var(--bw-ink-soft);
+}
+.bw-sim-out dd {
+  margin: 4px 0 0;
+  font: 700 1.5rem "IBM Plex Mono", monospace;
+}
+.bw-sim-out small {
+  font: 600 0.85rem "Space Grotesk", sans-serif;
+  color: var(--bw-ink-soft);
+}
+.bw-sim-out small.is-up { color: var(--bw-good); }
+.bw-sim-out small.is-down { color: var(--bw-bad); }
+.bw-sim-answer {
+  margin: 6px 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.bw-sim-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--bw-ink-soft);
+}
+
+/* ---- season by season ---- */
+.bw-seasons-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(230px, 1fr);
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+}
+.bw-season-card {
+  scroll-snap-align: start;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-season-card h3 {
+  margin: 0 0 12px;
+  font-family: "Bungee", sans-serif;
+  font-weight: 400;
+  font-size: 1.05rem;
+}
+.bw-season-card dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.bw-season-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bw-season-line dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 0.85rem "IBM Plex Mono", monospace;
+}
+.bw-season-line dd {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+}
+.bw-season-line strong {
+  font: 700 1.3rem "IBM Plex Mono", monospace;
+}
+.bw-season-line small {
+  font-size: 0.78rem;
+  color: var(--bw-ink-soft);
+}
+.bw-season-crown {
+  color: var(--bw-accent);
+}
+.bw-seasons-note {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+}
+
+/* ---- wrap card dialog ---- */
+.bw-wrap {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: var(--bw-card);
+  color: var(--bw-ink);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.6);
+}
+.bw-wrap::backdrop {
+  background: rgba(18, 12, 20, 0.62);
+  backdrop-filter: blur(4px);
+}
+.bw-wrap[open] {
+  animation: bw-pop 360ms var(--bw-ease) both;
+}
+.bw-wrap-inner {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+.bw-wrap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bw-wrap-head .bw-h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.bw-wrap-x {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bw-surface-2);
+  color: var(--bw-ink);
+  cursor: pointer;
+}
+.bw-wrap-preview img,
+.bw-wrap-skel {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 10px;
+}
+.bw-wrap-preview img {
+  max-height: 60dvh;
+  object-fit: contain;
+  background: #121216;
+}
+
+/* ---- toast ---- */
+.bw-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--bw-ink);
+  color: var(--bw-card);
+  font-weight: 700;
+  box-shadow: var(--bw-shadow);
+  transform: translateX(-50%);
+  animation: bw-toast 400ms var(--bw-ease) both;
+}
+.bw-toast .fa-trophy {
+  color: var(--bw-accent);
+}
+
+/* ---- neon sign button + "tilt" egg ---- */
+.bw-sign-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.bw-sign-word > span {
+  display: inline-block;
+}
+.bw-sign-btn:active .bw-sign-word {
+  filter: brightness(1.3);
+}
+.bw-sign-btn.is-broken .bw-sign-e {
+  animation: bw-e-fall 1100ms cubic-bezier(0.5, 0, 0.9, 0.5) forwards;
+}
+.bw-sign-btn.is-broken .bw-sign-word {
+  animation: bw-short 2.6s steps(1) infinite;
+}
+
+/* ---- cosmic bowling (Konami) ----
+   :root raises specificity past `[data-theme="dark"] .bw`, so the egg wins
+   in both site themes. */
+:root .bw.bw--cosmic {
+  --bw-surface: #0e0a1a;
+  --bw-surface-2: #1a1330;
+  --bw-card: #171029;
+  --bw-ink: #f4ecff;
+  --bw-ink-soft: #c3b3e6;
+  --bw-line: rgba(190, 140, 255, 0.28);
+  --bw-accent: #7dffcf;
+  --bw-accent-ink: #0e0a1a;
+  --bw-cha: #2a9fd6;
+  --bw-van: #e85a48;
+  --bw-good: #8fdc86;
+  --bw-bad: #ff8a78;
+}
+.bw.bw--cosmic .bw-lane,
+:root .bw--cosmic .bw-lane {
+  background:
+    radial-gradient(30% 25% at 20% 20%, rgba(255, 60, 200, 0.28), transparent 70%),
+    radial-gradient(30% 25% at 80% 60%, rgba(60, 200, 255, 0.26), transparent 70%),
+    radial-gradient(25% 20% at 40% 90%, rgba(125, 255, 207, 0.2), transparent 70%),
+    #0e0a1a;
+  animation: bw-cosmic 9s linear infinite;
+}
+.bw--cosmic .bw-card,
+.bw--cosmic .bw-goal,
+.bw--cosmic .bw-trophy,
+.bw--cosmic .bw-sim,
+.bw--cosmic .bw-entry {
+  box-shadow: inset 0 0 0 1px var(--bw-line), 0 0 24px -6px rgba(190, 120, 255, 0.55);
+}
+.bw--cosmic .bw-btn--primary {
+  box-shadow: 0 4px 0 #2bb98a, 0 0 22px rgba(125, 255, 207, 0.5);
+}
+
+/* ---- Lebowski page tint ---- */
+.bw--dude .bw-sign-word {
+  color: #fff0d6;
+  text-shadow: 0 0 4px #fff, 0 0 16px #c89b3c, 0 0 34px #7a1f1f;
+}
+
+@keyframes bw-flip {
+  from { transform: rotateX(90deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes bw-pop {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes bw-toast {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes bw-e-fall {
+  0% { transform: none; opacity: 1; }
+  20% { transform: rotate(18deg); opacity: 0.4; }
+  28% { transform: rotate(14deg); opacity: 1; }
+  100% { transform: translateY(180px) rotate(120deg); opacity: 0; }
+}
+@keyframes bw-short {
+  0%, 100% { opacity: 1; }
+  4% { opacity: 0.35; }
+  7% { opacity: 1; }
+  52% { opacity: 0.6; }
+  55% { opacity: 1; }
+}
+@keyframes bw-cosmic {
+  to { filter: hue-rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .bw-duo {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .bw-sim-grid,
+  .bw-goals-grid {
+    grid-template-columns: 1fr;
+  }
+  .bw-heat-row {
+    grid-template-columns: 90px repeat(var(--weeks), 20px);
+  }
+  .bw-heat-cell {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-flip-cell,
+  .bw-wrap[open],
+  .bw-toast,
+  .bw--cosmic .bw-lane,
+  .bw-sign-btn.is-broken .bw-sign-word {
+    animation: none;
+  }
+  .bw-sign-btn.is-broken .bw-sign-e {
+    animation: none;
+    opacity: 0;
+  }
+  .bw-heat-cell,
+  .bw-season-pill {
+    transition: none;
+  }
+}

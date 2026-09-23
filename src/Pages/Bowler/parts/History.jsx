@@ -9,7 +9,7 @@ import { seriesTotal } from "../stats";
  */
 const PAGE = 6;
 
-const NightSheet = ({ night, getToken, onEdit, onDeleted }) => {
+const NightSheet = ({ night, getToken, onEdit, onWrap, onDeleted }) => {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -67,6 +67,9 @@ const NightSheet = ({ night, getToken, onEdit, onDeleted }) => {
         </p>
       )}
       <div className="bw-night-actions">
+        <button type="button" className="bw-link" onClick={() => onWrap(night.date)}>
+          <i className="fa-solid fa-image" aria-hidden="true" /> Wrap card
+        </button>
         <button type="button" className="bw-link" onClick={() => onEdit(night)}>
           <i className="fa-solid fa-pen" aria-hidden="true" /> Edit
         </button>
@@ -89,7 +92,7 @@ const NightSheet = ({ night, getToken, onEdit, onDeleted }) => {
   );
 };
 
-const History = ({ nights, getToken, onEdit, onDeleted }) => {
+const History = ({ nights, getToken, onEdit, onWrap, onDeleted }) => {
   const [showAll, setShowAll] = useState(false);
   if (!nights.length) return null;
   const visible = showAll ? nights : nights.slice(0, PAGE);
@@ -106,6 +109,7 @@ const History = ({ nights, getToken, onEdit, onDeleted }) => {
             night={n}
             getToken={getToken}
             onEdit={onEdit}
+            onWrap={onWrap}
             onDeleted={onDeleted}
           />
         ))}

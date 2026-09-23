@@ -112,14 +112,16 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
     }
     setSaving(true);
     setError(null);
+    const entries = BOWLERS.filter(({ key }) => form.rows[key].include).map(({ key }) => ({
+      bowler: key,
+      games: form.rows[key].games.map(Number),
+    }));
+    const bowledOn = form.bowledOn;
     const result = await saveNight(getToken, {
-      bowledOn: form.bowledOn,
+      bowledOn,
       note: form.note,
       source: form.source,
-      entries: BOWLERS.filter(({ key }) => form.rows[key].include).map(({ key }) => ({
-        bowler: key,
-        games: form.rows[key].games.map(Number),
-      })),
+      entries,
     });
     setSaving(false);
     if (!result.ok) {
@@ -128,7 +130,7 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
     }
     setForm(blankForm());
     setExtras([]);
-    onSaved();
+    onSaved({ bowledOn, entries });
   }
 
   const mismatched = extras.filter((r) => r.key && r.mismatch);

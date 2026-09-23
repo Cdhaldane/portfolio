@@ -75,13 +75,80 @@
   100% { opacity: 0; }
 }
 
+/* ---- variants ---- */
+.sb--club .sb-word {
+  color: #fff3b0;
+  text-shadow: 0 0 10px #ffd23c, 0 0 36px #ff9a1f;
+}
+.sb--perfect .sb-word {
+  animation-duration: 2200ms;
+  background: linear-gradient(90deg, #ffe45c, #ff7ac6, #6be4ff, #ffe45c);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 14px rgba(255, 200, 80, 0.8));
+  animation: sb-flash 2200ms steps(1) 600ms both, sb-sheen 1.2s linear infinite;
+}
+.sb-confetti span {
+  position: fixed;
+  top: -20px;
+  left: var(--cx);
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  background: hsl(var(--hue) 90% 60%);
+  animation: sb-fall 2400ms cubic-bezier(0.3, 0.6, 0.5, 1) var(--cd) both;
+}
+
+/* Gutter: the ball drifts off the lane, pins shrug, word droops. */
+.sb--gutter .sb-ball {
+  animation: sb-gutter 1100ms cubic-bezier(0.4, 0, 0.8, 0.6) both;
+}
+.sb--gutter .sb-pin {
+  animation: sb-wobble 600ms ease-in-out 900ms 2 both;
+}
+.sb--gutter .sb-word {
+  font-family: "Bungee", sans-serif;
+  color: #9dc4ff;
+  text-shadow: 0 0 12px rgba(80, 140, 255, 0.7);
+  animation: sb-droop 1400ms cubic-bezier(0.5, 0, 0.7, 1) 900ms both;
+}
+
+@keyframes sb-sheen {
+  to { background-position: 300% 0; }
+}
+@keyframes sb-fall {
+  from { transform: translateY(0) rotate(0); opacity: 1; }
+  to { transform: translateY(110vh) rotate(calc(var(--cr) + 720deg)); opacity: 0.6; }
+}
+@keyframes sb-gutter {
+  0% { transform: translate(-46vw, 0) rotate(-720deg); opacity: 1; }
+  60% { transform: translate(-6vw, -10px) rotate(-120deg); opacity: 1; }
+  100% { transform: translate(-3vw, 90px) rotate(0) scale(0.6); opacity: 0; }
+}
+@keyframes sb-wobble {
+  0%, 100% { transform: translate(calc(var(--x) * 20px), calc(var(--y) * 16px)) rotate(0); }
+  50% { transform: translate(calc(var(--x) * 20px), calc(var(--y) * 16px)) rotate(6deg); }
+}
+@keyframes sb-droop {
+  0% { opacity: 0; transform: translateY(-10px); }
+  15% { opacity: 1; transform: none; }
+  70% { opacity: 1; transform: translateY(12px) rotate(4deg); }
+  100% { opacity: 0; transform: translateY(40px) rotate(8deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sb-deck,
-  .sb-ball {
+  .sb-ball,
+  .sb-confetti {
     display: none;
   }
-  .sb-word {
+  .sb .sb-word {
     animation: none;
+    color: #ffe45c;
+    filter: none;
     font-family: "Bungee", sans-serif;
     font-size: 1.4rem;
     padding: 10px 18px;

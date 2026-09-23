@@ -178,6 +178,42 @@
   to { visibility: hidden; }
 }
 
+/* ---- Lebowski mode: the rug ---- */
+.rs--dude .rs-screen {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 18%, rgba(232, 217, 176, 0.9) 18% 19.5%, transparent 19.5%),
+    repeating-conic-gradient(from 45deg at 50% 50%, #7a1f1f 0 10deg, #1f2a5a 10deg 20deg),
+    radial-gradient(circle at 50% 50%, #c89b3c 0 30%, #7a1f1f 30% 60%, #1f2a5a 60%);
+  animation: rs-rug-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.rs--dude .rs-screen::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 6px double #e8d9b0;
+  border-radius: 8px;
+  pointer-events: none;
+}
+.rs--dude .rs-table {
+  position: relative;
+  background: rgba(20, 12, 30, 0.72);
+  border-color: #e8d9b0;
+  box-shadow: none;
+}
+.rs--dude .rs-table th,
+.rs--dude .rs-table td {
+  border-bottom-color: #e8d9b0;
+}
+.rs--dude .rs-footer {
+  position: relative;
+  background: linear-gradient(90deg, #c89b3c, #7a1f1f);
+}
+
+@keyframes rs-rug-in {
+  from { transform: rotate(-4deg) scale(0.94); filter: saturate(0); }
+  to { transform: none; filter: none; }
+}
+
 @media (max-width: 768px) {
   .rs {
     justify-self: stretch;
@@ -193,6 +229,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rs-screen,
+  .rs--dude .rs-screen,
   .rs-table tbody tr,
   .rs-blink {
     animation: none;

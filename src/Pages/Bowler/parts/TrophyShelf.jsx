@@ -1,11 +1,13 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { BOWLERS, formatNight } from "../bowlers";
+import { SECRETS } from "../eggs";
 
 /*
  * Achievements as a scroll-snap shelf of trophies. Each trophy shows both
- * bowlers' slots, lit with the night it was first earned.
+ * bowlers' slots, lit with the night it was first earned. Secret trophies
+ * (easter eggs) sit at the end as "???" until this browser finds them.
  */
-const TrophyShelf = ({ trophies }) => {
+const TrophyShelf = ({ trophies, secrets = [] }) => {
   const reduce = useReducedMotion();
   const catalog = trophies[BOWLERS[0].key];
   const earnedCount = BOWLERS.reduce(
@@ -49,6 +51,18 @@ const TrophyShelf = ({ trophies }) => {
                 })}
               </ul>
             </motion.li>
+          );
+        })}
+        {SECRETS.map((secret) => {
+          const found = secrets.includes(secret.id);
+          return (
+            <li key={secret.id} className={`bw-trophy bw-trophy--secret ${found ? "is-lit" : ""}`}>
+              <span className="bw-trophy-icon" aria-hidden="true">
+                <i className={`fa-solid ${found ? secret.icon : "fa-question"}`} />
+              </span>
+              <h3>{found ? secret.label : "Secret trophy"}</h3>
+              <p className="bw-trophy-desc">{found ? secret.desc : "Keep poking around."}</p>
+            </li>
           );
         })}
       </ul>

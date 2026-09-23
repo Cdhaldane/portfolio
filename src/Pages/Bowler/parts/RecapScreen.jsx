@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BOWLERS, formatNight } from "../bowlers";
 import { averageBefore, seriesFor, seriesTotal } from "../stats";
 import "./RecapScreen.css";
@@ -29,7 +30,31 @@ function footerLine(night) {
   return `${winner.name} takes the night by ${Math.abs(ta - tb)} pins`;
 }
 
-const RecapScreen = ({ loading, night, series }) => {
+// Lebowski mode (type "dude"): the screen becomes the rug that really tied
+// the room together, and the footer quotes the Dude.
+const DUDE_LINES = [
+  "The Dude abides.",
+  "Mark it zero!",
+  "That rug really tied the room together.",
+  "Careful, man, there's a beverage here.",
+  "Obviously you're not a golfer.",
+  "Yeah, well, that's just, like, your opinion, man.",
+];
+const DUDE_TICK_MS = 3800;
+
+const useDudeLine = (on) => {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (!on) return undefined;
+    setI(0);
+    const id = setInterval(() => setI((n) => (n + 1) % DUDE_LINES.length), DUDE_TICK_MS);
+    return () => clearInterval(id);
+  }, [on]);
+  return DUDE_LINES[i];
+};
+
+const RecapScreen = ({ loading, night, series, dude = false }) => {
+  const dudeLine = useDudeLine(dude);
   let body;
   if (loading) {
     body = <p className="rs-status rs-blink">Loading recap</p>;
@@ -82,12 +107,16 @@ const RecapScreen = ({ loading, night, series }) => {
   }
 
   return (
-    <figure className="rs" aria-label="Latest league night recap">
+    <figure className={`rs ${dude ? "rs--dude" : ""}`} aria-label="Latest league night recap">
       <div className="rs-bezel">
         <div className="rs-screen">
           {body}
           <p className="rs-footer" aria-live="polite">
-            {night && !loading ? footerLine(night) : "Snap the screen after league"}
+            {dude
+              ? dudeLine
+              : night && !loading
+              ? footerLine(night)
+              : "Snap the screen after league"}
           </p>
         </div>
       </div>
