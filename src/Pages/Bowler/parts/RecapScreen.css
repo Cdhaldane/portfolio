@@ -1,0 +1,200 @@
+/* The alley recap monitor. Colors are fixed (not themed): it's a screen,
+   and it looks the same at noon or at cosmic bowling. */
+.rs {
+  --rs-field: #7a4a2a;
+  --rs-field-2: #5e3820;
+  --rs-neon: #43e46b;
+  --rs-text: #f4f1ff;
+  --rs-outline: #2c2a6b;
+  --rs-bar: #2f63e6;
+  margin: 0;
+  width: 100%;
+  max-width: 620px;
+  justify-self: end;
+  transform: rotate(-1.2deg);
+}
+
+.rs-bezel {
+  padding: 14px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #2a2a2e, #0f0f12 70%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 30px 60px -24px rgba(43, 29, 22, 0.55);
+}
+
+.rs-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 18px 18px 0;
+  background:
+    radial-gradient(120% 90% at 50% 40%, var(--rs-field) 0%, var(--rs-field-2) 100%);
+  color: var(--rs-text);
+  animation: rs-power 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center;
+}
+
+/* Scanlines + vignette. Lives on this fixed-size element, not the page. */
+.rs-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+    radial-gradient(130% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.45));
+}
+
+.rs-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid var(--rs-neon);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(67, 228, 107, 0.25), inset 0 0 18px rgba(67, 228, 107, 0.18);
+  font-family: "Bungee", "Space Grotesk", sans-serif;
+  font-style: italic;
+}
+
+.rs-table th,
+.rs-table td {
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--rs-neon);
+  text-shadow:
+    -1px -1px 0 var(--rs-outline),
+    1px -1px 0 var(--rs-outline),
+    -1px 1px 0 var(--rs-outline),
+    2px 2px 0 var(--rs-outline);
+}
+.rs-table td + td,
+.rs-table th + th,
+.rs-table th + td {
+  border-left: 2px solid rgba(244, 241, 255, 0.55);
+}
+.rs-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.rs-table thead th {
+  font-size: clamp(0.8rem, 1.6vw, 1.05rem);
+  text-align: right;
+}
+.rs-table thead .rs-team {
+  text-align: left;
+}
+.rs-total-h {
+  color: #ffe45c;
+}
+
+.rs-name {
+  text-align: left;
+  font-size: clamp(0.95rem, 2vw, 1.3rem);
+  white-space: nowrap;
+}
+.rs-chip {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--rs-text);
+  vertical-align: middle;
+}
+.rs-chip--cha { background: #2a9fd6; }
+.rs-chip--van { background: #e85a48; }
+
+.rs-num {
+  text-align: right;
+  font-size: clamp(1.05rem, 2.6vw, 1.6rem);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rs-total {
+  color: #ffe45c;
+}
+.rs-dash {
+  opacity: 0.5;
+}
+
+.rs-mark {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.7em;
+  font-style: normal;
+  text-shadow: none;
+}
+.rs-mark.is-beat { color: var(--rs-neon); }
+.rs-mark.is-miss { color: #ff5a5f; }
+
+.rs-table tbody tr {
+  animation: rs-row 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(500ms + var(--row, 0) * 120ms);
+}
+
+.rs-status {
+  margin: 0;
+  padding: 56px 0;
+  text-align: center;
+  font-family: "Bungee", sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: var(--rs-neon);
+  text-shadow: 0 0 12px rgba(67, 228, 107, 0.6);
+}
+.rs-blink {
+  animation: rs-blink 1s steps(2, start) infinite;
+}
+
+.rs-footer {
+  margin: 14px -18px 0;
+  padding: 8px 18px;
+  background: linear-gradient(90deg, #9dc4ff, var(--rs-bar) 30%, var(--rs-bar));
+  font-family: "Bungee", sans-serif;
+  font-style: italic;
+  font-size: clamp(0.75rem, 1.6vw, 0.95rem);
+  color: var(--rs-text);
+  text-shadow: 1px 1px 0 var(--rs-outline);
+}
+
+.rs-stand {
+  width: 90px;
+  height: 18px;
+  margin: 0 auto;
+  background: linear-gradient(#1b1b1f, #0d0d10);
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+}
+
+@keyframes rs-power {
+  0% { transform: scale(1, 0.004); filter: brightness(3); }
+  45% { transform: scale(1, 0.004); filter: brightness(3); }
+  100% { transform: scale(1, 1); filter: brightness(1); }
+}
+@keyframes rs-row {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rs-blink {
+  to { visibility: hidden; }
+}
+
+@media (max-width: 768px) {
+  .rs {
+    justify-self: stretch;
+    transform: none;
+  }
+  .rs-bezel { padding: 8px; }
+  .rs-screen { padding: 10px 10px 0; }
+  .rs-table th,
+  .rs-table td { padding: 6px 6px; }
+  .rs-footer { margin: 10px -10px 0; padding: 6px 10px; }
+  .rs-mark { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-screen,
+  .rs-table tbody tr,
+  .rs-blink {
+    animation: none;
+  }
+}

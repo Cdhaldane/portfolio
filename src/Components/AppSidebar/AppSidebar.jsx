@@ -12,9 +12,10 @@ const SOCIAL_LINKS = [
 
 // Routes that render their own navigation instead of the shared rail.
 // The dashboard ("/dashboard*") is a self-contained cyberpunk surface;
-// budgetter ("/budgetter*") is a private tool behind its own auth gate;
-// gallows-hymn ("/gallows-hymn") is a full-bleed game launcher.
-const HIDE_SIDEBAR_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn"];
+// budgetter ("/budgetter*") and bowler ("/bowler*") are private tools
+// behind their own auth gate; gallows-hymn ("/gallows-hymn") is a
+// full-bleed game launcher.
+const HIDE_SIDEBAR_PREFIXES = ["/dashboard", "/budgetter", "/bowler", "/gallows-hymn"];
 
 /**
  * AppSidebar — the reusable left rail shared across the site.

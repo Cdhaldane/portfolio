@@ -48,6 +48,9 @@ const Budgetter = lazy(() => import("./Pages/Budgetter/Budgetter"));
 const GallowsHymn = lazy(() =>
   import("./Pages/GallowsHymn/GallowsHymnLauncher")
 );
+// Same lazy-Clerk pattern for the private /bowler league tracker.
+const BowlerGate = lazy(() => import("./Pages/Bowler/BowlerGate"));
+const Bowler = lazy(() => import("./Pages/Bowler/Bowler"));
 // Dev-only design preview (mock data, no auth) — dead-code eliminated from
 // production builds by the NODE_ENV check at the route below.
 const BudgetPreview =
@@ -96,6 +99,9 @@ const App = () => {
             <Route path="/gallows-hymn" element={<GallowsHymn />} />
             <Route path="/budgetter" element={<BudgetGate />}>
               <Route index element={<Budgetter />} />
+            </Route>
+            <Route path="/bowler" element={<BowlerGate />}>
+              <Route index element={<Bowler />} />
             </Route>
             {BudgetPreview && (
               <Route path="/budgetter-preview" element={<BudgetPreview />} />

@@ -1,0 +1,102 @@
+.sb {
+  position: fixed;
+  inset: auto 0 12vh 0;
+  height: 260px;
+  z-index: 60; /* above page chrome, below Clerk's modals */
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.sb-deck {
+  position: absolute;
+  left: 50%;
+  bottom: 70px;
+}
+
+.sb-pin {
+  position: absolute;
+  width: 16px;
+  height: 40px;
+  margin-left: -8px;
+  border-radius: 8px 8px 6px 6px / 12px 12px 6px 6px;
+  background:
+    linear-gradient(transparent 26%, #d23f35 26% 32%, transparent 32% 38%, #d23f35 38% 44%, transparent 44%),
+    radial-gradient(60% 40% at 50% 20%, #fff, #f1e9dc);
+  box-shadow: inset -3px 0 4px rgba(0, 0, 0, 0.12);
+  transform: translate(calc(var(--x) * 20px), calc(var(--y) * 16px));
+  animation: sb-scatter 900ms cubic-bezier(0.2, 0.7, 0.3, 1) 520ms both;
+}
+
+.sb-ball {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, #3c3c44 0 3px, transparent 4px),
+    radial-gradient(circle at 54% 26%, #3c3c44 0 3px, transparent 4px),
+    radial-gradient(circle at 46% 42%, #3c3c44 0 3px, transparent 4px),
+    radial-gradient(circle at 30% 30%, #6b8cff, #1a2a8a 70%);
+  animation: sb-roll 620ms cubic-bezier(0.5, 0, 0.9, 0.6) both;
+}
+
+.sb-word {
+  margin: 0;
+  font-family: "Monoton", "Bungee", sans-serif;
+  font-size: clamp(3rem, 10vw, 6rem);
+  color: #ffe45c;
+  text-shadow: 0 0 10px rgba(255, 180, 60, 0.9), 0 0 32px rgba(255, 90, 60, 0.6);
+  animation: sb-flash 1100ms steps(1) 600ms both;
+}
+
+@keyframes sb-roll {
+  from { transform: translate(-46vw, 0) rotate(-720deg); opacity: 1; }
+  88% { opacity: 1; }
+  to { transform: translate(0, -40px) rotate(0) scale(0.7); opacity: 0; }
+}
+
+@keyframes sb-scatter {
+  to {
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+    opacity: 0;
+  }
+}
+
+@keyframes sb-flash {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  16% { opacity: 0.2; }
+  24% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-deck,
+  .sb-ball {
+    display: none;
+  }
+  .sb-word {
+    animation: none;
+    font-family: "Bungee", sans-serif;
+    font-size: 1.4rem;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #2b1d16;
+    text-shadow: none;
+  }
+  .sb-word > [aria-hidden] {
+    display: none;
+  }
+  .sb-word .sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+    margin: 0;
+  }
+}

@@ -1,0 +1,60 @@
+/* Sign-in screen for /bowler: the neon sign on a lane, nothing else. */
+.bwg {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background:
+    repeating-linear-gradient(90deg, rgba(176, 124, 64, 0.1) 0 38px, rgba(176, 124, 64, 0.02) 38px 40px),
+    #f7eedb;
+  color: #2b1d16;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+[data-theme="dark"] .bwg {
+  background:
+    radial-gradient(40% 30% at 20% 20%, rgba(120, 60, 255, 0.18), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(140, 90, 255, 0.07) 0 38px, rgba(140, 90, 255, 0.01) 38px 40px),
+    #1a1522;
+  color: #f5ecdc;
+}
+.bwg-inner {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+.bwg-sign {
+  margin: 0;
+  padding: 10px 28px 4px;
+  border-radius: 999px;
+  background: #22160f;
+  box-shadow: inset 0 0 0 3px #3a2618, inset 0 0 0 6px rgba(242, 184, 75, 0.35);
+  font-family: "Monoton", "Bungee", sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 9vw, 4.5rem);
+  line-height: 1.1;
+  color: #ffe9a8;
+  text-shadow: 0 0 4px #fff3c4, 0 0 14px #f2b84b, 0 0 34px #ff6a3d;
+  transform: rotate(-3deg);
+}
+.bwg-sub {
+  margin: 0;
+  color: inherit;
+  opacity: 0.8;
+}
+.bwg-card {
+  max-width: 420px;
+  margin: 0;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+[data-theme="dark"] .bwg-card {
+  background: #231d2e;
+}
+.bwg-back {
+  color: inherit;
+  font-weight: 600;
+  opacity: 0.8;
+}

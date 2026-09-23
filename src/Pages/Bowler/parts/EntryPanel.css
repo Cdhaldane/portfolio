@@ -1,0 +1,344 @@
+/* Entry: photo reader + the score-sheet review form. */
+.bw-entry {
+  max-width: 1180px;
+  margin: 0 auto clamp(48px, 7vw, 88px);
+  padding: clamp(20px, 3vw, 36px);
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+
+.bw-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+.bw-entry-head .bw-h2 {
+  margin: 0;
+}
+
+.bw-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bw-surface-2);
+}
+.bw-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bw-ink-soft);
+  font: 600 0.95rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+  transition: background 200ms var(--bw-ease), color 200ms;
+}
+.bw-tab.is-on {
+  background: var(--bw-ink);
+  color: var(--bw-card);
+}
+
+.bw-entry-body {
+  display: grid;
+  gap: 32px;
+}
+.bw-entry-body.has-photo {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+}
+
+/* ---- photo drop ---- */
+.bw-drop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 32px 20px;
+  border-radius: 18px;
+  border: 2px dashed var(--bw-line);
+  background:
+    repeating-linear-gradient(90deg, var(--bw-board-a) 0 22px, var(--bw-board-b) 22px 24px),
+    var(--bw-surface);
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 200ms, transform 200ms var(--bw-ease);
+}
+.bw-drop:hover,
+.bw-drop.is-drag {
+  border-color: var(--bw-accent);
+}
+.bw-drop.is-drag {
+  transform: scale(1.01);
+}
+.bw-drop.is-busy {
+  cursor: progress;
+}
+.bw-drop:focus-within {
+  outline: 3px solid var(--bw-accent);
+  outline-offset: 2px;
+}
+.bw-drop-copy {
+  display: grid;
+  gap: 4px;
+}
+.bw-drop-copy strong {
+  font-size: 1.1rem;
+}
+.bw-drop-copy span {
+  color: var(--bw-ink-soft);
+  font-size: 0.92rem;
+}
+.bw-drop-preview {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: var(--bw-shadow);
+}
+
+.bw-drop-ball,
+.bw-roll-ball {
+  display: block;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, #2d2d35 0 4px, transparent 5px),
+    radial-gradient(circle at 56% 26%, #2d2d35 0 4px, transparent 5px),
+    radial-gradient(circle at 47% 44%, #2d2d35 0 4px, transparent 5px),
+    radial-gradient(circle at 30% 28%, #ff8a6b, #a2231b 72%);
+  box-shadow: var(--bw-shadow);
+  transition: transform 500ms var(--bw-ease);
+}
+.bw-drop:hover .bw-drop-ball {
+  transform: rotate(200deg);
+}
+
+.bw-roll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  height: 30px;
+}
+/* The track spans the drop zone, so translate % = the zone's width. */
+.bw-roll-track {
+  display: block;
+  width: 100%;
+  animation: bw-roll 1.3s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+.bw-roll-ball {
+  width: 26px;
+  height: 26px;
+  animation: bw-spin 0.65s linear infinite;
+}
+
+.bw-photo-note {
+  margin: 12px 4px 0;
+  color: var(--bw-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.bw-photo-note .fa-circle-check {
+  color: var(--bw-good);
+}
+
+/* ---- form ---- */
+.bw-form {
+  display: grid;
+  gap: 18px;
+}
+
+.bw-field {
+  display: grid;
+  gap: 8px;
+}
+.bw-field label,
+.bw-frame label,
+.bw-frame > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-field--date {
+  max-width: 220px;
+}
+
+.bw-form input[type="date"],
+.bw-form input[type="text"],
+.bw-frame input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bw-surface);
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+  color: var(--bw-ink);
+  font: 500 1rem "Space Grotesk", sans-serif;
+  color-scheme: light;
+}
+[data-theme="dark"] .bw-form input {
+  color-scheme: dark;
+}
+.bw-form input::placeholder {
+  color: var(--bw-ink-soft);
+  opacity: 0.8;
+}
+.bw-form input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--bw-accent);
+}
+.bw-frame input[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--bw-bad);
+}
+
+.bw-sheet {
+  margin: 0;
+  padding: 14px 16px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--bw-surface);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  transition: opacity 200ms;
+}
+.bw-sheet.is-off {
+  opacity: 0.55;
+}
+.bw-sheet-name {
+  float: left; /* pull the legend inside the padded box */
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 0;
+}
+.bw-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Bungee", sans-serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.bw-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--bw-ink);
+}
+
+.bw-frames {
+  clear: both;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.9fr);
+  gap: 10px;
+}
+.bw-frame {
+  display: grid;
+  gap: 6px;
+}
+.bw-frame input {
+  height: 56px;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.bw-frame--total output {
+  display: grid;
+  place-items: center;
+  height: 56px;
+  border-radius: 10px;
+  background: var(--bw-ink);
+  color: var(--bw-card);
+  font: 700 1.45rem "IBM Plex Mono", monospace;
+}
+
+.bw-warn {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bw-surface-2);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.bw-extras p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--bw-ink-soft);
+}
+.bw-extras ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-extras li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  font-size: 0.92rem;
+}
+.bw-extras-name {
+  font-weight: 700;
+}
+.bw-extras-games {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+.bw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@keyframes bw-roll {
+  from { transform: translateX(12px); }
+  to { transform: translateX(calc(100% - 38px)); }
+}
+@keyframes bw-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .bw-entry-body.has-photo {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .bw-frames {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .bw-frame--total {
+    grid-column: 1 / -1;
+  }
+  .bw-frame--total output {
+    height: 44px;
+  }
+  .bw-field--date {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-roll-track,
+  .bw-roll-ball {
+    animation: none;
+  }
+  .bw-drop,
+  .bw-drop-ball,
+  .bw-tab {
+    transition: none;
+  }
+}

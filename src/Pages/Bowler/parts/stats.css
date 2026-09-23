@@ -1,0 +1,580 @@
+/* Stat sections: bowler cards, rivalry, trend chart, trophies, history. */
+.bw-cards,
+.bw-h2h,
+.bw-trend,
+.bw-trophies,
+.bw-history {
+  max-width: 1180px;
+  margin: 0 auto clamp(48px, 7vw, 88px);
+}
+
+/* ---- bowler cards: asymmetric pair, second card drops a little ---- */
+.bw-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 32px);
+}
+.bw-cards > :nth-child(2) {
+  margin-top: 40px;
+}
+
+.bw-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+/* Identity stripe on the left edge, like a lane marker. */
+.bw-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+}
+.bw-card--cha::before { background: var(--bw-cha); }
+.bw-card--van::before { background: var(--bw-van); }
+
+.bw-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bw-card-head h3 {
+  margin: 0;
+  font-family: "Bungee", sans-serif;
+  font-weight: 400;
+  font-size: 1.35rem;
+}
+.bw-card-nights {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  color: var(--bw-ink-soft);
+}
+
+.bw-ball {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex: none;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(0, 0, 0, 0.55) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 56% 26%, rgba(0, 0, 0, 0.55) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 47% 44%, rgba(0, 0, 0, 0.55) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.55), transparent 55%),
+    var(--ball);
+  transition: transform 600ms var(--bw-ease);
+}
+.bw-ball--cha { --ball: var(--bw-cha); }
+.bw-ball--van { --ball: var(--bw-van); }
+.bw-card:hover .bw-ball {
+  transform: rotate(240deg);
+}
+
+.bw-card-avg {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 22px 0 4px;
+}
+.bw-card-avg-num {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(3.2rem, 7vw, 4.75rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bw-card-avg-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.95rem;
+  color: var(--bw-ink-soft);
+}
+.bw-card-form {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+  color: var(--bw-ink-soft);
+}
+.bw-card-form .fa-arrow-trend-up { color: var(--bw-good); }
+.bw-card-form .fa-arrow-trend-down { color: var(--bw-bad); }
+
+.bw-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+  margin: 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--bw-line);
+}
+.bw-stat dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-stat dd {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin: 4px 0 0;
+}
+.bw-stat-value {
+  font: 700 1.6rem "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.bw-stat-sub {
+  font-size: 0.8rem;
+  color: var(--bw-ink-soft);
+}
+
+.bw-card-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bw-line);
+}
+.bw-card-foot-title {
+  margin: 0;
+  font-family: "Bungee", sans-serif;
+  font-size: 1rem;
+}
+.bw-card-foot-sub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--bw-ink-soft);
+}
+
+/* Per-game bars. Thin, rounded data-end, anchored at the baseline, no
+   background track. */
+.bw-splits {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 84px;
+}
+.bw-split {
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: 4px;
+  height: 100%;
+}
+.bw-split-bar {
+  width: 14px;
+  height: 52px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bw-ink-soft);
+  transform-origin: bottom;
+  transform: scaleY(var(--h));
+  transition: transform 800ms var(--bw-ease);
+}
+.bw-card--cha .bw-split-bar { background: var(--bw-cha); }
+.bw-card--van .bw-split-bar { background: var(--bw-van); }
+.bw-split-val {
+  font: 700 0.8rem "IBM Plex Mono", monospace;
+}
+.bw-split-label {
+  font: 0.7rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+.bw-card--skeleton {
+  min-height: 320px;
+}
+
+/* ---- rivalry: full-bleed dark scoreboard band ---- */
+.bw-h2h {
+  padding: clamp(24px, 4vw, 44px);
+  border-radius: 18px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 38px, transparent 38px 40px),
+    #22160f;
+  color: #f5ecdc;
+  box-shadow: var(--bw-shadow);
+}
+[data-theme="dark"] .bw-h2h {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 38px, transparent 38px 40px),
+    #0f0b15;
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+.bw-h2h .bw-muted {
+  color: #cdbfae;
+}
+.bw-h2h .bw-chip {
+  box-shadow: 0 0 0 2px #22160f;
+}
+.bw-h2h-grid {
+  display: grid;
+  gap: 24px;
+}
+.bw-h2h-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 28px);
+}
+.bw-h2h-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 1rem "IBM Plex Mono", monospace;
+  color: #cdbfae;
+}
+.bw-h2h-big {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(3.5rem, 11vw, 7rem);
+  line-height: 1;
+  color: #ffe45c;
+  text-shadow: 0 0 18px rgba(255, 190, 70, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+.bw-h2h-dash {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(2rem, 6vw, 4rem);
+  color: #cdbfae;
+}
+.bw-h2h-split {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+}
+.bw-h2h-seg {
+  flex-basis: 0;
+  border-radius: 4px;
+  transform-origin: left;
+  animation: bw-grow 900ms var(--bw-ease) both;
+}
+.bw-h2h-seg--cha { background: #2a9fd6; }
+.bw-h2h-seg--van { background: #e85a48; transform-origin: right; }
+
+.bw-h2h-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.bw-h2h-facts dt {
+  font-size: 0.8rem;
+  color: #cdbfae;
+}
+.bw-h2h-facts dd {
+  margin: 6px 0 0;
+  font: 700 1.5rem "IBM Plex Mono", monospace;
+}
+.bw-h2h-facts small {
+  font: 500 0.8rem "Space Grotesk", sans-serif;
+  color: #cdbfae;
+}
+
+/* ---- trend chart ---- */
+.bw-trend-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+.bw-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+.bw-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.bw-legend-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+}
+.bw-legend-swatch--cha { background: var(--bw-cha); }
+.bw-legend-swatch--van { background: var(--bw-van); }
+
+.bw-chart {
+  position: relative;
+  padding: 16px 8px 8px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  touch-action: pan-y;
+}
+.bw-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.bw-grid {
+  stroke: var(--bw-line);
+  stroke-width: 1;
+}
+.bw-axis {
+  font: 11px "IBM Plex Mono", monospace;
+  fill: var(--bw-ink-soft);
+}
+.bw-cross {
+  stroke: var(--bw-ink-soft);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.bw-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: bw-draw 1400ms var(--bw-ease) 200ms forwards;
+}
+.bw-dot {
+  stroke: var(--bw-card);
+  stroke-width: 2;
+  transition: r 150ms var(--bw-ease);
+}
+.bw-series--cha .bw-line { stroke: var(--bw-cha); }
+.bw-series--cha .bw-dot { fill: var(--bw-cha); }
+.bw-series--van .bw-line { stroke: var(--bw-van); }
+.bw-series--van .bw-dot { fill: var(--bw-van); }
+.bw-end-label {
+  font: 700 12px "IBM Plex Mono", monospace;
+  fill: var(--bw-ink);
+}
+
+.bw-tip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  min-width: 170px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bw-ink);
+  color: var(--bw-card);
+  font-size: 0.85rem;
+  pointer-events: none;
+  box-shadow: var(--bw-shadow);
+}
+.bw-tip p {
+  margin: 0;
+}
+.bw-tip-date {
+  margin-bottom: 6px !important;
+  font-weight: 700;
+}
+.bw-tip-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.bw-tip-row strong {
+  font-family: "IBM Plex Mono", monospace;
+}
+.bw-tip-row small {
+  grid-column: 2 / -1;
+  font-family: "IBM Plex Mono", monospace;
+  opacity: 0.75;
+}
+
+.bw-table-wrap {
+  overflow-x: auto;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.bw-table th,
+.bw-table td {
+  padding: 10px 16px;
+  text-align: left;
+}
+.bw-table thead th {
+  border-bottom: 1px solid var(--bw-line);
+  color: var(--bw-ink-soft);
+}
+.bw-table td {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* ---- trophies: scroll-snap shelf ---- */
+.bw-shelf {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 1fr);
+  gap: 16px;
+  margin: 0;
+  padding: 6px 2px 18px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.bw-trophy {
+  scroll-snap-align: start;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  opacity: 0.7;
+}
+.bw-trophy.is-lit {
+  opacity: 1;
+  box-shadow: inset 0 0 0 2px var(--bw-accent), var(--bw-shadow);
+}
+.bw-trophy-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bw-surface-2);
+  color: var(--bw-ink-soft);
+  font-size: 1.2rem;
+}
+.bw-trophy.is-lit .bw-trophy-icon {
+  background: var(--bw-accent);
+  color: var(--bw-accent-ink);
+}
+.bw-trophy h3 {
+  margin: 6px 0 0;
+  font-family: "Bungee", sans-serif;
+  font-weight: 400;
+  font-size: 1.02rem;
+}
+.bw-trophy-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--bw-ink-soft);
+}
+.bw-trophy-slots {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-trophy-slots li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.8rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+.bw-trophy-slots li.is-on {
+  color: var(--bw-ink);
+}
+.bw-trophy-when {
+  margin-left: auto;
+}
+
+/* ---- history: paper score sheets ---- */
+.bw-nights {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+.bw-night {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, var(--bw-line) 27px 28px),
+    var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  transition: transform 250ms var(--bw-ease), box-shadow 250ms var(--bw-ease);
+}
+.bw-night:hover {
+  transform: translateY(-3px) rotate(-0.4deg);
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+.bw-night-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.bw-night-src {
+  color: var(--bw-ink-soft);
+}
+.bw-night-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.bw-night-table th {
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bw-night-table td {
+  padding: 3px 0;
+  text-align: right;
+}
+.bw-night-total {
+  font-weight: 700;
+}
+.bw-night-note {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--bw-ink-soft);
+}
+.bw-night-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+@keyframes bw-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bw-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (max-width: 768px) {
+  .bw-cards {
+    grid-template-columns: 1fr;
+  }
+  .bw-cards > :nth-child(2) {
+    margin-top: 0;
+  }
+  .bw-h2h-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .bw-h2h-seg {
+    animation: none;
+  }
+  .bw-ball,
+  .bw-split-bar,
+  .bw-night,
+  .bw-dot {
+    transition: none;
+  }
+}
