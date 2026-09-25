@@ -2,14 +2,41 @@ import { useState } from "react";
 import { deleteSeries } from "../api";
 import { BOWLERS, formatNight } from "../bowlers";
 import { seriesTotal } from "../stats";
+import { ballRuns, gamesLabel } from "../balls";
 
 /*
  * Every league night as a little paper score sheet, newest first. Edit
  * reloads the night into the entry form; delete is a two-tap confirm.
+ * Tagged nights list the ball(s) each bowler threw under the scores.
  */
 const PAGE = 6;
 
-const NightSheet = ({ night, getToken, onEdit, onWrap, onDeleted }) => {
+const BallLine = ({ night, ballsById }) => {
+  const lines = BOWLERS.map((b) => ({
+    ...b,
+    runs: night.rows[b.key] ? ballRuns(night.rows[b.key], ballsById) : [],
+  })).filter((l) => l.runs.length);
+  if (!lines.length) return null;
+  return (
+    <ul className="bw-night-balls">
+      {lines.map(({ key, short, runs }) => (
+        <li key={key}>
+          <span className={`bw-chip bw-chip--${key}`} aria-hidden="true" />
+          <span className="sr-only">{short}:</span>
+          {runs.map(({ ball, games }) => (
+            <span key={ball.id} className="bw-night-ball">
+              <span className="bw-dot" style={{ "--ball": ball.color }} aria-hidden="true" />
+              {ball.name}
+              {gamesLabel(games) && <small>{gamesLabel(games)}</small>}
+            </span>
+          ))}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) => {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -60,6 +87,7 @@ const NightSheet = ({ night, getToken, onEdit, onWrap, onDeleted }) => {
           })}
         </tbody>
       </table>
+      <BallLine night={night} ballsById={ballsById} />
       {note && <p className="bw-night-note">{note}</p>}
       {error && (
         <p className="bw-error" role="alert">
@@ -92,7 +120,7 @@ const NightSheet = ({ night, getToken, onEdit, onWrap, onDeleted }) => {
   );
 };
 
-const History = ({ nights, getToken, onEdit, onWrap, onDeleted }) => {
+const History = ({ nights, ballsById, getToken, onEdit, onWrap, onDeleted }) => {
   const [showAll, setShowAll] = useState(false);
   if (!nights.length) return null;
   const visible = showAll ? nights : nights.slice(0, PAGE);
@@ -107,6 +135,7 @@ const History = ({ nights, getToken, onEdit, onWrap, onDeleted }) => {
           <NightSheet
             key={n.date}
             night={n}
+            ballsById={ballsById}
             getToken={getToken}
             onEdit={onEdit}
             onWrap={onWrap}

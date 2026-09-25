@@ -7,6 +7,15 @@ import { badges, bowlerStats, headToHead, nights, trendPoints } from "./stats";
 import { celebrationFor, milestones, tonightsLine, totals } from "./insights";
 import { ALL_TIME, inSeason, seasonList, seasonSummary } from "./seasons";
 import {
+  HOUSE_BALL,
+  ballReport,
+  ballSeed,
+  byId,
+  featuredBall,
+  lastBalls,
+  untaggedGames,
+} from "./balls";
+import {
   DUDE,
   KONAMI,
   SECRETS,
@@ -30,9 +39,13 @@ import Heatmap from "./parts/Heatmap";
 import WrapCard from "./parts/WrapCard";
 import NeonSign from "./parts/NeonSign";
 import { SeasonBar, SeasonCompare } from "./parts/Seasons";
+import BallBag from "./parts/BallBag";
+import BallReturn from "./parts/BallReturn";
+import GutterBall from "./parts/GutterBall";
 import "./Bowler.css";
 import "./parts/stats.css";
 import "./parts/insights.css";
+import "./parts/balls.css";
 
 /*
  * /bowler: a retro bowling-alley tracker for two league bowlers.
@@ -42,12 +55,18 @@ import "./parts/insights.css";
  * The season picker scopes the "how am I doing" panels; forward-looking
  * ones (targets, the line, the simulator) always use all-time numbers,
  * because that's what the league's handicap uses.
+ *
+ * The ball bag rides along with the scores: every game can point at the
+ * ball it was thrown with, and the page's bowling-ball motion (the return
+ * rail, the gutter progress ball, the lane) shows off the hottest one.
  */
 const TOAST_MS = 3200;
 
 const Bowler = () => {
   const { getToken } = useAuth();
   const [series, setSeries] = useState(null);
+  const [balls, setBalls] = useState([]);
+  const [bagRequest, setBagRequest] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [editing, setEditing] = useState(null);
   const [season, setSeason] = useState(ALL_TIME);
@@ -59,11 +78,13 @@ const Bowler = () => {
   const [soundOn, toggleSound] = useSoundSetting();
   const { found, discover } = useSecrets();
   const entryRef = useRef(null);
+  const bagRef = useRef(null);
 
   const refresh = useCallback(async () => {
     const result = await loadSeries(getToken);
     if (result.ok) {
       setSeries(result.series);
+      setBalls(result.balls);
       setLoadError(null);
     } else {
       setLoadError(result.error);
@@ -121,8 +142,26 @@ const Bowler = () => {
     [all, scoped]
   );
 
+  // Bag stats follow the season picker; the picker default and the score
+  // sheet lookup are all-time, so switching seasons never resets a pick.
+  const bag = useMemo(() => {
+    const report = ballReport(scoped, balls);
+    return { report, star: featuredBall(report), untagged: untaggedGames(scoped) };
+  }, [scoped, balls]);
+  const lastUsed = useMemo(() => lastBalls(all, balls), [all, balls]);
+  const ballsById = useMemo(() => byId(balls), [balls]);
+  const showBall = bag.star || HOUSE_BALL;
+  const showTitle = bag.star
+    ? `${BOWLERS.find((b) => b.key === bag.star.owner).name}'s ${bag.star.name}`
+    : "A house ball, until yours are in the bag";
+
   const goToEntry = useCallback(() => {
     entryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const addBall = useCallback((owner) => {
+    setBagRequest((r) => ({ owner, n: (r ? r.n : 0) + 1 }));
+    bagRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const onSaved = useCallback(
@@ -188,6 +227,12 @@ const Bowler = () => {
           series={all}
           dude={dude}
         />
+        <BallReturn
+          ball={showBall}
+          seed={ballSeed(showBall)}
+          title={showTitle}
+          ready={!loading}
+        />
       </section>
 
       {loadError && (
@@ -205,19 +250,33 @@ const Bowler = () => {
           editing={editing}
           onCancelEdit={() => setEditing(null)}
           onSaved={onSaved}
+          balls={balls}
+          lastBalls={lastUsed}
+          onAddBall={addBall}
         />
       </div>
 
       {empty ? (
-        <section className="bw-empty">
-          <div className="bw-empty-pins" aria-hidden="true">
-            {Array.from({ length: 10 }, (_, i) => (
-              <span key={i} className="bw-pin" style={{ "--i": i }} />
-            ))}
-          </div>
-          <h2>The lanes are open.</h2>
-          <p>Add your first league night and the stats, rivalry and trophies fill in here.</p>
-        </section>
+        <>
+          <section className="bw-empty">
+            <div className="bw-empty-pins" aria-hidden="true">
+              {Array.from({ length: 10 }, (_, i) => (
+                <span key={i} className="bw-pin" style={{ "--i": i }} />
+              ))}
+            </div>
+            <h2>The lanes are open.</h2>
+            <p>Add your first league night and the stats, rivalry and trophies fill in here.</p>
+          </section>
+          <BallBag
+            ref={bagRef}
+            report={bag.report}
+            untagged={bag.untagged}
+            getToken={getToken}
+            onChanged={refresh}
+            request={bagRequest}
+            soundOn={soundOn}
+          />
+        </>
       ) : (
         <>
           {!loading && (
@@ -234,6 +293,17 @@ const Bowler = () => {
           <TrendChart loading={loading} points={derived.trend} />
           {!loading && <Heatmap series={scoped} />}
           {!loading && (
+            <BallBag
+              ref={bagRef}
+              report={bag.report}
+              untagged={bag.untagged}
+              getToken={getToken}
+              onChanged={refresh}
+              request={bagRequest}
+              soundOn={soundOn}
+            />
+          )}
+          {!loading && (
             <HandicapSim
               key={all.length}
               totals={derived.totals}
@@ -244,6 +314,7 @@ const Bowler = () => {
           {!loading && <TrophyShelf trophies={derived.trophies} secrets={found} />}
           <History
             nights={derived.nights}
+            ballsById={ballsById}
             getToken={getToken}
             onEdit={onEdit}
             onWrap={setWrapDate}
@@ -252,6 +323,7 @@ const Bowler = () => {
         </>
       )}
 
+      <GutterBall ball={showBall} seed={ballSeed(showBall)} />
       <StrikeBurst trigger={celebration.id} variant={celebration.variant} />
       <WrapCard date={wrapDate} series={all} onClose={() => setWrapDate(null)} />
       {toast && (

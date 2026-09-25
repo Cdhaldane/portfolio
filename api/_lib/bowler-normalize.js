@@ -25,6 +25,16 @@ const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/;
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+// Bowling balls. Weights are whole pounds, the range every pro shop sells.
+// Colour is cosmetic (it paints the ball on the page), so a bad one falls
+// back to the default instead of failing the save. Keep the default in
+// sync with DEFAULT_BALL_COLOR in src/Pages/Bowler/balls.js.
+const MAX_BALL_NAME = 40;
+const MIN_BALL_WEIGHT = 6;
+const MAX_BALL_WEIGHT = 16;
+const DEFAULT_BALL_COLOR = "#1f5fd1";
+const COLOR_RE = /^#[0-9a-f]{6}$/i;
+
 /** A real calendar date in YYYY-MM-DD, not in the (far) future. */
 function isValidDate(value, now = new Date()) {
   if (typeof value !== "string") return false;
@@ -42,8 +52,18 @@ function isValidGame(value) {
   return Number.isInteger(value) && value >= 0 && value <= MAX_GAME;
 }
 
+const isPositiveId = (n) => Number.isInteger(n) && n > 0;
+
+/** A ball id, null for "not tracked", or undefined when it's garbage. */
+function cleanBallId(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return isPositiveId(n) ? n : undefined;
+}
+
 /**
- * Validate one bowler's series from a save request.
+ * Validate one bowler's series from a save request. `balls` is optional
+ * (one id or null per game); leaving it out means no ball was tracked.
  * @returns {{ ok: true, value: object } | { ok: false, error: string }}
  */
 function validateEntry(entry) {
@@ -60,7 +80,61 @@ function validateEntry(entry) {
       error: `${BOWLERS[entry.bowler]} needs ${GAMES_PER_SERIES} games, each a whole number from 0 to ${MAX_GAME}.`,
     };
   }
-  return { ok: true, value: { bowler: entry.bowler, games } };
+  const rawBalls = entry.balls === undefined || entry.balls === null ? [] : entry.balls;
+  const balls = Array.isArray(rawBalls)
+    ? Array.from({ length: GAMES_PER_SERIES }, (_, i) => cleanBallId(rawBalls[i]))
+    : [undefined];
+  if (rawBalls.length > GAMES_PER_SERIES || balls.includes(undefined)) {
+    return { ok: false, error: `${BOWLERS[entry.bowler]}'s ball pick didn't come through. Pick it again.` };
+  }
+  return { ok: true, value: { bowler: entry.bowler, games, balls } };
+}
+
+/** Every distinct ball id a validated save refers to. */
+function referencedBalls(entries) {
+  return [...new Set(entries.flatMap((e) => e.balls).filter((id) => id !== null))];
+}
+
+/**
+ * Validate a ball from the bag form. `id` present = edit, absent = new.
+ * @returns {{ ok: true, value: object } | { ok: false, error: string }}
+ */
+function validateBall(raw) {
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: "Missing ball." };
+  }
+  const id = raw.id === undefined || raw.id === null ? null : Number(raw.id);
+  if (id !== null && !isPositiveId(id)) {
+    return { ok: false, error: "Unknown ball." };
+  }
+  if (!BOWLER_KEYS.includes(raw.owner)) {
+    return { ok: false, error: "Pick whose bag it goes in." };
+  }
+  const name =
+    typeof raw.name === "string"
+      ? raw.name.trim().replace(/\s+/g, " ").slice(0, MAX_BALL_NAME)
+      : "";
+  if (!name) {
+    return { ok: false, error: "Give the ball a name." };
+  }
+  let weight = null;
+  if (raw.weight !== undefined && raw.weight !== null && raw.weight !== "") {
+    weight = Number(raw.weight);
+    if (!Number.isInteger(weight) || weight < MIN_BALL_WEIGHT || weight > MAX_BALL_WEIGHT) {
+      return {
+        ok: false,
+        error: `Weight is whole pounds, ${MIN_BALL_WEIGHT} to ${MAX_BALL_WEIGHT}.`,
+      };
+    }
+  }
+  const color =
+    typeof raw.color === "string" && COLOR_RE.test(raw.color)
+      ? raw.color.toLowerCase()
+      : DEFAULT_BALL_COLOR;
+  return {
+    ok: true,
+    value: { id, owner: raw.owner, name, weight, color, retired: raw.retired === true },
+  };
 }
 
 /**
@@ -171,6 +245,8 @@ module.exports = {
   MAX_GAME,
   isValidDate,
   validateEntry,
+  referencedBalls,
+  validateBall,
   validateSave,
   validateImage,
   matchBowler,

@@ -1,21 +1,34 @@
 import { useEffect, useState } from "react";
 import { saveNight } from "../api";
 import { BOWLERS, GAMES, MAX_GAME, formatNight, todayLocal } from "../bowlers";
+import { ballsOf } from "../balls";
 import PhotoReader from "./PhotoReader";
+import BallPicker from "./BallPicker";
 import "./EntryPanel.css";
 
 /*
  * Add or edit one league night. Two ways in (photo read or typing), one
  * review form out: the photo path only PREFILLS the same inputs, so a
  * misread is a keystroke to fix and nothing is saved without a look.
+ *
+ * Each row also carries which ball was thrown per game (select values, ""
+ * = not tracked). New nights start on the ball each bowler finished with
+ * last time, since most weeks it's the same one.
  */
-const blankRow = () => ({ include: true, games: Array(GAMES).fill("") });
+const ballsFrom = (id) => Array(GAMES).fill(id ? String(id) : "");
 
-const blankForm = () => ({
+const blankRow = (lastBall) => ({
+  include: true,
+  games: Array(GAMES).fill(""),
+  balls: ballsFrom(lastBall),
+  split: false,
+});
+
+const blankForm = (lastBalls = {}) => ({
   bowledOn: todayLocal(),
   note: "",
   source: "manual",
-  rows: Object.fromEntries(BOWLERS.map((b) => [b.key, blankRow()])),
+  rows: Object.fromEntries(BOWLERS.map((b) => [b.key, blankRow(lastBalls[b.key])])),
 });
 
 const formFromNight = (night) => ({
@@ -25,13 +38,30 @@ const formFromNight = (night) => ({
   rows: Object.fromEntries(
     BOWLERS.map(({ key }) => {
       const row = night.rows[key];
+      if (!row) return [key, { ...blankRow(), include: false }];
+      const balls = ballsOf(row).map((id) => (id === null ? "" : String(id)));
       return [
         key,
-        row ? { include: true, games: row.games.map(String) } : { ...blankRow(), include: false },
+        { include: true, games: row.games.map(String), balls, split: new Set(balls).size > 1 },
       ];
     })
   ),
 });
+
+// Fill a still-untouched ball pick with the last-used ball once it's known
+// (the form mounts before the scores load).
+const withDefaultBalls = (form, lastBalls) => {
+  let changed = false;
+  const rows = { ...form.rows };
+  BOWLERS.forEach(({ key }) => {
+    const row = rows[key];
+    if (lastBalls[key] && !row.split && row.balls.every((b) => b === "")) {
+      rows[key] = { ...row, balls: ballsFrom(lastBalls[key]) };
+      changed = true;
+    }
+  });
+  return changed ? { ...form, rows } : form;
+};
 
 const parseGame = (v) => (v === "" ? NaN : Number(v));
 const validGame = (n) => Number.isInteger(n) && n >= 0 && n <= MAX_GAME;
@@ -49,10 +79,10 @@ const seriesSum = (games) => {
   return nums.every(validGame) ? nums.reduce((a, b) => a + b, 0) : null;
 };
 
-const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
+const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved, balls, lastBalls, onAddBall }) => {
   const [mode, setMode] = useState("photo");
   const [visionOff, setVisionOff] = useState(false);
-  const [form, setForm] = useState(blankForm);
+  const [form, setForm] = useState(() => blankForm(lastBalls));
   const [extras, setExtras] = useState([]); // other rows the photo found
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -65,6 +95,10 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
       setMode("type");
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (!editing) setForm((f) => withDefaultBalls(f, lastBalls));
+  }, [lastBalls, editing]);
 
   const setRow = (key, patch) =>
     setForm((f) => ({ ...f, rows: { ...f.rows, [key]: { ...f.rows[key], ...patch } } }));
@@ -87,9 +121,14 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
     const next = { ...form, source: "photo", rows: { ...form.rows } };
     BOWLERS.forEach(({ key }) => {
       const hit = read.bowlers.find((r) => r.key === key);
+      // The photo knows scores, not balls: keep whatever ball was picked.
       next.rows[key] = hit
-        ? { include: true, games: hit.games.map((g) => (g === null ? "" : String(g))) }
-        : { ...blankRow(), include: false };
+        ? {
+            ...form.rows[key],
+            include: true,
+            games: hit.games.map((g) => (g === null ? "" : String(g))),
+          }
+        : { ...form.rows[key], include: false, games: Array(GAMES).fill("") };
     });
     setForm(next);
     setExtras(read.bowlers.filter((r) => !r.key || r.mismatch));
@@ -97,7 +136,7 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
   };
 
   const reset = () => {
-    setForm(blankForm());
+    setForm(blankForm(lastBalls));
     setExtras([]);
     setError(null);
     onCancelEdit();
@@ -115,6 +154,7 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
     const entries = BOWLERS.filter(({ key }) => form.rows[key].include).map(({ key }) => ({
       bowler: key,
       games: form.rows[key].games.map(Number),
+      balls: form.rows[key].balls.map((b) => (b === "" ? null : Number(b))),
     }));
     const bowledOn = form.bowledOn;
     const result = await saveNight(getToken, {
@@ -128,7 +168,7 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
       setError(result.error);
       return;
     }
-    setForm(blankForm());
+    setForm(blankForm(lastBalls));
     setExtras([]);
     onSaved({ bowledOn, entries });
   }
@@ -230,6 +270,15 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved }) => {
                     <output>{row.include && total !== null ? total : "-"}</output>
                   </div>
                 </div>
+                <BallPicker
+                  bowler={key}
+                  balls={balls}
+                  value={row.balls}
+                  split={row.split}
+                  disabled={!row.include}
+                  onChange={(next, split) => setRow(key, { balls: next, split })}
+                  onAddBall={() => onAddBall(key)}
+                />
               </fieldset>
             );
           })}

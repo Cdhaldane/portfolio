@@ -9,9 +9,27 @@ const fail = (res, data, fallback) => ({
   error: (data && data.error) || (res.status === 0 ? "You look offline. Try again." : fallback),
 });
 
+/** Every saved series plus the ball bag, in one round trip. */
 export async function loadSeries(getToken) {
   const { res, data } = await budgetFetch(getToken, PATH);
-  return res.ok ? { ok: true, series: data.series } : fail(res, data, "Couldn't load scores.");
+  return res.ok
+    ? { ok: true, series: data.series, balls: data.balls || [] }
+    : fail(res, data, "Couldn't load scores.");
+}
+
+export async function saveBall(getToken, ball) {
+  const { res, data } = await budgetFetch(getToken, PATH, {
+    method: "POST",
+    body: JSON.stringify({ action: "ball", ball }),
+  });
+  return res.ok ? { ok: true, ball: data.ball } : fail(res, data, "Couldn't save that ball.");
+}
+
+export async function deleteBall(getToken, id) {
+  const { res, data } = await budgetFetch(getToken, `${PATH}?ballId=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  return res.ok ? { ok: true } : fail(res, data, "Couldn't take that ball out of the bag.");
 }
 
 export async function readPhoto(getToken, { image, mediaType }) {

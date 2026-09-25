@@ -1,11 +1,14 @@
 // Vercel serverless function — /api/bowler (the private /bowler tracker).
 //
-//   GET                           → every saved series, oldest first
+//   GET                           → every saved series (oldest first) + the ball bag
 //   POST { action: "parse", image, mediaType }
 //                                 → Claude's read of a recap-screen photo (NOT saved)
-//   POST { action: "save", bowledOn, entries: [{ bowler, games }], source, note }
+//   POST { action: "save", bowledOn, entries: [{ bowler, games, balls }], source, note }
 //                                 → upsert one night for one or both bowlers
+//   POST { action: "ball", ball: { id?, owner, name, weight, color, retired } }
+//                                 → add a ball to the bag, or edit one
 //   DELETE ?id=123                → remove one series
+//   DELETE ?ballId=4              → remove one ball (its games stay, unlinked)
 //
 // Same shape as the /api/budget/* handlers: requireUser() FIRST (Clerk JWT +
 // the fail-closed BUDGET_ALLOWED_USER_IDS allowlist), so an anonymous caller
@@ -18,8 +21,17 @@ const {
   listSeries,
   saveNight,
   deleteSeries,
+  listBalls,
+  saveBall,
+  deleteBall,
 } = require("./_lib/bowler-db");
-const { validateSave, validateImage, sanitizeParse } = require("./_lib/bowler-normalize");
+const {
+  validateSave,
+  validateBall,
+  validateImage,
+  sanitizeParse,
+  referencedBalls,
+} = require("./_lib/bowler-normalize");
 const { readScoreboard } = require("./_lib/bowler-vision");
 
 // Photo reads cost real money, so cap them per user per warm instance. Not
@@ -54,19 +66,42 @@ async function handleParse(res, userId, body) {
 async function handleSave(res, sql, userId, body) {
   const parsed = validateSave(body);
   if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  // The bag is tiny (two people's balls), so checking against all of it is
+  // one cheap query and keeps a stale picker from hitting the foreign key.
+  const wanted = referencedBalls(parsed.value.entries);
+  if (wanted.length) {
+    const known = new Set((await listBalls(sql)).map((b) => b.id));
+    if (!wanted.every((id) => known.has(id))) {
+      return res
+        .status(400)
+        .json({ error: "One of those balls was just taken out of the bag. Pick again." });
+    }
+  }
   const saved = await saveNight(sql, userId, parsed.value);
   return res.status(200).json({ ok: true, saved });
 }
 
+async function handleBall(res, sql, userId, body) {
+  const parsed = validateBall(body.ball);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const ball = await saveBall(sql, userId, parsed.value);
+  return ball
+    ? res.status(200).json({ ok: true, ball })
+    : res.status(404).json({ error: "That ball is already gone." });
+}
+
 async function handleDelete(req, res, sql) {
-  const id = Number(req.query && req.query.id);
+  const query = req.query || {};
+  const isBall = query.ballId !== undefined;
+  const id = Number(isBall ? query.ballId : query.id);
   if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({ error: "Missing series id." });
+    return res.status(400).json({ error: isBall ? "Missing ball id." : "Missing series id." });
   }
-  const removed = await deleteSeries(sql, id);
-  return removed
-    ? res.status(200).json({ ok: true })
-    : res.status(404).json({ error: "That series is already gone." });
+  const removed = isBall ? await deleteBall(sql, id) : await deleteSeries(sql, id);
+  if (removed) return res.status(200).json({ ok: true });
+  return res
+    .status(404)
+    .json({ error: isBall ? "That ball is already gone." : "That series is already gone." });
 }
 
 module.exports = async (req, res) => {
@@ -97,13 +132,17 @@ module.exports = async (req, res) => {
     await ensureBowlTables(sql);
 
     if (req.method === "GET") {
-      return res.status(200).json({ ok: true, series: await listSeries(sql) });
+      const [series, balls] = await Promise.all([listSeries(sql), listBalls(sql)]);
+      return res.status(200).json({ ok: true, series, balls });
     }
     if (req.method === "DELETE") {
       return await handleDelete(req, res, sql);
     }
     if (body.action === "save") {
       return await handleSave(res, sql, userId, body);
+    }
+    if (body.action === "ball") {
+      return await handleBall(res, sql, userId, body);
     }
     return res.status(400).json({ error: "Unknown action." });
   } catch (err) {
