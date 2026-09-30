@@ -1,0 +1,397 @@
+/* ============================================================
+   TOP DECK · the table overlay
+   One static lens (.td-lens) over one preserve-3d world. The
+   world and every .td-3d wrapper stay transform-only; effects
+   live in the flat .td-fx layers above and below the lens, and
+   pointers land on the flat .td-grip layers on top.
+   ============================================================ */
+
+.td-table {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  color: var(--td-ink);
+  outline: none;
+  overscroll-behavior: contain;
+}
+.td-table-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1.2px) 0 0 / 3px 3px,
+    radial-gradient(60% 48% at 50% 44%, rgba(255, 208, 140, 0.16), transparent 70%),
+    radial-gradient(130% 90% at 50% 0%, rgba(22, 28, 60, 0.97), rgba(8, 10, 22, 0.98) 72%);
+}
+
+/* ---- bars ---- */
+.td-table-top,
+.td-table-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.td-table-top {
+  top: 0;
+  height: 56px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--td-line);
+  background: linear-gradient(to bottom, rgba(11, 14, 28, 0.92), rgba(11, 14, 28, 0.55));
+}
+.td-table-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: 600 0.95rem/1 "Space Grotesk", system-ui, sans-serif;
+}
+.td-table-title b {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.td-table-emblem {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: hsl(var(--h) 70% 38%);
+  box-shadow: 0 0 0 2px rgba(255, 211, 107, 0.6);
+  font-size: 0.78rem;
+}
+.td-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.td-table-bottom {
+  bottom: 0;
+  height: 84px;
+  justify-content: center;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--td-line);
+  background: linear-gradient(to top, rgba(11, 14, 28, 0.94), rgba(11, 14, 28, 0.55));
+}
+
+.td-tbtn-name {
+  max-width: 10ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.td-caption {
+  max-width: 600px;
+  text-align: center;
+}
+.td-caption-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 0;
+}
+.td-caption-head b {
+  font: 700 1.02rem/1.2 "Space Grotesk", system-ui, sans-serif;
+}
+.td-caption-take {
+  margin: 4px 0 0;
+  font: italic 400 0.86rem/1.35 "Inter", system-ui, sans-serif;
+  color: var(--td-ink-dim);
+}
+.td-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- stage: fx under, lens, fx over, grips ---- */
+.td-stage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  touch-action: none;
+}
+.td-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.td-fx--under {
+  z-index: 1;
+}
+.td-lens {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  perspective: 1100px;
+  pointer-events: none;
+}
+.td-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+.td-fx--over {
+  z-index: 3;
+}
+.td-grip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  touch-action: none;
+}
+.td-grip--fan,
+.td-grip--legend {
+  cursor: pointer;
+}
+.td-grip--spin {
+  cursor: grab;
+}
+.td-grip--spin:active {
+  cursor: grabbing;
+}
+.td-grip-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  cursor: grab;
+}
+.td-inspect-caption {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  height: 58px;
+  text-align: center;
+  font: italic 400 0.8rem/1.3 "Inter", system-ui, sans-serif;
+  color: var(--td-ink-dim);
+}
+.td-inspect-caption b {
+  font: 700 0.95rem/1.2 "Space Grotesk", system-ui, sans-serif;
+  font-style: normal;
+  color: var(--td-ink);
+}
+
+/* ---- the booster on the table ---- */
+.td-rip-pack {
+  position: absolute;
+  font-size: calc(var(--pw) / 12);
+  transform-style: preserve-3d;
+}
+.td-rip-wobble,
+.td-rip-tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.td-rip-body {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.35em;
+  clip-path: var(--td-torn);
+  box-shadow: 0 1.2em 2.4em rgba(0, 0, 0, 0.5);
+}
+.td-rip-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform-style: preserve-3d;
+}
+.td-slice {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--k) * 12.5%);
+  width: calc(12.5% + 1px);
+  transform-origin: 50% 100%;
+}
+.td-slice-face {
+  position: absolute;
+  inset: 0;
+  /* the wrapper art, windowed per slice so the strip tiles seamlessly */
+  background-image:
+    linear-gradient(to right, rgba(255, 211, 107, 0.85) 50%, transparent 50%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, rgba(0, 0, 0, 0.2) 2px 4px),
+    var(--pack-bg);
+  background-size: 8px 2px, 100% 58%, var(--pw) var(--ph);
+  background-position: 0 85%, 0 0, calc(var(--k) * var(--pw) * -0.125) 0;
+  background-repeat: repeat-x, no-repeat, no-repeat;
+  -webkit-mask: radial-gradient(circle at 50% 0, transparent 0.16em, #000 0.18em) calc(var(--k) * var(--pw) * -0.125) 0 / 0.5em 100% repeat-x;
+  mask: radial-gradient(circle at 50% 0, transparent 0.16em, #000 0.18em) calc(var(--k) * var(--pw) * -0.125) 0 / 0.5em 100% repeat-x;
+}
+.td-rip-spark {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 25%, #ffd36b 45%, transparent 70%);
+  box-shadow: 0 0 14px 5px rgba(255, 211, 107, 0.7);
+  pointer-events: none;
+}
+
+/* ---- flat effects ---- */
+.td-rays {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 211, 107, 0.6) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 16%, transparent 68%);
+  mask: radial-gradient(circle, #000 16%, transparent 68%);
+  opacity: 0.45;
+  scale: 1;
+  transition: scale 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s ease-out;
+  animation: td-rays-spin 9s linear infinite, td-fade-in 0.5s ease-out both;
+}
+.td-rays.is-charging {
+  opacity: 0.85;
+  scale: 1.22;
+}
+@keyframes td-rays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes td-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.td-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 46%, rgba(255, 248, 220, 0.95), rgba(255, 211, 107, 0.35) 30%, transparent 65%);
+  animation: td-flash 0.35s ease-out forwards;
+}
+@keyframes td-flash {
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.td-shock,
+.td-flare {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+}
+.td-shock {
+  border: 3px solid rgba(255, 211, 107, 0.9);
+  box-shadow: 0 0 24px rgba(255, 211, 107, 0.6), inset 0 0 24px rgba(255, 211, 107, 0.4);
+  animation: td-shock 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes td-shock {
+  from {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.td-flare {
+  background: radial-gradient(circle, rgba(255, 93, 59, 0.75), rgba(255, 93, 59, 0.2) 45%, transparent 70%);
+  opacity: 0;
+  animation: td-flare 0.6s ease-out forwards;
+}
+@keyframes td-flare {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.td-banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: -0.5em;
+  font: 400 clamp(1.3rem, 5.2vw, 2.6rem)/1 "Monoton", "Bungee", sans-serif;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--td-gold);
+  text-shadow: 0 0 18px rgba(255, 211, 107, 0.7), 0 0 42px rgba(255, 93, 59, 0.5);
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .td-table-top {
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .td-table-top .td-tbtn > span,
+  .td-toolbar .td-tbtn > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .td-table-top .td-tbtn,
+  .td-toolbar .td-tbtn {
+    width: 44px;
+    padding: 0;
+  }
+  .td-cta {
+    padding: 0 18px;
+  }
+  .td-table-bottom {
+    padding-inline: 10px;
+  }
+  .td-hint {
+    font-size: 0.92rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-rays,
+  .td-cta--gold {
+    animation: none;
+  }
+  .td-flash,
+  .td-shock,
+  .td-flare {
+    display: none;
+  }
+  .td-rays {
+    transition-duration: 0.12s;
+  }
+}

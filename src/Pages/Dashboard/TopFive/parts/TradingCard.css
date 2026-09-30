@@ -1,0 +1,608 @@
+/* ============================================================
+   TOP DECK · cards
+   Geometry is in em off one font-size (--cw / 20), so each card
+   scales as a single unit and is only ever scaled DOWN (crisp).
+
+   3D HYGIENE. The slot > tilt > flip wrappers (.td-3d) are
+   transform-only. Only these leaves may carry opacity, filter,
+   overflow, clip-path, mask, blend modes or isolation:
+     .td-face and its children, .td-pop and its children.
+   Anything else silently flattens the card (dev3d.js warns).
+   ============================================================ */
+
+.td-slot {
+  position: absolute;
+  left: calc(var(--cw) * -0.5);
+  top: calc(var(--ch) * -0.5);
+  width: var(--cw);
+  height: var(--ch);
+  transform-style: preserve-3d;
+}
+.td-slot.is-live {
+  will-change: transform;
+}
+.td-tilt,
+.td-flip {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* ---- faces ---- */
+.td-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.9em;
+  font-size: calc(var(--cw) / 20);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  opacity: var(--dim, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0.7em 1.6em rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.td-face--back {
+  transform: rotateY(180deg);
+}
+
+/* ---- rarity frames: the ladder climbs slate, sage, blue, coral, gold ---- */
+.td-face--front {
+  padding: 0.42em;
+  background: var(--frame);
+  color: #f4efe3;
+}
+.td-tier-common {
+  --frame: linear-gradient(155deg, #c9cedb, #8b93a7 45%, #5d6478);
+  --accent: #c9cedb;
+  --glare-max: 0.18;
+  --foil: 0;
+}
+.td-tier-uncommon {
+  --frame: linear-gradient(155deg, #d6ecca, #8fbf7a 45%, #4f7a40);
+  --accent: #b6dca6;
+  --glare-max: 0.25;
+  --foil: 0;
+}
+.td-tier-rare {
+  --frame: linear-gradient(155deg, #b3c7ff, #2f6bff 50%, #1741c9);
+  --accent: #a9bfff;
+  --glare-max: 0.35;
+  --foil: 0.3;
+}
+.td-tier-ultra {
+  --frame: linear-gradient(155deg, #ffc9bb, #ff5d3b 50%, #b8321a);
+  --accent: #ffb3a1;
+  --glare-max: 0.4;
+  --foil: 0.32;
+}
+.td-tier-legendary,
+.td-god .td-face--front {
+  --frame: linear-gradient(135deg, #ffe7a8 0%, #ffd36b 12%, #2f6bff 32%, #6f9a5e 52%, #ff5d3b 74%, #ffd36b 92%);
+  --accent: #ffd36b;
+  --glare-max: 0.45;
+  --foil: 0.42;
+}
+
+.td-card-frame {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: 0.32em;
+  padding: 0.5em;
+  border-radius: 0.62em;
+  background: linear-gradient(180deg, #1b2044 0%, #10143a 100%);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.12);
+}
+.td-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45em;
+  min-height: 2.25em;
+}
+.td-card-rank {
+  font-family: "Bungee", "Space Grotesk", sans-serif;
+  font-size: 1.15em;
+  line-height: 1;
+  color: var(--accent);
+  text-shadow: 0.06em 0.08em 0 rgba(0, 0, 0, 0.55);
+}
+.td-card-title {
+  margin: 0;
+  font: 700 0.98em/1.08 "Space Grotesk", system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  color: #f4efe3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-wrap: balance;
+}
+.td-card-sym {
+  display: inline-flex;
+  gap: 0.18em;
+  font-size: 0.72em;
+  color: var(--accent);
+}
+.td-card-art {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5em;
+  background:
+    radial-gradient(120% 90% at 28% 22%, hsl(var(--h) 92% 66% / 0.9), transparent 55%),
+    radial-gradient(circle at 72% 82%, hsl(calc(var(--h) + 40) 80% 45% / 0.7), transparent 60%),
+    linear-gradient(160deg, hsl(var(--h) 70% 34%), hsl(var(--h) 60% 12%));
+  box-shadow: inset 0 0 0 0.1em rgba(255, 255, 255, 0.22), inset 0 -1.2em 2em rgba(0, 0, 0, 0.35);
+}
+.td-card-art.is-shiny,
+.td-glyph.is-shiny {
+  filter: hue-rotate(160deg) saturate(1.25);
+}
+.td-card-stamp {
+  position: absolute;
+  top: 0.45em;
+  right: 0.45em;
+  padding: 0.4em 0.6em;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #10143a;
+  font: 700 0.45em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.td-card-type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0.5em 0.7em;
+  border-radius: 0.5em;
+  background: rgba(255, 255, 255, 0.08);
+  font: 600 0.5em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cfd3e6;
+}
+.td-card-code {
+  color: var(--accent);
+}
+.td-card-text {
+  padding: 0.5em 0.62em 0.46em;
+  border-radius: 0.45em;
+  background: #f4efe3;
+  color: #1b1a17;
+  box-shadow: inset 0 0 0 0.06em rgba(0, 0, 0, 0.12);
+}
+.td-card-take {
+  margin: 0;
+  font: italic 500 0.68em/1.3 "Inter", system-ui, sans-serif;
+}
+.td-card-meta {
+  margin: 0.4em 0 0;
+  font: 500 0.46em/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b675c;
+}
+.td-card-foot {
+  display: flex;
+  justify-content: space-between;
+  font: 500 0.4em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 227, 0.6);
+}
+
+/* legendary chase-card extras */
+.td-card-ed {
+  position: absolute;
+  top: 3.9em;
+  left: 1.3em;
+  padding: 0.4em 0.65em;
+  border: 0.12em solid #ffd36b;
+  border-radius: 99px;
+  background: #10143a;
+  color: #ffd36b;
+  font: 700 0.42em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+.td-card-auto {
+  position: absolute;
+  top: 55%;
+  right: 12%;
+  font: 1.9em/1 "Caveat Brush", cursive;
+  color: #ffd36b;
+  text-shadow: 0 0.04em 0.08em rgba(0, 0, 0, 0.7);
+  transform: rotate(-10deg);
+}
+
+/* ---- the extruded art glyph (3d-text-depth-layers) ---- */
+.td-glyph {
+  position: relative;
+  display: inline-grid;
+  font-size: 6.4em;
+  line-height: 1;
+}
+.td-glyph > i {
+  grid-area: 1 / 1;
+}
+.td-glyph-layer {
+  /* darker than the face, never more saturated: reads as depth, not halo */
+  color: hsl(var(--h) 55% calc(24% - var(--i) * 3%));
+  transform: translate(calc(var(--i) * 0.018em), calc(var(--i) * 0.024em));
+}
+.td-glyph-face {
+  position: relative;
+  color: #fff8ec;
+}
+
+/* ---- light on the surface: a static sheen, and the live holo ---- */
+.td-sheen,
+.td-sheen-pass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.13) 46%, transparent 60%);
+}
+.td-god .td-sheen {
+  background: repeating-linear-gradient(115deg, rgba(47, 107, 255, 0.22) 0 6%, rgba(255, 211, 107, 0.22) 6% 12%, rgba(255, 93, 59, 0.22) 12% 18%, rgba(34, 240, 255, 0.22) 18% 24%);
+}
+.td-sheen-pass {
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.45) 50%, transparent 62%);
+  transform: translateX(-120%);
+  animation: td-sheen-pass 0.55s linear forwards;
+}
+@keyframes td-sheen-pass {
+  to {
+    transform: translateX(120%);
+  }
+}
+/* Foil and glare move by TRANSFORM of an oversized leaf, never by
+   background-position, so the moving light stays compositor-only. */
+.td-foil {
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  background: repeating-linear-gradient(115deg, #2f6bff 0%, #6f9a5e 8%, #ffd36b 16%, #ff5d3b 24%, #ff2bd6 32%, #22f0ff 40%, #2f6bff 48%);
+  mix-blend-mode: color-dodge;
+  filter: saturate(1.3) brightness(0.85);
+  opacity: calc(var(--foil, 0.3) + var(--hyp, 0) * 0.35);
+  transform: translate(calc((var(--px, 0.35) - 0.5) * -30%), calc((var(--py, 0.3) - 0.5) * -30%)) rotate(8deg);
+}
+.td-foil.is-lite {
+  mix-blend-mode: normal;
+  filter: none;
+  opacity: calc(var(--foil, 0.3) * 0.35 + var(--hyp, 0) * 0.12);
+}
+.td-glare {
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.18) 20%, transparent 44%);
+  mix-blend-mode: overlay;
+  opacity: calc(var(--glare, 0) * var(--glare-max, 0.3));
+  transform: translate(calc((var(--px, 0.5) - 0.5) * 60%), calc((var(--py, 0.5) - 0.5) * 60%));
+}
+
+/* keyboard / screen-reader target; pointers go through the flat grips */
+.td-card-hit {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  pointer-events: none;
+}
+.td-card-hit:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 0.24em #ffd36b, inset 0 0 1.2em rgba(255, 211, 107, 0.45);
+}
+
+/* ---- back ---- */
+.td-face--back {
+  background: #10143a;
+}
+.td-back-art {
+  position: absolute;
+  inset: 0.55em;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.62em;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(34, 240, 255, 0.2) 0deg 5deg, transparent 5deg 15deg),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 43, 214, 0.16) 0 0.35em, transparent 0.35em 1.1em),
+    radial-gradient(circle at 50% 50%, #262d7c 0%, #10143a 72%);
+  box-shadow: inset 0 0 0 0.12em rgba(34, 240, 255, 0.45), inset 0 0 0 0.55em #10143a, inset 0 0 0 0.68em rgba(255, 211, 107, 0.6);
+}
+.td-back-ring {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 8.6em;
+  height: 8.6em;
+  border-radius: 50%;
+  border: 0.2em solid #ffd36b;
+  background: #10143a;
+  box-shadow: 0 0 0 0.45em rgba(16, 20, 58, 0.92), 0 0 2em rgba(34, 240, 255, 0.35);
+  color: #ffd36b;
+  text-align: center;
+}
+.td-back-ring span {
+  font: 1.4em/0.95 "Bungee", "Space Grotesk", sans-serif;
+  letter-spacing: 0.04em;
+}
+.td-back-code {
+  position: absolute;
+  bottom: 1.6em;
+  font: 600 0.5em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.4em;
+  color: #22f0ff;
+}
+.td-back-notes {
+  position: absolute;
+  left: 1.1em;
+  right: 1.1em;
+  bottom: 1.1em;
+  display: grid;
+  gap: 0.6em;
+}
+.td-note {
+  position: relative;
+  margin: 0 0.4em;
+  padding: 0.7em 0.85em;
+  border-radius: 0.2em;
+  background: #f4efe3;
+  color: #1b1a17;
+  font: 1em/1.25 "Kalam", cursive;
+  box-shadow: 0 0.3em 0.8em rgba(0, 0, 0, 0.45);
+  transform: rotate(-1.6deg);
+}
+.td-note::before,
+.td-note::after {
+  content: "";
+  position: absolute;
+  width: 3em;
+  height: 0.9em;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0.05em 0.15em rgba(0, 0, 0, 0.15);
+}
+.td-note::before {
+  top: -0.4em;
+  left: -0.7em;
+  transform: rotate(-32deg);
+}
+.td-note::after {
+  top: -0.4em;
+  right: -0.7em;
+  transform: rotate(28deg);
+}
+.td-stats {
+  display: grid;
+  gap: 0.45em;
+  margin: 0;
+  padding: 0.65em 0.75em;
+  list-style: none;
+  border-radius: 0.5em;
+  background: rgba(16, 20, 58, 0.94);
+  box-shadow: inset 0 0 0 0.08em rgba(34, 240, 255, 0.3);
+}
+.td-stats li {
+  display: grid;
+  grid-template-columns: 5.4em minmax(0, 1fr) 1.2em;
+  align-items: center;
+  gap: 0.5em;
+}
+.td-stat-label,
+.td-stats b {
+  font: 600 0.5em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #cfd3e6;
+}
+.td-stats b {
+  color: #ffd36b;
+  text-align: right;
+}
+.td-stat-bar {
+  height: 0.5em;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.td-stat-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f6bff, #6f9a5e, #ff5d3b);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--k) * 60ms + 0.15s);
+}
+.td-face--back.is-shown .td-stat-bar > span {
+  transform: scaleX(var(--v));
+}
+.td-back-foot {
+  margin: 0;
+  font: 500 0.42em/1.35 "IBM Plex Mono", monospace;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgba(34, 240, 255, 0.85);
+}
+
+/* ---- legendary pop-out: floats 36px above the art, parallaxes on tilt ---- */
+.td-pop {
+  position: absolute;
+  left: 1.4em;
+  right: 1.4em;
+  top: 3.6em;
+  height: 16em;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--cw) / 20);
+  pointer-events: none;
+  opacity: var(--dim, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(36px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.td-pop .td-glyph {
+  grid-area: 1 / 1;
+  filter: drop-shadow(0 0.08em 0.12em rgba(0, 0, 0, 0.55));
+}
+.td-pop .td-glyph.is-shiny {
+  filter: hue-rotate(160deg) saturate(1.25) drop-shadow(0 0.08em 0.12em rgba(0, 0, 0, 0.55));
+}
+.td-pop-crown {
+  position: absolute;
+  top: 0.2em;
+  left: 50%;
+  font-size: 2.3em;
+  color: #ffd36b;
+  filter: drop-shadow(0 0.08em 0.1em rgba(0, 0, 0, 0.55));
+  transform: translateX(-50%) rotate(-8deg);
+}
+
+/* per-pack flourishes on the #1 card */
+.td-steam {
+  position: absolute;
+  inset: 0;
+}
+.td-steam i {
+  position: absolute;
+  bottom: 60%;
+  left: 38%;
+  width: 0.55em;
+  height: 3.2em;
+  border-radius: 50%;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.65), transparent);
+  filter: blur(0.12em);
+  opacity: 0;
+  animation: td-steam 2.6s ease-in infinite;
+}
+.td-steam i:nth-child(2) {
+  left: 49%;
+  animation-delay: 0.8s;
+}
+.td-steam i:nth-child(3) {
+  left: 60%;
+  animation-delay: 1.6s;
+}
+@keyframes td-steam {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-2.4em) scaleX(1.9);
+    opacity: 0;
+  }
+}
+.td-record {
+  grid-area: 1 / 1;
+  width: 11em;
+  height: 11em;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #ffd36b 0 1.5em, #10143a 1.5em 1.7em, transparent 1.7em),
+    repeating-radial-gradient(circle, #111 0 0.16em, #242424 0.16em 0.32em);
+  box-shadow: 0 0.4em 1em rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+  animation: td-spin 3.6s linear infinite;
+}
+@keyframes td-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.td-scan {
+  position: absolute;
+  inset: -8%;
+  border-radius: 0.5em;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 4px);
+  mix-blend-mode: overlay;
+  animation: td-scan 1.4s steps(7) infinite;
+}
+@keyframes td-scan {
+  to {
+    transform: translateY(8%);
+  }
+}
+.td-sparkles {
+  position: absolute;
+  inset: 0;
+}
+.td-sparkles i {
+  position: absolute;
+  width: 0.7em;
+  height: 0.7em;
+  background: #fff;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: td-twinkle 2.2s ease-in-out infinite;
+}
+.td-sparkles i:nth-child(1) {
+  top: 18%;
+  left: 16%;
+}
+.td-sparkles i:nth-child(2) {
+  top: 30%;
+  right: 14%;
+  animation-delay: 0.6s;
+}
+.td-sparkles i:nth-child(3) {
+  bottom: 22%;
+  left: 24%;
+  animation-delay: 1.1s;
+}
+.td-sparkles i:nth-child(4) {
+  bottom: 14%;
+  right: 26%;
+  animation-delay: 1.6s;
+}
+@keyframes td-twinkle {
+  0%,
+  100% {
+    transform: scale(0.2) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-face,
+  .td-pop {
+    transition-duration: 0.16s;
+  }
+  .td-steam i,
+  .td-record,
+  .td-scan,
+  .td-sparkles i,
+  .td-sheen-pass {
+    animation: none;
+  }
+  .td-sparkles i {
+    opacity: 0.7;
+  }
+  .td-steam i {
+    opacity: 0.5;
+  }
+  .td-stat-bar > span {
+    transition-duration: 0.12s;
+  }
+}

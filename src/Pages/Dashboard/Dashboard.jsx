@@ -53,7 +53,24 @@ const NODES = [
     to: "/dashboard/reckoning",
     status: "online",
   },
+  {
+    id: "top5",
+    name: "Top 5 Things",
+    tag: "PERSONAL · CARD SET",
+    icon: "fa-clone",
+    desc: "My top fives (movies, food, games and more) sealed as booster packs. Rip one open, count down, pull the legendary holo.",
+    to: "/dashboard/top5",
+    status: "online",
+    // Warm the route chunk on hover/focus so the hard cut never waits.
+    prefetch: () => import("./TopFive/TopFive"),
+  },
 ];
+
+const warm = (node) => {
+  node.prefetch?.().catch(() => {
+    /* offline or blocked: the route still loads on click */
+  });
+};
 
 const Dashboard = () => {
   const online = NODES.filter((n) => n.status === "online").length;
@@ -99,7 +116,13 @@ const Dashboard = () => {
 
         <section className="dash-nodes">
           {NODES.map((n) => (
-            <Link key={n.id} to={n.to} className="dash-node">
+            <Link
+              key={n.id}
+              to={n.to}
+              className="dash-node"
+              onPointerEnter={n.prefetch ? () => warm(n) : undefined}
+              onFocus={n.prefetch ? () => warm(n) : undefined}
+            >
               <span className="dash-node-corner dash-node-corner--tl" />
               <span className="dash-node-corner dash-node-corner--br" />
 

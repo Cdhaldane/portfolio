@@ -1,0 +1,92 @@
+/* ============================================================
+   Index-seeded ballistic particles (particle-burst rule).
+   X runs linear; Y runs easeOutQuad to the apex at 40% of the
+   flight, then easeInQuad down: an exact parabola, zero JS per
+   frame. Custom properties come from Burst.jsx.
+   ============================================================ */
+
+.td-burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.td-bit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation:
+    td-bit-x var(--t) linear var(--delay) both,
+    td-bit-fade var(--t) linear var(--delay) both;
+}
+.td-bit > i {
+  display: block;
+  width: var(--s);
+  height: calc(var(--s) * 0.62);
+  margin: calc(var(--s) * -0.31) 0 0 calc(var(--s) * -0.5);
+  border-radius: 1px;
+  background: var(--c);
+  animation: td-bit-y var(--t) var(--delay) both;
+}
+.td-burst--flecks .td-bit > i {
+  height: calc(var(--s) * 0.4);
+  background: linear-gradient(135deg, var(--c), #fff 50%, var(--c));
+}
+.td-burst--dots .td-bit {
+  animation: td-dot var(--t) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.td-burst--dots .td-bit > i {
+  height: var(--s);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--c);
+  animation: none;
+}
+@keyframes td-bit-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--dx));
+  }
+}
+@keyframes td-bit-y {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+  }
+  40% {
+    transform: translateY(var(--apex)) rotate(calc(var(--rot) * 0.4));
+    animation-timing-function: cubic-bezier(0.11, 0, 0.5, 0);
+  }
+  100% {
+    transform: translateY(var(--end)) rotate(var(--rot));
+  }
+}
+@keyframes td-bit-fade {
+  0% {
+    opacity: 0;
+  }
+  6%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes td-dot {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-burst {
+    display: none;
+  }
+}
