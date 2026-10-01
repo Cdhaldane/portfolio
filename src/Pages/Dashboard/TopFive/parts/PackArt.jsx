@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { SET } from "../top5.data";
 import { prand } from "../poses";
+import "./PackArt.css";
 
 /** Fraction of the wrapper height that tears away as the strip. */
 export const STRIP = 0.14;

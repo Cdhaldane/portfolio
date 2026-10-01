@@ -1,4 +1,5 @@
 import { CARDS_PER_PACK, rarityOf } from "../top5.data";
+import "./Checklist.css";
 
 /*
  * The flat, readable view of every pick, like the checklist card a real set
@@ -10,7 +11,7 @@ export default function Checklist({ packs, opened, spoiled, onSpoil, onOpen }) {
 
   return (
     <section className="td-section" id="td-checklist" aria-labelledby="td-checklist-h">
-      <h2 className="td-sec-h" id="td-checklist-h">
+      <h2 className="td-sec-h" id="td-checklist-h" tabIndex={-1}>
         <span className="td-sec-n" aria-hidden="true">03</span>
         Set checklist
       </h2>

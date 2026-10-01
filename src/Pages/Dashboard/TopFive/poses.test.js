@@ -1,7 +1,8 @@
 import {
   CARD_RATIO,
   PERSPECTIVE,
-  TILT_MAX,
+  HAND_TILT,
+  INSPECT_TILT,
   cardWidthFor,
   stageBox,
   handLayout,
@@ -16,6 +17,11 @@ import {
   homePose,
   sidePose,
 } from "./poses";
+
+const rad = (deg) => (deg * Math.PI) / 180;
+// scale() doesn't touch Z, so a tilted card's depth swing uses its UNSCALED
+// size, corner to corner.
+const reach = (L, tilt) => Math.sin(rad(tilt.y)) * (L.cw / 2) + Math.sin(rad(tilt.x)) * (L.ch / 2);
 
 const layoutFor = (vw, vh) => {
   const { w, h } = stageBox(vw, vh);
@@ -57,8 +63,13 @@ describe("the fan", () => {
   test.each([
     [360, 640],
     [390, 844],
+    [470, 1000],
+    [600, 960],
+    [700, 1000],
+    [744, 1133],
     [1440, 900],
-  ])("the rotated fan fits inside a %ix%i stage", (vw, vh) => {
+    [1366, 657],
+  ])("the rotated, projected fan fits inside a %ix%i stage", (vw, vh) => {
     const { w, h } = stageBox(vw, vh);
     const L = handLayout({ stageW: w, stageH: h, cw: cardWidthFor(vw) });
     const b = fanBounds(L);
@@ -83,12 +94,15 @@ describe("the fan", () => {
     expect(layoutFor(1440, 900).handScale).toBeGreaterThanOrEqual(0.6);
   });
 
-  test("the lifted card clears its neighbours by more than a full tilt", () => {
+  test.each([0, 1, 2, 3, 4])("lifted card %i clears its neighbours through a full corner tilt", (li) => {
     const L = layoutFor(1440, 900);
-    const lifted = poseFor({ i: 2, phase: "hand", lifted: 2, L }).pose;
-    const neighbour = poseFor({ i: 3, phase: "hand", lifted: 2, L }).pose;
-    const tiltReach = Math.sin((TILT_MAX * Math.PI) / 180) * ((L.cw * lifted.scale) / 2);
-    expect(lifted.z - neighbour.z).toBeGreaterThan(tiltReach);
+    const lifted = poseFor({ i: li, phase: "hand", lifted: li, L }).pose;
+    [li - 1, li + 1]
+      .filter((i) => i >= 0 && i <= 4)
+      .forEach((i) => {
+        const neighbour = poseFor({ i, phase: "hand", lifted: li, L }).pose;
+        expect(lifted.z - neighbour.z).toBeGreaterThan(reach(L, HAND_TILT));
+      });
   });
 
   test("neighbours part away from the lifted card", () => {
@@ -133,6 +147,36 @@ describe("poses by phase", () => {
     const inspect = poseFor({ L, R, i: 2, phase: "inspect", inspected: 2 }).pose;
     expect(inspect.x).toBe(0);
     expect(inspect.rotate).toBe(0);
+  });
+
+  test("the hero card flips and tilts without cutting through the fan", () => {
+    const fanTop = Math.max(...[0, 1, 2, 3].map((i) => poseFor({ L, R, i, phase: "legend" }).pose.z));
+    const legend = poseFor({ L, R, i: 4, phase: "legend" }).pose;
+    expect(legend.z - L.cw / 2).toBeGreaterThan(fanTop); // a full flip
+    expect(legend.z - reach(L, INSPECT_TILT)).toBeGreaterThan(fanTop); // a full tilt
+    const inspect = poseFor({ L, R, i: 2, phase: "inspect", inspected: 2 }).pose;
+    const dimmedTop = Math.max(...[0, 1, 3, 4].map((i) => poseFor({ L, R, i, phase: "inspect", inspected: 2 }).pose.z));
+    expect(inspect.z - L.cw / 2).toBeGreaterThan(dimmedTop);
+    expect(inspect.z - reach(L, INSPECT_TILT)).toBeGreaterThan(dimmedTop);
+  });
+
+  test.each([
+    [1366, 657],
+    [844, 390],
+    [360, 640],
+  ])("the rising stack stays inside a %ix%i stage", (vw, vh) => {
+    const { w, h } = stageBox(vw, vh);
+    const L2 = handLayout({ stageW: w, stageH: h, cw: cardWidthFor(vw) });
+    const R2 = ripLayout({ stageW: w, stageH: h });
+    const risen = poseFor({ L: L2, R: R2, i: 0, phase: "ripping", tearDone: true }).pose;
+    expect(risen.y - (L2.ch * risen.scale) / 2).toBeGreaterThanOrEqual(-h / 2);
+  });
+
+  test("tiny stages never go negative", () => {
+    const s = stageBox(800, 100);
+    expect(s.h).toBe(0);
+    const R2 = ripLayout({ stageW: 800, stageH: s.h });
+    expect(R2.scale).toBeGreaterThan(0);
   });
 
   test("close-to-lens poses are compensated for perspective", () => {

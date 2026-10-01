@@ -22,8 +22,9 @@ export default function Header({ collected, sound, onToggleSound, onChecklist })
   return (
     <header className="td-head">
       <div className="td-head-bar td-reveal" style={{ "--n": 0 }}>
-        <Link to="/dashboard" className="td-back" aria-label="Back to dashboard">
+        <Link to="/dashboard" className="td-back">
           <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+          <span className="td-sr">Back to </span>
           <span>OPS//CONSOLE</span>
         </Link>
         <div className="td-head-actions">

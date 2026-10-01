@@ -4,6 +4,7 @@ import PackArt from "./PackArt";
 import { useHoloTilt } from "../useHoloTilt";
 import { SPRING, cloudPose, homePose } from "../poses";
 import { CARDS_PER_PACK } from "../top5.data";
+import "./PackShelf.css";
 
 const Pips = ({ lit }) => (
   <span className={`td-pips ${lit ? "is-lit" : ""}`} aria-hidden="true">
@@ -107,8 +108,12 @@ const ShelfPack = memo(function ShelfPack({
             }}
             onBlur={() => setHover(false)}
           >
-            <PackArt pack={pack} secret={pack.secret} />
-            <span className="td-glare" aria-hidden="true" />
+            {/* One clipped body for art + glare, so a torn pack clips both
+                along the same edge (and the button keeps its focus ring). */}
+            <span className="td-pack-body">
+              <PackArt pack={pack} secret={pack.secret} />
+              <span className="td-glare" aria-hidden="true" />
+            </span>
           </motion.button>
         </motion.div>
       </motion.div>

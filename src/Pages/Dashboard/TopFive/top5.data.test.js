@@ -15,6 +15,8 @@ import {
   allBaseOpened,
   sanitizeOpened,
   sanitizeSecrets,
+  sanitizePackEdit,
+  buildCatalog,
 } from "./top5.data";
 
 /*
@@ -147,5 +149,67 @@ describe("helpers", () => {
       expect(s.hint.length).toBeGreaterThan(0);
       expect(s.icon).toMatch(ICON);
     });
+  });
+});
+
+describe("owner edits", () => {
+  const editOf = (pack, changes = {}) => ({
+    name: pack.name,
+    tagline: pack.tagline,
+    statLabels: [...pack.statLabels],
+    cards: pack.cards.map((c) => ({ ...c, stats: [...c.stats] })),
+    ...changes,
+  });
+
+  test("with no edits the catalog is exactly the shipped set", () => {
+    const catalog = buildCatalog();
+    expect(catalog.packs).toEqual(PACKS);
+    expect(catalog.secret).toBe(SECRET_PACK);
+    expect(catalog.byId.get("movies")).toBe(PACKS[0]);
+    expect(catalog.byId.size).toBe(9);
+  });
+
+  test("a valid edit replaces that pack's contents and keeps its identity", () => {
+    const movies = PACKS[0];
+    const cards = editOf(movies).cards;
+    const swapped = [{ ...cards[1], title: "Spirited Away" }, cards[0], ...cards.slice(2)];
+    const catalog = buildCatalog({ movies: editOf(movies, { name: "Films", cards: swapped }) });
+    const edited = catalog.byId.get("movies");
+    expect(edited.name).toBe("Films");
+    expect(edited.cards[0].title).toBe("Spirited Away");
+    expect(edited.cards[1].title).toBe(movies.cards[0].title);
+    expect(edited.edited).toBe(true);
+    // identity and look stay with the pack
+    expect(edited.id).toBe("movies");
+    expect(edited.hue).toBe(movies.hue);
+    expect(edited.icon).toBe(movies.icon);
+    expect(catalog.packs[1]).toBe(PACKS[1]);
+  });
+
+  test("bad or unknown edits are ignored, never half-applied", () => {
+    const movies = PACKS[0];
+    const tooLong = editOf(movies);
+    tooLong.cards[2].title = "x".repeat(LIMITS.title + 1);
+    const badIcon = editOf(movies);
+    badIcon.cards[0].icon = "fa-x evil";
+    const fourCards = editOf(movies, { cards: movies.cards.slice(0, 4) });
+    const badStat = editOf(movies);
+    badStat.cards[0].stats = [11, 1, 1];
+    [tooLong, badIcon, fourCards, badStat, "junk", null].forEach((edit) => {
+      expect(buildCatalog({ movies: edit }).byId.get("movies")).toBe(movies);
+    });
+    expect(buildCatalog({ nope: editOf(movies) }).byId.has("nope")).toBe(false);
+  });
+
+  test("edit text is cleaned like the server cleans it", () => {
+    const edit = sanitizePackEdit(editOf(PACKS[1], { name: "  Food \n ", tagline: "Chef\u200b's  pick" }));
+    expect(edit.name).toBe("Food");
+    expect(edit.tagline).toBe("Chef's pick");
+  });
+
+  test("the shelf shows edited packs", () => {
+    const catalog = buildCatalog({ food: editOf(PACKS[1], { name: "Eats" }) });
+    expect(visiblePacks({}, false, catalog)[1].name).toBe("Eats");
+    expect(visiblePacks({}, true, catalog)).toHaveLength(9);
   });
 });

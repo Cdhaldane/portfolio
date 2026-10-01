@@ -128,7 +128,8 @@ export default function RipPack({
             <PackArt pack={pack} secret={pack.secret} />
             <span className="td-glare" aria-hidden="true" />
           </div>
-          <div className="td-rip-strip td-3d" style={{ height: `${(STRIP + 0.025) * 100}%` }}>
+          {/* 18%: taller than the highest torn tooth (14 + 2.2 + 1.4 = 17.6%), so no gap shows. */}
+          <div className="td-rip-strip td-3d" style={{ height: `${(STRIP + 0.04) * 100}%` }}>
             {Array.from({ length: SLICES }, (_, k) => (
               <Slice key={k} k={k} tear={tear} dir={dir} />
             ))}

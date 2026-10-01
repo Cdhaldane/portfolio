@@ -1,0 +1,128 @@
+/* ============================================================
+   TOP DECK · the shelf. One perspective lens PER cell, so every
+   pack is viewed head-on however far the page scrolls. The
+   slot > tilt wrappers are transform-only; the pack button is
+   the flat leaf. Wrapper art: PackArt.css.
+   ============================================================ */
+
+.td-shelf {
+  --pw: min(170px, calc((100vw - 46px) / 2));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px 14px;
+  justify-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.td-cell {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: 100%;
+  padding-top: 8px;
+  perspective: 900px;
+}
+.td-pack-slot {
+  position: relative;
+  width: var(--pw);
+  height: calc(var(--pw) * 1.62);
+  transform-style: preserve-3d;
+}
+.td-pack-tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.td-cell.is-picked .td-pack {
+  visibility: hidden;
+}
+
+.td-pack {
+  --glare-max: 0.32;
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.35em;
+  background: transparent;
+  color: #fff;
+  font-size: calc(var(--pw) / 12);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 1em 1.8em rgba(0, 0, 0, 0.45);
+  -webkit-tap-highlight-color: transparent;
+}
+/* The art and glare share one body so a torn pack clips both along the same
+   edge. Torn packs clip that body, never the button: clip-path on the button
+   would also clip its box-shadow, which is the focus ring. */
+.td-pack-body {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.td-pack.is-torn:not(:focus-visible) {
+  box-shadow: none;
+}
+.td-pack.is-torn .td-pack-body {
+  clip-path: var(--td-torn);
+}
+
+.td-pips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.td-pip {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid rgba(244, 239, 227, 0.35);
+  border-radius: 50%;
+  transition:
+    background 0.3s var(--td-ease) calc(var(--k) * 60ms),
+    border-color 0.3s ease calc(var(--k) * 60ms),
+    transform 0.3s var(--td-ease) calc(var(--k) * 60ms);
+}
+.td-pip--crown {
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  border: 0;
+  font-size: 0.7rem;
+  color: rgba(244, 239, 227, 0.35);
+}
+.td-pips.is-lit .td-pip {
+  border-color: var(--td-gold);
+  background: var(--td-gold);
+  transform: scale(1.15);
+}
+.td-pips.is-lit .td-pip--crown {
+  background: none;
+  color: var(--td-gold);
+}
+
+@media (min-width: 560px) {
+  .td-shelf {
+    --pw: 168px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 900px) {
+  .td-shelf {
+    --pw: 186px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .td-pip {
+    transition-duration: 0.12s;
+  }
+}

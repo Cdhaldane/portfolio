@@ -1,4 +1,5 @@
 import { SECRETS } from "../top5.data";
+import "./SecretsRow.css";
 
 /** Five face-down secret rares; each flips face-up once its egg is found. */
 export default function SecretsRow({ found }) {

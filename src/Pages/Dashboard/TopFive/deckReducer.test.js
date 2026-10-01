@@ -251,6 +251,13 @@ describe("switching packs", () => {
     expect(s.dealt).toBe(5);
   });
 
+  test("ripping a pack reached by switching deals from the wrapper", () => {
+    const sealed = run(ritual("movies"), { type: "switch", delta: 1 });
+    expect(sealed.entry).toBe("switch");
+    const ripping = run(sealed, { type: "rip" });
+    expect(ripping.entry).toBe("ritual");
+  });
+
   test("switching is blocked mid-ritual", () => {
     const dealing = run(
       initDeck(),

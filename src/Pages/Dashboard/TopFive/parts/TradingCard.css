@@ -264,7 +264,14 @@
   }
 }
 /* Foil and glare move by TRANSFORM of an oversized leaf, never by
-   background-position, so the moving light stays compositor-only. */
+   background-position. They only exist on the one live card, where they're
+   promoted to their own layers so the light can move without repainting
+   the face (the faces' visibility guard keeps them hidden when flipped). */
+.td-face .td-foil,
+.td-face .td-glare,
+.td-card-art .td-foil {
+  will-change: transform, opacity;
+}
 .td-foil {
   position: absolute;
   inset: -50%;
@@ -279,6 +286,10 @@
   mix-blend-mode: normal;
   filter: none;
   opacity: calc(var(--foil, 0.3) * 0.35 + var(--hyp, 0) * 0.12);
+}
+.td-glare.is-lite {
+  mix-blend-mode: normal;
+  opacity: calc(var(--glare, 0) * var(--glare-max, 0.3) * 0.5);
 }
 .td-glare {
   position: absolute;

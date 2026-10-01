@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { PHASE } from "../deckReducer";
 
 export const SoundToggle = ({ on, onToggle, className = "" }) => (
@@ -100,11 +101,30 @@ export function BottomBar({
   onSkip,
   onHold,
   onRelease,
+  onCancel,
   onRevealClick,
+  flipDescribedBy,
   onStep,
   onFlip,
   onClose,
 }) {
+  // A release only counts after a press that started on this button; passing
+  // the pointer over it (or releasing a press made elsewhere) does nothing.
+  const held = useRef(false);
+  const press = () => {
+    held.current = true;
+    onHold();
+  };
+  const release = () => {
+    if (!held.current) return;
+    held.current = false;
+    onRelease();
+  };
+  const abandon = () => {
+    if (!held.current) return;
+    held.current = false;
+    onCancel();
+  };
   let body = null;
   if (phase === PHASE.SEALED) {
     body = (
@@ -126,19 +146,19 @@ export function BottomBar({
           ref={primaryRef}
           type="button"
           className="td-cta td-cta--gold"
-          onPointerDown={onHold}
-          onPointerUp={onRelease}
-          onPointerLeave={onRelease}
-          onPointerCancel={onRelease}
+          onPointerDown={press}
+          onPointerUp={release}
+          onPointerLeave={abandon}
+          onPointerCancel={abandon}
           onKeyDown={(e) => {
             if (!isActivate(e)) return;
             e.preventDefault();
-            if (!e.repeat) onHold();
+            if (!e.repeat) press();
           }}
           onKeyUp={(e) => {
             if (!isActivate(e)) return;
             e.preventDefault();
-            onRelease();
+            release();
           }}
           onClick={onRevealClick}
         >
@@ -154,7 +174,14 @@ export function BottomBar({
           <i className="fa-solid fa-chevron-left" aria-hidden="true" />
           <span>Prev</span>
         </button>
-        <button ref={flipRef} type="button" className="td-cta" aria-pressed={backShown} onClick={onFlip}>
+        <button
+          ref={flipRef}
+          type="button"
+          className="td-cta"
+          aria-pressed={backShown}
+          aria-describedby={flipDescribedBy}
+          onClick={onFlip}
+        >
           <i className="fa-solid fa-rotate" aria-hidden="true" />
           Flip
         </button>

@@ -148,7 +148,8 @@ export function deckReducer(state, action) {
       if (!visibleOrder(state).includes(action.packId)) return state;
       return enterPack(state, action.packId, "ritual", 0);
     case "rip":
-      return state.phase === PHASE.SEALED ? { ...state, phase: PHASE.RIPPING } : state;
+      // A ripped pack always deals from its wrapper, however it was reached.
+      return state.phase === PHASE.SEALED ? { ...state, phase: PHASE.RIPPING, entry: "ritual" } : state;
     case "ripped":
       return state.phase === PHASE.RIPPING ? { ...state, phase: PHASE.DEALING, dealt: 0 } : state;
     case "landed":

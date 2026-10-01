@@ -52,6 +52,9 @@ const isBackAngle = (v) => {
   return a > 90 && a < 270;
 };
 
+/** True on the frame a flip brings the front into view (either direction, or an instant jump). */
+export const revealsFace = (prev, next) => isBackAngle(prev) && !isBackAngle(next);
+
 const transitionFor = (kind, i, { phase, cadence, arrived, entry }) => {
   if (!arrived && entry !== "ritual") return { ...SPRING.travel, delay: i * 0.04 };
   switch (kind) {
@@ -200,15 +203,16 @@ function CardHand({
     };
   }, [phase, reduced]);
 
-  // Fire the payoff on the exact frame the legendary passes edge-on. Read
-  // from the previous/next values: instant animations land in one jump.
+  // Fire the payoff on the exact frame the legendary passes edge-on (its
+  // face changes back -> front). The flip runs 180 -> 360, so test the face,
+  // not a fixed angle; comparing prev/next also catches an instant jump.
   const prevAngle = useRef(flips[4].get());
   const crossed = useRef(false);
   useMotionValueEvent(flips[4], "change", (v) => {
     const prev = prevAngle.current;
     prevAngle.current = v;
     if (phaseRef.current !== PHASE.REVEAL || crossed.current) return;
-    if (prev > 90 && v <= 90) {
+    if (revealsFace(prev, v)) {
       crossed.current = true;
       cb.current.onCrossing?.();
     }
@@ -235,7 +239,7 @@ function CardHand({
       faces.current[i] = face;
       cb.current.onFace?.(i, face);
     };
-    spinRef.current = {
+    const api = {
       begin(i) {
         controls.current[i]?.stop();
         drag = { i, start: flips[i].get() };
@@ -265,8 +269,11 @@ function CardHand({
         settle(i, target);
       },
     };
+    spinRef.current = api;
+    // During a pack switch the outgoing hand unmounts after the new one has
+    // claimed spinRef; only clear it if it's still ours.
     return () => {
-      spinRef.current = null;
+      if (spinRef.current === api) spinRef.current = null;
     };
   }, [spinRef, flips, reduced]);
 
@@ -293,17 +300,24 @@ function CardHand({
     [L, stageW]
   );
 
-  const handlers = useMemo(
-    () =>
-      [0, 1, 2, 3, 4].map((i) => ({
-        ref: (el) => {
+  const handlers = useMemo(() => {
+    // The outgoing hand of a pack switch unmounts after the incoming one has
+    // filled cardRefs; only clear slots this hand still owns.
+    const mine = [];
+    return [0, 1, 2, 3, 4].map((i) => ({
+      ref: (el) => {
+        if (el) {
+          mine[i] = el;
           cardRefs.current[i] = el;
-        },
-        onClick: () => onCardClick(i),
-        onFocus: () => onCardFocus(i),
-      })),
-    [cardRefs, onCardClick, onCardFocus]
-  );
+        } else {
+          if (cardRefs.current[i] === mine[i]) cardRefs.current[i] = null;
+          mine[i] = null;
+        }
+      },
+      onClick: () => onCardClick(i),
+      onFocus: () => onCardFocus(i),
+    }));
+  }, [cardRefs, onCardClick, onCardFocus]);
 
   const initialFor = (i) => {
     if (entry === "switch") return sidePose(i, switchDir || 1, L, stageW);

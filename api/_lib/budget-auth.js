@@ -4,7 +4,9 @@
 // Every budget function calls requireUser(req) before touching data. It:
 //   1. verifies the Clerk session JWT from the Authorization header
 //      (signature, expiry, issuer, authorized party) via @clerk/backend, and
-//   2. checks the verified user id against BUDGET_ALLOWED_USER_IDS.
+//   2. checks the verified user id against BUDGET_ALLOWED_USER_IDS (or the
+//      allowlist named by the caller: /api/top5 passes TOP5_EDITOR_USER_IDS
+//      so only Charlie can edit his lists).
 //
 // The allowlist is fail-closed: unset or empty means NOBODY gets in, so a
 // Clerk misconfiguration (e.g. sign-ups accidentally enabled) still can't
@@ -14,6 +16,7 @@
 // Env (set in .env.local for `vercel dev`, Vercel dashboard for prod):
 //   CLERK_SECRET_KEY         sk_test_... / sk_live_... from Clerk
 //   BUDGET_ALLOWED_USER_IDS  comma-separated, e.g. "user_2abc..., user_2def..."
+//   TOP5_EDITOR_USER_IDS     who may edit /dashboard/top5 (just Charlie)
 const { verifyToken } = require("@clerk/backend");
 
 // Local dev fallback: an unlinked `vercel dev` doesn't inject env into
@@ -46,8 +49,8 @@ class HttpError extends Error {
   }
 }
 
-function allowedUserIds() {
-  return (process.env.BUDGET_ALLOWED_USER_IDS || "")
+function allowedUserIds(envName = "BUDGET_ALLOWED_USER_IDS") {
+  return (process.env[envName] || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
@@ -55,10 +58,16 @@ function allowedUserIds() {
 
 /**
  * Verify the caller's Clerk session and allowlist membership.
+ * @param {object} [options]
+ * @param {string} [options.allowlistEnv] env var holding the allowed user ids
+ * @param {string} [options.product] name shown in the 403 message
  * @returns {Promise<{ userId: string, claims: object }>}
  * @throws {HttpError} 401 (no/bad token), 403 (not allowlisted), 503 (unconfigured)
  */
-async function requireUser(req) {
+async function requireUser(
+  req,
+  { allowlistEnv = "BUDGET_ALLOWED_USER_IDS", product = "Budgetter" } = {}
+) {
   if (!process.env.CLERK_SECRET_KEY) {
     throw new HttpError(503, {
       error: "Auth isn't configured on the server (CLERK_SECRET_KEY is unset).",
@@ -90,11 +99,11 @@ async function requireUser(req) {
   }
 
   const userId = claims.sub;
-  if (!allowedUserIds().includes(userId)) {
+  if (!allowedUserIds(allowlistEnv).includes(userId)) {
     throw new HttpError(403, {
-      error: "This account isn't on the Budgetter allowlist.",
+      error: `This account isn't on the ${product} allowlist.`,
       code: "not_allowlisted",
-      // Their own id, shown only to them — copy it into BUDGET_ALLOWED_USER_IDS.
+      // Their own id, shown only to them — copy it into the allowlist env var.
       userId,
     });
   }
@@ -111,4 +120,4 @@ function sendAuthError(res, err) {
   return res.status(500).json({ error: "Something went wrong." });
 }
 
-module.exports = { requireUser, sendAuthError, HttpError };
+module.exports = { requireUser, sendAuthError, HttpError, allowedUserIds };

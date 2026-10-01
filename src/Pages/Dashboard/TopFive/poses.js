@@ -11,6 +11,11 @@ export const CARD_RATIO = 88 / 63; // a real trading card: 63 x 88 mm
 export const PACK_RATIO = 1.62;
 export const PERSPECTIVE = 1100; // the one lens on the table (px)
 export const TILT_MAX = 16; // holo tilt ceiling (deg); readable below 30
+// Tilt ranges (deg). A lifted card in the fan sits just 70-90px in front of
+// its neighbours, so its corner swing must stay smaller than that gap; the
+// inspected card is alone at the front and gets the full range.
+export const HAND_TILT = { x: 8, y: 10 };
+export const INSPECT_TILT = { x: 14, y: TILT_MAX };
 export const SPREAD = 0.42; // fan step as a fraction of the card width
 export const MAX_HAND_SCALE = 0.7;
 export const TABLE_BARS = { top: 56, bottom: 84 };
@@ -55,44 +60,61 @@ export const cardWidthFor = (vw) => clamp(vw * 0.78, 248, 340);
 export const stageBox = (vw, vh) => ({
   top: TABLE_BARS.top,
   w: vw,
-  h: Math.max(160, vh - TABLE_BARS.top - TABLE_BARS.bottom),
+  h: Math.max(0, vh - TABLE_BARS.top - TABLE_BARS.bottom),
 });
 
-export function handLayout({ stageW, stageH, cw }) {
-  const ch = cw * CARD_RATIO;
-  const handScale = Math.max(
-    0.12,
-    Math.min(
-      MAX_HAND_SCALE,
-      (stageW - 64) / (cw * (1 + 4 * SPREAD)),
-      (stageH - 70) / (ch * 1.28)
-    )
-  );
+/** The fan's moving parts at a given hand scale. */
+const fanGeometry = ({ cw, ch, angle, captionH }, handScale) => {
   const lift = ch * handScale * 0.18 + 16;
-  const fitInspect = (reserve) =>
-    Math.min(1, (stageH - 24 - reserve) / ch, (stageW - 32) / cw);
-  // Too small to read the card itself? Reserve a caption strip under it.
-  const captionH = fitInspect(0) < 0.62 ? 64 : 0;
   return {
     cw,
     ch,
-    stageW,
-    stageH,
+    angle,
+    captionH,
     handScale,
-    angle: stageW < 480 ? 5 : 7,
     step: cw * handScale * SPREAD,
     lift,
     arc: 10 * handScale,
     handY: lift * 0.5,
+  };
+};
+
+export function handLayout({ stageW, stageH, cw }) {
+  const ch = cw * CARD_RATIO;
+  const angle = stageW < 480 ? 5 : 7;
+  const fitInspect = (reserve) =>
+    Math.min(1, (stageH - 24 - reserve) / ch, (stageW - 32) / cw);
+  // Too small to read the card itself? Reserve a caption strip under it.
+  const captionH = fitInspect(0) < 0.62 ? 64 : 0;
+
+  // The fan's projected width scales linearly with handScale, so measure the
+  // real extent (rotation, lift, parting, perspective) once at scale 1.
+  const unit = fanBounds({ ...fanGeometry({ cw, ch, angle, captionH: 0 }, 1), lift: 0, arc: 0, handY: 0 });
+  let handScale = Math.max(
+    0.12,
+    Math.min(MAX_HAND_SCALE, (stageW - 32) / (unit.right - unit.left), (stageH - 70) / (ch * 1.28))
+  );
+  // Height isn't quite linear (the lift has a fixed 16px), so check the real
+  // projected fan and shrink until it clears the stage edges by 8px.
+  for (let pass = 0; pass < 3; pass += 1) {
+    const b = fanBounds(fanGeometry({ cw, ch, angle, captionH }, handScale));
+    const reach = Math.max(b.bottom, -b.top);
+    if (reach <= stageH / 2 - 8 || handScale <= 0.12) break;
+    handScale = Math.max(0.12, (handScale * (stageH / 2 - 8)) / reach);
+  }
+
+  return {
+    ...fanGeometry({ cw, ch, angle, captionH }, handScale),
+    stageW,
+    stageH,
     inspectScale: Math.max(0.12, fitInspect(captionH)),
-    captionH,
   };
 }
 
 export function ripLayout({ stageW, stageH }) {
   const w = clamp(stageW * 0.56, 200, 280);
   const h = w * PACK_RATIO;
-  return { w, h, scale: Math.min(1, (stageH - 40) / h) };
+  return { w, h, scale: clamp((stageH - 40) / h, 0.1, 1) };
 }
 
 export const fanPose = (i, L) => {
@@ -100,9 +122,10 @@ export const fanPose = (i, L) => {
   return { x: d * L.step, y: L.handY + d * d * L.arc, z: i * 4, rotate: d * L.angle, scale: L.handScale };
 };
 
+// z 90 keeps a HAND_TILT corner swing clear of the neighbours (z 0-16).
 const liftedPose = (i, L) => {
   const fan = fanPose(i, L);
-  return { ...fan, y: fan.y - L.lift, z: 80, rotate: 0, scale: L.handScale * 1.1 };
+  return { ...fan, y: fan.y - L.lift, z: 90, rotate: 0, scale: L.handScale * 1.1 };
 };
 
 const spreadPose = (i, lifted, L) => {
@@ -129,14 +152,27 @@ const inPackPose = (i, L, R) => ({
   scale: packCardScale(L, R),
 });
 
-const risenPose = (i, L, R) => ({
-  ...inPackPose(i, L, R),
-  y: -(R.h * R.scale * 0.36) + i * 1.2,
-});
+// The stack rises out of the torn top, but never past the top of the stage.
+const risenPose = (i, L, R) => {
+  const half = (L.ch * packCardScale(L, R)) / 2;
+  const rise = Math.max(0, Math.min(R.h * R.scale * 0.36, L.stageH / 2 - half - 8));
+  return { ...inPackPose(i, L, R), y: -rise + i * 1.2 };
+};
 
-const legendPose = (L) => ({ x: 0, y: -8, z: 30, rotate: 0, scale: 0.9 * L.inspectScale * zComp(30) });
+// The hero card flips and tilts about its own centre, swinging up to half its
+// UNSCALED width in z (scale() never touches z). Parking it that far forward
+// keeps the swing clear of the fan behind; zComp keeps its apparent size.
+const heroZ = (L, margin) => L.cw / 2 + margin;
 
-const inspectPose = (L) => ({ x: 0, y: -L.captionH / 2, z: 40, rotate: 0, scale: L.inspectScale * zComp(40) });
+const legendPose = (L) => {
+  const z = heroZ(L, 30);
+  return { x: 0, y: -8, z, rotate: 0, scale: 0.9 * L.inspectScale * zComp(z) };
+};
+
+const inspectPose = (L) => {
+  const z = heroZ(L, 40);
+  return { x: 0, y: -L.captionH / 2, z, rotate: 0, scale: L.inspectScale * zComp(z) };
+};
 
 /** Where a card should be for the current beat, and what kind of move it is. */
 export function poseFor({ i, phase, tearDone = false, lifted = null, inspected = null, L, R }) {
@@ -176,15 +212,26 @@ export const sidePose = (i, dir, L, stageW) => {
 /** Which fan card sits under a stage-relative x (for the flat hit-grip). */
 export const nearestFanIndex = (x, L) => clamp(Math.round(x / L.step + 2), 0, 4);
 
-/** Axis-aligned bounds of every resting, lifted and parted fan pose. */
+/**
+ * Screen-space bounds of every resting, lifted and parted fan pose, projected
+ * through the lens (planes nearer the camera look bigger and drift outward
+ * from the perspective origin, which sits at the inspect caption's centre).
+ */
 export function fanBounds(L) {
+  const oy = -(L.captionH || 0) / 2;
   const box = (p) => {
     const w = L.cw * p.scale;
     const h = L.ch * p.scale;
     const t = (Math.abs(p.rotate) * Math.PI) / 180;
     const hw = (w * Math.cos(t) + h * Math.sin(t)) / 2;
     const hh = (w * Math.sin(t) + h * Math.cos(t)) / 2;
-    return { left: p.x - hw, right: p.x + hw, top: p.y - hh, bottom: p.y + hh };
+    const k = PERSPECTIVE / (PERSPECTIVE - p.z);
+    return {
+      left: (p.x - hw) * k,
+      right: (p.x + hw) * k,
+      top: oy + (p.y - hh - oy) * k,
+      bottom: oy + (p.y + hh - oy) * k,
+    };
   };
   const idx = [0, 1, 2, 3, 4];
   const poses = [

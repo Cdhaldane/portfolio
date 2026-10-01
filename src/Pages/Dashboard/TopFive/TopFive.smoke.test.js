@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import "@testing-library/jest-dom";
 import { MotionGlobalConfig } from "framer-motion";
 import TopFive from "./TopFive";
 import Dashboard from "../Dashboard";
@@ -51,6 +52,14 @@ const WAIT = { timeout: 4000 };
 beforeEach(() => {
   mockReduced = false;
   window.localStorage.clear();
+  window.sessionStorage.clear();
+  // No API in tests: saved edits "fail" to load and the shipped picks show.
+  // (Without this, CRA's fetch polyfill makes a real request to localhost.)
+  global.fetch = () => Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
+});
+
+afterEach(() => {
+  delete global.fetch;
 });
 
 const renderPage = () =>
@@ -76,7 +85,7 @@ test("renders the shelf: eight sealed packs and an empty collection", () => {
   renderPage();
   expect(screen.getAllByRole("button", { name: /pack, sealed/ })).toHaveLength(8);
   expect(screen.getByRole("img", { name: "Collected 0 of 40 cards" })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Back to dashboard" }).getAttribute("href")).toBe("/dashboard");
+  expect(screen.getByRole("link", { name: "Back to OPS//CONSOLE" }).getAttribute("href")).toBe("/dashboard");
 });
 
 test("the full ritual: rip, deal, reveal the legendary, land in the hand", async () => {
@@ -88,7 +97,7 @@ test("the full ritual: rip, deal, reveal the legendary, land in the hand", async
   expect(legend.getAttribute("aria-label")).toBe("Number 1, Legendary: The Big Lebowski");
   expect(screen.getByRole("button", { name: "Number 5, Common: Ratatouille" })).toBeTruthy();
   expect(screen.getAllByRole("button", { name: /^Number \d/ })).toHaveLength(5);
-  await waitFor(() => expect(document.activeElement).toBe(legend), WAIT);
+  await waitFor(() => expect(legend).toHaveFocus(), WAIT);
 });
 
 test("inspect, flip and the escape ladder back to the shelf", async () => {
@@ -114,12 +123,12 @@ test("inspect, flip and the escape ladder back to the shelf", async () => {
 });
 
 test("opened packs persist, and re-opening one skips straight to the hand", async () => {
-  const first = renderPage();
+  const view = renderPage();
   openPack("Movies");
   await ripAndReveal();
   const stored = JSON.parse(window.localStorage.getItem("td1-opened"));
   expect(typeof stored.movies.pulledAt).toBe("string");
-  first.unmount();
+  view.unmount();
 
   renderPage();
   expect(screen.getByRole("img", { name: "Collected 5 of 40 cards" })).toBeTruthy();
@@ -188,4 +197,40 @@ test("the OPS//CONSOLE docks a Top 5 Things node", () => {
   );
   const node = screen.getByRole("link", { name: /Top 5 Things/ });
   expect(node.getAttribute("href")).toBe("/dashboard/top5");
+});
+
+test("revealing the legendary fires its payoff (announced to screen readers)", async () => {
+  renderPage();
+  openPack("Movies");
+  await ripAndReveal();
+  const dialog = screen.getByRole("dialog", { name: "Movies pack" });
+  await waitFor(() => expect(within(dialog).getByText(/Legendary! Number 1: The Big Lebowski/)).toBeTruthy(), WAIT);
+});
+
+test("passing the pointer over the Reveal button doesn't reveal", async () => {
+  renderPage();
+  openPack("Movies");
+  fireEvent.click(await screen.findByRole("button", { name: /Rip it open/i }, WAIT));
+  const reveal = await screen.findByRole("button", { name: /Reveal your legendary card/i }, WAIT);
+  fireEvent.pointerEnter(reveal);
+  fireEvent.pointerLeave(reveal);
+  fireEvent.pointerUp(reveal);
+  expect(screen.getByRole("button", { name: /Reveal your legendary card/i })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Number 1, Legendary:/ })).toBeNull();
+});
+
+test("arrow keys still move focus after switching between opened packs", async () => {
+  window.localStorage.setItem(
+    "td1-opened",
+    JSON.stringify({ movies: { pulledAt: "2026-09-30" }, food: { pulledAt: "2026-09-30" } })
+  );
+  renderPage();
+  openPack("Movies");
+  await screen.findByRole("button", { name: /Number 1, Legendary: The Big Lebowski/ }, WAIT);
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "]" });
+  await screen.findByRole("dialog", { name: "Food pack" }, WAIT);
+  // wait for the outgoing hand to finish leaving
+  await waitFor(() => expect(screen.getAllByRole("button", { name: /^Number \d/ })).toHaveLength(5), WAIT);
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "ArrowLeft" });
+  expect(screen.getByRole("button", { name: "Number 2, Ultra Rare: Poutine" })).toHaveFocus();
 });

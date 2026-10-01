@@ -1,0 +1,154 @@
+/* ============================================================
+   TOP DECK · booster wrapper art, shared by the shelf packs and
+   the rip-pack body on the table. Fills its parent, which sets
+   --pw (pack width) and --h (pack hue).
+   ============================================================ */
+
+.td-pack,
+.td-rip-pack {
+  --pack-bg: linear-gradient(160deg, hsl(var(--h) 70% 18%) 0%, hsl(var(--h) 85% 46%) 45%, hsl(var(--h) 60% 20%) 100%);
+}
+
+.td-art {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 0.35em;
+  background: var(--pack-bg);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.2);
+  -webkit-mask:
+    radial-gradient(circle at 50% 0, transparent 0.16em, #000 0.18em) top / 0.5em 51% repeat-x,
+    radial-gradient(circle at 50% 100%, transparent 0.16em, #000 0.18em) bottom / 0.5em 51% repeat-x;
+  mask:
+    radial-gradient(circle at 50% 0, transparent 0.16em, #000 0.18em) top / 0.5em 51% repeat-x,
+    radial-gradient(circle at 50% 100%, transparent 0.16em, #000 0.18em) bottom / 0.5em 51% repeat-x;
+}
+.td-art.is-secret {
+  background: linear-gradient(160deg, #1a0833 0%, #ff2bd6 42%, #22f0ff 58%, #0b0e2a 100%);
+}
+.td-art > span {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+}
+.td-art-crimp {
+  left: 0 !important;
+  right: 0 !important;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, rgba(0, 0, 0, 0.2) 2px 4px);
+}
+.td-art-crimp--top {
+  top: 0;
+  height: 9%;
+}
+.td-art-crimp--bottom {
+  bottom: 0;
+  height: 8%;
+}
+.td-art-perf {
+  top: 12.4%;
+  border-top: 0.09em dashed rgba(255, 211, 107, 0.8);
+}
+.td-art-set {
+  top: 18%;
+  font: 600 0.5em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.24em;
+  opacity: 0.85;
+}
+.td-art-emblem {
+  top: 26%;
+  left: 50% !important;
+  right: auto !important;
+  display: grid;
+  place-items: center;
+  width: 4em;
+  height: 4em;
+  margin-left: -2em;
+  border: 0.16em solid var(--td-gold);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, hsl(var(--h) 90% 70%), hsl(var(--h) 70% 30%));
+  box-shadow: 0 0.3em 0.8em rgba(0, 0, 0, 0.4), inset 0 0 0.6em rgba(0, 0, 0, 0.35);
+}
+.td-art.is-secret .td-art-emblem {
+  background: radial-gradient(circle at 35% 30%, #ff8af0, #5b0f6b);
+}
+.td-art-emblem i {
+  font-size: 1.8em;
+  color: #fff;
+}
+.td-art-name {
+  top: 57%;
+  font: 400 1.18em/1.02 "Bungee", "Space Grotesk", sans-serif;
+  /* A dark halo keeps white names readable on the lightest wrappers. */
+  text-shadow:
+    0 0 0.12em hsl(var(--h) 60% 12%),
+    0 0 0.3em rgba(0, 0, 0, 0.55),
+    0.05em 0.07em 0 hsl(var(--h) 60% 14%),
+    0.1em 0.14em 0 rgba(0, 0, 0, 0.3);
+}
+.td-art.is-secret .td-art-name {
+  text-shadow: 0.06em 0 var(--td-magenta), -0.06em 0 var(--td-cyan);
+  animation: td-glitch 2.4s steps(1) infinite;
+}
+@keyframes td-glitch {
+  0%,
+  90% {
+    transform: none;
+  }
+  93% {
+    transform: translateX(0.08em);
+  }
+  96% {
+    transform: translateX(-0.08em);
+  }
+  98% {
+    transform: translateX(0.04em);
+  }
+}
+.td-art-tag {
+  top: 74%;
+  font: 600 0.5em/1.2 "Space Grotesk", system-ui, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.td-art-fine {
+  bottom: 11.5%;
+  font: 500 0.42em/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.2em;
+  opacity: 0.72;
+}
+.td-art-sheen {
+  inset: 0;
+  left: 0 !important;
+  right: 0 !important;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.22) 42%, transparent 54%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent 30%, rgba(0, 0, 0, 0.22));
+}
+.td-pack.is-glint .td-art-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  transform: translateX(-130%);
+  animation: td-glint 6s ease-in-out 2s infinite;
+}
+@keyframes td-glint {
+  0%,
+  80% {
+    transform: translateX(-130%);
+  }
+  92%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-pack.is-glint .td-art-sheen::after,
+  .td-art.is-secret .td-art-name {
+    animation: none;
+  }
+}

@@ -9,9 +9,11 @@ import { Banner, Flare, Flash, Rays, Shockwave } from "./TableFx";
 import { STRIP } from "./PackArt";
 import { useHoloTilt } from "../useHoloTilt";
 import { PHASE, isRitual } from "../deckReducer";
-import { CARDS_PER_PACK, packById, rankAt, rarityOf } from "../top5.data";
+import { CARDS_PER_PACK, rankAt, rarityOf } from "../top5.data";
 import {
   DEAL_CADENCE,
+  HAND_TILT,
+  INSPECT_TILT,
   SPEED_CADENCE,
   cardWidthFor,
   fanBounds,
@@ -40,10 +42,12 @@ const cardInfo = (pack, fanIdx) => {
   return { rank, label: rarityOf(rank).label, title: card.title, take: card.take, card };
 };
 
-const focusables = (root) =>
+// Tabbable elements only: the roving hand keeps four of its five card
+// buttons at tabIndex -1, and those must not count as the trap's ends.
+const tabbables = (root) =>
   root
-    ? [...root.querySelectorAll("button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])")].filter(
-        (el) => el.offsetParent !== null || el === document.activeElement
+    ? [...root.querySelectorAll("button:not([disabled]), [href], [tabindex]")].filter(
+        (el) => el.tabIndex >= 0 && (el.offsetParent !== null || el === document.activeElement)
       )
     : [];
 
@@ -56,6 +60,7 @@ const focusables = (root) =>
 export default function RipTable({
   state,
   dispatch,
+  catalog,
   order,
   vw,
   vh,
@@ -70,10 +75,11 @@ export default function RipTable({
   onToggleSound,
   onToast,
   announce,
+  announcement,
   onShark,
 }) {
   const { phase, packId, run, entry, switchDir, revealed, inspected } = state;
-  const pack = packById(packId);
+  const pack = catalog.byId.get(packId);
   const stage = stageBox(vw, vh);
   const L = useMemo(
     () => handLayout({ stageW: stage.w, stageH: stage.h, cw: cardWidthFor(vw) }),
@@ -99,6 +105,7 @@ export default function RipTable({
     setCharging(false);
     setBanner(null);
     setSheen([0, 0, 0, 0, 0]);
+    setWobble(0);
   }
   // Fresh tear values per deal (idempotent, so StrictMode's double render is safe).
   const perRun = useRef(null);
@@ -116,14 +123,26 @@ export default function RipTable({
   const chargeAt = useRef(0);
   const chargeLevel = useRef(0);
   const fxId = useRef(0);
+  const pressOnStage = useRef(false);
 
   const cadence = speedDeal ? SPEED_CADENCE : DEAL_CADENCE;
   const liveIndex =
     phase === PHASE.INSPECT ? inspected : phase === PHASE.HAND ? lifted : phase === PHASE.REVEAL ? 4 : null;
-  const holo = useHoloTilt({
-    enabled: !reduced && liveIndex !== null && (fine || phase === PHASE.INSPECT),
-    shimmer: !fine && phase === PHASE.INSPECT,
+  // Two tilt rigs: a lifted fan card tilts gently (it sits only ~75px in
+  // front of its neighbours); the inspected or revealing card gets the full
+  // range. No idle shimmer on the lite tier (touch is always lite).
+  const handHolo = useHoloTilt({
+    enabled: !reduced && fine && phase === PHASE.HAND && lifted !== null,
+    maxX: HAND_TILT.x,
+    maxY: HAND_TILT.y,
   });
+  const inspectHolo = useHoloTilt({
+    enabled: !reduced && (phase === PHASE.INSPECT || (fine && phase === PHASE.REVEAL)),
+    maxX: INSPECT_TILT.x,
+    maxY: INSPECT_TILT.y,
+    shimmer: !fine && !lite && phase === PHASE.INSPECT,
+  });
+  const holoStyle = phase === PHASE.HAND ? handHolo.style : inspectHolo.style;
   const ripHolo = useHoloTilt({ enabled: fine && !reduced && phase === PHASE.SEALED, maxX: 8, maxY: 10 });
 
   const legendBox = { x: 0, y: -8, w: L.cw * 0.9 * L.inspectScale, h: L.ch * 0.9 * L.inspectScale };
@@ -192,6 +211,7 @@ export default function RipTable({
   );
 
   // ---- the legendary ----
+  const cancelCharge = useCallback(() => setCharging(false), []);
   const startCharge = useCallback(() => {
     if (phase !== PHASE.LEGEND || charging) return;
     chargeAt.current = now();
@@ -249,27 +269,36 @@ export default function RipTable({
     setBackShown(false);
   }, [dispatch]);
   const onFace = useCallback((i, face) => setBackShown(face === "back"), []);
+
+  // Tell screen readers which card is on screen whenever inspect lands on one.
+  useEffect(() => {
+    if (phase !== PHASE.INSPECT || inspected === null) return;
+    const { rank, label, title } = cardInfo(pack, inspected);
+    announce(`Number ${rank}, ${label}: ${title}.`);
+  }, [phase, inspected, pack, announce]);
   const leave = useCallback(() => dispatch({ type: "shelf", today: today() }), [dispatch]);
   const switchPack = useCallback((delta) => dispatch({ type: "switch", delta }), [dispatch]);
 
   const canSwitch = phase === PHASE.SEALED || phase === PHASE.HAND || phase === PHASE.INSPECT;
   const at = order.indexOf(packId);
-  const prevName = packById(order[(at - 1 + order.length) % order.length]).name;
-  const nextName = packById(order[(at + 1) % order.length]).name;
+  const prevName = catalog.byId.get(order[(at - 1 + order.length) % order.length]).name;
+  const nextName = catalog.byId.get(order[(at + 1) % order.length]).name;
 
   const onKeyDown = (e) => {
     const { key } = e;
     if (key === "Tab") {
-      const els = focusables(rootRef.current);
+      // Wrap by document position, not identity, so it also holds when focus
+      // sits on the dialog root or on a card the roving tabIndex moved off.
+      const els = tabbables(rootRef.current);
       if (!els.length) return;
-      const first = els[0];
-      const last = els[els.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      const active = document.activeElement;
+      const after = (el) => active.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING;
+      if (!e.shiftKey && !els.some(after)) {
         e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+        els[0].focus();
+      } else if (e.shiftKey && !els.some((el) => el !== active && !after(el))) {
         e.preventDefault();
-        first.focus();
+        els[els.length - 1].focus();
       }
       return;
     }
@@ -326,8 +355,12 @@ export default function RipTable({
     else focus(rootRef.current);
   }, [phase, run, state.lastInspected]);
 
+  // Only a press that STARTED on the bare stage closes inspect: on touch, the
+  // click that follows the tap which opened inspect would otherwise land here.
   const onBackdrop = (e) => {
-    if (e.target === e.currentTarget && phase === PHASE.INSPECT) close();
+    const startedHere = pressOnStage.current;
+    pressOnStage.current = false;
+    if (startedHere && e.target === e.currentTarget && phase === PHASE.INSPECT) close();
   };
 
   const showPack = phase === PHASE.SEALED || phase === PHASE.RIPPING;
@@ -345,6 +378,7 @@ export default function RipTable({
   if ((phase === PHASE.DEALING || phase === PHASE.LEGEND) && state.dealt > 0) info = cardInfo(pack, state.dealt - 1);
   if (phase === PHASE.REVEAL) info = cardInfo(pack, 4);
   const inspectInfo = phase === PHASE.INSPECT ? cardInfo(pack, inspected) : null;
+  const descId = (i) => `td-desc-${pack.id}-${i}`;
 
   return (
     <motion.div
@@ -355,10 +389,7 @@ export default function RipTable({
       aria-label={`${pack.name} pack`}
       tabIndex={-1}
       onKeyDown={onKeyDown}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
-      transition={{ duration: 0.3 }}
     >
       <div className="td-table-backdrop" aria-hidden="true" />
       <TopBar
@@ -379,6 +410,9 @@ export default function RipTable({
       <div
         className="td-stage"
         style={{ top: stage.top, height: stage.h, "--cw": `${L.cw}px`, "--ch": `${L.ch}px` }}
+        onPointerDown={(e) => {
+          pressOnStage.current = e.target === e.currentTarget;
+        }}
         onClick={onBackdrop}
       >
         <div className="td-fx td-fx--under">
@@ -439,7 +473,7 @@ export default function RipTable({
                   reduced={reduced}
                   lite={lite}
                   liveIndex={liveIndex}
-                  holoStyle={holo.style}
+                  holoStyle={holoStyle}
                   charging={charging}
                   godMode={godMode}
                   shiny={shiny}
@@ -478,14 +512,25 @@ export default function RipTable({
         ) : null}
         {phase === PHASE.LEGEND ? <LegendGrip box={legendBox} onHold={startCharge} onRelease={releaseCharge} /> : null}
         {phase === PHASE.HAND ? (
-          <FanGrip box={fanBox} L={L} lifted={lifted} holo={holo} onLift={setLifted} onPick={inspect} />
+          <FanGrip box={fanBox} L={L} lifted={lifted} holo={handHolo} onLift={setLifted} onPick={inspect} />
         ) : null}
-        {phase === PHASE.INSPECT ? <SpinGrip box={inspectBox} index={inspected} spinRef={spinRef} holo={holo} /> : null}
+        {phase === PHASE.INSPECT ? <SpinGrip box={inspectBox} index={inspected} spinRef={spinRef} holo={inspectHolo} /> : null}
 
         {inspectInfo && L.captionH ? (
           <div className="td-inspect-caption" aria-hidden="true">
-            <b>{inspectInfo.title}</b>
-            <span>{inspectInfo.take}</span>
+            {backShown ? (
+              <>
+                <b>{inspectInfo.card.fun || inspectInfo.title}</b>
+                <span>
+                  {pack.statLabels.map((l, k) => `${l} ${inspectInfo.card.stats[k]}`).join(" · ")}
+                </span>
+              </>
+            ) : (
+              <>
+                <b>{inspectInfo.title}</b>
+                <span>{inspectInfo.take}</span>
+              </>
+            )}
           </div>
         ) : null}
       </div>
@@ -502,21 +547,31 @@ export default function RipTable({
         onSkip={skip}
         onHold={startCharge}
         onRelease={releaseCharge}
+        onCancel={cancelCharge}
         onRevealClick={() => {
           if (phase === PHASE.LEGEND && !charging) releaseCharge();
         }}
+        flipDescribedBy={inspected !== null ? descId(inspected) : undefined}
         onStep={step}
         onFlip={() => setBackShown((b) => !b)}
         onClose={close}
       />
 
-      <div className="td-sr">
-        {pack.cards.map((c, k) => (
-          <p key={c.id} id={`td-desc-${pack.id}-${CARDS_PER_PACK - 1 - k}`}>
-            {c.take} {c.meta}. {pack.statLabels.map((l, s) => `${l} ${c.stats[s]} of 10`).join(", ")}. {c.fun}.
-          </p>
-        ))}
-      </div>
+      {/* Card descriptions for aria-describedby. `hidden` keeps them out of
+          browse mode, and they only exist once every card is face-up, so the
+          face-down #1 can't be read early. */}
+      {phase === PHASE.HAND || phase === PHASE.INSPECT ? (
+        <div hidden>
+          {pack.cards.map((c, k) => (
+            <p key={c.id} id={descId(CARDS_PER_PACK - 1 - k)}>
+              {c.take} {c.meta}. {pack.statLabels.map((l, s) => `${l} ${c.stats[s]} of 10`).join(", ")}. {c.fun}.
+            </p>
+          ))}
+        </div>
+      ) : null}
+      <p className="td-sr" aria-live="polite">
+        {announcement}
+      </p>
     </motion.div>
   );
 }

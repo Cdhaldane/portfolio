@@ -85,7 +85,7 @@ const Front = ({ pack, card, rank, tier, collector, live, lite, shiny, popped, s
       <span className="td-sheen" aria-hidden="true" />
       {sheenKey ? <span key={sheenKey} className="td-sheen-pass" aria-hidden="true" /> : null}
       {tier === "ultra" || tier === "legendary" ? foil : null}
-      {live ? <span className="td-glare" aria-hidden="true" /> : null}
+      {live ? <span className={`td-glare ${lite ? "is-lite" : ""}`} aria-hidden="true" /> : null}
       {hit ? <button type="button" className="td-card-hit" {...hit} /> : null}
     </>
   );
@@ -146,7 +146,9 @@ const TradingCard = memo(function TradingCard({
   sheenKey,
   hit,
 }) {
-  const popped = tier === "legendary" && !concealed;
+  // Only the real #1 pops out: in god mode every card is legendary, and a
+  // pop layer 36px forward would draw over its neighbour in the fan.
+  const popped = rank === 1 && tier === "legendary" && !concealed;
   return (
     <>
       <motion.div

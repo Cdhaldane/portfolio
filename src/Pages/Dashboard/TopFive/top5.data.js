@@ -18,9 +18,10 @@ export const SET = { code: "TD1", name: "Top Deck", series: "Series 01" };
 
 export const CARDS_PER_PACK = 5;
 
-/** Character budgets the card layout is designed around. */
+/** Character budgets the card layout is designed around (the API enforces them too). */
 export const LIMITS = {
   packName: 14,
+  tagline: 28,
   statLabel: 12,
   title: 34,
   meta: 40,
@@ -225,9 +226,14 @@ export const packById = (id) =>
 
 export const allBaseOpened = (opened) => PACKS.every((p) => Boolean(opened[p.id]));
 
-/** Packs on the shelf, in shelf order. The bonus pack joins once earned. */
-export const visiblePacks = (opened, bonusUnlocked) =>
-  bonusUnlocked || allBaseOpened(opened) ? [...PACKS, SECRET_PACK] : PACKS;
+/**
+ * Packs on the shelf, in shelf order. The bonus pack joins once earned.
+ * Pass a catalog (buildCatalog) to get the owner's edited packs.
+ */
+export const visiblePacks = (opened, bonusUnlocked, catalog) => {
+  const base = catalog || { packs: PACKS, secret: SECRET_PACK };
+  return bonusUnlocked || allBaseOpened(opened) ? [...base.packs, base.secret] : base.packs;
+};
 
 /** Cards collected from the base set (the bonus pack doesn't count). */
 export const collectedCount = (opened) =>
@@ -250,4 +256,93 @@ export const sanitizeSecrets = (raw) => {
   if (!Array.isArray(raw)) return [];
   const known = new Set(SECRETS.map((s) => s.id));
   return [...new Set(raw.filter((id) => typeof id === "string" && known.has(id)))];
+};
+
+// ---- owner edits (saved from the back office through /api/top5) ----
+
+export const ICON_RE = /^fa-[a-z0-9-]{1,40}$/;
+const ID_RE = /^[a-z0-9-]{1,40}$/;
+// Same cleaning as the API: zero-width spaces, direction marks and bidi
+// overrides vanish (emoji joiners stay), other control characters become
+// spaces, whitespace collapses.
+// eslint-disable-next-line no-control-regex
+const INVISIBLE = /[\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g;
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g;
+
+export const cleanText = (value) =>
+  typeof value === "string"
+    ? value.replace(INVISIBLE, "").replace(CONTROL, " ").replace(/\s+/g, " ").trim()
+    : null;
+
+const fits = (text, max, required = true) =>
+  text !== null && text.length <= max && (!required || text.length > 0);
+
+const cleanCard = (raw, seen) => {
+  if (!isPlainObject(raw) || typeof raw.id !== "string" || !ID_RE.test(raw.id) || seen.has(raw.id)) {
+    return null;
+  }
+  if (typeof raw.icon !== "string" || !ICON_RE.test(raw.icon)) return null;
+  const card = {
+    id: raw.id,
+    title: cleanText(raw.title),
+    meta: cleanText(raw.meta ?? ""),
+    icon: raw.icon,
+    take: cleanText(raw.take),
+    stats: raw.stats,
+    fun: cleanText(raw.fun ?? ""),
+  };
+  const textOk =
+    fits(card.title, LIMITS.title) &&
+    fits(card.meta, LIMITS.meta, false) &&
+    fits(card.take, LIMITS.take) &&
+    fits(card.fun, LIMITS.fun, false);
+  const statsOk =
+    Array.isArray(card.stats) &&
+    card.stats.length === 3 &&
+    card.stats.every((v) => Number.isInteger(v) && v >= 0 && v <= 10);
+  return textOk && statsOk ? { ...card, stats: [...card.stats] } : null;
+};
+
+/**
+ * Validate one stored pack edit ({ name, tagline, statLabels, cards }).
+ * All-or-nothing: anything malformed returns null and the pack keeps its
+ * defaults, so a bad row can never break a card.
+ */
+export const sanitizePackEdit = (raw) => {
+  if (!isPlainObject(raw)) return null;
+  const name = cleanText(raw.name);
+  const tagline = cleanText(raw.tagline);
+  if (!fits(name, LIMITS.packName) || !fits(tagline, LIMITS.tagline)) return null;
+  if (!Array.isArray(raw.statLabels) || raw.statLabels.length !== 3) return null;
+  const statLabels = raw.statLabels.map(cleanText);
+  if (!statLabels.every((l) => fits(l, LIMITS.statLabel))) return null;
+  if (!Array.isArray(raw.cards) || raw.cards.length !== CARDS_PER_PACK) return null;
+  const seen = new Set();
+  const cards = [];
+  for (const rawCard of raw.cards) {
+    const card = cleanCard(rawCard, seen);
+    if (!card) return null;
+    seen.add(card.id);
+    cards.push(card);
+  }
+  return { name, tagline, statLabels, cards };
+};
+
+/**
+ * The shipped set with the owner's saved edits laid over it. Edits only
+ * replace a pack's contents; its id, hue, icon and flourish stay put (they
+ * key the shelf order and every visitor's opened state).
+ */
+export const buildCatalog = (overrides = {}) => {
+  const edits = isPlainObject(overrides) ? overrides : {};
+  const apply = (pack) => {
+    const edit = Object.prototype.hasOwnProperty.call(edits, pack.id)
+      ? sanitizePackEdit(edits[pack.id])
+      : null;
+    return edit ? { ...pack, ...edit, edited: true } : pack;
+  };
+  const packs = PACKS.map(apply);
+  const secret = apply(SECRET_PACK);
+  return { packs, secret, byId: new Map([...packs, secret].map((p) => [p.id, p])) };
 };
