@@ -108,7 +108,7 @@ test("saved edits show up for every visitor", async () => {
   fireEvent.click(screen.getByRole("button", { name: /Spoil it for me/i }));
   const checklist = screen.getByRole("region", { name: "Set checklist" });
   expect(within(checklist).getAllByText("Spirited Away").length).toBeGreaterThan(0);
-  expect(within(checklist).queryByText("The Big Lebowski")).toBeNull();
+  expect(within(checklist).queryByText("Dune: Part Two")).toBeNull();
 });
 
 test("a broken API response leaves the shipped picks alone", async () => {
@@ -149,7 +149,7 @@ test("the owner edits a pick, saves it, and the shelf updates", async () => {
   renderPage();
   const dialog = await openBackOffice();
   const title = await within(dialog).findByLabelText("Title", {}, WAIT);
-  expect(title.value).toBe("The Big Lebowski");
+  expect(title.value).toBe("Dune: Part Two");
 
   const save = within(dialog).getByRole("button", { name: /Save pack/i });
   expect(save.disabled).toBe(true);
@@ -182,7 +182,7 @@ test("re-ranking moves a pick, and a blank title blocks the save", async () => {
 
   fireEvent.click(within(dialog).getByRole("button", { name: "Move #2 up" }));
   const picks = within(dialog).getAllByRole("button", { pressed: false }).filter((b) => /^#\d/.test(b.textContent));
-  expect(picks[0].textContent).toMatch(/Spider-Man/);
+  expect(picks[0].textContent).toMatch(/Arrival/);
 
   fireEvent.change(within(dialog).getByLabelText("Title"), { target: { value: "   " } });
   expect(within(dialog).getByRole("button", { name: /Save pack/i }).disabled).toBe(true);

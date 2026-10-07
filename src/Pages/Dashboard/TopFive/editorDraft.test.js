@@ -23,8 +23,8 @@ test("a draft copies only the editable fields", () => {
   const d = toDraft(movies);
   expect(Object.keys(d).sort()).toEqual(["cards", "name", "statLabels", "tagline"]);
   expect(d.cards[0]).toEqual({
-    id: "lebowski",
-    title: "The Big Lebowski",
+    id: "dune2",
+    title: "Dune: Part Two",
     meta: movies.cards[0].meta,
     icon: movies.cards[0].icon,
     take: movies.cards[0].take,

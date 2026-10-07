@@ -94,8 +94,8 @@ test("the full ritual: rip, deal, reveal the legendary, land in the hand", async
   expect(screen.getByRole("dialog", { name: "Movies pack" })).toBeTruthy();
 
   const legend = await ripAndReveal();
-  expect(legend.getAttribute("aria-label")).toBe("Number 1, Legendary: The Big Lebowski");
-  expect(screen.getByRole("button", { name: "Number 5, Common: Ratatouille" })).toBeTruthy();
+  expect(legend.getAttribute("aria-label")).toBe("Number 1, Legendary: Dune: Part Two");
+  expect(screen.getByRole("button", { name: "Number 5, Common: The Winter Soldier" })).toBeTruthy();
   expect(screen.getAllByRole("button", { name: /^Number \d/ })).toHaveLength(5);
   await waitFor(() => expect(legend).toHaveFocus(), WAIT);
 });
@@ -165,10 +165,10 @@ test("the checklist is spoiler-safe until you ask", () => {
   renderPage();
   const checklist = screen.getByRole("region", { name: "Set checklist" });
   expect(within(checklist).getAllByText("Hidden until opened")).toHaveLength(40);
-  expect(within(checklist).queryByText("Interstellar")).toBeNull();
+  expect(within(checklist).queryByText("Tenet")).toBeNull();
 
   fireEvent.click(screen.getByRole("button", { name: /Spoil it for me/i }));
-  expect(within(checklist).getByText("Interstellar")).toBeTruthy();
+  expect(within(checklist).getByText("Tenet")).toBeTruthy();
   expect(within(checklist).queryAllByText("Hidden until opened")).toHaveLength(0);
 });
 
@@ -204,7 +204,7 @@ test("revealing the legendary fires its payoff (announced to screen readers)", a
   openPack("Movies");
   await ripAndReveal();
   const dialog = screen.getByRole("dialog", { name: "Movies pack" });
-  await waitFor(() => expect(within(dialog).getByText(/Legendary! Number 1: The Big Lebowski/)).toBeTruthy(), WAIT);
+  await waitFor(() => expect(within(dialog).getByText(/Legendary! Number 1: Dune: Part Two/)).toBeTruthy(), WAIT);
 });
 
 test("passing the pointer over the Reveal button doesn't reveal", async () => {
@@ -226,7 +226,7 @@ test("arrow keys still move focus after switching between opened packs", async (
   );
   renderPage();
   openPack("Movies");
-  await screen.findByRole("button", { name: /Number 1, Legendary: The Big Lebowski/ }, WAIT);
+  await screen.findByRole("button", { name: /Number 1, Legendary: Dune: Part Two/ }, WAIT);
   fireEvent.keyDown(screen.getByRole("dialog"), { key: "]" });
   await screen.findByRole("dialog", { name: "Food pack" }, WAIT);
   // wait for the outgoing hand to finish leaving

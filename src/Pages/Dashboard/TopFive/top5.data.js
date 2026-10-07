@@ -1,7 +1,9 @@
 /*
  * TOP DECK: "My Top 5 Things", printed as a collectible card set.
  *
- * ⚠ PLACEHOLDER PICKS. Charlie, swap these for your real favourites.
+ * Charlie's real picks: Movies, Games, TV #1-3 and Albums #1. Everything
+ * else is still a placeholder, marked inline. Easiest swap: STAFF ONLY in the
+ * page footer (the back office); saved edits override what's shipped here.
  *
  *  - One pack per category. `cards` is ordered #1 -> #5. Rarity (#1 Legendary
  *    ... #5 Common), collector numbers and the fan order are all DERIVED, so
@@ -48,11 +50,11 @@ export const PACKS = [
     flourish: "sparkle",
     statLabels: ["Rewatch", "Quotes", "Vibes"],
     cards: [
-      { id: "lebowski", title: "The Big Lebowski", meta: "1998 · Joel & Ethan Coen", icon: "fa-bowling-ball", take: "The Dude abides, and so does this pick.", stats: [10, 10, 9], fun: "White Russians inspired: several" },
-      { id: "spiderverse", title: "Spider-Man: Into the Spider-Verse", meta: "2018 · Sony Pictures Animation", icon: "fa-spider", take: "Every frame is a motion-design masterclass. I pause it for fun.", stats: [9, 7, 10], fun: "Frames paused to study: 200+" },
-      { id: "interstellar", title: "Interstellar", meta: "2014 · Christopher Nolan", icon: "fa-shuttle-space", take: "Went in for the black hole. Cried about a bookshelf.", stats: [8, 8, 10], fun: "Organ-induced goosebumps: 3 per viewing" },
-      { id: "bttf", title: "Back to the Future", meta: "1985 · Robert Zemeckis", icon: "fa-clock-rotate-left", take: "A perfect script. I will not be taking questions.", stats: [9, 9, 8], fun: "1.21 gigawatts of rewatch value" },
-      { id: "ratatouille", title: "Ratatouille", meta: "2007 · Pixar", icon: "fa-utensils", take: "Anyone can cook. Anyone can ship.", stats: [8, 7, 9], fun: "Doubles as a Food-pack crossover" },
+      { id: "dune2", title: "Dune: Part Two", meta: "2024 · Denis Villeneuve", icon: "fa-sun", take: "Sandworm riding should be an Olympic sport. Peak big-screen cinema.", stats: [9, 8, 10], fun: "Times I've said 'Lisan al-Gaib': many" },
+      { id: "arrival", title: "Arrival", meta: "2016 · Denis Villeneuve", icon: "fa-language", take: "A first-contact movie that's secretly about grief. Still not over it.", stats: [8, 7, 10], fun: "Heptapod words I can read: 0" },
+      { id: "goodwillhunting", title: "Good Will Hunting", meta: "1997 · Gus Van Sant", icon: "fa-square-root-variable", take: "How do you like them apples? It's not your fault.", stats: [9, 10, 9], fun: "Chalkboard proofs understood: 0" },
+      { id: "tenet", title: "Tenet", meta: "2020 · Christopher Nolan", icon: "fa-rotate-left", take: "Don't try to understand it. Feel it. (Fourth watch, I understood it.)", stats: [10, 7, 9], fun: "Watches needed to follow it: 4" },
+      { id: "wintersoldier", title: "The Winter Soldier", meta: "2014 · Captain America · Russo Bros.", icon: "fa-shield-halved", take: "The best Marvel movie. The elevator fight alone earns the spot.", stats: [10, 8, 9], fun: "Elevator fight rewinds: several" },
     ],
   },
   {
@@ -82,11 +84,12 @@ export const PACKS = [
     flourish: "spin",
     statLabels: ["Replay", "Cohesion", "Mood"],
     cards: [
+      { id: "speakforyourself", title: "Speak for Yourself", meta: "Imogen Heap · 2005", icon: "fa-microphone", take: "Hide and Seek alone earns the top spot. Mmm, whatcha say.", stats: [10, 9, 10], fun: "Hide and Seek chills: every time" },
+      // #2 to #5: still placeholders (swap them in the back office).
       { id: "discovery", title: "Discovery", meta: "Daft Punk · 2001", icon: "fa-robot", take: "Two robots made the most human album ever.", stats: [10, 9, 10], fun: "'One More Time' plays: one more" },
       { id: "currents", title: "Currents", meta: "Tame Impala · 2015", icon: "fa-circle-half-stroke", take: "The official soundtrack of 2am debugging.", stats: [9, 9, 9], fun: "Bugs fixed to it: hundreds" },
       { id: "inrainbows", title: "In Rainbows", meta: "Radiohead · 2007", icon: "fa-rainbow", take: "Pay-what-you-want, and it was still a steal.", stats: [9, 10, 8], fun: "Times I paid: once, gladly" },
       { id: "fullycompletely", title: "Fully Completely", meta: "The Tragically Hip · 1992", icon: "fa-guitar", take: "Canadian law requires it on every road trip.", stats: [9, 8, 9], fun: "Road trips soundtracked: all of them" },
-      { id: "rumours", title: "Rumours", meta: "Fleetwood Mac · 1977", icon: "fa-moon", take: "Recorded mid-breakup. Somehow flawless.", stats: [8, 10, 8], fun: "Skippable tracks: 0" },
     ],
   },
   {
@@ -99,11 +102,11 @@ export const PACKS = [
     flourish: "sparkle",
     statLabels: ["Hours", "Replay", "Rage"],
     cards: [
-      { id: "botw", title: "Zelda: Breath of the Wild", meta: "2017 · Nintendo", icon: "fa-mountain", take: "Saw a mountain, climbed it. Repeat 900 times.", stats: [10, 9, 3], fun: "Koroks found: 431 (don't ask)" },
-      { id: "outerwilds", title: "Outer Wilds", meta: "2019 · Mobius Digital", icon: "fa-user-astronaut", take: "The best game you should know nothing about. So: nothing.", stats: [8, 3, 4], fun: "Supernovas witnessed: 22" },
-      { id: "portal2", title: "Portal 2", meta: "2011 · Valve", icon: "fa-circle-dot", take: "The cake is still a lie. The co-op is not.", stats: [7, 8, 5], fun: "Portals placed: ∞" },
-      { id: "hades", title: "Hades", meta: "2020 · Supergiant Games", icon: "fa-fire", take: "One more run. It's 3am. One more run.", stats: [9, 10, 7], fun: "Escape attempts: 212" },
-      { id: "rocketleague", title: "Rocket League", meta: "2015 · Psyonix", icon: "fa-car-side", take: "What a save! What a save! What a save!", stats: [9, 10, 10], fun: "Own goals: we don't talk about it" },
+      { id: "mw2", title: "Modern Warfare 2", meta: "2009 · Infinity Ward", icon: "fa-crosshairs", take: "Rust 1v1s, noob tubes, and the best lobbies gaming ever had.", stats: [10, 10, 9], fun: "Tactical nukes called in: a few" },
+      { id: "aoe2", title: "Age of Empires II", meta: "1999 · Ensemble Studios", icon: "fa-chess-rook", take: "Wololo. Still playing it 25 years later. Still losing to the AI.", stats: [10, 10, 7], fun: "Villagers lost to boars: countless" },
+      { id: "rct1", title: "RollerCoaster Tycoon", meta: "1999 · Chris Sawyer", icon: "fa-ticket", take: "Built a beautiful park. Then removed the exit from the coaster.", stats: [9, 9, 3], fun: "Guests who wanted to go home: all" },
+      { id: "poe2", title: "Path of Exile 2", meta: "2024 · Grinding Gear Games", icon: "fa-skull", take: "One more map. The passive tree is a lifestyle, not a menu.", stats: [10, 9, 8], fun: "Respecs this league: too many" },
+      { id: "league", title: "League of Legends", meta: "2009 · Riot Games", icon: "fa-hat-wizard", take: "Not a game, a relationship. A complicated one.", stats: [10, 10, 10], fun: "Times I said 'last game': every night" },
     ],
   },
   {
@@ -116,11 +119,12 @@ export const PACKS = [
     flourish: "scan",
     statLabels: ["Binge", "Rewatch", "Cliffhanger"],
     cards: [
+      { id: "andor", title: "Andor", meta: "2022 · Disney+", icon: "fa-handcuffs", take: "Star Wars for grown-ups. The Narkina 5 arc is TV at its best.", stats: [10, 9, 9], fun: "'One way out' rewatches: plenty" },
+      { id: "got", title: "Game of Thrones", meta: "2011 · HBO", icon: "fa-dragon", take: "Seasons 1 to 4 are untouchable. We don't talk about the ending.", stats: [10, 7, 10], fun: "Red Wedding recovery time: years" },
+      { id: "invincible", title: "Invincible", meta: "2021 · Prime Video", icon: "fa-mask", take: "Looks like a kids' cartoon. Absolutely is not. THINK, MARK!", stats: [9, 8, 10], fun: "'Think, Mark!' quotes per week: 3" },
+      // #4 and #5: still placeholders (swap them in the back office).
       { id: "breakingbad", title: "Breaking Bad", meta: "2008 · AMC", icon: "fa-flask", take: "Five perfect seasons. Do not take career advice from it.", stats: [10, 8, 10], fun: "Pizzas on roofs: 1" },
       { id: "arcane", title: "Arcane", meta: "2021 · Fortiche", icon: "fa-palette", take: "The animation should honestly be illegal.", stats: [10, 9, 9], fun: "Frames I paused on: most" },
-      { id: "theoffice", title: "The Office (US)", meta: "2005 · NBC", icon: "fa-paperclip", take: "The comfort rewatch. Jim's camera glances live in my head.", stats: [8, 10, 4], fun: "Full rewatches: 6" },
-      { id: "letterkenny", title: "Letterkenny", meta: "2016 · Crave", icon: "fa-tractor", take: "Pitter patter, let's get at 'er.", stats: [9, 9, 3], fun: "Chirps memorized: too many" },
-      { id: "severance", title: "Severance", meta: "2022 · Apple TV+", icon: "fa-briefcase", take: "Made me want to hug my work laptop. Then throw it.", stats: [9, 7, 10], fun: "Waffle parties attended: 0" },
     ],
   },
   {
