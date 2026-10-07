@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, animate, motion, motionValue } from "framer-motion";
+import { AnimatePresence, animate, motion, motionValue, useIsPresent } from "framer-motion";
 import CardHand from "./CardHand";
 import RipPack from "./RipPack";
 import Burst from "./Burst";
@@ -79,6 +79,9 @@ export default function RipTable({
   onShark,
 }) {
   const { phase, packId, run, entry, switchDir, revealed, inspected } = state;
+  // While fading out after "All packs", the table must not swallow clicks
+  // meant for the shelf underneath.
+  const isPresent = useIsPresent();
   const pack = catalog.byId.get(packId);
   const stage = stageBox(vw, vh);
   const L = useMemo(
@@ -389,6 +392,7 @@ export default function RipTable({
       aria-label={`${pack.name} pack`}
       tabIndex={-1}
       onKeyDown={onKeyDown}
+      style={isPresent ? undefined : { pointerEvents: "none" }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
     >
       <div className="td-table-backdrop" aria-hidden="true" />

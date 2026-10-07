@@ -73,6 +73,43 @@ const ShelfPack = memo(function ShelfPack({
     [holo.handlers]
   );
 
+  // The pack lifts and tilts toward the pointer, so the button can slide out
+  // from under a press before it's released, and the browser then fires the
+  // click on the cell instead (lost). So pointers are judged on the cell,
+  // against the pack's untransformed footprint, which never moves.
+  const press = useRef(null);
+  const pickedAt = useRef(0);
+  const pick = useCallback(() => {
+    pickedAt.current = Date.now();
+    onPick(pack.id, cellRef.current);
+  }, [onPick, pack.id]);
+  const inFootprint = (e) => {
+    const cell = cellRef.current;
+    const slot = cell && cell.querySelector(".td-pack-slot");
+    if (!slot) return false;
+    const r = cell.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    return (
+      x >= slot.offsetLeft - 8 &&
+      x <= slot.offsetLeft + slot.offsetWidth + 8 &&
+      y >= slot.offsetTop - 16 && // the lift raises the pack a little
+      y <= slot.offsetTop + slot.offsetHeight + 8
+    );
+  };
+  const onDown = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    press.current = inFootprint(e) ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null;
+  };
+  const onUp = (e) => {
+    const p = press.current;
+    press.current = null;
+    if (!p || p.id !== e.pointerId || picked) return;
+    // A drag (or a scroll on touch) isn't a pick.
+    if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > 12 || !inFootprint(e)) return;
+    pick();
+  };
+
   const label = `${pack.name} pack, ${opened ? `opened, ${CARDS_PER_PACK} of ${CARDS_PER_PACK} collected` : `sealed, ${CARDS_PER_PACK} cards`}`;
 
   return (
@@ -82,6 +119,11 @@ const ShelfPack = memo(function ShelfPack({
       onPointerEnter={onEnter}
       onPointerMove={holo.handlers.onPointerMove}
       onPointerLeave={onLeave}
+      onPointerDown={onDown}
+      onPointerUp={onUp}
+      onPointerCancel={() => {
+        press.current = null;
+      }}
     >
       <motion.div
         className="td-pack-slot td-3d"
@@ -101,7 +143,12 @@ const ShelfPack = memo(function ShelfPack({
             transition={{ duration: 0.01, delay: dropIn || reduced ? 0 : 0.35 + index * 0.05 }}
             tabIndex={tabIndex}
             aria-label={label}
-            onClick={() => onPick(pack.id, cellRef.current)}
+            onClick={() => {
+              // Keyboard and assistive-tech activation; a pointer pick has
+              // already happened on pointerup, so don't open it twice.
+              if (Date.now() - pickedAt.current < 700) return;
+              pick();
+            }}
             onFocus={() => {
               setHover(true);
               onFocusIndex(index);

@@ -75,7 +75,7 @@ const Front = ({ pack, card, rank, tier, collector, live, lite, shiny, popped, s
       {tier === "legendary" ? (
         <>
           <span className="td-card-ed" aria-hidden="true">
-            1st Edition
+            <span>1st Edition</span>
           </span>
           <span className="td-card-auto" aria-hidden="true">
             Charlie

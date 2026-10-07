@@ -24,6 +24,16 @@ jest.mock("framer-motion", () => ({
 const realError = console.error;
 
 beforeAll(() => {
+  // jsdom has no PointerEvent; this one carries coordinates and pointer ids.
+  if (!window.PointerEvent) {
+    window.PointerEvent = class PointerEvent extends window.MouseEvent {
+      constructor(type, init = {}) {
+        super(type, init);
+        this.pointerId = init.pointerId ?? 1;
+        this.pointerType = init.pointerType ?? "mouse";
+      }
+    };
+  }
   console.error = (msg, ...rest) => {
     if (typeof msg === "string" && msg.includes("not wrapped in act")) return;
     realError(msg, ...rest);
@@ -233,4 +243,35 @@ test("arrow keys still move focus after switching between opened packs", async (
   await waitFor(() => expect(screen.getAllByRole("button", { name: /^Number \d/ })).toHaveLength(5), WAIT);
   fireEvent.keyDown(screen.getByRole("dialog"), { key: "ArrowLeft" });
   expect(screen.getByRole("button", { name: "Number 2, Ultra Rare: Poutine" })).toHaveFocus();
+});
+
+const press = (el, x, y) =>
+  fireEvent.pointerDown(el, { pointerId: 1, pointerType: "mouse", button: 0, clientX: x, clientY: y });
+const release = (el, x, y) =>
+  fireEvent.pointerUp(el, { pointerId: 1, pointerType: "mouse", button: 0, clientX: x, clientY: y });
+
+test("a press that slips off the moving pack before release still opens it", async () => {
+  renderPage();
+  const pack = screen.getByRole("button", { name: /^Movies pack/ });
+  // eslint-disable-next-line testing-library/no-node-access
+  const cell = pack.closest("li");
+  press(pack, 0, 0);
+  release(cell, 2, 1); // released on the cell: the browser would click the cell, not the pack
+  expect(await screen.findByRole("dialog", { name: "Movies pack" }, WAIT)).toBeTruthy();
+});
+
+test("dragging across a pack doesn't open it", () => {
+  renderPage();
+  const pack = screen.getByRole("button", { name: /^Movies pack/ });
+  // eslint-disable-next-line testing-library/no-node-access
+  const cell = pack.closest("li");
+  press(pack, 0, 0);
+  release(cell, 60, 0);
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+test("a keyboard press still opens a pack, once", async () => {
+  renderPage();
+  fireEvent.click(screen.getByRole("button", { name: /^Movies pack/ }), { detail: 0 });
+  expect(await screen.findByRole("dialog", { name: "Movies pack" }, WAIT)).toBeTruthy();
 });

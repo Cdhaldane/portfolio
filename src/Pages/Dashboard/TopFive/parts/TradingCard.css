@@ -197,10 +197,19 @@
 }
 
 /* legendary chase-card extras */
+/* The wrapper is positioned in CARD em (top-left corner of the art box, below
+   the title row); the small type lives on the inner span. Putting the 0.42em
+   font on the positioned element itself would shrink its top/left too and
+   drop the stamp onto the title. */
 .td-card-ed {
   position: absolute;
   top: 3.9em;
   left: 1.3em;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+.td-card-ed > span {
+  display: block;
   padding: 0.4em 0.65em;
   border: 0.12em solid #ffd36b;
   border-radius: 99px;
@@ -209,7 +218,7 @@
   font: 700 0.42em/1 "IBM Plex Mono", monospace;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  transform: rotate(-8deg);
+  white-space: nowrap;
 }
 .td-card-auto {
   position: absolute;
