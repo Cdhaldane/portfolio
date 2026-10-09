@@ -31,6 +31,7 @@ const Fishbowl = lazy(() => import("./Pages/Dashboard/Fishbowl/Fishbowl"));
 const DeadReckoning = lazy(() =>
   import("./Pages/Dashboard/DeadReckoning/DeadReckoning")
 );
+const TopFive = lazy(() => import("./Pages/Dashboard/TopFive/TopFive"));
 const Services = lazy(() => import("./Pages/Services/Services"));
 const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
@@ -98,6 +99,7 @@ const App = () => {
               <Route path="wavelength" element={<Wavelength />} />
               <Route path="fishbowl" element={<Fishbowl />} />
               <Route path="reckoning" element={<DeadReckoning />} />
+              <Route path="top5" element={<TopFive />} />
             </Route>
             <Route path="/gallows-hymn" element={<GallowsHymn />} />
             <Route path="/budgetter" element={<BudgetGate />}>

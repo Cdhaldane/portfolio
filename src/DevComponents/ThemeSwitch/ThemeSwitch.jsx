@@ -17,6 +17,11 @@ import "./ThemeSwitch.css";
  * - JSX for rendering the theme switch with icons for light and dark modes.
  */
 
+// Self-contained surfaces that are always dark and own their top-right
+// corner. The floating switch would do nothing there except cover their
+// controls (Top 5's header actions and table bar sit exactly where it floats).
+const HIDE_ON_PREFIXES = ["/dashboard/top5"];
+
 /**
  * Resolve the starting theme: an explicit stored choice wins; otherwise fall
  * back to the OS-level colour-scheme preference.
@@ -104,6 +109,9 @@ function ThemeSwitch({ className = "", organization }) {
     window.addEventListener("themechange", sync);
     return () => window.removeEventListener("themechange", sync);
   }, []);
+
+  // After every hook, so the theme effects keep running while it's hidden.
+  if (HIDE_ON_PREFIXES.some((p) => location.pathname.startsWith(p))) return null;
 
   return (
     <div
