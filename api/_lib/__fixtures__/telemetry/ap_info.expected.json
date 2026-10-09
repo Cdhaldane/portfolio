@@ -1,0 +1,32 @@
+{
+ "AP Info:[AP3-VLK-003 v1.7.6.0-26745][USDM Volkswagen CCF Mk7 Golf R / Audi S3 (CYFB 8V09C0BB01)][Reflash: EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm - TCM: COBB Aggressive v110.ptm]": {
+  "ap_firmware": "1.7.6.0-26745",
+  "vehicle": "USDM Volkswagen CCF Mk7 Golf R / Audi S3 (CYFB 8V09C0BB01)",
+  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
+  "tcm_map": "COBB Aggressive v110.ptm"
+ },
+ "AP Info:[AP3-VLK-003 v1.0][Car][Reflash: Stage1.ptm]": {
+  "ap_firmware": "1.0",
+  "vehicle": "Car",
+  "ecu_map": "Stage1.ptm",
+  "tcm_map": null
+ },
+ "AP Info:[AP3-VLK-003][Only two]": {
+  "ap_firmware": "AP3-VLK-003",
+  "vehicle": "Only two",
+  "ecu_map": null,
+  "tcm_map": null
+ },
+ "AP Info:[ vvv2.0 ]": {
+  "ap_firmware": " vvv2.0 ",
+  "vehicle": null,
+  "ecu_map": null,
+  "tcm_map": null
+ },
+ "": {
+  "ap_firmware": null,
+  "vehicle": null,
+  "ecu_map": null,
+  "tcm_map": null
+ }
+}

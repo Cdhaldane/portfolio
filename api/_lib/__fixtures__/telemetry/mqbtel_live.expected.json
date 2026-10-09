@@ -1,0 +1,121 @@
+{
+ "name": "mqbtel_live.csv",
+ "ecu_map": null,
+ "tcm_map": null,
+ "ap_firmware": null,
+ "duration_s": 23.8,
+ "samples": 120,
+ "peak": {
+  "pedal_pct": 22.0,
+  "rpm": 1800.0,
+  "boost_psi": 2.5
+ },
+ "knock": {},
+ "cat_range": [
+  25.0,
+  41.0
+ ],
+ "ltft": [
+  -3.0,
+  -3.0,
+  -3.0
+ ],
+ "boost_undershoot_psi": null,
+ "rail_droop_pct": null,
+ "pulls": [],
+ "findings": [
+  {
+   "level": "info",
+   "message": "No wide-open-throttle pull (peak pedal 22%). Full-load checks need a WOT pull to be meaningful.",
+   "check": null
+  }
+ ],
+ "checks": [
+  {
+   "name": "knock",
+   "label": "Knock retard",
+   "status": "missing",
+   "detail": "Log has no knock retard channels.",
+   "needs": [
+    "kr_cyl1",
+    "kr_cyl2",
+    "kr_cyl3",
+    "kr_cyl4"
+   ],
+   "level": null
+  },
+  {
+   "name": "cat",
+   "label": "Charge air heat soak",
+   "status": "ran",
+   "detail": "Charge air 25-41 C.",
+   "needs": [
+    "cat_c"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "trims",
+   "label": "Fuel trims",
+   "status": "ran",
+   "detail": "LTFT mean -3.0% (-3 to -3).",
+   "needs": [
+    "ltft_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "boost",
+   "label": "Boost vs set point",
+   "status": "missing",
+   "detail": "Log has no put_psia, put_sp_psia.",
+   "needs": [
+    "put_psia",
+    "put_sp_psia",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "rail",
+   "label": "Rail pressure (HPFP)",
+   "status": "missing",
+   "detail": "Log has no rail_psi, rail_sp_psi.",
+   "needs": [
+    "rail_psi",
+    "rail_sp_psi",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "afr",
+   "label": "AFR under boost",
+   "status": "missing",
+   "detail": "Log has no afr, afr_sp.",
+   "needs": [
+    "afr",
+    "afr_sp",
+    "boost_psi"
+   ],
+   "level": null
+  },
+  {
+   "name": "pulls",
+   "label": "WOT pull detection",
+   "status": "idle",
+   "detail": "Pedal never held at 90%+ above 2000 rpm (peak pedal 22%).",
+   "needs": [
+    "time_s",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  }
+ ],
+ "knock_samples": 0,
+ "worst_level": "info"
+}

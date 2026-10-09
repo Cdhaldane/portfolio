@@ -1,0 +1,218 @@
+{
+ "time_s": {
+  "key": "time_s",
+  "label": "Time",
+  "unit": "s",
+  "group": "Other"
+ },
+ "rpm": {
+  "key": "rpm",
+  "label": "Engine speed",
+  "unit": "rpm",
+  "group": "Engine"
+ },
+ "boost_psi": {
+  "key": "boost_psi",
+  "label": "Boost",
+  "unit": "psi",
+  "group": "Boost & air"
+ },
+ "cat_c": {
+  "key": "cat_c",
+  "label": "Charge air temp",
+  "unit": "C",
+  "group": "Temperatures"
+ },
+ "kr_cyl3": {
+  "key": "kr_cyl3",
+  "label": "Knock retard cyl 3",
+  "unit": "deg",
+  "group": "Ignition & knock"
+ },
+ "speed_kmh": {
+  "key": "speed_kmh",
+  "label": "Vehicle speed",
+  "unit": "km/h",
+  "group": "Engine"
+ },
+ "gear": {
+  "key": "gear",
+  "label": "Current gear",
+  "unit": "",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Accel Pedal (%)": {
+  "key": "(DSG)Accel Pedal (%)",
+  "label": "Accel Pedal",
+  "unit": "%",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Clutch 1 Slip (RPM)": {
+  "key": "(DSG)Clutch 1 Slip (RPM)",
+  "label": "Clutch 1 Slip",
+  "unit": "rpm",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Clutch 1 Solenoid Duty Cycle (%)": {
+  "key": "(DSG)Clutch 1 Solenoid Duty Cycle (%)",
+  "label": "Clutch 1 Solenoid Duty Cycle",
+  "unit": "%",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Clutch 2 Pressure (psi)": {
+  "key": "(DSG)Clutch 2 Pressure (psi)",
+  "label": "Clutch 2 Pressure",
+  "unit": "psi",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Engine Intervention Flags ()": {
+  "key": "(DSG)Engine Intervention Flags ()",
+  "label": "Engine Intervention Flags",
+  "unit": "",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Engine Torque (ft-lb)": {
+  "key": "(DSG)Engine Torque (ft-lb)",
+  "label": "Engine Torque",
+  "unit": "ft-lb",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Line Pressure Set Point (psi)": {
+  "key": "(DSG)Line Pressure Set Point (psi)",
+  "label": "Line Pressure Set Point",
+  "unit": "psi",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Target Gear (Gear)": {
+  "key": "(DSG)Target Gear (Gear)",
+  "label": "Target Gear",
+  "unit": "",
+  "group": "Transmission (DSG)"
+ },
+ "(DSG)Target Upshift Speed (RPM)": {
+  "key": "(DSG)Target Upshift Speed (RPM)",
+  "label": "Target Upshift Speed",
+  "unit": "rpm",
+  "group": "Transmission (DSG)"
+ },
+ "Air Mass IM Per Stroke (mg/stk)": {
+  "key": "Air Mass IM Per Stroke (mg/stk)",
+  "label": "Air Mass IM Per Stroke",
+  "unit": "mg/stk",
+  "group": "Boost & air"
+ },
+ "Air Mass IM SP (g/s)": {
+  "key": "Air Mass IM SP (g/s)",
+  "label": "Air Mass IM SP",
+  "unit": "g/s",
+  "group": "Boost & air"
+ },
+ "COBB Spark Reduction (Degrees)": {
+  "key": "COBB Spark Reduction (Degrees)",
+  "label": "COBB Spark Reduction",
+  "unit": "deg",
+  "group": "Ignition & knock"
+ },
+ "Exhaust Cam Position (Degrees)": {
+  "key": "Exhaust Cam Position (Degrees)",
+  "label": "Exhaust Cam Position",
+  "unit": "deg",
+  "group": "Valvetrain"
+ },
+ "HPFP Effective Pump Vol (%)": {
+  "key": "HPFP Effective Pump Vol (%)",
+  "label": "HPFP Effective Pump Vol",
+  "unit": "%",
+  "group": "Fuel"
+ },
+ "Injection Time Primary Pulse Average (us)": {
+  "key": "Injection Time Primary Pulse Average (us)",
+  "label": "Injection Time Primary Pulse Average",
+  "unit": "us",
+  "group": "Fuel"
+ },
+ "Intake Cam Position (Degrees)": {
+  "key": "Intake Cam Position (Degrees)",
+  "label": "Intake Cam Position",
+  "unit": "deg",
+  "group": "Valvetrain"
+ },
+ "Intake Flap Set Point (-)": {
+  "key": "Intake Flap Set Point (-)",
+  "label": "Intake Flap Set Point",
+  "unit": "",
+  "group": "Boost & air"
+ },
+ "Mass Flow Limit 1 (mg/stk)": {
+  "key": "Mass Flow Limit 1 (mg/stk)",
+  "label": "Mass Flow Limit 1",
+  "unit": "mg/stk",
+  "group": "Boost & air"
+ },
+ "Maximum Torque at Clutch (ft-lb)": {
+  "key": "Maximum Torque at Clutch (ft-lb)",
+  "label": "Maximum Torque at Clutch",
+  "unit": "ft-lb",
+  "group": "Torque"
+ },
+ "TPS (TPS)": {
+  "key": "TPS (TPS)",
+  "label": "TPS",
+  "unit": "",
+  "group": "Engine"
+ },
+ "Torque Limitation Source (-)": {
+  "key": "Torque Limitation Source (-)",
+  "label": "Torque Limitation Source",
+  "unit": "",
+  "group": "Torque"
+ },
+ "Trq Value Air Mass SP (ft-lb)": {
+  "key": "Trq Value Air Mass SP (ft-lb)",
+  "label": "Trq Value Air Mass SP",
+  "unit": "ft-lb",
+  "group": "Torque"
+ },
+ "Turbine Act. Final Value (%)": {
+  "key": "Turbine Act. Final Value (%)",
+  "label": "Turbine Act. Final Value",
+  "unit": "%",
+  "group": "Boost & air"
+ },
+ "Wastegate Mass Flow SP (g/s)": {
+  "key": "Wastegate Mass Flow SP (g/s)",
+  "label": "Wastegate Mass Flow SP",
+  "unit": "g/s",
+  "group": "Boost & air"
+ },
+ "Barometric Pressure (kPa)": {
+  "key": "Barometric Pressure (kPa)",
+  "label": "Barometric Pressure",
+  "unit": "kPa",
+  "group": "Other"
+ },
+ "Coolant Temp (C)": {
+  "key": "Coolant Temp (C)",
+  "label": "Coolant Temp",
+  "unit": "C",
+  "group": "Temperatures"
+ },
+ "No unit here": {
+  "key": "No unit here",
+  "label": "No unit here",
+  "unit": "",
+  "group": "Other"
+ },
+ "Weird (nested (unit))": {
+  "key": "Weird (nested (unit))",
+  "label": "Weird (nested (unit))",
+  "unit": "",
+  "group": "Other"
+ },
+ "  Spacey Label  ( psi )  ": {
+  "key": "  Spacey Label  ( psi )  ",
+  "label": "Spacey Label",
+  "unit": " psi ",
+  "group": "Other"
+ }
+}

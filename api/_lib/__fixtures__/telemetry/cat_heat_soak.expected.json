@@ -1,0 +1,150 @@
+{
+ "name": "cat_heat_soak.csv",
+ "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
+ "tcm_map": "COBB Aggressive v110.ptm",
+ "ap_firmware": "1.7.6.0-26745",
+ "duration_s": 39.8,
+ "samples": 200,
+ "peak": {
+  "pedal_pct": 30.0,
+  "rpm": 2000.0,
+  "boost_psi": 5.0,
+  "torque_ftlb": 100.0,
+  "oil_c": 104.0
+ },
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
+ "cat_range": [
+  40.0,
+  95.0
+ ],
+ "ltft": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "boost_undershoot_psi": null,
+ "rail_droop_pct": null,
+ "pulls": [],
+ "findings": [
+  {
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
+  },
+  {
+   "level": "warn",
+   "message": "Charge air temp hit 95C — intercooler heat soak.",
+   "check": "cat"
+  },
+  {
+   "level": "info",
+   "message": "No wide-open-throttle pull (peak pedal 30%). Full-load checks need a WOT pull to be meaningful.",
+   "check": null
+  }
+ ],
+ "checks": [
+  {
+   "name": "knock",
+   "label": "Knock retard",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
+   "needs": [
+    "kr_cyl1",
+    "kr_cyl2",
+    "kr_cyl3",
+    "kr_cyl4"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "cat",
+   "label": "Charge air heat soak",
+   "status": "ran",
+   "detail": "Charge air 40-95 C.",
+   "needs": [
+    "cat_c"
+   ],
+   "level": "warn"
+  },
+  {
+   "name": "trims",
+   "label": "Fuel trims",
+   "status": "ran",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
+   "needs": [
+    "ltft_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "boost",
+   "label": "Boost vs set point",
+   "status": "idle",
+   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm); needs 5. Log a WOT pull.",
+   "needs": [
+    "put_psia",
+    "put_sp_psia",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "rail",
+   "label": "Rail pressure (HPFP)",
+   "status": "idle",
+   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm); needs 5. Log a WOT pull.",
+   "needs": [
+    "rail_psi",
+    "rail_sp_psi",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "afr",
+   "label": "AFR under boost",
+   "status": "idle",
+   "detail": "Only 0 samples above 10 psi boost; needs 5.",
+   "needs": [
+    "afr",
+    "afr_sp",
+    "boost_psi"
+   ],
+   "level": null
+  },
+  {
+   "name": "pulls",
+   "label": "WOT pull detection",
+   "status": "idle",
+   "detail": "Pedal never held at 90%+ above 2000 rpm (peak pedal 30%).",
+   "needs": [
+    "time_s",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  }
+ ],
+ "knock_samples": 0,
+ "worst_level": "warn"
+}

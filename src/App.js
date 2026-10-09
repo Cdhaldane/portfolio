@@ -51,6 +51,9 @@ const GallowsHymn = lazy(() =>
 // Same lazy-Clerk pattern for the private /bowler league tracker.
 const BowlerGate = lazy(() => import("./Pages/Bowler/BowlerGate"));
 const Bowler = lazy(() => import("./Pages/Bowler/Bowler"));
+// ...and for the private /garage car log (datalogs, work log, service).
+const GarageGate = lazy(() => import("./Pages/Garage/GarageGate"));
+const Garage = lazy(() => import("./Pages/Garage/Garage"));
 // Dev-only design preview (mock data, no auth) — dead-code eliminated from
 // production builds by the NODE_ENV check at the route below.
 const BudgetPreview =
@@ -102,6 +105,9 @@ const App = () => {
             </Route>
             <Route path="/bowler" element={<BowlerGate />}>
               <Route index element={<Bowler />} />
+            </Route>
+            <Route path="/garage" element={<GarageGate />}>
+              <Route index element={<Garage />} />
             </Route>
             {BudgetPreview && (
               <Route path="/budgetter-preview" element={<BudgetPreview />} />

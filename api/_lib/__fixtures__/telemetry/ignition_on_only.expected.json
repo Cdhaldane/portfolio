@@ -1,0 +1,115 @@
+{
+ "name": "ignition_on_only.csv",
+ "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
+ "tcm_map": "COBB Aggressive v110.ptm",
+ "ap_firmware": "1.7.6.0-26745",
+ "duration_s": 5.8,
+ "samples": 30,
+ "peak": {
+  "pedal_pct": 0.0,
+  "rpm": 0.0,
+  "boost_psi": 5.0,
+  "torque_ftlb": 100.0
+ },
+ "knock": {},
+ "cat_range": null,
+ "ltft": null,
+ "boost_undershoot_psi": null,
+ "rail_droop_pct": null,
+ "pulls": [],
+ "findings": [
+  {
+   "level": "info",
+   "message": "Engine not running for this log (ignition-on only).",
+   "check": null
+  }
+ ],
+ "checks": [
+  {
+   "name": "knock",
+   "label": "Knock retard",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "kr_cyl1",
+    "kr_cyl2",
+    "kr_cyl3",
+    "kr_cyl4"
+   ],
+   "level": null
+  },
+  {
+   "name": "cat",
+   "label": "Charge air heat soak",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "cat_c"
+   ],
+   "level": null
+  },
+  {
+   "name": "trims",
+   "label": "Fuel trims",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "ltft_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "boost",
+   "label": "Boost vs set point",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "put_psia",
+    "put_sp_psia",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "rail",
+   "label": "Rail pressure (HPFP)",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "rail_psi",
+    "rail_sp_psi",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "afr",
+   "label": "AFR under boost",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "afr",
+    "afr_sp",
+    "boost_psi"
+   ],
+   "level": null
+  },
+  {
+   "name": "pulls",
+   "label": "WOT pull detection",
+   "status": "idle",
+   "detail": "Engine not running.",
+   "needs": [
+    "time_s",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": null
+  }
+ ],
+ "knock_samples": 0,
+ "worst_level": "info"
+}

@@ -8,6 +8,8 @@
   --blue-deep: #1741c9;
   --sage: #6f9a5e;
   --accent: #ff5d3b;
+  --glow: #f4f7f0;
+  --on-blue: #fff;
   --grad: linear-gradient(120deg, var(--blue), var(--sage), var(--accent));
 
   position: relative;
@@ -19,11 +21,28 @@
   overflow: hidden;
   padding: 48px 24px 64px;
   background:
-    radial-gradient(130% 90% at 50% -10%, #f4f7f0 0%, var(--paper) 55%),
+    radial-gradient(130% 90% at 50% -10%, var(--glow) 0%, var(--paper) 55%),
     var(--paper);
   color: var(--ink);
   font-family: "Inter", system-ui, sans-serif;
   text-align: center;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Dark theme — same deep paper canvas as About / Work. */
+[data-theme="dark"] .nf {
+  --ink: #eef2e9;
+  --ink-soft: #a7ab9d;
+  --paper: #121310;
+  --paper-2: #1a1c17;
+  --line: rgba(238, 242, 233, 0.14);
+  --blue: #6e93ff;
+  --blue-deep: #3f6fff;
+  --sage: #8fbf7a;
+  --accent: #ff7a5c;
+  --glow: #1c1f19;
+  /* white on the lighter dark-mode blue is too low-contrast; use the canvas */
+  --on-blue: #121310;
 }
 
 .nf-aurora {
@@ -42,6 +61,14 @@
   );
   pointer-events: none;
   animation: nf-drift 14s ease-in-out infinite;
+}
+[data-theme="dark"] .nf-aurora {
+  background: radial-gradient(
+    circle,
+    rgba(110, 147, 255, 0.2),
+    rgba(143, 191, 122, 0.08) 45%,
+    transparent 70%
+  );
 }
 
 .nf-inner {
@@ -68,6 +95,9 @@
   color: var(--ink);
   text-shadow: 0 20px 60px rgba(26, 26, 23, 0.12);
 }
+[data-theme="dark"] .nf-digit {
+  text-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
 .nf-orb {
   position: relative;
   width: 0.74em;
@@ -91,6 +121,9 @@
   letter-spacing: 0.28em;
   color: var(--blue-deep);
   margin: 8px 0 0;
+}
+[data-theme="dark"] .nf-kicker {
+  color: var(--blue);
 }
 .nf-title {
   font-family: "Space Grotesk", sans-serif;
@@ -136,7 +169,7 @@
 .nf-btn--primary {
   background: var(--blue);
   border-color: var(--blue);
-  color: #fff;
+  color: var(--on-blue);
   box-shadow: 0 12px 30px -10px rgba(47, 107, 255, 0.6);
 }
 .nf-btn--primary:hover {

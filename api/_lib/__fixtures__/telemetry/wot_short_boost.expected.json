@@ -1,0 +1,157 @@
+{
+ "name": "wot_short_boost.csv",
+ "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
+ "tcm_map": "COBB Aggressive v110.ptm",
+ "ap_firmware": "1.7.6.0-26745",
+ "duration_s": 39.8,
+ "samples": 200,
+ "peak": {
+  "pedal_pct": 100.0,
+  "rpm": 6500.0,
+  "boost_psi": 24.0,
+  "torque_ftlb": 380.0
+ },
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
+ "cat_range": [
+  30.0,
+  50.0
+ ],
+ "ltft": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "boost_undershoot_psi": 3.200000000000003,
+ "rail_droop_pct": 0.6896551724137931,
+ "pulls": [
+  {
+   "start_s": 5.0,
+   "end_s": 15.0,
+   "rpm_start": 2500.0,
+   "rpm_end": 6500.0,
+   "gear": 3,
+   "peak_boost_psi": 24.0,
+   "peak_torque_ftlb": 380.0,
+   "max_knock_deg": 0.0,
+   "cat_start_c": 32.5126,
+   "cat_end_c": 37.5377
+  }
+ ],
+ "findings": [
+  {
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
+  },
+  {
+   "level": "warn",
+   "message": "Boost falling 3.2 psi short of target at full load — possible boost leak or tired turbo.",
+   "check": "boost"
+  }
+ ],
+ "checks": [
+  {
+   "name": "knock",
+   "label": "Knock retard",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
+   "needs": [
+    "kr_cyl1",
+    "kr_cyl2",
+    "kr_cyl3",
+    "kr_cyl4"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "cat",
+   "label": "Charge air heat soak",
+   "status": "ran",
+   "detail": "Charge air 30-50 C.",
+   "needs": [
+    "cat_c"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "trims",
+   "label": "Fuel trims",
+   "status": "ran",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
+   "needs": [
+    "ltft_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "boost",
+   "label": "Boost vs set point",
+   "status": "ran",
+   "detail": "44 full-load samples, worst shortfall 3.2 psi.",
+   "needs": [
+    "put_psia",
+    "put_sp_psia",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": "warn"
+  },
+  {
+   "name": "rail",
+   "label": "Rail pressure (HPFP)",
+   "status": "ran",
+   "detail": "44 full-load samples, worst droop 1%.",
+   "needs": [
+    "rail_psi",
+    "rail_sp_psi",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "afr",
+   "label": "AFR under boost",
+   "status": "ran",
+   "detail": "51 boosted samples, worst +0.10 AFR vs target.",
+   "needs": [
+    "afr",
+    "afr_sp",
+    "boost_psi"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "pulls",
+   "label": "WOT pull detection",
+   "status": "ran",
+   "detail": "1 pull(s) found.",
+   "needs": [
+    "time_s",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  }
+ ],
+ "knock_samples": 0,
+ "worst_level": "warn"
+}

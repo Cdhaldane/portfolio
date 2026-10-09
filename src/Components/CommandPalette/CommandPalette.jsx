@@ -64,6 +64,7 @@ const CommandPalette = () => {
       { id: "ops", section: "Actions", icon: "fa-terminal", title: "Open the ops console", hint: "hidden", keywords: "dashboard games secret imposter crossword wavelength fishbowl", run: () => navigate("/dashboard") },
       { id: "budgetter", section: "Actions", icon: "fa-coins", title: "Open Budgetter", hint: "private", keywords: "budget budgetter spending money finance statements transactions tracker", run: () => navigate("/budgetter") },
       { id: "bowler", section: "Actions", icon: "fa-bowling-ball", title: "Open Bowler", hint: "private", keywords: "bowling bowler league scores series games pins tracker", run: () => navigate("/bowler") },
+      { id: "garage", section: "Actions", icon: "fa-car", title: "Open Garage", hint: "private", keywords: "garage car cars golf cayenne datalog accessport telemetry service maintenance work log", run: () => navigate("/garage") },
     ],
     [navigate]
   );

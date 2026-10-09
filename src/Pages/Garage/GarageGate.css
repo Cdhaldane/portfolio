@@ -1,0 +1,62 @@
+/* Sign-in screen for /garage: engineering paper, one word, the form. */
+.grg {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background:
+    linear-gradient(rgba(21, 23, 26, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(21, 23, 26, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+    #eceee8;
+  color: #15171a;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+[data-theme="dark"] .grg {
+  background:
+    radial-gradient(60% 40% at 50% 0%, rgba(47, 107, 255, 0.18), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 24px 24px,
+    #0e1013;
+  color: #e8ebef;
+}
+.grg-inner {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.grg-kicker {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.grg-title {
+  margin: 0;
+  font-size: clamp(3rem, 12vw, 6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+.grg-sub {
+  margin: 0;
+  opacity: 0.8;
+}
+.grg-card {
+  max-width: 420px;
+  margin: 0;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+[data-theme="dark"] .grg-card {
+  background: #161a20;
+}
+.grg-back {
+  color: inherit;
+  font-weight: 600;
+  opacity: 0.8;
+}
