@@ -1,17 +1,34 @@
 {
- "name": "no_knock_channels.csv",
+ "name": "floored_low_boost.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
  "duration_s": 39.8,
  "samples": 200,
  "peak": {
-  "pedal_pct": 30.0,
-  "rpm": 2000.0,
-  "boost_psi": 5.0,
+  "pedal_pct": 100.0,
+  "rpm": 2900.0,
+  "boost_psi": 8.0,
   "torque_ftlb": 100.0
  },
- "knock": {},
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
  "cat_range": [
   30.0,
   50.0
@@ -25,28 +42,83 @@
  "rail_droop_pct": null,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
- "pulls": [],
+ "pulls": [
+  {
+   "start_s": 10.0,
+   "end_s": 13.0,
+   "rpm_start": 2100.0,
+   "rpm_end": 2900.0,
+   "gear": 4,
+   "peak_boost_psi": 8.0,
+   "peak_torque_ftlb": 100.0,
+   "max_knock_deg": 0.0,
+   "cat_start_c": 35.0251,
+   "cat_end_c": 36.5327,
+   "cat_max_c": 36.5327,
+   "timing_median_deg": 18.0,
+   "peak_hp": 54.201637471439454,
+   "peak_hp_rpm": 2750,
+   "hpfp_max_pct": null,
+   "airflow_pct": null,
+   "torque_ceiling_pct": null,
+   "torque_limited_pct": null,
+   "curve": [
+    {
+     "rpm": 2000,
+     "torque_ftlb": 100.0,
+     "hp": 41.00019040365575,
+     "timing_deg": 18.0,
+     "boost_psi": 8.0,
+     "cat_c": 35.1256
+    },
+    {
+     "rpm": 2250,
+     "torque_ftlb": 100.0,
+     "hp": 45.06226199543031,
+     "timing_deg": 18.0,
+     "boost_psi": 8.0,
+     "cat_c": 35.5276
+    },
+    {
+     "rpm": 2500,
+     "torque_ftlb": 100.0,
+     "hp": 50.13956587966489,
+     "timing_deg": 18.0,
+     "boost_psi": 8.0,
+     "cat_c": 36.0302
+    },
+    {
+     "rpm": 2750,
+     "torque_ftlb": 100.0,
+     "hp": 54.201637471439454,
+     "timing_deg": 18.0,
+     "boost_psi": 8.0,
+     "cat_c": 36.4322
+    }
+   ]
+  }
+ ],
  "shifts": [],
  "findings": [
   {
-   "level": "info",
-   "message": "No full-load pull (peak pedal 30%, peak boost 5.0 psi). Full-load checks need a pull to be meaningful.",
-   "check": null
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
   }
  ],
  "checks": [
   {
    "name": "knock",
    "label": "Knock retard",
-   "status": "missing",
-   "detail": "Log has no knock retard channels.",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
    "needs": [
     "kr_cyl1",
     "kr_cyl2",
     "kr_cyl3",
     "kr_cyl4"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "cat",
@@ -139,14 +211,14 @@
   {
    "name": "pulls",
    "label": "WOT pull detection",
-   "status": "idle",
-   "detail": "Neither pedal at 90%+ above 2000 rpm nor boost at 20+ psi above 3000 rpm was held for 2+ s (peak pedal 30%, peak boost 5.0 psi).",
+   "status": "ran",
+   "detail": "1 pull(s) found.",
    "needs": [
     "time_s",
     "pedal_pct",
     "rpm"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "shifts",
@@ -164,5 +236,5 @@
   }
  ],
  "knock_samples": 0,
- "worst_level": "info"
+ "worst_level": "ok"
 }

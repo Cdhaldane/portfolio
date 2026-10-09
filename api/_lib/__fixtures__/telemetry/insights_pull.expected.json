@@ -1,15 +1,15 @@
 {
- "name": "rail_droop.csv",
+ "name": "insights_pull.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
- "duration_s": 39.8,
- "samples": 200,
+ "duration_s": 49.8,
+ "samples": 250,
  "peak": {
   "pedal_pct": 100.0,
-  "rpm": 6500.0,
+  "rpm": 6250.0,
   "boost_psi": 24.0,
-  "torque_ftlb": 380.0
+  "torque_ftlb": 411.559
  },
  "knock": {
   "kr_cyl1": [
@@ -31,7 +31,7 @@
  },
  "cat_range": [
   30.0,
-  50.0
+  141.0
  ],
  "ltft": [
   1.0,
@@ -39,154 +39,123 @@
   1.0
  ],
  "boost_undershoot_psi": 0.0,
- "rail_droop_pct": 15.517241379310345,
- "hpfp_pct": null,
- "clutch_slip_rpm": null,
+ "rail_droop_pct": 0.6896551724137931,
+ "hpfp_pct": 100.0,
+ "clutch_slip_rpm": 12.0,
  "pulls": [
   {
-   "start_s": 5.0,
-   "end_s": 15.0,
-   "rpm_start": 2500.0,
-   "rpm_end": 6500.0,
-   "gear": 3,
+   "start_s": 10.0,
+   "end_s": 20.0,
+   "rpm_start": 3000.0,
+   "rpm_end": 6000.0,
+   "gear": 2,
    "peak_boost_psi": 24.0,
-   "peak_torque_ftlb": 380.0,
+   "peak_torque_ftlb": 411.559,
    "max_knock_deg": 0.0,
-   "cat_start_c": 32.5126,
-   "cat_end_c": 37.5377,
-   "cat_max_c": 37.5377,
-   "timing_median_deg": 8.0,
-   "peak_hp": 458.7204874333587,
-   "peak_hp_rpm": 6250,
-   "hpfp_max_pct": null,
-   "airflow_pct": null,
-   "torque_ceiling_pct": null,
-   "torque_limited_pct": null,
+   "cat_start_c": 68.0,
+   "cat_end_c": 141.0,
+   "cat_max_c": 141.0,
+   "timing_median_deg": 4.38235,
+   "peak_hp": 419.53028207254386,
+   "peak_hp_rpm": 6000,
+   "hpfp_max_pct": 100.0,
+   "airflow_pct": 83.33333333333334,
+   "torque_ceiling_pct": 93.32403628117915,
+   "torque_limited_pct": 12.0,
    "curve": [
     {
-     "rpm": 2750,
-     "torque_ftlb": 380.0,
-     "hp": 209.82482863670984,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 33.0151
-    },
-    {
-     "rpm": 3000,
-     "torque_ftlb": 380.0,
-     "hp": 227.1896420411272,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 33.3166
-    },
-    {
-     "rpm": 3250,
-     "torque_ftlb": 380.0,
-     "hp": 244.55445544554456,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 33.6181
-    },
-    {
-     "rpm": 3500,
-     "torque_ftlb": 380.0,
-     "hp": 261.9192688499619,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 33.9196
-    },
-    {
-     "rpm": 3750,
-     "torque_ftlb": 380.0,
-     "hp": 279.28408225437926,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 34.2211
-    },
-    {
      "rpm": 4000,
-     "torque_ftlb": 380.0,
-     "hp": 296.6488956587967,
-     "timing_deg": 8.0,
+     "torque_ftlb": 400.5155,
+     "hp": 314.0338588423458,
+     "timing_deg": 2.234375,
      "boost_psi": 24.0,
-     "cat_c": 34.5226
+     "cat_c": 76.03
     },
     {
      "rpm": 4250,
-     "torque_ftlb": 380.0,
-     "hp": 314.01370906321404,
-     "timing_deg": 8.0,
+     "torque_ftlb": 410.6075,
+     "hp": 348.1922258558644,
+     "timing_deg": 2.90717,
      "boost_psi": 24.0,
-     "cat_c": 34.8241
+     "cat_c": 86.97999999999999
     },
     {
      "rpm": 4500,
-     "torque_ftlb": 380.0,
-     "hp": 334.2726580350343,
-     "timing_deg": 8.0,
+     "torque_ftlb": 408.25,
+     "hp": 359.5118526275705,
+     "timing_deg": 3.25,
      "boost_psi": 24.0,
-     "cat_c": 35.17585
+     "cat_c": 97.2
     },
     {
      "rpm": 4750,
-     "torque_ftlb": 380.0,
-     "hp": 354.53160700685453,
-     "timing_deg": 8.0,
+     "torque_ftlb": 400.67650000000003,
+     "hp": 372.0935761348058,
+     "timing_deg": 3.7549,
      "boost_psi": 24.0,
-     "cat_c": 35.5276
+     "cat_c": 100.85
     },
     {
      "rpm": 5000,
-     "torque_ftlb": 380.0,
-     "hp": 371.8964204112719,
-     "timing_deg": 8.0,
+     "torque_ftlb": 394.5,
+     "hp": 381.8304807692308,
+     "timing_deg": 4.16667,
      "boost_psi": 24.0,
-     "cat_c": 35.8291
+     "cat_c": 104.5
     },
     {
      "rpm": 5250,
-     "torque_ftlb": 380.0,
-     "hp": 389.26123381568925,
-     "timing_deg": 8.0,
+     "torque_ftlb": 385.75,
+     "hp": 394.7742122048743,
+     "timing_deg": 4.75,
      "boost_psi": 24.0,
-     "cat_c": 36.1307
+     "cat_c": 117.64
     },
     {
      "rpm": 5500,
-     "torque_ftlb": 380.0,
-     "hp": 406.6260472201066,
-     "timing_deg": 8.0,
+     "torque_ftlb": 378.6405,
+     "hp": 404.58804257616146,
+     "timing_deg": 5.22396,
      "boost_psi": 24.0,
-     "cat_c": 36.4322
+     "cat_c": 121.29
     },
     {
      "rpm": 5750,
-     "torque_ftlb": 380.0,
-     "hp": 423.990860624524,
-     "timing_deg": 8.0,
+     "torque_ftlb": 371.844,
+     "hp": 413.3711452779893,
+     "timing_deg": 5.677085,
      "boost_psi": 24.0,
-     "cat_c": 36.7337
+     "cat_c": 124.94
     },
     {
      "rpm": 6000,
-     "torque_ftlb": 380.0,
-     "hp": 441.35567402894134,
-     "timing_deg": 8.0,
+     "torque_ftlb": 366.7795,
+     "hp": 419.53028207254386,
+     "timing_deg": 6.014705,
      "boost_psi": 24.0,
-     "cat_c": 37.0352
-    },
-    {
-     "rpm": 6250,
-     "torque_ftlb": 380.0,
-     "hp": 458.7204874333587,
-     "timing_deg": 8.0,
-     "boost_psi": 24.0,
-     "cat_c": 37.3367
+     "cat_c": 127.86
     }
    ]
   }
  ],
- "shifts": [],
+ "shifts": [
+  {
+   "at_s": 12.6,
+   "from_gear": 1,
+   "to_gear": 2,
+   "rpm": 5640.62,
+   "torque_ftlb": 377.781,
+   "handover_s": 0.8000000000000007
+  },
+  {
+   "at_s": 16.2,
+   "from_gear": 2,
+   "to_gear": 3,
+   "rpm": 5897.06,
+   "torque_ftlb": 370.088,
+   "handover_s": 0.8000000000000007
+  }
+ ],
  "findings": [
   {
    "level": "ok",
@@ -194,14 +163,24 @@
    "check": "knock"
   },
   {
+   "level": "warn",
+   "message": "Charge air temp hit 141C — intercooler heat soak.",
+   "check": "cat"
+  },
+  {
    "level": "ok",
    "message": "Boost tracking set point at full load.",
    "check": "boost"
   },
   {
-   "level": "warn",
-   "message": "Rail pressure dropping 16% below target — HPFP may be at its limit.",
-   "check": "rail"
+   "level": "watch",
+   "message": "High-pressure fuel pump held at 100% of its capacity at full load — no fuel headroom left for more power.",
+   "check": "hpfp"
+  },
+  {
+   "level": "ok",
+   "message": "DSG clutch 1 (gears 1, 3, 5) holding under load (12 rpm slip).",
+   "check": "clutch"
   }
  ],
  "checks": [
@@ -222,11 +201,11 @@
    "name": "cat",
    "label": "Charge air heat soak",
    "status": "ran",
-   "detail": "Charge air 30-50 C.",
+   "detail": "Charge air 30-141 C.",
    "needs": [
     "cat_c"
    ],
-   "level": "ok"
+   "level": "warn"
   },
   {
    "name": "trims",
@@ -243,7 +222,7 @@
    "name": "boost",
    "label": "Boost vs set point",
    "status": "ran",
-   "detail": "44 full-load samples, worst held shortfall 0.0 psi.",
+   "detail": "51 full-load samples, worst held shortfall 0.0 psi.",
    "needs": [
     "put_psia",
     "put_sp_psia",
@@ -257,27 +236,27 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "44 full-load samples, worst droop 16%.",
+   "detail": "51 full-load samples, worst droop 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
     "rpm"
    ],
-   "level": "warn"
+   "level": "ok"
   },
   {
    "name": "hpfp",
    "label": "Fuel pump headroom",
-   "status": "missing",
-   "detail": "Log has no HPFP Effective Pump Vol (%).",
+   "status": "ran",
+   "detail": "51 full-load samples, pump held at up to 100% effective volume.",
    "needs": [
     "HPFP Effective Pump Vol (%)",
     "pedal_pct",
     "rpm",
     "time_s"
    ],
-   "level": null
+   "level": "watch"
   },
   {
    "name": "afr",
@@ -295,8 +274,8 @@
   {
    "name": "clutch",
    "label": "DSG clutch slip",
-   "status": "missing",
-   "detail": "Log has no (DSG)Clutch 1 Slip (RPM).",
+   "status": "ran",
+   "detail": "19 loaded samples in gears 1, 3 and 5, worst held slip 12 rpm.",
    "needs": [
     "(DSG)Clutch 1 Slip (RPM)",
     "gear",
@@ -304,7 +283,7 @@
     "speed_mph",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "pulls",
@@ -321,8 +300,8 @@
   {
    "name": "shifts",
    "label": "DSG shift timing",
-   "status": "missing",
-   "detail": "Log has no (DSG)Target Gear (Gear).",
+   "status": "ran",
+   "detail": "2 upshifts under load, median 0.80 s from target gear to handover.",
    "needs": [
     "(DSG)Target Gear (Gear)",
     "gear",
@@ -330,7 +309,7 @@
     "torque_ftlb",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   }
  ],
  "knock_samples": 0,

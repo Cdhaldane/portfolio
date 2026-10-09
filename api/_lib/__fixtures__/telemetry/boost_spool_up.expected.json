@@ -1,5 +1,5 @@
 {
- "name": "messy_cells.csv",
+ "name": "boost_spool_up.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
@@ -8,6 +8,7 @@
  "peak": {
   "pedal_pct": 100.0,
   "rpm": 6500.0,
+  "boost_psi": 24.0,
   "torque_ftlb": 380.0
  },
  "knock": {
@@ -33,9 +34,9 @@
   50.0
  ],
  "ltft": [
-  1.0075376884422111,
   1.0,
-  2.5
+  1.0,
+  1.0
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 0.6896551724137931,
@@ -48,7 +49,7 @@
    "rpm_start": 2500.0,
    "rpm_end": 6500.0,
    "gear": 3,
-   "peak_boost_psi": null,
+   "peak_boost_psi": 24.0,
    "peak_torque_ftlb": 380.0,
    "max_knock_deg": 0.0,
    "cat_start_c": 32.5126,
@@ -67,7 +68,7 @@
      "torque_ftlb": 380.0,
      "hp": 209.82482863670984,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 33.0151
     },
     {
@@ -75,7 +76,7 @@
      "torque_ftlb": 380.0,
      "hp": 227.1896420411272,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 33.3166
     },
     {
@@ -83,7 +84,7 @@
      "torque_ftlb": 380.0,
      "hp": 244.55445544554456,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 33.6181
     },
     {
@@ -91,7 +92,7 @@
      "torque_ftlb": 380.0,
      "hp": 261.9192688499619,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 33.9196
     },
     {
@@ -99,7 +100,7 @@
      "torque_ftlb": 380.0,
      "hp": 279.28408225437926,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 34.2211
     },
     {
@@ -107,7 +108,7 @@
      "torque_ftlb": 380.0,
      "hp": 296.6488956587967,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 34.5226
     },
     {
@@ -115,7 +116,7 @@
      "torque_ftlb": 380.0,
      "hp": 314.01370906321404,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 34.8241
     },
     {
@@ -123,15 +124,15 @@
      "torque_ftlb": 380.0,
      "hp": 334.2726580350343,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 35.3266
+     "boost_psi": 24.0,
+     "cat_c": 35.17585
     },
     {
      "rpm": 4750,
      "torque_ftlb": 380.0,
      "hp": 354.53160700685453,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 35.5276
     },
     {
@@ -139,7 +140,7 @@
      "torque_ftlb": 380.0,
      "hp": 371.8964204112719,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 35.8291
     },
     {
@@ -147,15 +148,15 @@
      "torque_ftlb": 380.0,
      "hp": 389.26123381568925,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 36.180949999999996
+     "boost_psi": 24.0,
+     "cat_c": 36.1307
     },
     {
      "rpm": 5500,
      "torque_ftlb": 380.0,
      "hp": 406.6260472201066,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 36.4322
     },
     {
@@ -163,7 +164,7 @@
      "torque_ftlb": 380.0,
      "hp": 423.990860624524,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 36.7337
     },
     {
@@ -171,7 +172,7 @@
      "torque_ftlb": 380.0,
      "hp": 441.35567402894134,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 37.0352
     },
     {
@@ -179,7 +180,7 @@
      "torque_ftlb": 380.0,
      "hp": 458.7204874333587,
      "timing_deg": 8.0,
-     "boost_psi": null,
+     "boost_psi": 24.0,
      "cat_c": 37.3367
     }
    ]
@@ -226,7 +227,7 @@
    "name": "trims",
    "label": "Fuel trims",
    "status": "ran",
-   "detail": "LTFT mean +1.0% (+1 to +2).",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
    "needs": [
     "ltft_pct",
     "rpm"
@@ -276,15 +277,15 @@
   {
    "name": "afr",
    "label": "AFR under boost",
-   "status": "missing",
-   "detail": "Log has no boost_psi.",
+   "status": "ran",
+   "detail": "51 boosted samples, worst +0.10 AFR vs target.",
    "needs": [
     "afr",
     "afr_sp",
     "boost_psi",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "clutch",

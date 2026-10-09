@@ -1,29 +1,58 @@
 {
- "name": "ignition_on_only.csv",
+ "name": "short_stab_unsettled.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
- "duration_s": 5.8,
- "samples": 30,
+ "duration_s": 39.8,
+ "samples": 200,
  "peak": {
-  "pedal_pct": 0.0,
-  "rpm": 0.0,
-  "boost_psi": 5.0,
-  "torque_ftlb": 100.0
+  "pedal_pct": 100.0,
+  "rpm": 6500.0,
+  "boost_psi": 24.0,
+  "torque_ftlb": 380.0
  },
- "knock": {},
- "cat_range": null,
- "ltft": null,
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
+ "cat_range": [
+  30.0,
+  50.0
+ ],
+ "ltft": [
+  1.0,
+  1.0,
+  1.0
+ ],
  "boost_undershoot_psi": null,
- "rail_droop_pct": null,
+ "rail_droop_pct": 0.6896551724137931,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [],
  "shifts": [],
  "findings": [
   {
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
+  },
+  {
    "level": "info",
-   "message": "Engine not running for this log (ignition-on only).",
+   "message": "No full-load pull (peak pedal 100%, peak boost 24.0 psi). Full-load checks need a pull to be meaningful.",
    "check": null
   }
  ],
@@ -31,42 +60,42 @@
   {
    "name": "knock",
    "label": "Knock retard",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
    "needs": [
     "kr_cyl1",
     "kr_cyl2",
     "kr_cyl3",
     "kr_cyl4"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "cat",
    "label": "Charge air heat soak",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "ran",
+   "detail": "Charge air 30-50 C.",
    "needs": [
     "cat_c"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "trims",
    "label": "Fuel trims",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "ran",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
    "needs": [
     "ltft_pct",
     "rpm"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "boost",
    "label": "Boost vs set point",
    "status": "idle",
-   "detail": "Engine not running.",
+   "detail": "6 full-load samples, but boost never settled for 0.5 s (still spooling or shifting). Log a longer pull.",
    "needs": [
     "put_psia",
     "put_sp_psia",
@@ -79,21 +108,21 @@
   {
    "name": "rail",
    "label": "Rail pressure (HPFP)",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "ran",
+   "detail": "6 full-load samples, worst droop 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
     "rpm"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "hpfp",
    "label": "Fuel pump headroom",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "missing",
+   "detail": "Log has no HPFP Effective Pump Vol (%).",
    "needs": [
     "HPFP Effective Pump Vol (%)",
     "pedal_pct",
@@ -106,7 +135,7 @@
    "name": "afr",
    "label": "AFR under boost",
    "status": "idle",
-   "detail": "Engine not running.",
+   "detail": "6 boosted samples, but boost never settled for 0.3 s (still spooling or shifting).",
    "needs": [
     "afr",
     "afr_sp",
@@ -118,8 +147,8 @@
   {
    "name": "clutch",
    "label": "DSG clutch slip",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "missing",
+   "detail": "Log has no (DSG)Clutch 1 Slip (RPM).",
    "needs": [
     "(DSG)Clutch 1 Slip (RPM)",
     "gear",
@@ -133,7 +162,7 @@
    "name": "pulls",
    "label": "WOT pull detection",
    "status": "idle",
-   "detail": "Engine not running.",
+   "detail": "Neither pedal at 90%+ above 2000 rpm nor boost at 20+ psi above 3000 rpm was held for 2+ s (peak pedal 100%, peak boost 24.0 psi).",
    "needs": [
     "time_s",
     "pedal_pct",
@@ -144,8 +173,8 @@
   {
    "name": "shifts",
    "label": "DSG shift timing",
-   "status": "idle",
-   "detail": "Engine not running.",
+   "status": "missing",
+   "detail": "Log has no (DSG)Target Gear (Gear).",
    "needs": [
     "(DSG)Target Gear (Gear)",
     "gear",
@@ -157,5 +186,5 @@
   }
  ],
  "knock_samples": 0,
- "worst_level": "info"
+ "worst_level": "ok"
 }

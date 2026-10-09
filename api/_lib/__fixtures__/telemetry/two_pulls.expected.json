@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 0.6896551724137931,
+ "hpfp_pct": null,
+ "clutch_slip_rpm": null,
  "pulls": [
   {
    "start_s": 5.0,
@@ -51,7 +53,137 @@
    "peak_torque_ftlb": 380.0,
    "max_knock_deg": 0.0,
    "cat_start_c": 32.5126,
-   "cat_end_c": 37.5377
+   "cat_end_c": 37.5377,
+   "cat_max_c": 37.5377,
+   "timing_median_deg": 8.0,
+   "peak_hp": 458.7204874333587,
+   "peak_hp_rpm": 6250,
+   "hpfp_max_pct": null,
+   "airflow_pct": null,
+   "torque_ceiling_pct": null,
+   "torque_limited_pct": null,
+   "curve": [
+    {
+     "rpm": 2750,
+     "torque_ftlb": 380.0,
+     "hp": 209.82482863670984,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 33.0151
+    },
+    {
+     "rpm": 3000,
+     "torque_ftlb": 380.0,
+     "hp": 227.1896420411272,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 33.3166
+    },
+    {
+     "rpm": 3250,
+     "torque_ftlb": 380.0,
+     "hp": 244.55445544554456,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 33.6181
+    },
+    {
+     "rpm": 3500,
+     "torque_ftlb": 380.0,
+     "hp": 261.9192688499619,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 33.9196
+    },
+    {
+     "rpm": 3750,
+     "torque_ftlb": 380.0,
+     "hp": 279.28408225437926,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 34.2211
+    },
+    {
+     "rpm": 4000,
+     "torque_ftlb": 380.0,
+     "hp": 296.6488956587967,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 34.5226
+    },
+    {
+     "rpm": 4250,
+     "torque_ftlb": 380.0,
+     "hp": 314.01370906321404,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 34.8241
+    },
+    {
+     "rpm": 4500,
+     "torque_ftlb": 380.0,
+     "hp": 334.2726580350343,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 35.17585
+    },
+    {
+     "rpm": 4750,
+     "torque_ftlb": 380.0,
+     "hp": 354.53160700685453,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 35.5276
+    },
+    {
+     "rpm": 5000,
+     "torque_ftlb": 380.0,
+     "hp": 371.8964204112719,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 35.8291
+    },
+    {
+     "rpm": 5250,
+     "torque_ftlb": 380.0,
+     "hp": 389.26123381568925,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 36.1307
+    },
+    {
+     "rpm": 5500,
+     "torque_ftlb": 380.0,
+     "hp": 406.6260472201066,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 36.4322
+    },
+    {
+     "rpm": 5750,
+     "torque_ftlb": 380.0,
+     "hp": 423.990860624524,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 36.7337
+    },
+    {
+     "rpm": 6000,
+     "torque_ftlb": 380.0,
+     "hp": 441.35567402894134,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 37.0352
+    },
+    {
+     "rpm": 6250,
+     "torque_ftlb": 380.0,
+     "hp": 458.7204874333587,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 37.3367
+    }
+   ]
   },
   {
    "start_s": 26.0,
@@ -63,9 +195,132 @@
    "peak_torque_ftlb": 380.0,
    "max_knock_deg": 0.0,
    "cat_start_c": 43.0653,
-   "cat_end_c": 46.9849
+   "cat_end_c": 46.9849,
+   "cat_max_c": 46.9849,
+   "timing_median_deg": 8.0,
+   "peak_hp": 459.16582254379284,
+   "peak_hp_rpm": 6250,
+   "hpfp_max_pct": null,
+   "airflow_pct": null,
+   "torque_ceiling_pct": null,
+   "torque_limited_pct": null,
+   "curve": [
+    {
+     "rpm": 2500,
+     "torque_ftlb": 380.0,
+     "hp": 188.3040365575019,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 43.1658
+    },
+    {
+     "rpm": 2750,
+     "torque_ftlb": 380.0,
+     "hp": 206.85653084539223,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 43.41705
+    },
+    {
+     "rpm": 3000,
+     "torque_ftlb": 380.0,
+     "hp": 225.40830159939074,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 43.6683
+    },
+    {
+     "rpm": 3250,
+     "torque_ftlb": 380.0,
+     "hp": 243.96079588728102,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 43.91955
+    },
+    {
+     "rpm": 3500,
+     "torque_ftlb": 380.0,
+     "hp": 262.5132901751714,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 44.1709
+    },
+    {
+     "rpm": 3750,
+     "torque_ftlb": 380.0,
+     "hp": 281.0650609291698,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 44.42215
+    },
+    {
+     "rpm": 4000,
+     "torque_ftlb": 380.0,
+     "hp": 299.61755521706016,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 44.6734
+    },
+    {
+     "rpm": 4250,
+     "torque_ftlb": 380.0,
+     "hp": 318.16932597105864,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 44.92465
+    },
+    {
+     "rpm": 5000,
+     "torque_ftlb": 380.0,
+     "hp": 370.1154417364814,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 45.628150000000005
+    },
+    {
+     "rpm": 5250,
+     "torque_ftlb": 380.0,
+     "hp": 388.6672124904798,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 45.8794
+    },
+    {
+     "rpm": 5500,
+     "torque_ftlb": 380.0,
+     "hp": 407.2197067783701,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 46.13065
+    },
+    {
+     "rpm": 5750,
+     "torque_ftlb": 380.0,
+     "hp": 425.7722010662605,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 46.3819
+    },
+    {
+     "rpm": 6000,
+     "torque_ftlb": 380.0,
+     "hp": 444.323971820259,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 46.63315
+    },
+    {
+     "rpm": 6250,
+     "torque_ftlb": 380.0,
+     "hp": 459.16582254379284,
+     "timing_deg": 8.0,
+     "boost_psi": 24.0,
+     "cat_c": 46.83415
+    }
+   ]
   }
  ],
+ "shifts": [],
  "findings": [
   {
    "level": "ok",
@@ -117,12 +372,13 @@
    "name": "boost",
    "label": "Boost vs set point",
    "status": "ran",
-   "detail": "82 full-load samples, worst shortfall 0.0 psi.",
+   "detail": "82 full-load samples, worst held shortfall 0.0 psi.",
    "needs": [
     "put_psia",
     "put_sp_psia",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "ok"
   },
@@ -140,6 +396,19 @@
    "level": "ok"
   },
   {
+   "name": "hpfp",
+   "label": "Fuel pump headroom",
+   "status": "missing",
+   "detail": "Log has no HPFP Effective Pump Vol (%).",
+   "needs": [
+    "HPFP Effective Pump Vol (%)",
+    "pedal_pct",
+    "rpm",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
    "name": "afr",
    "label": "AFR under boost",
    "status": "ran",
@@ -147,9 +416,24 @@
    "needs": [
     "afr",
     "afr_sp",
-    "boost_psi"
+    "boost_psi",
+    "time_s"
    ],
    "level": "ok"
+  },
+  {
+   "name": "clutch",
+   "label": "DSG clutch slip",
+   "status": "missing",
+   "detail": "Log has no (DSG)Clutch 1 Slip (RPM).",
+   "needs": [
+    "(DSG)Clutch 1 Slip (RPM)",
+    "gear",
+    "torque_ftlb",
+    "speed_mph",
+    "time_s"
+   ],
+   "level": null
   },
   {
    "name": "pulls",
@@ -162,6 +446,20 @@
     "rpm"
    ],
    "level": "ok"
+  },
+  {
+   "name": "shifts",
+   "label": "DSG shift timing",
+   "status": "missing",
+   "detail": "Log has no (DSG)Target Gear (Gear).",
+   "needs": [
+    "(DSG)Target Gear (Gear)",
+    "gear",
+    "rpm",
+    "torque_ftlb",
+    "time_s"
+   ],
+   "level": null
   }
  ],
  "knock_samples": 0,

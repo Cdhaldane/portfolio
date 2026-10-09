@@ -21,7 +21,7 @@
 // Bump the +jsN suffix for a port-only change, and the mqbtel part whenever
 // the goldens are regenerated from a new mqbtel revision. Stored rows with an
 // older value are re-run by POST { action: "reanalyze" }.
-const ANALYZER_VERSION = "mqbtel@4025e04+wip.2471839+js1";
+const ANALYZER_VERSION = "mqbtel@7ff2d73+js1";
 
 // --- columns.py ---------------------------------------------------------------
 
@@ -53,6 +53,16 @@ const COBB_TO_CANON = Object.freeze({
 });
 
 const KNOCK_COLS = Object.freeze(["kr_cyl1", "kr_cyl2", "kr_cyl3", "kr_cyl4"]);
+
+// Cobb channels the analysis reads under their raw headers. They stay out of
+// COBB_TO_CANON on purpose: the page's chart presets key on these exact names.
+const HPFP_VOL = "HPFP Effective Pump Vol (%)";
+const AIR_MASS = "Air Mass IM Per Stroke (mg/stk)";
+const AIR_MASS_SP = "Air Mass Per Stroke SP (mg/stk)";
+const TORQUE_MAX = "Torque Maximum Engine (ft-lb)";
+const TORQUE_LIMIT_SRC = "Torque Limitation Source (-)";
+const TARGET_GEAR = "(DSG)Target Gear (Gear)";
+const CLUTCH1_SLIP = "(DSG)Clutch 1 Slip (RPM)";
 
 const UNITS = Object.freeze({
   time_s: "s",
@@ -350,9 +360,14 @@ function load(text, name = "log.csv") {
 // on pump fuel. They flag things worth a closer look; they are not a tuner's
 // verdict. Same names and values as mqbtel.
 
+// A pull is full load held long enough to judge: the pedal floored, or real
+// boost. The tune makes 25+ psi well short of full pedal, so a burst that lifts
+// at peak torque is still a pull; normal driving on this car stays under ~13 psi.
 const WOT_PEDAL_PCT = 90.0;
 const PULL_MIN_RPM = 2000;
-const PULL_MIN_DURATION_S = 1.0;
+const PULL_BOOST_PSI = 20.0;
+const PULL_BOOST_MIN_RPM = 3000;
+const PULL_MIN_DURATION_S = 2.0;
 
 const KNOCK_WATCH_DEG = 0.0; // any retard at all is worth noting
 const KNOCK_WARN_DEG = 3.0; // sustained/large retard
@@ -364,11 +379,41 @@ const CAT_WARN_C = 90.0; // clear heat soak
 const LTFT_WATCH_PCT = 5.0;
 const LTFT_WARN_PCT = 10.0;
 
-const BOOST_UNDERSHOOT_WARN_PSI = 2.0; // sustained shortfall vs set point at full load
+const BOOST_UNDERSHOOT_WARN_PSI = 2.0; // shortfall vs set point at full load...
+const BOOST_UNDERSHOOT_MIN_S = 0.5; // ...sustained (median over windows this long) once spooled
+// Boost still climbing faster than this is spool-up: boost trails its set
+// point and AFR trails its enrichment target.
+const BOOST_SPOOL_PSI_PER_S = 10.0;
 const RAIL_DROOP_WARN_PCT = 10.0; // rail pressure falling short of set point
 const RAIL_MIN_SP_PSI = 1500.0; // only judge droop when the ECU is asking for real pressure
-const AFR_LEAN_WARN = 0.5; // actual leaner than target, under boost
+const AFR_LEAN_WARN = 0.5; // actual leaner than target, under boost...
+const AFR_LEAN_MIN_S = 0.3; // ...sustained (median over windows this long)
 const AFR_BOOSTED_PSI = 10.0; // "under boost" for the AFR check
+// Ignore this long after a gear change: the DSG reports the new gear ~0.4 s
+// before the torque handover, whose fuel cut reads as AFR 20-30 and whose
+// boost dip is normal.
+const SHIFT_SETTLE_S = 0.75;
+
+const HPFP_WATCH_PCT = 95.0; // pump effective volume held this high at full load: no fuel headroom...
+const HPFP_MIN_S = 0.5; // ...sustained (median over windows this long)
+
+const CLUTCH1_GEARS = Object.freeze([1, 3, 5]); // DQ250: clutch 1 drives the odd gears; clutch 2 slip isn't logged
+// Clutch 1 slip held under load. Settled slip runs 7-19 rpm in all 13 of the
+// owner's logs.
+const CLUTCH_SLIP_WATCH_RPM = 50.0;
+const CLUTCH_SLIP_WARN_RPM = 100.0;
+const CLUTCH_MIN_TORQUE_FTLB = 150.0; // only judge slip with real torque through the clutch...
+const CLUTCH_MIN_MPH = 15.0; // ...once rolling (pulling away slips by design)...
+const CLUTCH_SETTLE_S = 1.0; // ...and settled after a shift (the handover reads ~1,800 rpm)
+const CLUTCH_MIN_S = 0.5; // sustained (median over windows this long)
+
+const SHIFT_MIN_TORQUE_FTLB = 200.0; // time upshifts only under real load
+const SHIFT_RPM_DROP = 150.0; // handover: rpm this far below its peak since the target-gear change
+const SHIFT_MAX_S = 2.0; // stop looking for the handover after this long
+
+const CURVE_RPM_STEP = 250; // power curve bin width
+const CURVE_MIN_SAMPLES = 2; // a bin needs this many settled samples
+const HP_RPM_PER_FTLB = 5252.0; // hp = torque (ft-lb) x rpm / 5252
 
 const FULL_LOAD = Object.freeze({ pedal: 80.0, rpm: 3000 });
 
@@ -378,10 +423,13 @@ const CHECKS = Object.freeze({
   knock: ["Knock retard", KNOCK_COLS],
   cat: ["Charge air heat soak", ["cat_c"]],
   trims: ["Fuel trims", ["ltft_pct", "rpm"]],
-  boost: ["Boost vs set point", ["put_psia", "put_sp_psia", "pedal_pct", "rpm"]],
+  boost: ["Boost vs set point", ["put_psia", "put_sp_psia", "pedal_pct", "rpm", "time_s"]],
   rail: ["Rail pressure (HPFP)", ["rail_psi", "rail_sp_psi", "pedal_pct", "rpm"]],
-  afr: ["AFR under boost", ["afr", "afr_sp", "boost_psi"]],
+  hpfp: ["Fuel pump headroom", [HPFP_VOL, "pedal_pct", "rpm", "time_s"]],
+  afr: ["AFR under boost", ["afr", "afr_sp", "boost_psi", "time_s"]],
+  clutch: ["DSG clutch slip", [CLUTCH1_SLIP, "gear", "torque_ftlb", "speed_mph", "time_s"]],
   pulls: ["WOT pull detection", ["time_s", "pedal_pct", "rpm"]],
+  shifts: ["DSG shift timing", [TARGET_GEAR, "gear", "rpm", "torque_ftlb", "time_s"]],
 });
 
 const CHECK_REQUIRES = Object.freeze({
@@ -390,14 +438,27 @@ const CHECK_REQUIRES = Object.freeze({
   trims: "Long-term fuel trim with the engine running.",
   boost:
     `PUT actual and set point, with 5+ full-load samples (pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ ` +
-    `at ${FULL_LOAD.rpm}+ rpm). Log a WOT pull.`,
+    `at ${FULL_LOAD.rpm}+ rpm) and boost settled for ${BOOST_UNDERSHOOT_MIN_S}+ s ` +
+    "once spooled. Log a WOT pull.",
   rail:
     "Rail pressure actual and set point, with 5+ full-load samples asking for " +
     `${pyFixed(RAIL_MIN_SP_PSI, 0)}+ psi. Log a WOT pull.`,
-  afr: `AFR actual and set point, with 5+ samples above ${pyFixed(AFR_BOOSTED_PSI, 0)} psi boost.`,
+  hpfp:
+    `HPFP effective pump volume, with 5+ full-load samples (pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ ` +
+    `at ${FULL_LOAD.rpm}+ rpm) held for ${HPFP_MIN_S}+ s. Log a WOT pull.`,
+  afr:
+    `AFR actual and set point, with 5+ samples above ${pyFixed(AFR_BOOSTED_PSI, 0)} psi boost, ` +
+    `${AFR_LEAN_MIN_S}+ s of it settled (not spooling or shifting).`,
+  clutch:
+    "DSG clutch 1 slip with gear, torque and speed: 5+ samples in gear 1, 3 or 5 at " +
+    `${pyFixed(CLUTCH_MIN_TORQUE_FTLB, 0)}+ ft-lb and ${pyFixed(CLUTCH_MIN_MPH, 0)}+ mph, ${CLUTCH_SETTLE_S}+ s ` +
+    `after a shift, held for ${CLUTCH_MIN_S}+ s. Clutch 2 slip isn't logged, so gears 2, 4 ` +
+    "and 6 can't be judged.",
   pulls:
-    `Pedal held at ${pyFixed(WOT_PEDAL_PCT, 0)}%+ above ${PULL_MIN_RPM} rpm for ` +
-    `${pyFixed(PULL_MIN_DURATION_S, 0)}+ s.`,
+    `Pedal at ${pyFixed(WOT_PEDAL_PCT, 0)}%+ above ${PULL_MIN_RPM} rpm, or boost at ` +
+    `${pyFixed(PULL_BOOST_PSI, 0)}+ psi above ${PULL_BOOST_MIN_RPM} rpm, held for ` +
+    `${PULL_MIN_DURATION_S}+ s.`,
+  shifts: `DSG target gear, gear, rpm and torque, with an upshift at ${pyFixed(SHIFT_MIN_TORQUE_FTLB, 0)}+ ft-lb.`,
 });
 
 /**
@@ -555,25 +616,33 @@ function findPulls(
   log,
   pedalMin = WOT_PEDAL_PCT,
   rpmMin = PULL_MIN_RPM,
-  minDurationS = PULL_MIN_DURATION_S
+  minDurationS = PULL_MIN_DURATION_S,
+  boostMin = PULL_BOOST_PSI,
+  boostRpmMin = PULL_BOOST_MIN_RPM
 ) {
   if (!["time_s", "pedal_pct", "rpm"].every((c) => log.data.has(c))) return [];
   const t = colOf(log, "time_s");
   const pedal = colOf(log, "pedal_pct");
   const rpm = colOf(log, "rpm");
+  const boost = colOf(log, "boost_psi");
   const knock = knockMagnitude(log);
   const gear = colOf(log, "gear");
   const cat = colOf(log, "cat_c");
+  // Either condition, so a floored pull and a lift-at-peak burst that run
+  // into each other are one pull, not two.
+  const inPull = (j) =>
+    (pedal[j] >= pedalMin && rpm[j] >= rpmMin) || (boost !== undefined && boost[j] >= boostMin && rpm[j] >= boostRpmMin);
 
+  const shifting = afterShift(log);
   const pulls = [];
   let i = 0;
   while (i < log.length) {
-    if (!(pedal[i] >= pedalMin && rpm[i] >= rpmMin)) {
+    if (!inPull(i)) {
       i += 1;
       continue;
     }
     const rows = [];
-    while (i < log.length && pedal[i] >= pedalMin && rpm[i] >= rpmMin) rows.push(i++);
+    while (i < log.length && inPull(i)) rows.push(i++);
     const first = rows[0];
     const last = rows[rows.length - 1];
     const t0 = t[first];
@@ -585,6 +654,11 @@ function findPulls(
       for (const [, arr] of knock) for (const r of rows) if (arr[r] > maxKnock) maxKnock = arr[r];
     }
     const g = gear ? modeOf(gear, rows) : null;
+    const curve = powerCurve(log, rows.filter((r) => !shifting[r]));
+    // Python's max(curve, key=hp): the first of equal peaks wins.
+    let top = null;
+    for (const c of curve) if (top === null || c.hp > top.hp) top = c;
+    const peakTorque = colMax(log, "torque_ftlb", rows);
     pulls.push({
       start_s: t0,
       end_s: t1,
@@ -592,13 +666,101 @@ function findPulls(
       rpm_end: rpm[last],
       gear: g === null ? null : Math.trunc(g),
       peak_boost_psi: colMax(log, "boost_psi", rows),
-      peak_torque_ftlb: colMax(log, "torque_ftlb", rows),
+      peak_torque_ftlb: peakTorque,
       max_knock_deg: maxKnock,
       cat_start_c: cat ? cat[first] : null,
       cat_end_c: cat ? cat[last] : null,
+      cat_max_c: colMax(log, "cat_c", rows),
+      timing_median_deg: medianOf(colOf(log, "timing_deg"), rows),
+      peak_hp: top ? top.hp : null,
+      peak_hp_rpm: top ? top.rpm : null,
+      hpfp_max_pct: colMax(log, HPFP_VOL, rows),
+      airflow_pct: airflowPct(log, rows),
+      torque_ceiling_pct: torqueCeilingPct(log, rows, peakTorque),
+      torque_limited_pct: torqueLimitedPct(log, rows),
+      curve,
     });
   }
   return pulls;
+}
+
+/** _median: NaN-skipping median of `arr` over `rows`, null if absent or all NaN. */
+function medianOf(arr, rows) {
+  if (!arr) return null;
+  const vals = [];
+  for (const r of rows) if (isNum(arr[r])) vals.push(arr[r]);
+  return vals.length ? median(vals) : null;
+}
+
+/**
+ * numpy's float floor_divide (Python's //). Math.floor(a / b) can round the
+ * quotient up to an integer first; this takes the exact remainder like numpy.
+ */
+function floorDiv(a, b) {
+  const mod = a % b;
+  let div = (a - mod) / b;
+  if (mod && b < 0 !== mod < 0) div -= 1;
+  const floor = Math.floor(div);
+  return div - floor > 0.5 ? floor + 1 : floor;
+}
+
+/** Power curve: medians per CURVE_RPM_STEP rpm bin, from samples clear of a shift. */
+function powerCurve(log, rows) {
+  const rpm = colOf(log, "rpm");
+  const torque = colOf(log, "torque_ftlb");
+  if (!torque) return [];
+  const bins = new Map();
+  for (const r of rows) {
+    if (!isNum(rpm[r]) || !isNum(torque[r])) continue;
+    const bin = Math.trunc(floorDiv(rpm[r], CURVE_RPM_STEP) * CURVE_RPM_STEP);
+    if (!bins.has(bin)) bins.set(bin, []);
+    bins.get(bin).push(r);
+  }
+  const curve = [];
+  for (const bin of [...bins.keys()].sort((a, b) => a - b)) {
+    const grp = bins.get(bin);
+    if (grp.length < CURVE_MIN_SAMPLES) continue;
+    curve.push({
+      rpm: bin,
+      torque_ftlb: medianOf(torque, grp),
+      hp: median(grp.map((r) => (torque[r] * rpm[r]) / HP_RPM_PER_FTLB)),
+      timing_deg: medianOf(colOf(log, "timing_deg"), grp),
+      boost_psi: medianOf(colOf(log, "boost_psi"), grp),
+      cat_c: medianOf(colOf(log, "cat_c"), grp),
+    });
+  }
+  return curve;
+}
+
+/** Median air mass achieved as a share of what the ECU asked for. */
+function airflowPct(log, rows) {
+  const got = colOf(log, AIR_MASS);
+  const asked = colOf(log, AIR_MASS_SP);
+  if (!got || !asked) return null;
+  const pct = [];
+  for (const r of rows) if (asked[r] > 0 && isNum(got[r])) pct.push((got[r] / asked[r]) * 100);
+  return pct.length ? median(pct) : null;
+}
+
+/** Peak torque as a share of the engine's torque ceiling over the pull. */
+function torqueCeilingPct(log, rows, peakTorque) {
+  const ceiling = medianOf(colOf(log, TORQUE_MAX), rows);
+  if (peakTorque === null || ceiling === null || ceiling <= 0) return null;
+  return (peakTorque / ceiling) * 100;
+}
+
+/** Share of the pull with a torque limiter in charge (any non-zero source code). */
+function torqueLimitedPct(log, rows) {
+  const src = colOf(log, TORQUE_LIMIT_SRC);
+  if (!src) return null;
+  let n = 0;
+  let limited = 0;
+  for (const r of rows) {
+    if (!isNum(src[r])) continue;
+    n += 1;
+    if (src[r] !== 0) limited += 1;
+  }
+  return n ? (limited / n) * 100 : null;
 }
 
 function checkKnock(log, s) {
@@ -741,37 +903,148 @@ function noFullLoad(n) {
   );
 }
 
-function fullLoadRows(log) {
-  const pedal = colOf(log, "pedal_pct");
-  const rpm = colOf(log, "rpm");
-  if (!pedal || !rpm) return [];
-  return rowsWhere(log.length, (i) => pedal[i] >= FULL_LOAD.pedal && rpm[i] >= FULL_LOAD.rpm);
+/** Rows where `test(row)` holds, as a 0/1 mask. */
+function maskWhere(n, test) {
+  const mask = new Uint8Array(n);
+  for (let i = 0; i < n; i += 1) mask[i] = test(i) ? 1 : 0;
+  return mask;
 }
 
-/** Compare PUT actual vs set point. Both are absolute, so no ambient correction needed. */
+const countOf = (mask) => mask.reduce((a, m) => a + m, 0);
+
+function fullLoadMask(log) {
+  const pedal = colOf(log, "pedal_pct");
+  const rpm = colOf(log, "rpm");
+  if (!pedal || !rpm) return new Uint8Array(log.length);
+  return maskWhere(log.length, (i) => pedal[i] >= FULL_LOAD.pedal && rpm[i] >= FULL_LOAD.rpm);
+}
+
+function fullLoadRows(log) {
+  const full = fullLoadMask(log);
+  return rowsWhere(log.length, (i) => full[i]);
+}
+
+/**
+ * True while boost is still building: spool-up, or recovery after a shift.
+ * diff() / diff() as pandas has it: row 0 and 0/0 are NaN (false), and a
+ * rise over a zero time step is +Infinity (true).
+ */
+function spooling(log, pressureCol) {
+  const p = colOf(log, pressureCol);
+  const t = colOf(log, "time_s");
+  return maskWhere(log.length, (i) => i > 0 && (p[i] - p[i - 1]) / (t[i] - t[i - 1]) > BOOST_SPOOL_PSI_PER_S);
+}
+
+/** True within `settleS` after a gear change. All false if the log has no gear. */
+function afterShift(log, settleS = SHIFT_SETTLE_S) {
+  const gear = colOf(log, "gear");
+  const t = colOf(log, "time_s");
+  if (!gear || !t) return new Uint8Array(log.length);
+  // A change is any step away from a real gear (pandas' ne: NaN != anything).
+  // The time of the last one carries forward, skipping a change whose own time
+  // is NaN the way ffill() does; before the first, `since` is NaN (false).
+  let last = NaN;
+  return maskWhere(log.length, (i) => {
+    if (i > 0 && isNum(gear[i - 1]) && gear[i] !== gear[i - 1] && isNum(t[i])) last = t[i];
+    return t[i] - last <= settleS;
+  });
+}
+
+/** `mask` minus spool-up on `pressureCol` and the settle time after each shift. */
+function settledMask(log, mask, pressureCol) {
+  const spool = spooling(log, pressureCol);
+  const shift = afterShift(log);
+  return maskWhere(log.length, (i) => mask[i] && !spool[i] && !shift[i]);
+}
+
+/** numpy.searchsorted(a, key, side="right") for a non-NaN key: NaN sorts last. */
+function searchSortedRight(a, key) {
+  let lo = 0;
+  let hi = a.length;
+  while (lo < hi) {
+    const mid = lo + ((hi - lo) >> 1);
+    if (a[mid] <= key) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * Worst level `values` sustains inside one contiguous stretch of `mask`.
+ *
+ * That's the highest median over any `minS` window. A median needs over half
+ * its window at the level, so a noisy sample or a blip shorter than minS / 2
+ * can't set it. Windows never bridge a gap between stretches; null if no
+ * stretch lasts `minS`.
+ */
+function held(log, values, mask, minS) {
+  const time = colOf(log, "time_s");
+  const keep = (i) => mask[i] && isNum(values[i]);
+  let worst = null;
+  let i = 0;
+  while (i < log.length) {
+    if (!keep(i)) {
+      i += 1;
+      continue;
+    }
+    const t = [];
+    const v = [];
+    for (; i < log.length && keep(i); i += 1) {
+      t.push(time[i]);
+      v.push(values[i]);
+    }
+    for (let k = 0; k < t.length; k += 1) {
+      if (!(t[k] - t[0] >= minS)) continue;
+      const level = median(v.slice(searchSortedRight(t, t[k] - minS), k + 1));
+      // Python's max(worst, level): the first stays unless the second is greater.
+      worst = worst === null || level > worst ? level : worst;
+    }
+  }
+  return worst;
+}
+
+/**
+ * Compare PUT actual vs set point. Both are absolute, so no ambient correction needed.
+ *
+ * Spool-up at the start of a pull and the recovery after each shift both sit well
+ * under set point while PUT climbs; neither is a leak. Only judge boost once it has
+ * stopped climbing, and only a shortfall sustained over BOOST_UNDERSHOOT_MIN_S windows.
+ */
 function checkBoost(log, s) {
   const gone = missing(log, "boost");
   if (gone.length) {
     record(s, "boost", "missing", `Log has no ${gone.join(", ")}.`);
     return;
   }
-  const fl = fullLoadRows(log);
-  if (fl.length < 5) {
-    record(s, "boost", "idle", noFullLoad(fl.length));
+  const full = fullLoadMask(log);
+  const nFull = countOf(full);
+  if (nFull < 5) {
+    record(s, "boost", "idle", noFullLoad(nFull));
     return;
   }
   const sp = colOf(log, "put_sp_psia");
   const put = colOf(log, "put_psia");
-  // Rolling median ignores the spool-up transient at the start of a pull.
-  s.boost_undershoot_psi = maxRollingMedian(fl.map((i) => sp[i] - put[i]));
-  const x = s.boost_undershoot_psi;
-  record(s, "boost", "ran", `${fl.length} full-load samples, worst shortfall ${pyFixed(x, 1)} psi.`);
-  if (x >= BOOST_UNDERSHOOT_WARN_PSI) {
+  const settled = settledMask(log, full, "put_psia");
+  const shortfall = held(log, sp.map((v, i) => v - put[i]), settled, BOOST_UNDERSHOOT_MIN_S);
+  if (shortfall === null) {
+    record(
+      s,
+      "boost",
+      "idle",
+      `${nFull} full-load samples, but boost never settled for ` +
+        `${BOOST_UNDERSHOOT_MIN_S} s (still spooling or shifting). Log a longer pull.`
+    );
+    return;
+  }
+  s.boost_undershoot_psi = shortfall;
+  record(s, "boost", "ran", `${nFull} full-load samples, worst held shortfall ${pyFixed(shortfall, 1)} psi.`);
+  if (shortfall >= BOOST_UNDERSHOOT_WARN_PSI) {
     flag(
       s,
       "boost",
       "warn",
-      `Boost falling ${pyFixed(x, 1)} psi short of target at full load — possible boost leak or tired turbo.`
+      `Boost holding ${pyFixed(shortfall, 1)} psi short of target at full load once spooled — ` +
+        "possible boost leak or tired turbo."
     );
   } else {
     flag(s, "boost", "ok", "Boost tracking set point at full load.");
@@ -809,21 +1082,194 @@ function checkAfr(log, s) {
   const boost = colOf(log, "boost_psi");
   const afr = colOf(log, "afr");
   const sp = colOf(log, "afr_sp");
-  const boosted = rowsWhere(log.length, (i) => boost[i] > AFR_BOOSTED_PSI && afr[i] > 0);
-  if (boosted.length < 5) {
+  const boosted = maskWhere(log.length, (i) => boost[i] > AFR_BOOSTED_PSI && afr[i] > 0);
+  const n = countOf(boosted);
+  if (n < 5) {
+    record(s, "afr", "idle", `Only ${n} samples above ${pyFixed(AFR_BOOSTED_PSI, 0)} psi boost; needs 5.`);
+    return;
+  }
+  // Each upshift cuts fuel, which the wideband reads as a one- or two-sample spike to
+  // AFR 20-30. While boost builds, the target steps richer faster than the wideband
+  // follows. Neither is the engine running lean.
+  const settled = settledMask(log, boosted, "boost_psi");
+  const worst = held(log, afr.map((v, i) => v - sp[i]), settled, AFR_LEAN_MIN_S);
+  if (worst === null) {
     record(
       s,
       "afr",
       "idle",
-      `Only ${boosted.length} samples above ${pyFixed(AFR_BOOSTED_PSI, 0)} psi boost; needs 5.`
+      `${n} boosted samples, but boost never settled for ${AFR_LEAN_MIN_S} s ` +
+        "(still spooling or shifting)."
     );
     return;
   }
-  const worst = maxRollingMedian(boosted.map((i) => afr[i] - sp[i]));
-  record(s, "afr", "ran", `${boosted.length} boosted samples, worst ${pyFixed(worst, 2, true)} AFR vs target.`);
+  record(s, "afr", "ran", `${n} boosted samples, worst ${pyFixed(worst, 2, true)} AFR vs target.`);
   if (worst >= AFR_LEAN_WARN) {
     flag(s, "afr", "warn", `Running up to ${pyFixed(worst, 2)} AFR leaner than target under boost.`);
   }
+}
+
+/**
+ * Fuel headroom: how close the high-pressure pump runs to its capacity at full
+ * load. The rail check catches the pump falling behind; this one says how much
+ * is left before it does. A Stage 2 car on the stock pump typically sits at 100%.
+ */
+function checkHpfp(log, s) {
+  const gone = missing(log, "hpfp");
+  if (gone.length) {
+    record(s, "hpfp", "missing", `Log has no ${gone.join(", ")}.`);
+    return;
+  }
+  const full = fullLoadMask(log);
+  const nFull = countOf(full);
+  if (nFull < 5) {
+    record(s, "hpfp", "idle", noFullLoad(nFull));
+    return;
+  }
+  const level = held(log, colOf(log, HPFP_VOL), full, HPFP_MIN_S);
+  if (level === null) {
+    record(s, "hpfp", "idle", `${nFull} full-load samples, but none held for ${HPFP_MIN_S} s. Log a longer pull.`);
+    return;
+  }
+  s.hpfp_pct = level;
+  record(s, "hpfp", "ran", `${nFull} full-load samples, pump held at up to ${pyFixed(level, 0)}% effective volume.`);
+  if (level >= HPFP_WATCH_PCT) {
+    flag(
+      s,
+      "hpfp",
+      "watch",
+      `High-pressure fuel pump held at ${pyFixed(level, 0)}% of its capacity at full load — ` +
+        "no fuel headroom left for more power."
+    );
+  } else {
+    flag(s, "hpfp", "ok", `High-pressure fuel pump has headroom at full load (${pyFixed(level, 0)}%).`);
+  }
+}
+
+/**
+ * DSG clutch 1 (gears 1, 3, 5): does it hold under load once a shift has
+ * settled? Its slip reads ~1,800 rpm through every handover and hundreds while
+ * pulling away, both by design. Settled, rolling and loaded, a healthy clutch
+ * slips 7-19 rpm.
+ */
+function checkClutch(log, s) {
+  const gone = missing(log, "clutch");
+  if (gone.length) {
+    record(s, "clutch", "missing", `Log has no ${gone.join(", ")}.`);
+    return;
+  }
+  const gear = colOf(log, "gear");
+  const torque = colOf(log, "torque_ftlb");
+  const speed = colOf(log, "speed_mph");
+  const shifting = afterShift(log, CLUTCH_SETTLE_S);
+  const loaded = maskWhere(
+    log.length,
+    (i) =>
+      CLUTCH1_GEARS.includes(gear[i]) &&
+      torque[i] >= CLUTCH_MIN_TORQUE_FTLB &&
+      speed[i] >= CLUTCH_MIN_MPH &&
+      !shifting[i]
+  );
+  const n = countOf(loaded);
+  if (n < 5) {
+    record(
+      s,
+      "clutch",
+      "idle",
+      `Only ${n} samples in gear 1, 3 or 5 at ${pyFixed(CLUTCH_MIN_TORQUE_FTLB, 0)}+ ft-lb and ` +
+        `${pyFixed(CLUTCH_MIN_MPH, 0)}+ mph, settled after a shift; needs 5.`
+    );
+    return;
+  }
+  const slip = held(log, colOf(log, CLUTCH1_SLIP).map(Math.abs), loaded, CLUTCH_MIN_S);
+  if (slip === null) {
+    record(s, "clutch", "idle", `${n} loaded samples in gears 1, 3 and 5, but none held for ${CLUTCH_MIN_S} s.`);
+    return;
+  }
+  s.clutch_slip_rpm = slip;
+  record(s, "clutch", "ran", `${n} loaded samples in gears 1, 3 and 5, worst held slip ${pyFixed(slip, 0)} rpm.`);
+  if (slip >= CLUTCH_SLIP_WARN_RPM) {
+    flag(
+      s,
+      "clutch",
+      "warn",
+      `DSG clutch 1 (gears 1, 3, 5) slipping ${pyFixed(slip, 0)} rpm under load — the clutch pack ` +
+        "may be wearing."
+    );
+  } else if (slip >= CLUTCH_SLIP_WATCH_RPM) {
+    flag(
+      s,
+      "clutch",
+      "watch",
+      `DSG clutch 1 (gears 1, 3, 5) slip held at ${pyFixed(slip, 0)} rpm under load; settled slip ` +
+        "is normally under 25."
+    );
+  } else {
+    flag(s, "clutch", "ok", `DSG clutch 1 (gears 1, 3, 5) holding under load (${pyFixed(slip, 0)} rpm slip).`);
+  }
+}
+
+/**
+ * Upshifts under load, timed from the target-gear change to the handover. The
+ * DSG names the target gear ~0.5 s before Current Gear flips, and Current Gear
+ * flips ~0.4 s before torque moves over. The handover is the first sample in
+ * the new gear with rpm SHIFT_RPM_DROP below its peak since the target changed.
+ */
+function findShifts(log) {
+  const target = colOf(log, TARGET_GEAR);
+  const t = colOf(log, "time_s");
+  const rpm = colOf(log, "rpm");
+  const gear = colOf(log, "gear");
+  const torque = colOf(log, "torque_ftlb");
+  const shifts = [];
+  for (let i = 1; i < log.length; i += 1) {
+    // target.gt(target.shift()) & target.shift().notna()
+    if (!(isNum(target[i - 1]) && target[i] > target[i - 1])) continue;
+    if (!(torque[i] >= SHIFT_MIN_TORQUE_FTLB)) continue;
+    let handover = null;
+    let peak = rpm[i];
+    for (let j = i; j < log.length && t[j] - t[i] <= SHIFT_MAX_S; j += 1) {
+      if (rpm[j] > peak) peak = rpm[j]; // Python's max(peak, rpm[j])
+      if (gear[j] === target[i] && peak - rpm[j] >= SHIFT_RPM_DROP) {
+        handover = t[j] - t[i];
+        break;
+      }
+    }
+    shifts.push({
+      at_s: t[i],
+      from_gear: Math.trunc(target[i - 1]),
+      to_gear: Math.trunc(target[i]),
+      rpm: rpm[i],
+      torque_ftlb: torque[i],
+      handover_s: handover,
+    });
+  }
+  return shifts;
+}
+
+/** How long the DSG takes from choosing a gear to handing torque over. Trend data, no verdict. */
+function checkShifts(log, s) {
+  const gone = missing(log, "shifts");
+  if (gone.length) {
+    record(s, "shifts", "missing", `Log has no ${gone.join(", ")}.`);
+    return;
+  }
+  s.shifts = findShifts(log);
+  if (!s.shifts.length) {
+    record(s, "shifts", "idle", `No upshifts at ${pyFixed(SHIFT_MIN_TORQUE_FTLB, 0)}+ ft-lb.`);
+    return;
+  }
+  const times = s.shifts.map((x) => x.handover_s).filter((x) => x !== null);
+  if (!times.length) {
+    record(s, "shifts", "ran", `${s.shifts.length} upshifts under load, none with a clear handover.`);
+    return;
+  }
+  record(
+    s,
+    "shifts",
+    "ran",
+    `${s.shifts.length} upshifts under load, median ${pyFixed(median(times), 2)} s from target gear to handover.`
+  );
 }
 
 function worstLevel(findings) {
@@ -851,7 +1297,10 @@ function summarize(log) {
     ltft: null,
     boost_undershoot_psi: null,
     rail_droop_pct: null,
+    hpfp_pct: null,
+    clutch_slip_rpm: null,
     pulls: [],
+    shifts: [],
     findings: [],
     checks: [],
     knock_samples: 0,
@@ -874,7 +1323,9 @@ function summarize(log) {
   checkTrims(log, s);
   checkBoost(log, s);
   checkRail(log, s);
+  checkHpfp(log, s);
   checkAfr(log, s);
+  checkClutch(log, s);
 
   s.pulls = findPulls(log);
   const gone = missing(log, "pulls");
@@ -882,23 +1333,26 @@ function summarize(log) {
     record(s, "pulls", "missing", `Log has no ${gone.join(", ")}.`);
   } else if (!s.pulls.length) {
     const peakPedal = s.peak.pedal_pct ?? 0;
+    const peakBoost = s.peak.boost_psi;
+    let peaks = `peak pedal ${pyFixed(peakPedal, 0)}%`;
+    if (peakBoost !== undefined) peaks += `, peak boost ${pyFixed(peakBoost, 1)} psi`;
     s.findings.push({
       level: "info",
-      message:
-        `No wide-open-throttle pull (peak pedal ${pyFixed(peakPedal, 0)}%). ` +
-        "Full-load checks need a WOT pull to be meaningful.",
+      message: `No full-load pull (${peaks}). Full-load checks need a pull to be meaningful.`,
       check: null,
     });
     record(
       s,
       "pulls",
       "idle",
-      `Pedal never held at ${pyFixed(WOT_PEDAL_PCT, 0)}%+ above ` +
-        `${PULL_MIN_RPM} rpm (peak pedal ${pyFixed(peakPedal, 0)}%).`
+      `Neither pedal at ${pyFixed(WOT_PEDAL_PCT, 0)}%+ above ${PULL_MIN_RPM} rpm ` +
+        `nor boost at ${pyFixed(PULL_BOOST_PSI, 0)}+ psi above ${PULL_BOOST_MIN_RPM} rpm was held for ` +
+        `${PULL_MIN_DURATION_S}+ s (${peaks}).`
     );
   } else {
     record(s, "pulls", "ran", `${s.pulls.length} pull(s) found.`);
   }
+  checkShifts(log, s);
   s.worst_level = worstLevel(s.findings);
   return s;
 }

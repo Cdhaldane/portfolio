@@ -1,5 +1,5 @@
 {
- "name": "messy_cells.csv",
+ "name": "clutch_slipping.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
@@ -8,6 +8,7 @@
  "peak": {
   "pedal_pct": 100.0,
   "rpm": 6500.0,
+  "boost_psi": 24.0,
   "torque_ftlb": 380.0
  },
  "knock": {
@@ -33,27 +34,27 @@
   50.0
  ],
  "ltft": [
-  1.0075376884422111,
   1.0,
-  2.5
+  1.0,
+  1.0
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 0.6896551724137931,
  "hpfp_pct": null,
- "clutch_slip_rpm": null,
+ "clutch_slip_rpm": 120.0,
  "pulls": [
   {
-   "start_s": 5.0,
-   "end_s": 15.0,
+   "start_s": 8.0,
+   "end_s": 18.0,
    "rpm_start": 2500.0,
    "rpm_end": 6500.0,
    "gear": 3,
-   "peak_boost_psi": null,
+   "peak_boost_psi": 24.0,
    "peak_torque_ftlb": 380.0,
    "max_knock_deg": 0.0,
-   "cat_start_c": 32.5126,
-   "cat_end_c": 37.5377,
-   "cat_max_c": 37.5377,
+   "cat_start_c": 34.0201,
+   "cat_end_c": 39.0452,
+   "cat_max_c": 39.0452,
    "timing_median_deg": 8.0,
    "peak_hp": 458.7204874333587,
    "peak_hp_rpm": 6250,
@@ -67,120 +68,120 @@
      "torque_ftlb": 380.0,
      "hp": 209.82482863670984,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 33.0151
+     "boost_psi": 24.0,
+     "cat_c": 34.5226
     },
     {
      "rpm": 3000,
      "torque_ftlb": 380.0,
      "hp": 227.1896420411272,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 33.3166
+     "boost_psi": 24.0,
+     "cat_c": 34.8241
     },
     {
      "rpm": 3250,
      "torque_ftlb": 380.0,
      "hp": 244.55445544554456,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 33.6181
+     "boost_psi": 24.0,
+     "cat_c": 35.1256
     },
     {
      "rpm": 3500,
      "torque_ftlb": 380.0,
      "hp": 261.9192688499619,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 33.9196
+     "boost_psi": 24.0,
+     "cat_c": 35.4271
     },
     {
      "rpm": 3750,
      "torque_ftlb": 380.0,
      "hp": 279.28408225437926,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 34.2211
+     "boost_psi": 24.0,
+     "cat_c": 35.7286
     },
     {
      "rpm": 4000,
      "torque_ftlb": 380.0,
      "hp": 296.6488956587967,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 34.5226
+     "boost_psi": 24.0,
+     "cat_c": 36.0302
     },
     {
      "rpm": 4250,
      "torque_ftlb": 380.0,
      "hp": 314.01370906321404,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 34.8241
+     "boost_psi": 24.0,
+     "cat_c": 36.3317
     },
     {
      "rpm": 4500,
      "torque_ftlb": 380.0,
      "hp": 334.2726580350343,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 35.3266
+     "boost_psi": 24.0,
+     "cat_c": 36.68345
     },
     {
      "rpm": 4750,
      "torque_ftlb": 380.0,
      "hp": 354.53160700685453,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 35.5276
+     "boost_psi": 24.0,
+     "cat_c": 37.0352
     },
     {
      "rpm": 5000,
      "torque_ftlb": 380.0,
      "hp": 371.8964204112719,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 35.8291
+     "boost_psi": 24.0,
+     "cat_c": 37.3367
     },
     {
      "rpm": 5250,
      "torque_ftlb": 380.0,
      "hp": 389.26123381568925,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 36.180949999999996
+     "boost_psi": 24.0,
+     "cat_c": 37.6382
     },
     {
      "rpm": 5500,
      "torque_ftlb": 380.0,
      "hp": 406.6260472201066,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 36.4322
+     "boost_psi": 24.0,
+     "cat_c": 37.9397
     },
     {
      "rpm": 5750,
      "torque_ftlb": 380.0,
      "hp": 423.990860624524,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 36.7337
+     "boost_psi": 24.0,
+     "cat_c": 38.2412
     },
     {
      "rpm": 6000,
      "torque_ftlb": 380.0,
      "hp": 441.35567402894134,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 37.0352
+     "boost_psi": 24.0,
+     "cat_c": 38.5427
     },
     {
      "rpm": 6250,
      "torque_ftlb": 380.0,
      "hp": 458.7204874333587,
      "timing_deg": 8.0,
-     "boost_psi": null,
-     "cat_c": 37.3367
+     "boost_psi": 24.0,
+     "cat_c": 38.8442
     }
    ]
   }
@@ -196,6 +197,11 @@
    "level": "ok",
    "message": "Boost tracking set point at full load.",
    "check": "boost"
+  },
+  {
+   "level": "warn",
+   "message": "DSG clutch 1 (gears 1, 3, 5) slipping 120 rpm under load — the clutch pack may be wearing.",
+   "check": "clutch"
   }
  ],
  "checks": [
@@ -226,7 +232,7 @@
    "name": "trims",
    "label": "Fuel trims",
    "status": "ran",
-   "detail": "LTFT mean +1.0% (+1 to +2).",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
    "needs": [
     "ltft_pct",
     "rpm"
@@ -276,21 +282,21 @@
   {
    "name": "afr",
    "label": "AFR under boost",
-   "status": "missing",
-   "detail": "Log has no boost_psi.",
+   "status": "ran",
+   "detail": "51 boosted samples, worst +0.10 AFR vs target.",
    "needs": [
     "afr",
     "afr_sp",
     "boost_psi",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "clutch",
    "label": "DSG clutch slip",
-   "status": "missing",
-   "detail": "Log has no (DSG)Clutch 1 Slip (RPM).",
+   "status": "ran",
+   "detail": "45 loaded samples in gears 1, 3 and 5, worst held slip 120 rpm.",
    "needs": [
     "(DSG)Clutch 1 Slip (RPM)",
     "gear",
@@ -298,7 +304,7 @@
     "speed_mph",
     "time_s"
    ],
-   "level": null
+   "level": "warn"
   },
   {
    "name": "pulls",
@@ -328,5 +334,5 @@
   }
  ],
  "knock_samples": 0,
- "worst_level": "ok"
+ "worst_level": "warn"
 }

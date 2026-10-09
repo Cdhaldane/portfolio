@@ -1,17 +1,34 @@
 {
- "name": "no_knock_channels.csv",
+ "name": "boost_burst_lift.csv",
  "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
  "tcm_map": "COBB Aggressive v110.ptm",
  "ap_firmware": "1.7.6.0-26745",
  "duration_s": 39.8,
  "samples": 200,
  "peak": {
-  "pedal_pct": 30.0,
-  "rpm": 2000.0,
-  "boost_psi": 5.0,
+  "pedal_pct": 78.0,
+  "rpm": 5900.0,
+  "boost_psi": 24.0,
   "torque_ftlb": 100.0
  },
- "knock": {},
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
  "cat_range": [
   30.0,
   50.0
@@ -25,28 +42,59 @@
  "rail_droop_pct": null,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
- "pulls": [],
+ "pulls": [
+  {
+   "start_s": 10.0,
+   "end_s": 12.4,
+   "rpm_start": 3400.0,
+   "rpm_end": 5900.0,
+   "gear": 2,
+   "peak_boost_psi": 24.0,
+   "peak_torque_ftlb": 100.0,
+   "max_knock_deg": 0.0,
+   "cat_start_c": 35.0251,
+   "cat_end_c": 36.2312,
+   "cat_max_c": 36.2312,
+   "timing_median_deg": 18.0,
+   "peak_hp": 102.42126808834729,
+   "peak_hp_rpm": 5250,
+   "hpfp_max_pct": null,
+   "airflow_pct": null,
+   "torque_ceiling_pct": null,
+   "torque_limited_pct": null,
+   "curve": [
+    {
+     "rpm": 5250,
+     "torque_ftlb": 100.0,
+     "hp": 102.42126808834729,
+     "timing_deg": 18.0,
+     "boost_psi": 24.0,
+     "cat_c": 35.9799
+    }
+   ]
+  }
+ ],
  "shifts": [],
  "findings": [
   {
-   "level": "info",
-   "message": "No full-load pull (peak pedal 30%, peak boost 5.0 psi). Full-load checks need a pull to be meaningful.",
-   "check": null
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
   }
  ],
  "checks": [
   {
    "name": "knock",
    "label": "Knock retard",
-   "status": "missing",
-   "detail": "Log has no knock retard channels.",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
    "needs": [
     "kr_cyl1",
     "kr_cyl2",
     "kr_cyl3",
     "kr_cyl4"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "cat",
@@ -112,15 +160,15 @@
   {
    "name": "afr",
    "label": "AFR under boost",
-   "status": "idle",
-   "detail": "Only 0 samples above 10 psi boost; needs 5.",
+   "status": "ran",
+   "detail": "13 boosted samples, worst +0.00 AFR vs target.",
    "needs": [
     "afr",
     "afr_sp",
     "boost_psi",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "clutch",
@@ -139,14 +187,14 @@
   {
    "name": "pulls",
    "label": "WOT pull detection",
-   "status": "idle",
-   "detail": "Neither pedal at 90%+ above 2000 rpm nor boost at 20+ psi above 3000 rpm was held for 2+ s (peak pedal 30%, peak boost 5.0 psi).",
+   "status": "ran",
+   "detail": "1 pull(s) found.",
    "needs": [
     "time_s",
     "pedal_pct",
     "rpm"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "shifts",
@@ -164,5 +212,5 @@
   }
  ],
  "knock_samples": 0,
- "worst_level": "info"
+ "worst_level": "ok"
 }

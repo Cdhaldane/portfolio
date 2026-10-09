@@ -40,7 +40,10 @@
  ],
  "boost_undershoot_psi": null,
  "rail_droop_pct": null,
+ "hpfp_pct": null,
+ "clutch_slip_rpm": null,
  "pulls": [],
+ "shifts": [],
  "findings": [
   {
    "level": "ok",
@@ -54,7 +57,7 @@
   },
   {
    "level": "info",
-   "message": "No wide-open-throttle pull (peak pedal 30%). Full-load checks need a WOT pull to be meaningful.",
+   "message": "No full-load pull (peak pedal 30%, peak boost 5.0 psi). Full-load checks need a pull to be meaningful.",
    "check": null
   }
  ],
@@ -102,7 +105,8 @@
     "put_psia",
     "put_sp_psia",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": null
   },
@@ -120,6 +124,19 @@
    "level": null
   },
   {
+   "name": "hpfp",
+   "label": "Fuel pump headroom",
+   "status": "missing",
+   "detail": "Log has no HPFP Effective Pump Vol (%).",
+   "needs": [
+    "HPFP Effective Pump Vol (%)",
+    "pedal_pct",
+    "rpm",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
    "name": "afr",
    "label": "AFR under boost",
    "status": "idle",
@@ -127,7 +144,22 @@
    "needs": [
     "afr",
     "afr_sp",
-    "boost_psi"
+    "boost_psi",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
+   "name": "clutch",
+   "label": "DSG clutch slip",
+   "status": "missing",
+   "detail": "Log has no (DSG)Clutch 1 Slip (RPM).",
+   "needs": [
+    "(DSG)Clutch 1 Slip (RPM)",
+    "gear",
+    "torque_ftlb",
+    "speed_mph",
+    "time_s"
    ],
    "level": null
   },
@@ -135,11 +167,25 @@
    "name": "pulls",
    "label": "WOT pull detection",
    "status": "idle",
-   "detail": "Pedal never held at 90%+ above 2000 rpm (peak pedal 30%).",
+   "detail": "Neither pedal at 90%+ above 2000 rpm nor boost at 20+ psi above 3000 rpm was held for 2+ s (peak pedal 30%, peak boost 5.0 psi).",
    "needs": [
     "time_s",
     "pedal_pct",
     "rpm"
+   ],
+   "level": null
+  },
+  {
+   "name": "shifts",
+   "label": "DSG shift timing",
+   "status": "missing",
+   "detail": "Log has no (DSG)Target Gear (Gear).",
+   "needs": [
+    "(DSG)Target Gear (Gear)",
+    "gear",
+    "rpm",
+    "torque_ftlb",
+    "time_s"
    ],
    "level": null
   }
