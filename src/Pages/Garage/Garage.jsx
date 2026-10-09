@@ -57,6 +57,11 @@ const Garage = () => {
     [params, setParams]
   );
 
+  const openLog = useCallback(
+    (id) => go({ log: String(id) }, { push: true, state: { fromList: true } }),
+    [go]
+  );
+
   // A log opened from the list pushed a history entry; closing it steps back
   // so the phone's back button isn't left with a duplicate list entry. A log
   // reached any other way (a shared link) closes in place.
@@ -273,7 +278,7 @@ const Garage = () => {
                 logs={derived.logs}
                 changes={derived.changes}
                 car={car}
-                onOpen={(id) => go({ log: String(id) }, { push: true, state: { fromList: true } })}
+                onOpen={openLog}
               />
             )}
             {tab === "work" && (
@@ -304,7 +309,7 @@ const Garage = () => {
               />
             )}
             {tab === "trends" && (
-              <Trends car={car} logs={derived.logs} events={derived.events} loading={loading} />
+              <Trends car={car} logs={derived.logs} events={derived.events} loading={loading} onOpen={openLog} />
             )}
           </div>
         </section>

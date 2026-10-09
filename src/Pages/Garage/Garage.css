@@ -1407,6 +1407,18 @@
 .gr-chart-bar .gr-h3 {
   margin-right: auto;
 }
+.gr-presets {
+  margin-bottom: 14px;
+}
+.gr-preset-about {
+  max-width: 78ch;
+  min-height: 2.9em; /* two lines, so flipping presets doesn't shift the chart */
+  margin: 8px 0 0;
+  font-family: var(--gr-body);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--gr-ink-soft);
+}
 .gr-picker {
   margin-bottom: 14px;
   padding: 14px;
@@ -1434,6 +1446,13 @@
   max-height: 340px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* An explicit scrollbar style opts Chrome out of the overlay bar, which
+     otherwise sits on top of the right column's unit labels. The gutter and
+     padding keep the units clear of the bar. */
+  padding-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gr-ink-faint) transparent;
+  scrollbar-gutter: stable;
 }
 .gr-picker-group {
   margin: 0;
@@ -1472,6 +1491,8 @@
 }
 .gr-plot {
   position: relative;
+  border-radius: 10px;
+  cursor: crosshair;
   touch-action: pan-y;
   user-select: none;
   transition: opacity 0.3s var(--gr-ease);
@@ -1479,30 +1500,70 @@
 .gr-plot.is-loading {
   opacity: 0.55;
 }
+.gr-plot:focus-visible {
+  outline: 3px solid var(--gr-car);
+  outline-offset: 4px;
+}
 .gr-lane + .gr-lane {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .gr-lane-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding-left: 48px;
-  min-height: 24px;
+  gap: 4px 10px;
+  padding-left: 52px;
+  min-height: 26px;
+  cursor: default;
 }
 .gr-lane-label {
   font-size: 0.82rem;
   font-weight: 700;
+  transition: color 0.2s var(--gr-ease);
+}
+.gr-lane.is-hot .gr-lane-label {
+  color: var(--gr-car);
 }
 .gr-lane-value {
+  min-width: 7ch;
   font-family: var(--gr-mono);
   font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gr-ink);
+}
+.gr-lane-ext {
+  display: inline-flex;
+  gap: 4px;
+}
+/* Max/min jump buttons: a big target for the one point that's hardest to
+   land on with the pointer. */
+.gr-ext-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gr-info-bg);
   color: var(--gr-ink-soft);
+  font-family: var(--gr-mono);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.2s var(--gr-ease), color 0.2s var(--gr-ease);
+}
+.gr-ext-btn:hover {
+  background: color-mix(in srgb, var(--gr-car) 16%, transparent);
+  color: var(--gr-ink);
+}
+.gr-ext-btn span[aria-hidden] {
+  font-size: 0.6rem;
 }
 .gr-lane-x {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   margin-left: auto;
   border: 0;
   border-radius: 50%;
@@ -1524,6 +1585,9 @@
 }
 .gr-lane-base {
   stroke: var(--gr-line);
+}
+.gr-lane-mid {
+  stroke: var(--gr-grid);
 }
 .gr-threshold {
   stroke-width: 1;
@@ -1557,6 +1621,10 @@
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
+.gr-ext {
+  fill: var(--gr-ink-soft);
+  opacity: 0.85;
+}
 .gr-cross {
   stroke: var(--gr-ink-soft);
   stroke-width: 1;
@@ -1565,6 +1633,44 @@
   fill: var(--gr-car);
   stroke: var(--gr-card-solid);
   stroke-width: 2;
+  transition: r 0.15s var(--gr-ease);
+}
+.gr-cross-dot.is-hot {
+  stroke-width: 2.5;
+}
+/* Pins wear the needle colour, so A/B read as "set by you", apart from the
+   blue data line and the grey hover cursor. */
+.gr-pin line {
+  stroke: var(--gr-needle);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+.gr-pin circle {
+  fill: var(--gr-needle);
+  stroke: var(--gr-card-solid);
+  stroke-width: 2;
+}
+/* A lane whose peak sits a moment off the cursor or pin: a short tie back
+   to the line, so the dot still reads as part of the same event. */
+.gr-pin .gr-pin-link {
+  stroke: var(--gr-needle);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+  opacity: 0.7;
+}
+.gr-cross-link {
+  stroke: var(--gr-ink-soft);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+.gr-pin-flag rect {
+  fill: var(--gr-needle);
+}
+.gr-pin-flag text {
+  font-family: var(--gr-mono);
+  font-size: 10px;
+  font-weight: 700;
+  fill: #fff;
 }
 .gr-brush {
   position: absolute;
@@ -1574,10 +1680,50 @@
   box-shadow: inset 1px 0 0 var(--gr-car), inset -1px 0 0 var(--gr-car);
   pointer-events: none;
 }
+.gr-readout {
+  margin-top: 16px;
+  animation: gr-in 0.35s var(--gr-ease) both;
+}
+.gr-readout-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.gr-readout-title {
+  margin: 0 auto 0 0;
+  font-family: var(--gr-mono);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.gr-readout .gr-table-wrap {
+  margin-top: 10px;
+}
+.gr-readout-table td {
+  font-weight: 600;
+}
+.gr-readout-at {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--gr-ink-faint);
+}
+.gr-pin-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  border-radius: 5px;
+  background: var(--gr-needle);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
 .gr-chart-hint {
   margin: 10px 0 0;
   font-family: var(--gr-mono);
   font-size: 0.72rem;
+  line-height: 1.5;
   color: var(--gr-ink-faint);
 }
 
@@ -2032,7 +2178,32 @@
 }
 .gr-tip-value {
   font-family: var(--gr-mono);
+  font-size: 1.05rem;
   font-weight: 600;
+}
+.gr-tip-file,
+.gr-tip-hint {
+  font-family: var(--gr-mono);
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+/* A tap-picked point's tip holds the "Open log" button, so it takes clicks. */
+.gr-tip.is-interactive {
+  pointer-events: auto;
+}
+.gr-tip-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gr-bg);
+  color: var(--gr-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 .gr-trends .gr-caveat {
   margin-top: 10px;
@@ -2198,8 +2369,12 @@
   .gr-toast,
   .gr-meter span,
   .gr-picker,
+  .gr-readout,
   .gr-row--ghost {
     animation: none;
+  }
+  .gr-cross-dot {
+    transition: none;
   }
   .gr-needle,
   .gr-dial-fill,

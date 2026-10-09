@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deleteLog, editLog, loadLog } from "../api";
 import { CARS, CAR_BY_KEY, HEURISTICS_CAVEAT, todayLocal } from "../cars";
+import { DEFAULT_PRESET, MAX_LANES, presetCols, presetsFor } from "../channelPresets";
 import { fmtClock, fmtDate, fmtDuration, fmtNum } from "../format";
 import Level from "./Level";
 import ChannelChart from "./ChannelChart";
+import EngineInsights from "./EngineInsights";
 
 /*
  * One log: what it is (date, car, maps), what the analysis found, which
- * checks could run and why the others couldn't, the WOT pulls, and the
- * channels on a time axis. Opens with the lanes a health check reads first
- * (rpm, pedal, boost, charge air, worst-cylinder knock).
+ * checks could run and why the others couldn't, the full-load pulls, and the
+ * channels on a time axis. Opens on the health-check preset (one lane per
+ * automated check); the other presets each frame one system.
  */
-const DEFAULT_COLS = ["rpm", "pedal_pct", "boost_psi", "cat_c", "kr_max"];
-const MAX_LANES = 6;
 const FINDING_ORDER = { warn: 0, watch: 1, info: 2, ok: 3 };
 const STATUS_TEXT = { idle: "Idle", missing: "Missing" };
 
 const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
   const [state, setState] = useState({ status: "loading" });
-  const [view, setView] = useState({ cols: DEFAULT_COLS, t0: null, t1: null });
+  const [view, setView] = useState({ cols: DEFAULT_PRESET.lanes, t0: null, t1: null });
   const [chartBusy, setChartBusy] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -29,20 +29,20 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
   useEffect(() => {
     let live = true;
     (async () => {
-      const r = await loadLog(getToken, id, { cols: DEFAULT_COLS });
+      const r = await loadLog(getToken, id, { cols: DEFAULT_PRESET.lanes });
       if (!live) return;
       if (!r.ok) {
         setState({ status: "error", error: r.error });
         return;
       }
-      const have = r.channels.filter((c) => c.hasData).map((c) => c.key);
-      let cols = DEFAULT_COLS.filter((c) => have.includes(c));
+      let cols = presetCols(DEFAULT_PRESET, r.channels);
+      if (!cols.length) cols = r.channels.filter((c) => c.hasData).map((c) => c.key).slice(0, 4);
       let series = r.series;
-      if (!cols.length) {
-        cols = have.slice(0, 4);
-        const more = cols.length ? await loadLog(getToken, id, { cols }) : null;
+      // Spares or the fallback weren't in the first request; fetch what will actually show.
+      if (cols.some((c) => !DEFAULT_PRESET.lanes.includes(c))) {
+        const more = await loadLog(getToken, id, { cols });
         if (!live) return;
-        series = more && more.ok ? more.series : null;
+        series = more.ok ? more.series : null;
       }
       setView({ cols, t0: null, t1: null });
       setState({ status: "ready", log: r.log, channels: r.channels, checks: r.checks, series });
@@ -66,6 +66,8 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
     },
     [getToken, id]
   );
+
+  const presets = useMemo(() => (state.channels ? presetsFor(state.channels) : []), [state.channels]);
 
   if (state.status === "loading") {
     return (
@@ -313,7 +315,7 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
       {s.pulls.length > 0 && (
         <section className="gr-pulls" aria-labelledby="gr-pulls-title">
           <h2 id="gr-pulls-title" className="gr-h3">
-            Wide-open-throttle pulls
+            Full-load pulls
           </h2>
           <div className="gr-table-wrap" data-lenis-prevent>
             <table className="gr-table">
@@ -366,10 +368,13 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
         </section>
       )}
 
+      {!engineOff && <EngineInsights summary={s} />}
+
       <ChannelChart
         channels={channels}
         data={series}
         cols={view.cols}
+        presets={presets}
         pulls={s.pulls}
         zoomed={view.t0 !== null || view.t1 !== null}
         loading={chartBusy}

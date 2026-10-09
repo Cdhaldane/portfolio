@@ -1,0 +1,225 @@
+/* ============================================================
+   Engine insights on a log: power curve small multiples, headroom
+   meters and DSG shift timing. Reads the page's --gr-* tokens, so
+   light/dark and the car colour come for free. The pull in focus
+   wears --gr-car; other pulls are grey context, never a second hue.
+   ============================================================ */
+.gr-ins {
+  display: grid;
+  gap: 14px;
+}
+.gr-ins .gr-section-head {
+  margin-bottom: 0;
+}
+
+.gr-ins-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0;
+  font-family: var(--gr-mono);
+  font-size: 0.76rem;
+  color: var(--gr-ink-soft);
+}
+.gr-ins-key {
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+}
+.gr-ins-key--focus {
+  background: var(--gr-car);
+}
+.gr-ins-key--ghost {
+  margin-left: 10px;
+  background: var(--gr-ink-faint);
+}
+
+/* --- curves ------------------------------------------------------------- */
+.gr-ins-curves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 10px;
+}
+.gr-ins-chart {
+  margin: 0;
+  padding: 12px 10px 4px;
+  border-radius: 16px;
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+  min-width: 0;
+}
+.gr-ins-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 0 6px 6px;
+}
+.gr-ins-chart-label {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.gr-ins-chart-value {
+  font-family: var(--gr-mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--gr-ink-soft);
+}
+.gr-ins-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  touch-action: pan-y;
+}
+.gr-ins-line,
+.gr-ins-ghost {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.gr-ins-line {
+  stroke: var(--gr-car);
+  stroke-width: 2;
+}
+.gr-ins-ghost {
+  stroke: var(--gr-ink-faint);
+  stroke-width: 1.5;
+  opacity: 0.6;
+}
+.gr-ins-dot {
+  fill: var(--gr-car);
+  stroke: var(--gr-card-solid);
+  stroke-width: 2;
+  transition: r 0.2s var(--gr-ease);
+}
+.gr-ins-dot.is-hot {
+  stroke-width: 2.5;
+}
+
+.gr-ins-table summary {
+  width: fit-content;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--gr-ink-soft);
+  cursor: pointer;
+}
+.gr-ins-table summary:hover {
+  color: var(--gr-ink);
+}
+
+/* --- headroom and DSG ---------------------------------------------------- */
+.gr-ins-block {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.gr-ins-h {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.gr-ins-meters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gr-ins-meter {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+}
+.gr-ins-meter-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gr-ins-meter-label {
+  font-weight: 700;
+}
+.gr-ins-meter-value {
+  margin-left: auto;
+  font-family: var(--gr-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.gr-ins-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gr-grid);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+  overflow: hidden;
+}
+/* Grows from empty to its value once, so the eye reads it as an amount. */
+.gr-ins-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gr-car);
+  transform: scaleX(var(--v));
+  transform-origin: left center;
+  animation: gr-ins-grow 0.9s var(--gr-ease) both;
+}
+@keyframes gr-ins-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.gr-ins-about {
+  margin: 0;
+  font-family: var(--gr-body);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--gr-ink-soft);
+}
+
+.gr-ins-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+.gr-ins-facts dt {
+  font-family: var(--gr-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gr-ink-faint);
+}
+.gr-ins-facts dd {
+  margin: 2px 0 0;
+  font-family: var(--gr-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.gr-ins-block .gr-table-wrap {
+  margin-top: 0;
+}
+.gr-ins .is-in-pull > * {
+  background: color-mix(in srgb, var(--gr-car) 7%, transparent);
+}
+.gr-ins .is-in-pull small {
+  margin-left: 6px;
+  font-family: var(--gr-mono);
+  color: var(--gr-car);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-ins-fill {
+    animation: none;
+  }
+  .gr-ins-dot {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Reveal from "../../../Components/Reveal/Reveal";
 import { fmtDate } from "../format";
 import { METRICS, METRIC_BY_KEY, beforeAfter, formatMetric, markers, trendPoints } from "../logs";
@@ -27,12 +27,18 @@ function useWidth(el) {
 
 const ms = (iso) => Date.parse(`${iso}T12:00:00Z`);
 
-const Trends = ({ car, logs, events, loading }) => {
+// A point counts as "under" the pointer within this many px, either way.
+const HIT_PX = 28;
+
+const Trends = ({ car, logs, events, loading, onOpen }) => {
   const [metricKey, setMetricKey] = useState("catMaxC");
   const [split, setSplit] = useState("");
   const [wrap, setWrap] = useState(null);
   const width = useWidth(wrap);
+  // { i, near, touch }: the point nearest the pointer, whether it's close
+  // enough to click, and whether a tap (not a hover) chose it.
   const [hover, setHover] = useState(null);
+  const pointerType = useRef("mouse");
   const metric = METRIC_BY_KEY[metricKey];
 
   const points = useMemo(() => trendPoints(logs, metricKey), [logs, metricKey]);
@@ -103,9 +109,25 @@ const Trends = ({ car, logs, events, loading }) => {
     months.length >= 2
       ? months.filter((_, i) => i % every === 0)
       : [...new Set([points[0].date, points[points.length - 1].date])];
-  const hovered = hover === null ? null : points[hover];
-  // Several logs on one day share an x; the tip lists them all.
-  const sameDay = hovered ? points.filter((p) => p.date === hovered.date) : [];
+  const hovered = hover === null ? null : points[hover.i];
+  const hoveredLog = hovered ? logs.find((l) => l.id === hovered.id) : null;
+
+  /** The point nearest the pointer in screen distance, so same-day logs stack but stay pickable. */
+  const pick = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) * (width / r.width);
+    const py = (e.clientY - r.top) * (H / r.height);
+    let best = 0;
+    let bestD = Infinity;
+    points.forEach((p, i) => {
+      const d = Math.hypot(x(p.date) - px, y(p.value) - py);
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    });
+    return { i: best, near: bestD <= HIT_PX };
+  };
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join("");
 
   return (
@@ -129,18 +151,35 @@ const Trends = ({ car, logs, events, loading }) => {
         </div>
       </div>
 
-      <div ref={setWrap} className="gr-trend-chart" onMouseLeave={() => setHover(null)}>
+      <div
+        ref={setWrap}
+        className="gr-trend-chart"
+        onPointerLeave={() => setHover((h) => (h && h.touch ? h : null))}
+      >
         <svg
           viewBox={`0 0 ${width} ${H}`}
           role="img"
-          aria-label={`${metric.label} per log, ${points.length} logs from ${fmtDate(points[0].date)} to ${fmtDate(points[points.length - 1].date)}.`}
-          onMouseMove={(e) => {
-            const px = e.clientX - e.currentTarget.getBoundingClientRect().left;
-            let best = 0;
-            points.forEach((p, i) => {
-              if (Math.abs(x(p.date) - px) < Math.abs(x(points[best].date) - px)) best = i;
-            });
-            setHover(best);
+          aria-label={`${metric.label} per log, ${points.length} logs from ${fmtDate(points[0].date)} to ${fmtDate(points[points.length - 1].date)}. Open a log from the Logs tab.`}
+          style={{ cursor: hover && hover.near && onOpen ? "pointer" : "default" }}
+          onPointerDown={(e) => {
+            pointerType.current = e.pointerType;
+          }}
+          onPointerMove={(e) => {
+            if (e.pointerType === "mouse") setHover({ ...pick(e), touch: false });
+          }}
+          onClick={(e) => {
+            const p = pick(e);
+            if (!p.near) {
+              setHover(null);
+              return;
+            }
+            // Mouse: open straight away. Touch: the first tap shows the
+            // point, a second tap on it (or the tip's button) opens it.
+            if (pointerType.current === "mouse" || (hover && hover.touch && hover.i === p.i)) {
+              if (onOpen) onOpen(points[p.i].id);
+            } else {
+              setHover({ ...p, touch: true });
+            }
           }}
         >
           {bands.map((b) => (
@@ -179,23 +218,43 @@ const Trends = ({ car, logs, events, loading }) => {
             <line className="gr-avg" x1={x(split)} x2={width - PAD.right} y1={y(compare.after.mean)} y2={y(compare.after.mean)} />
           )}
           <path className="gr-trend-line" d={path} />
-          {points.map((p, i) => (
-            <circle
-              key={p.id}
-              className={`gr-trend-dot gr-trend-dot--${p.level} ${hover === i ? "is-hot" : ""}`}
-              cx={x(p.date)}
-              cy={y(p.value)}
-              r={hover === i ? 6.5 : 5}
+          {hovered && (
+            <line
+              className="gr-cross"
+              x1={x(hovered.date)}
+              x2={x(hovered.date)}
+              y1={PAD.top}
+              y2={PAD.top + innerH}
             />
-          ))}
+          )}
+          {points.map((p, i) => {
+            const hot = hover && hover.i === i;
+            return (
+              <circle
+                key={p.id}
+                className={`gr-trend-dot gr-trend-dot--${p.level} ${hot ? "is-hot" : ""}`}
+                cx={x(p.date)}
+                cy={y(p.value)}
+                r={hot ? 7 : 5}
+              />
+            );
+          })}
         </svg>
         {hovered && (
-          <div className="gr-tip" style={{ left: Math.min(Math.max(x(hovered.date), 80), width - 80) }}>
-            <p className="gr-tip-date">
-              {fmtDate(hovered.date)}
-              {sameDay.length > 1 ? ` · ${sameDay.length} logs` : ""}
-            </p>
-            <p className="gr-tip-value">{sameDay.map((p) => formatMetric(metricKey, p.value)).join(" · ")}</p>
+          <div
+            className={`gr-tip ${hover.touch ? "is-interactive" : ""}`}
+            style={{ left: Math.min(Math.max(x(hovered.date), 90), width - 90) }}
+          >
+            <p className="gr-tip-date">{fmtDate(hovered.date)}</p>
+            <p className="gr-tip-value">{formatMetric(metricKey, hovered.value)}</p>
+            {hoveredLog && <p className="gr-tip-file">{hoveredLog.filename}</p>}
+            {onOpen && hover.touch ? (
+              <button type="button" className="gr-tip-open" onClick={() => onOpen(hovered.id)}>
+                Open log <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </button>
+            ) : (
+              onOpen && hover.near && <p className="gr-tip-hint">Click to open</p>
+            )}
           </div>
         )}
       </div>
