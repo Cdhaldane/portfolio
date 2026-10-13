@@ -1,0 +1,1167 @@
+{
+ "v": 1,
+ "slug": "salamis",
+ "kind": "moment",
+ "era": "greece",
+ "title": "Salamis",
+ "subtitle": "September 480 BC",
+ "summary": "How Themistocles tricked Xerxes into fighting in the narrows, and how the Greek fleet won there.",
+ "year": -480,
+ "yearLabel": "480 BC",
+ "place": "Strait of Salamis, Greece",
+ "minutes": 13,
+ "takeaways": [
+  "Salamis, September 480 BC: an allied Greek fleet beat a much larger Persian one in the narrow strait off Athens.",
+  "Themistocles won it twice over: by building the fleet with Laurion silver, and by luring Xerxes into the narrows.",
+  "Persia lost the war in Greece but stayed the great power of the region for another 150 years."
+ ],
+ "teaser": "How Athens voted its own heroes into exile with broken pots, Themistocles included.",
+ "teaserFor": "ostracism",
+ "links": [
+  "themistocles",
+  "delphi"
+ ],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Battle of Salamis",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Salamis"
+  },
+  {
+   "id": "hdt-7.89",
+   "label": "Herodotus, Histories 7.89",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.89"
+  },
+  {
+   "id": "hdt-7.99",
+   "label": "Herodotus, Histories 7.99",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.99"
+  },
+  {
+   "id": "hdt-7.140-143",
+   "label": "Herodotus, Histories 7.140–143",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.140"
+  },
+  {
+   "id": "hdt-7.144",
+   "label": "Herodotus, Histories 7.144",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.144"
+  },
+  {
+   "id": "hdt-7.184-186",
+   "label": "Herodotus, Histories 7.184–186",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.184"
+  },
+  {
+   "id": "hdt-8.41",
+   "label": "Herodotus, Histories 8.41",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.41"
+  },
+  {
+   "id": "hdt-8.48",
+   "label": "Herodotus, Histories 8.48",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.48"
+  },
+  {
+   "id": "hdt-8.59-60",
+   "label": "Herodotus, Histories 8.59–60 (trans. A. D. Godley)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.59"
+  },
+  {
+   "id": "hdt-8.61-63",
+   "label": "Herodotus, Histories 8.61–63",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.61"
+  },
+  {
+   "id": "hdt-8.68",
+   "label": "Herodotus, Histories 8.68",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.68"
+  },
+  {
+   "id": "hdt-8.75-76",
+   "label": "Herodotus, Histories 8.75–76",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.75"
+  },
+  {
+   "id": "hdt-8.79-82",
+   "label": "Herodotus, Histories 8.79–82",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.79"
+  },
+  {
+   "id": "hdt-8.86",
+   "label": "Herodotus, Histories 8.86",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.86"
+  },
+  {
+   "id": "hdt-8.87-88",
+   "label": "Herodotus, Histories 8.87–88 (trans. A. D. Godley)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.87"
+  },
+  {
+   "id": "hdt-8.89",
+   "label": "Herodotus, Histories 8.89",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.89"
+  },
+  {
+   "id": "hdt-8.90",
+   "label": "Herodotus, Histories 8.90 (trans. A. D. Godley)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.90"
+  },
+  {
+   "id": "hdt-8.95",
+   "label": "Herodotus, Histories 8.95",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.95"
+  },
+  {
+   "id": "hdt-8.97-100",
+   "label": "Herodotus, Histories 8.97–100",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.97"
+  },
+  {
+   "id": "aesch-pers",
+   "label": "Aeschylus, Persians 353–394 (trans. Herbert Weir Smyth)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Aesch.+Pers.+353"
+  },
+  {
+   "id": "plut-them-4",
+   "label": "Plutarch, Life of Themistocles 4",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Themistocles*.html"
+  },
+  {
+   "id": "plut-them-14",
+   "label": "Plutarch, Life of Themistocles 14",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Themistocles*.html"
+  },
+  {
+   "id": "diod-11.19",
+   "label": "Diodorus Siculus, Library of History 11.19",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/11A*.html"
+  },
+  {
+   "id": "thuc-1.135-138",
+   "label": "Thucydides, History of the Peloponnesian War 1.135–138",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Thuc.+1.135"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "A moment",
+   "title": "Salamis",
+   "text": "Athens is empty. Its people have crossed the water to Salamis, and from the beaches they can see smoke rising off the Acropolis. The Persian king has burned their city.\n\nOut in the dark, his fleet is rowing into the strait to finish them.",
+   "image": {
+    "file": "File:Battle of Salamis by Wilhelm von Kaulbach.jpg",
+    "alt": "Wilhelm von Kaulbach's painting of the Battle of Salamis: Greek warriors on a ship's deck, Persian ships breaking apart below, gods watching from the clouds.",
+    "focus": "45% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Battle_of_Salamis_by_Wilhelm_von_Kaulbach.jpg",
+    "width": 922,
+    "height": 610,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Battle_of_Salamis_by_Wilhelm_von_Kaulbach.jpg",
+    "artist": "Wilhelm von Kaulbach",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "hdt-8.75-76"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "The narrows",
+   "text": "The battle is fought in the narrow channel between the island of Salamis and the coast of Attica, a few miles west of Athens.\n\nIn open water the bigger Persian fleet could surround the Greeks. In here it can't spread out.",
+   "image": {
+    "file": "File:Strait of Salamis.jpg",
+    "alt": "The Strait of Salamis today: calm water between the low island of Salamis and the hills of the mainland.",
+    "focus": "50% 55%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Strait_of_Salamis.jpg/960px-Strait_of_Salamis.jpg",
+    "width": 3600,
+    "height": 2408,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Strait_of_Salamis.jpg",
+    "artist": "Jona Lendering",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   },
+   "src": [
+    "wiki-1"
+   ],
+   "pins": [
+    {
+     "year": -776,
+     "label": "First Olympics"
+    },
+    {
+     "year": -490,
+     "label": "Marathon"
+    },
+    {
+     "year": -480,
+     "label": "Salamis"
+    },
+    {
+     "year": -431,
+     "label": "Peloponnesian War"
+    },
+    {
+     "year": -399,
+     "label": "Socrates dies"
+    },
+    {
+     "year": -323,
+     "label": "Alexander dies"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The silver",
+   "chapter": "I",
+   "title": "A fleet from a silver strike",
+   "text": "In 483 BC, miners at Laurion, south of Athens, struck a rich new vein of silver. Athenians expected to share it out, ten drachmas a man. Themistocles talked the Assembly into building two hundred warships instead.\n\nPlutarch says he named the nearby island of Aegina as the enemy, because Athens wasn't yet afraid enough of Persia.",
+   "image": {
+    "file": "File:Greek Galleys.jpg",
+    "alt": "Three Greek triremes under oar on a blue sea, each with a square sail and three banks of oars.",
+    "focus": "50% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Greek_Galleys.jpg",
+    "width": 500,
+    "height": 386,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Greek_Galleys.jpg",
+    "artist": "Tungsten",
+    "license": "Public domain"
+   },
+   "src": [
+    "hdt-7.144",
+    "plut-them-4"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The silver",
+   "chapter": "I",
+   "title": "Xerxes comes",
+   "text": "In 490 BC the Athenians had beaten a Persian landing force at Marathon. King Darius died planning his revenge, and his son Xerxes made the plan far bigger.\n\nIn 480 BC Xerxes crossed the Hellespont into Europe on two bridges of boats. Herodotus counts his army in millions. Modern historians reject that figure, but it was the largest force the Greeks had ever seen.",
+   "image": {
+    "file": "File:Xerxes I tomb Ionian soldier circa 470 BCE cleaned up.jpg",
+    "alt": "Relief from the tomb of Xerxes: a soldier labelled as an Ionian Greek, one of the many peoples who served in the Persian army.",
+    "focus": "50% 25%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Xerxes_I_tomb_Ionian_soldier_circa_470_BCE_cleaned_up.jpg",
+    "width": 470,
+    "height": 811,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Xerxes_I_tomb_Ionian_soldier_circa_470_BCE_cleaned_up.jpg",
+    "artist": "A.Davey",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+   },
+   "src": [
+    "wiki-1",
+    "hdt-7.184-186"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The silver",
+   "chapter": "I",
+   "title": "The pass and the city",
+   "text": "That summer a small Greek army under the Spartan king Leonidas held the pass at Thermopylae for three days, until it was outflanked and destroyed. At the same time the Greek fleet fought the Persian navy to a standstill off Artemisium.\n\nWith the pass lost, nothing stood between Xerxes and Athens. The Athenians sent their families to Troezen, Aegina and Salamis, and their men to the ships. The Persians took the city and burned the Acropolis.",
+   "src": [
+    "wiki-1",
+    "hdt-8.41"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The wooden wall",
+   "chapter": "II",
+   "title": "The wooden wall",
+   "text": "Before the invasion, Athens had sent to the oracle at Delphi for advice. The priestess answered in riddles. Only a wooden wall would hold, she said, and divine Salamis would bring death to the sons of women.\n\nSome older Athenians took the wall to be the thorn hedge that had once ringed the Acropolis. Themistocles said it meant ships. A god who called Salamis divine, he argued, wasn't promising Athenian deaths there.",
+   "src": [
+    "hdt-7.140-143"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The wooden wall",
+   "chapter": "II",
+   "title": "Stay or run",
+   "text": "The allied fleet sat in the bay of Salamis under a Spartan admiral, Eurybiades. Most of the commanders wanted to pull back to the Isthmus of Corinth and defend the Peloponnese.\n\nWhen Themistocles spoke against it, the Corinthian general Adeimantus cut in: “Themistocles, at the games those who start before the signal are beaten with rods.” Themistocles answered: “Those left behind win no crown.”\n\nHis case was simple. In open water off the Isthmus, the Persians' numbers would tell. In the narrows they wouldn't, and leaving meant abandoning Salamis, Megara and Aegina.",
+   "src": [
+    "hdt-8.59-60"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The wooden wall",
+   "chapter": "II",
+   "title": "The threat",
+   "text": "Adeimantus sneered that a man with no city left had no right to speak. Themistocles replied that Athens still had two hundred manned ships, a city stronger than any of theirs.\n\nThen he turned to Eurybiades. If the fleet left Salamis, the Athenians would take their families and sail to Siris in Italy to make a new home. Without Athens' ships there was no Greek navy. Eurybiades agreed to stay and fight.",
+   "src": [
+    "hdt-8.61-63"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-8.59-60"
+   ],
+   "q": "Why did Themistocles want to fight at Salamis rather than at the Isthmus?",
+   "a": "In the narrow strait the Persians couldn't use their greater numbers, while in open water off the Isthmus they could surround the smaller Greek fleet. Leaving would also have abandoned Salamis, Megara and Aegina.",
+   "id": "salamis-r1"
+  },
+  {
+   "type": "story",
+   "label": "III · The trick",
+   "chapter": "III",
+   "title": "A message in the night",
+   "text": "The argument started again, and the Peloponnesians still wanted to leave. So Themistocles slipped out and sent Sicinnus, his children's tutor, across to the Persians with a secret message: the Greeks are about to run, and if you attack now you will catch them.\n\nXerxes believed it. Through the night his ships rowed into position to close the strait, and he landed troops on the islet of Psyttaleia to deal with any survivors.",
+   "src": [
+    "hdt-8.75-76"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · The trick",
+   "chapter": "III",
+   "title": "Aristides brings the news",
+   "text": "That night a boat crossed from Aegina carrying Aristides, Themistocles' old political rival, whom Athens had ostracized two years before. He found Themistocles and told him the Persian fleet had surrounded them. There was no escape now, even if they wanted one.\n\nMany commanders refused to believe it until a ship from Tenos deserted the Persians and confirmed the news. The decision had been made for them.",
+   "src": [
+    "hdt-8.79-82"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The battle",
+   "chapter": "IV",
+   "title": "Dawn",
+   "text": "At first light the Greeks did not run. Their ships put out in line, and across the water came the sound of their battle hymn, the paean.\n\nAeschylus fought there. Eight years later he put the moment on stage in Athens, in a play told from the Persian side: a messenger reporting the defeat to Xerxes' mother.",
+   "image": {
+    "file": "File:Greek triremes at Salamis.jpg",
+    "alt": "Greek triremes rowing in line abreast, their rams low in the water.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Greek_triremes_at_Salamis.jpg/960px-Greek_triremes_at_Salamis.jpg",
+    "width": 1620,
+    "height": 1106,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Greek_triremes_at_Salamis.jpg",
+    "artist": "Charles Oliver Murray",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "aesch-pers"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "The Persian messenger describes the dawn.",
+   "src": [
+    "aesch-pers"
+   ],
+   "quote": {
+    "text": "When, however, radiant Day with her white horses shone over all the land, a loud cheer like a song of triumph first rang out from the Hellenes, and, at the same instant, clear from the island crags, an echo returned an answering cry. Terror fell on all the barbarians, balked of their purpose; for then the Hellenes chanted their solemn paean, not as in flight, but as men rushing to the onset with the courage of gallant hearts.",
+    "attribution": "Aeschylus, Persians 386–394",
+    "translator": "Herbert Weir Smyth (1926)"
+   }
+  },
+  {
+   "type": "story",
+   "label": "IV · The battle",
+   "chapter": "IV",
+   "title": "Ram and board",
+   "text": "A trireme was a weapon in itself: a bronze ram at the waterline and about 170 rowers to drive it into an enemy's side.\n\nIn the crowded channel the Persian ships got in each other's way. Herodotus says the Greeks fought in good order while the Persians lost theirs. Plutarch adds that Themistocles waited for the morning breeze, which raised a swell that swung the taller Persian ships side-on to the Greek rams.",
+   "image": {
+    "file": "File:Ship dashed against ship, till the Persian Army dead strewed the deep like flowers.jpg",
+    "alt": "A 19th-century illustration of the battle: ships colliding in a crowded sea, oars snapping, men falling into the water.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Ship_dashed_against_ship%2C_till_the_Persian_Army_dead_strewed_the_deep_like_flowers.jpg/960px-Ship_dashed_against_ship%2C_till_the_Persian_Army_dead_strewed_the_deep_like_flowers.jpg",
+    "width": 1750,
+    "height": 2453,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ship_dashed_against_ship,_till_the_Persian_Army_dead_strewed_the_deep_like_flowers.jpg",
+    "artist": "Walter Crane",
+    "license": "Public domain"
+   },
+   "src": [
+    "hdt-8.86",
+    "plut-them-14"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The battle",
+   "chapter": "IV",
+   "title": "The admiral falls",
+   "text": "Early in the fighting the Persian admiral Ariabignes, a brother of Xerxes, was killed. Plutarch says he tried to board an Athenian ship and was speared into the sea.\n\nHerodotus adds a detail that explains the slaughter: most Persians couldn't swim, while Greeks whose ships sank swam to Salamis. When the leading Persian ships turned to escape, they crashed into the ones still pushing forward to impress the king.",
+   "image": {
+    "file": "File:William Rainey - Death of the Persian admiral at Salamis.jpg",
+    "alt": "An early 20th-century illustration: Greek sailors driving the Persian admiral Ariabignes back into the sea as he tries to board their ship.",
+    "focus": "50% 40%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/William_Rainey_-_Death_of_the_Persian_admiral_at_Salamis.jpg/960px-William_Rainey_-_Death_of_the_Persian_admiral_at_Salamis.jpg",
+    "width": 1437,
+    "height": 2177,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:William_Rainey_-_Death_of_the_Persian_admiral_at_Salamis.jpg",
+    "artist": "William Rainey",
+    "license": "Public domain"
+   },
+   "src": [
+    "hdt-8.89",
+    "plut-them-14"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "Herodotus was a small child that September. He gathered this decades later from people who remembered it.",
+   "image": {
+    "file": "File:Wrath of Xerxes at Battle of Salamis by Wilhelm von Kaulbach.jpg",
+    "alt": "Kaulbach's painting of Xerxes on a throne on the shore, raising his arm in anger as his fleet is destroyed.",
+    "focus": "50% 30%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Wrath_of_Xerxes_at_Battle_of_Salamis_by_Wilhelm_von_Kaulbach.jpg",
+    "width": 942,
+    "height": 762,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Wrath_of_Xerxes_at_Battle_of_Salamis_by_Wilhelm_von_Kaulbach.jpg",
+    "artist": "Wilhelm von Kaulbach",
+    "license": "Public domain"
+   },
+   "src": [
+    "hdt-8.90"
+   ],
+   "quote": {
+    "text": "Whenever Xerxes, as he sat beneath the mountain opposite Salamis which is called Aegaleos, saw one of his own men achieve some feat in the battle, he inquired who did it, and his scribes wrote down the captain's name with his father and city of residence.",
+    "attribution": "Herodotus, Histories 8.90",
+    "translator": "A. D. Godley (1920)"
+   }
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Artemisia",
+   "title": "The queen in Xerxes' fleet",
+   "text": "Artemisia, queen of Halicarnassus, commanded five of Xerxes' ships and had told him not to fight at sea. Chased by an Athenian ship, she rammed a ship from her own side to escape. Watching from the shore, Xerxes thought she had sunk a Greek. “My men have become women,” he said, “and my women men.”\n\nHerodotus came from Halicarnassus too.",
+   "image": {
+    "file": "File:Artemisia at the Battle of Salamis.jpg",
+    "alt": "Detail of Kaulbach's painting: Artemisia, queen of Halicarnassus, standing on her ship and drawing a bow.",
+    "focus": "50% 22%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Artemisia_at_the_Battle_of_Salamis.jpg/960px-Artemisia_at_the_Battle_of_Salamis.jpg",
+    "width": 1740,
+    "height": 2206,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Artemisia_at_the_Battle_of_Salamis.jpg",
+    "artist": "Kaulbach, Wilhelm von, 19th century",
+    "license": "Public domain"
+   },
+   "src": [
+    "hdt-7.99",
+    "hdt-8.68",
+    "hdt-8.87-88"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The battle",
+   "chapter": "IV",
+   "title": "Psyttaleia",
+   "text": "Xerxes had landed about 400 men on Psyttaleia, an islet in the middle of the strait, to kill or capture Greeks washed up there. As the Persian fleet broke, Aristides took a party of Athenian hoplites across and killed the whole garrison.\n\nThe surviving Persian ships fled to their harbour at Phalerum.",
+   "src": [
+    "wiki-1",
+    "hdt-8.95"
+   ]
+  },
+  {
+   "type": "numbers",
+   "label": "By the numbers",
+   "title": "Counting ships",
+   "src": [
+    "wiki-1",
+    "hdt-8.48",
+    "hdt-7.89",
+    "diod-11.19"
+   ],
+   "rows": [
+    {
+     "value": "378",
+     "label": "Greek warships in the allied fleet, by Herodotus's count"
+    },
+    {
+     "value": "310",
+     "label": "Greek warships, according to Aeschylus, who was there"
+    },
+    {
+     "value": "1,207",
+     "label": "Persian warships at the start of the invasion, says Herodotus"
+    },
+    {
+     "value": "600–800",
+     "label": "What most modern historians think Persia had at Salamis"
+    },
+    {
+     "value": "40 : 200+",
+     "label": "Ships lost, Greek to Persian, according to Diodorus"
+    }
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-8.75-76"
+   ],
+   "q": "What did Themistocles' message to Xerxes achieve?",
+   "a": "It convinced Xerxes the Greeks were about to escape, so he sent his fleet into the strait at night to trap them. That forced the divided Greek commanders to fight where Themistocles wanted: in the narrows.",
+   "id": "salamis-r2"
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "Did Salamis save the West?",
+   "src": [
+    "wiki-1"
+   ],
+   "sides": [
+    {
+     "label": "The case for",
+     "text": "Lose here and Greece likely becomes a Persian province. No Parthenon, no Sophocles, no Thucydides. Barry Strauss subtitled his 2004 history The Naval Encounter That Saved Greece—and Western Civilization."
+    },
+    {
+     "label": "The case against",
+     "text": "Persia lost a fleet, not an empire. It stayed the region's great power for another 150 years, and in 387 BC it was the Persian king who dictated peace terms to the Greek cities."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Xerxes goes home",
+   "text": "Xerxes feared the Greeks would sail north and break his bridges over the Hellespont, trapping him in Europe. He took most of his army back to Asia and left his general Mardonius with a picked force to finish the job.\n\nIn 479 BC the Greeks destroyed that army at Plataea and the remains of the Persian fleet at Mycale. Persia never invaded Greece again.",
+   "src": [
+    "wiki-1",
+    "hdt-8.97-100"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "You can still see it",
+   "text": "After Plataea the allies melted down captured Persian bronze into a column of three twisted snakes and inscribed the names of the 31 cities that fought. It stood at Delphi for about 800 years, until Constantine moved it to his new capital.\n\nIt still stands in Istanbul, in the old Hippodrome.",
+   "image": {
+    "file": "File:Snake column Hippodrome Constantinople 2007.jpg",
+    "alt": "The Serpent Column in Istanbul: a dark, twisted bronze shaft standing in a railed pit in the old Hippodrome square.",
+    "focus": "50% 62%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Snake_column_Hippodrome_Constantinople_2007.jpg/960px-Snake_column_Hippodrome_Constantinople_2007.jpg",
+    "width": 1521,
+    "height": 3061,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Snake_column_Hippodrome_Constantinople_2007.jpg",
+    "artist": "Gryffindor",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "And Themistocles?",
+   "text": "Within ten years Athens had ostracized him. He ended up at the court of Xerxes' son Artaxerxes, who gave him the city of Magnesia to live on.\n\nThe man who beat Persia at sea died a pensioner of the Persian king.",
+   "image": {
+    "file": "File:The triumph of Themistocles after Salamis.jpg",
+    "alt": "A 19th-century illustration of Themistocles cheered through a crowd after Salamis.",
+    "focus": "50% 35%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/The_triumph_of_Themistocles_after_Salamis.jpg/960px-The_triumph_of_Themistocles_after_Salamis.jpg",
+    "width": 1488,
+    "height": 967,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:The_triumph_of_Themistocles_after_Salamis.jpg",
+    "artist": "John Steeple Davis",
+    "license": "Public domain"
+   },
+   "src": [
+    "thuc-1.135-138"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-7.144"
+   ],
+   "q": "Why did Athens have a fleet big enough to fight at Salamis at all?",
+   "a": "Themistocles persuaded the Athenians to spend a rich silver strike at Laurion on two hundred warships instead of sharing it out.",
+   "id": "salamis-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-8.86"
+   ],
+   "q": "Why did fighting inside the strait help the smaller Greek fleet?",
+   "a": "In the narrows the Persians couldn't spread out to surround the Greeks, so their numbers stopped counting. Their ships crowded together and fell into disorder, and the Greeks rammed them in the confusion.",
+   "id": "salamis-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why do some historians think the importance of Salamis is overstated?",
+   "a": "Persia lost a fleet, not its empire. It stayed the region's great power for another 150 years and later dictated peace terms to the Greek cities.",
+   "id": "salamis-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Themistocles",
+   "kind": "person",
+   "names": [
+    "Themistocles"
+   ],
+   "title": "Themistocles",
+   "description": "Athenian politician and general (c. 524–459 BC)",
+   "extract": "Themistocles was an Athenian politician and general. He was one of a new breed of non-aristocratic politicians who rose to prominence in the early years of the Athenian democracy. As a politician, Themistocles was a populist, having the support of lower-class Athenians, and generally being at odds with the Athenian nobility. Elected archon in 493 BC, he convinced the polis to increase the naval power of Athens, a recurring theme in his political career.",
+   "url": "https://en.wikipedia.org/wiki/Themistocles",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Illustrerad_Verldshistoria_band_I_Ill_116.png/330px-Illustrerad_Verldshistoria_band_I_Ill_116.png",
+    "width": 330,
+    "height": 576,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Illustrerad_Verldshistoria_band_I_Ill_116.png",
+    "artist": "Evald Hansen",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Xerxes I",
+   "kind": "person",
+   "names": [
+    "Xerxes"
+   ],
+   "title": "Xerxes I",
+   "description": "King of Kings of the Achaemenid Empire from 486 to 465 BC",
+   "extract": "Xerxes I was a Persian ruler who reigned as the fourth King of Kings of the Achaemenid Empire, reigning from 486 BC until his assassination in 465 BC. He was the son of Darius the Great and Atossa.",
+   "url": "https://en.wikipedia.org/wiki/Xerxes_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/National_Museum_of_Iran_Darafsh_%28785%29.JPG/330px-National_Museum_of_Iran_Darafsh_%28785%29.JPG",
+    "width": 330,
+    "height": 498,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:National_Museum_of_Iran_Darafsh_(785).JPG",
+    "artist": "Darafsh",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   }
+  },
+  {
+   "wiki": "Darius the Great",
+   "kind": "person",
+   "names": [
+    "Darius"
+   ],
+   "title": "Darius the Great",
+   "description": "Persian ruler from 522 to 486 BCE",
+   "extract": "Darius I, commonly known as Darius the Great, was the third King of Kings of the Achaemenid Empire, reigning from 522 BCE until his death in 486 BCE. He ruled the empire at its territorial peak, when it included much of West Asia, parts of the Balkans and the Caucasus, most of the Black Sea's coastal regions, Central Asia, the Indus Valley in the far east, and portions of North Africa and Northeast Africa including Egypt (Mudrâya), eastern Libya, and coastal Sudan.",
+   "url": "https://en.wikipedia.org/wiki/Darius_the_Great",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Darius_I.jpg/330px-Darius_I.jpg",
+    "width": 330,
+    "height": 413,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Darius_I.jpg",
+    "artist": "Rumlu",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Leonidas I",
+   "kind": "person",
+   "names": [
+    "Leonidas"
+   ],
+   "title": "Leonidas I",
+   "description": "King of Sparta from c. 489 BC to 480 BC",
+   "extract": "Leonidas I was Greek king of the Ancient Greek city-state of Sparta. He was the son of king Anaxandridas II and the 17th king of the Agiad dynasty, a Spartan royal house which claimed descent from Heracles. Leonidas I ascended to the throne in c. 489 BC, succeeding his half-brother king Cleomenes I. He ruled jointly along with king Leotychidas II until his death in 480 BC, when he was succeeded by his son, Pleistarchus.",
+   "url": "https://en.wikipedia.org/wiki/Leonidas_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Helmed_Hoplite_Sparta.JPG/330px-Helmed_Hoplite_Sparta.JPG",
+    "width": 330,
+    "height": 479,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Helmed_Hoplite_Sparta.JPG",
+    "artist": "de:Benutzer:Ticinese",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   }
+  },
+  {
+   "wiki": "Eurybiades",
+   "kind": "person",
+   "names": [
+    "Eurybiades"
+   ],
+   "title": "Eurybiades",
+   "description": "Spartan commander in a Greco-Persian War (480–479 BC)",
+   "extract": "Eurybiades was the Spartan navarch in charge of the Greek navy during the Second Persian invasion of Greece.",
+   "url": "https://en.wikipedia.org/wiki/Eurybiades"
+  },
+  {
+   "wiki": "Adeimantus of Corinth",
+   "kind": "person",
+   "names": [
+    "Adeimantus"
+   ],
+   "title": "Adeimantus of Corinth",
+   "description": "5th century BCE Corinthian naval commander",
+   "extract": "Adeimantus of Corinth, son of Ocytus (Ὠκύτος), was the Corinthian commander during the invasion of Greece by Xerxes. Before the Battle of Artemisium he threatened to sail away.",
+   "url": "https://en.wikipedia.org/wiki/Adeimantus_of_Corinth"
+  },
+  {
+   "wiki": "Sicinnus",
+   "kind": "person",
+   "names": [
+    "Sicinnus"
+   ],
+   "title": "Sicinnus",
+   "extract": "Sicinnus, a Persian traitor, and helper to the Athenian leader Themistocles and pedagogue to his children according to Plutarch. He is known for his actions as a negotiator between Themistocles and the Persian ruler Xerxes I during the Second Persian invasion of Greece. Sicinnus deceived Xerxes into sending his fleet into Themistocles' trap.",
+   "url": "https://en.wikipedia.org/wiki/Sicinnus"
+  },
+  {
+   "wiki": "Aristides",
+   "kind": "person",
+   "names": [
+    "Aristides"
+   ],
+   "title": "Aristides",
+   "description": "Athenian general and statesman (530–468 BC)",
+   "extract": "Aristides was an ancient Athenian statesman. Nicknamed \"the Just\", he flourished at the beginning of Athens' Classical period and is remembered for his generalship in the Persian War. The ancient historian Herodotus cited him as \"the best and most honourable man in Athens\", and he received similarly reverent treatment in Plato's Socratic dialogues.",
+   "url": "https://en.wikipedia.org/wiki/Aristides",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Boston_%282019%29_-_194.jpg/330px-Boston_%282019%29_-_194.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Boston_(2019)_-_194.jpg",
+    "artist": "Another Believer",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Aeschylus",
+   "kind": "person",
+   "names": [
+    "Aeschylus"
+   ],
+   "title": "Aeschylus",
+   "description": "5th-century BC Athenian Greek tragedian",
+   "extract": "Aeschylus was an ancient Greek tragedian, often described as the father of tragedy. Academic knowledge of the genre begins with his work, and understanding of earlier Greek tragedy is largely based on inferences made from reading his surviving plays. According to Aristotle, he expanded the number of characters in the theatre and allowed conflict among them. Formerly, characters interacted only with the chorus.",
+   "url": "https://en.wikipedia.org/wiki/Aeschylus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Herma_of_Aeschylus%2C_Klas08.jpg/330px-Herma_of_Aeschylus%2C_Klas08.jpg",
+    "width": 330,
+    "height": 489,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Herma_of_Aeschylus,_Klas08.jpg",
+    "artist": "Zde",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Herodotus",
+   "kind": "person",
+   "names": [
+    "Herodotus"
+   ],
+   "title": "Herodotus",
+   "description": "Greek historian and geographer (c. 484–c. 425 BC)",
+   "extract": "Herodotus was a Greek historian and geographer from the Greek city of Halicarnassus, under Persian control in the 5th century BC, and a later citizen of Thurii in modern Calabria, Italy. He wrote the Histories, a detailed account of the Greco-Persian Wars, among other subjects such as the rise of the Achaemenid dynasty of Cyrus. He has been described as \"The Father of History\", a title conferred on him by the ancient Roman orator Cicero.",
+   "url": "https://en.wikipedia.org/wiki/Herodotus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Marble_bust_of_Herodotos_MET_DT11742_%28cropped%29.jpg/330px-Marble_bust_of_Herodotos_MET_DT11742_%28cropped%29.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Marble_bust_of_Herodotos_MET_DT11742_(cropped).jpg",
+    "artist": "Unknown",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Plutarch",
+   "kind": "person",
+   "names": [
+    "Plutarch"
+   ],
+   "title": "Plutarch",
+   "description": "Greek philosopher and historian",
+   "extract": "Plutarch was a Greek and later Roman Middle Platonist philosopher, historian, biographer, essayist, and priest at the Temple of Apollo in Delphi. He is known primarily for his Parallel Lives, a series of biographies of illustrious Greeks and Romans, and Moralia, a collection of essays and speeches. Upon becoming a Roman citizen, he was possibly named Lucius Mestrius Plutarchus.",
+   "url": "https://en.wikipedia.org/wiki/Plutarch",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg/330px-Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_a_philosopher,_maybe_Plutarch,_2nd_century_BC,_AM_Delphi,_0135.jpg",
+    "artist": "Zde",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Artemisia I of Caria",
+   "kind": "person",
+   "names": [
+    "Artemisia"
+   ],
+   "title": "Artemisia I of Caria",
+   "description": "Ancient Greek queen of the 5th century BC",
+   "extract": "Artemisia I of Caria was a queen of the ancient Greek city-state of Halicarnassus, which is now in Bodrum, Turkey. She was also queen of the nearby islands of Kos, Nisyros and Kalymnos, within the Achaemenid satrapy of Caria, in about 480 BC. She was of Carian-Greek ethnicity by her father Lygdamis I, and Greek Cretan by her mother. She fought as an ally of Xerxes I, King of Persia against the independent Greek city states during the second Persian invasion of Greece. She personally commanded ships at the naval battle of Artemisium and at the naval Battle of Salamis in 480 BC.",
+   "url": "https://en.wikipedia.org/wiki/Artemisia_I_of_Caria",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Artemisia_at_the_Battle_of_Salamis.jpg/330px-Artemisia_at_the_Battle_of_Salamis.jpg",
+    "width": 330,
+    "height": 418,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Artemisia_at_the_Battle_of_Salamis.jpg",
+    "artist": "Kaulbach, Wilhelm von, 19th century",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Mardonius (nephew of Darius I)",
+   "kind": "person",
+   "names": [
+    "Mardonius"
+   ],
+   "title": "Mardonius (nephew of Darius I)",
+   "description": "Persian military commander (died 479 BC)",
+   "extract": "Mardonius was a Persian military commander during the Greco-Persian Wars. Though he secured initial victories in the first Persian invasion of Greece, he was ultimately forced to retreat into Anatolia after suffering catastrophic losses in both men and material due to a storm off the coast of Mount Athos, following which he was relieved of his command by Darius the Great. He was later re-appointed by Xerxes I and took part in the second Persian invasion of Greece. In 480 and 479 BC, Mardonius spearheaded the Persian army's destruction of Athens.",
+   "url": "https://en.wikipedia.org/wiki/Mardonius_(nephew_of_Darius_I)"
+  },
+  {
+   "wiki": "Artaxerxes I",
+   "kind": "person",
+   "names": [
+    "Artaxerxes"
+   ],
+   "title": "Artaxerxes I",
+   "description": "King of Kings of the Achaemenid Empire from 465 to 424 BC",
+   "extract": "Artaxerxes I was the fifth King of Kings of the Achaemenid Empire of Persia, from August 465 to December 424 BC. He was the third son of Xerxes I. In Greek sources he is also surnamed \"Long-handed\", allegedly because his right hand was longer than his left. Josephus and several ancient traditions identify him as King Ahasuerus, from the Book of Esther.",
+   "url": "https://en.wikipedia.org/wiki/Artaxerxes_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Relief_of_Artaxerxes_I%2C_from_his_tomb_in_Naqsh-e_Rustam.jpg/330px-Relief_of_Artaxerxes_I%2C_from_his_tomb_in_Naqsh-e_Rustam.jpg",
+    "width": 330,
+    "height": 458,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Relief_of_Artaxerxes_I,_from_his_tomb_in_Naqsh-e_Rustam.jpg",
+    "artist": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Athens",
+   "kind": "place",
+   "names": [
+    "Athens"
+   ],
+   "title": "Athens",
+   "description": "Capital and largest city of Greece",
+   "extract": "Athens is the capital and largest city of Greece. A significant coastal urban area in the Mediterranean, Athens is also the capital of the Attica region and is the southernmost capital on the European mainland. With its urban area's population numbering over 3.6 million, it is the eighth-largest urban area in the European Union (EU). The Municipality of Athens, which constitutes a small administrative unit of the entire urban area, had a population of 643,452 in 2021, within its official limits, and a land area of 38.96 square kilometres.",
+   "url": "https://en.wikipedia.org/wiki/Athens",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Athens_Acropolis_at_Daybreak.jpg/330px-Athens_Acropolis_at_Daybreak.jpg",
+    "width": 330,
+    "height": 186,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Athens_Acropolis_at_Daybreak.jpg",
+    "artist": "Andrew Parlette",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+   }
+  },
+  {
+   "wiki": "Salamis Island",
+   "kind": "place",
+   "names": [
+    "Salamis"
+   ],
+   "title": "Salamis Island",
+   "description": "Island in the Saronic Gulf, Greece",
+   "extract": "Salamis or Salamina is the largest Greek island in the Saronic Gulf, about two kilometres from the coast of Athens' port of Piraeus and about 16 km west of Athens center.",
+   "url": "https://en.wikipedia.org/wiki/Salamis_Island",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/View_of_Salamina_1.jpg/330px-View_of_Salamina_1.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:View_of_Salamina_1.jpg",
+    "artist": "Α.,Τ.",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Acropolis of Athens",
+   "kind": "place",
+   "names": [
+    "Acropolis"
+   ],
+   "title": "Acropolis of Athens",
+   "description": "Ancient citadel above the city of Athens",
+   "extract": "The Acropolis of Athens is an ancient citadel located on a rocky outcrop above the city of Athens, Greece, and contains the remains of several ancient buildings of great architectural and historical significance, the most famous being the Parthenon. The word Acropolis is from Greek ἄκρον (akron) 'highest point, extremity' and πόλις (polis) 'city'. The term acropolis is generic and there are many other acropoleis in Greece. During ancient times the Acropolis of Athens was also more properly known as Cecropia (Κεκροπία), after the legendary serpent-man Cecrops, the supposed first Athenian king.",
+   "url": "https://en.wikipedia.org/wiki/Acropolis_of_Athens",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/330px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "artist": "Giles Laurent",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Laurion",
+   "kind": "place",
+   "names": [
+    "Laurion"
+   ],
+   "title": "Lavrio",
+   "description": "Town in southeastern Attica, Greece",
+   "extract": "Lavrio, Lavrion or Laurium is a town in southeastern part of Attica, Greece. It is part of Athens metropolitan area and the seat of the municipality of Lavreotiki. Laurium was known in Classical antiquity for its silver mines, one of the chief sources of revenue of the Athenian state. The silver was mainly used for coinage. The Archaeological Museum of Lavrion shows much of the story of these mines.",
+   "url": "https://en.wikipedia.org/wiki/Lavrio",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/LavrioPort.jpg/330px-LavrioPort.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:LavrioPort.jpg",
+    "artist": "The original uploader was Apanag at Greek Wikipedia .",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Aegina",
+   "kind": "place",
+   "names": [
+    "Aegina"
+   ],
+   "title": "Aegina",
+   "description": "Greek island, south of Athens",
+   "extract": "Aegina is one of the Saronic Islands of Greece in the Saronic Gulf, 27 km (17 mi) from Athens. Tradition derives the name from Aegina, the mother of the mythological hero Aeacus, who was born on the island and became its king. In classical antiquity Aegina was a powerful city-state and at one point a rival of Athens. In modern times Aegina is known for the temple of Aphaia, pistachio production, and the pilgrimage site of St. Nektarios. Many Athenians have established vacation homes in Aegina.",
+   "url": "https://en.wikipedia.org/wiki/Aegina",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/%C3%84gina_Hafenblick.jpg/330px-%C3%84gina_Hafenblick.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%C3%84gina_Hafenblick.jpg",
+    "artist": "-- Xocolatl 20:16, 10 April 2008 (UTC)",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Marathon, Greece",
+   "kind": "place",
+   "names": [
+    "Marathon"
+   ],
+   "title": "Marathon, Greece",
+   "description": "Town in Attica, Greece",
+   "extract": "Marathon is a town in Greece and the site of the Battle of Marathon in 490 BCE, in which the outnumbered Athenian army defeated the Persians. Legend has it that Pheidippides, a Greek herald at the battle, was sent running from Marathon to Athens to announce the victory, which is how the marathon running race was conceived in modern times. Today it is part of East Attica regional unit, in the outskirts of Athens and a popular resort town and center of agriculture.",
+   "url": "https://en.wikipedia.org/wiki/Marathon%2C_Greece",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/The_town_of_Marathon%2C_Greece.jpg/330px-The_town_of_Marathon%2C_Greece.jpg",
+    "width": 330,
+    "height": 198,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:The_town_of_Marathon,_Greece.jpg",
+    "artist": "Kostasvic",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Dardanelles",
+   "kind": "place",
+   "names": [
+    "Hellespont"
+   ],
+   "title": "Dardanelles",
+   "description": "Narrow strait in northwestern Turkey",
+   "extract": "The Dardanelles, also known as the Strait of Gallipoli, is a narrow, natural strait and internationally significant waterway in northwestern Turkey that forms part of the continental boundary between Asia and Europe and separates Asian Turkey from European Turkey. Together with the Bosporus, the Dardanelles forms the Turkish Straits.",
+   "url": "https://en.wikipedia.org/wiki/Dardanelles",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Dardanelles_map2.png/330px-Dardanelles_map2.png",
+    "width": 330,
+    "height": 283,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Dardanelles_map2.png",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Thermopylae",
+   "kind": "place",
+   "names": [
+    "Thermopylae"
+   ],
+   "title": "Thermopylae",
+   "description": "Ancient fortified passage in central Greece",
+   "extract": "Thermopylae is a narrow pass and modern town in Lamia, Phthiotis, Greece. It derives its name from its hot sulphur springs. In Greek mythology the Hot Gates is one of the entrances to Hades.",
+   "url": "https://en.wikipedia.org/wiki/Thermopylae",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Thermopylae_ancient_coastline_large.jpg/330px-Thermopylae_ancient_coastline_large.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Thermopylae_ancient_coastline_large.jpg",
+    "artist": "Fkerasar",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   }
+  },
+  {
+   "wiki": "Delphi",
+   "kind": "place",
+   "names": [
+    "Delphi"
+   ],
+   "title": "Delphi",
+   "description": "Sacred site and oracle of Ancient Greece",
+   "extract": "Delphi, in legend previously called Pytho (Πυθώ), was an ancient sacred precinct in central Greece. It was the seat of Pythia, the major oracle who was consulted about important decisions throughout the ancient classical world. The ancient Greeks considered the centre of the world to be in Delphi, marked by the stone monument known as the Omphalos of Delphi. The term omphalos was the Greek word for \"navel.\"",
+   "url": "https://en.wikipedia.org/wiki/Delphi",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Delphi%2C_Greece_-_panoramio.jpg/330px-Delphi%2C_Greece_-_panoramio.jpg",
+    "width": 330,
+    "height": 186,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Delphi,_Greece_-_panoramio.jpg",
+    "artist": "tamara semina",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Peloponnese",
+   "kind": "place",
+   "names": [
+    "Peloponnese"
+   ],
+   "title": "Peloponnese",
+   "description": "Traditional peninsular region in Greece",
+   "extract": "The Peloponnese, Peloponnesus, or Morea, is a peninsula and geographic region in southern Greece, and the southernmost region of the Balkans. It is connected to the central part of the country by the Isthmus of Corinth land bridge, which separates the Gulf of Corinth from the Saronic Gulf. From the late Middle Ages until the 19th century, the peninsula was known as the Morea, a name still in colloquial use in its demotic form.",
+   "url": "https://en.wikipedia.org/wiki/Peloponnese",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Location_map_of_Peloponnese_%28Greece%29.svg/330px-Location_map_of_Peloponnese_%28Greece%29.svg.png",
+    "width": 330,
+    "height": 285,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Location_map_of_Peloponnese_(Greece).svg",
+    "artist": "SilentResident , Philly boy92",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Psyttaleia",
+   "kind": "place",
+   "names": [
+    "Psyttaleia"
+   ],
+   "title": "Psyttaleia",
+   "description": "Uninhabited island in the Saronic Gulf, Greece",
+   "extract": "Psyttaleia is an uninhabited island in the Saronic Gulf between the harbor of Piraeus and the Kynosoura peninsula on Salamis Island, Greece. It covers an area of 0.375 square kilometers. The island houses Athens' largest sewage treatment plant, which is also the largest in Europe, with a projected daily maximum drying capacity of 750 tons of sewage. Administratively it is part of the Municipality of Piraeus.",
+   "url": "https://en.wikipedia.org/wiki/Psyttaleia",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Psyttaleia.jpg/330px-Psyttaleia.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Psyttaleia.jpg",
+    "artist": "Geraki",
+    "license": "CC BY-SA 3.0 gr",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/gr/deed.en"
+   }
+  },
+  {
+   "wiki": "Halicarnassus",
+   "kind": "place",
+   "names": [
+    "Halicarnassus"
+   ],
+   "title": "Halicarnassus",
+   "description": "Ancient Carian city, present day Bodrum in Turkey",
+   "extract": "Halicarnassus was an ancient city in Caria, in Anatolia. It was located in southwest Caria, on an advantageous site on the Gulf of Gökova, which is now in Bodrum, Turkey. The city was famous for the Mausoleum of Halicarnassus, also known simply as the Tomb of Mausolus, whose name provided the origin of the word \"mausoleum\". The mausoleum, built from 353 to 350 BC, ranked as one of the seven wonders of the ancient world.",
+   "url": "https://en.wikipedia.org/wiki/Halicarnassus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/The_ruins_of_the_Mausoleum_at_Halicarnassus.jpg/330px-The_ruins_of_the_Mausoleum_at_Halicarnassus.jpg",
+    "width": 330,
+    "height": 219,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:The_ruins_of_the_Mausoleum_at_Halicarnassus.jpg",
+    "artist": "FollowingHadrian",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Plataea",
+   "kind": "place",
+   "names": [
+    "Plataea"
+   ],
+   "title": "Plataea",
+   "description": "Ancient city in southeastern Boeotia, Greece",
+   "extract": "Plataea or Plataeae was an ancient Greek city-state situated in Boeotia near the frontier with Attica at the foot of Mt. Cithaeron, between the mountain and the river Asopus, which divided its territory from that of Thebes. Its inhabitants were known as the Plataeans.",
+   "url": "https://en.wikipedia.org/wiki/Plataea",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Plataea_battlefield.jpg/330px-Plataea_battlefield.jpg",
+    "width": 330,
+    "height": 187,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Plataea_battlefield.jpg",
+    "artist": "Geraki",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Mycale",
+   "kind": "place",
+   "names": [
+    "Mycale"
+   ],
+   "title": "Mycale",
+   "description": "Mountain on the west coast of central Anatolia in Turkey",
+   "extract": "Mycale also Mykale, called Samsun Dağı and Dilek Dağı in modern Turkey, is a mountain on the west coast of central Anatolia in Turkey, north of the mouth of the Maeander and divided from the Greek island of Samos by the 1.6 km wide Mycale Strait. The mountain forms a ridge, terminating in what was known anciently as the Trogilium promontory. There are several beaches on the north shore ranging from sand to pebbles. The south flank is mainly escarpment.",
+   "url": "https://en.wikipedia.org/wiki/Mycale",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Priene.jpg/330px-Priene.jpg",
+    "width": 330,
+    "height": 225,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Priene.jpg",
+    "artist": "Unknown",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   }
+  },
+  {
+   "wiki": "Hippodrome of Constantinople",
+   "kind": "place",
+   "names": [
+    "Hippodrome"
+   ],
+   "title": "Hippodrome of Constantinople",
+   "description": "Ancient Roman circus in Istanbul",
+   "extract": "The Hippodrome of Constantinople was a circus that was the sporting and social centre of Constantinople, capital of the Eastern Roman Empire. Today it is a square in Istanbul, Turkey, known as Sultanahmet Square.",
+   "url": "https://en.wikipedia.org/wiki/Hippodrome_of_Constantinople",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Sultanahmet_Square%2C_Obelisk_of_Theodosius%2C_Istanbul_%2852121868925%29.jpg/330px-Sultanahmet_Square%2C_Obelisk_of_Theodosius%2C_Istanbul_%2852121868925%29.jpg",
+    "width": 330,
+    "height": 243,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Sultanahmet_Square,_Obelisk_of_Theodosius,_Istanbul_(52121868925).jpg",
+    "artist": "Ninara",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+   }
+  },
+  {
+   "wiki": "Magnesia on the Maeander",
+   "kind": "place",
+   "names": [
+    "Magnesia"
+   ],
+   "title": "Magnesia on the Maeander",
+   "description": "Ancient Greek city in Ionia, modern Turkey",
+   "extract": "Magnesia or Magnesia on the Maeander was an ancient Greek city in Ionia, considerable in size, at an important location commercially and strategically in the triangle of Priene, Ephesus and Tralles. The city was named Magnesia, after the Magnetes from Thessaly who settled the area along with some Cretans. It was later called \"on the Meander\" to distinguish it from the nearby Lydian city Magnesia ad Sipylum. It was earlier the site of Leucophrys mentioned by several ancient writers.",
+   "url": "https://en.wikipedia.org/wiki/Magnesia_on_the_Maeander",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg/330px-%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg",
+    "width": 330,
+    "height": 204,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg",
+    "artist": "Vadimph",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  }
+ ]
+}

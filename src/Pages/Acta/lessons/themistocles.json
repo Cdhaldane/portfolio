@@ -1,0 +1,1072 @@
+{
+ "v": 1,
+ "slug": "themistocles",
+ "kind": "person",
+ "era": "greece",
+ "title": "Themistocles",
+ "subtitle": "c. 524–459 BC",
+ "summary": "The outsider who turned Athens to the sea, saved Greece at Salamis, and died in the service of Persia.",
+ "year": -480,
+ "yearLabel": "c. 524–459 BC",
+ "place": "Athens, and Magnesia in Asia Minor",
+ "minutes": 14,
+ "takeaways": [
+  "Themistocles, an outsider in Athens' new democracy, turned the city to the sea: a port at Piraeus and a fleet of triremes paid for with Laurion silver.",
+  "In 480 BC he persuaded Athens to leave the city and fight at sea, and his trick brought the Persian fleet into the strait at Salamis.",
+  "Ostracized and accused of treason, he fled to Persia and died a governor for the son of the king he had beaten."
+ ],
+ "teaser": "The oracle every Greek city consulted, and the riddle that sent Athens to sea.",
+ "teaserFor": "delphi",
+ "links": [],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Themistocles",
+   "url": "https://en.wikipedia.org/wiki/Themistocles"
+  },
+  {
+   "id": "plut-them",
+   "label": "Plutarch, Life of Themistocles",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Themistocles*.html"
+  },
+  {
+   "id": "hdt-7.144",
+   "label": "Herodotus, Histories 7.144",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.144"
+  },
+  {
+   "id": "hdt-8.4-5",
+   "label": "Herodotus, Histories 8.4–5",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.4"
+  },
+  {
+   "id": "hdt-8.75",
+   "label": "Herodotus, Histories 8.75",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+8.75"
+  },
+  {
+   "id": "thuc-1.90-91",
+   "label": "Thucydides 1.90–91 (trans. Richard Crawley)",
+   "url": "https://www.gutenberg.org/ebooks/7142"
+  },
+  {
+   "id": "thuc-1.135-138",
+   "label": "Thucydides 1.135–138 (trans. Richard Crawley)",
+   "url": "https://www.gutenberg.org/ebooks/7142"
+  },
+  {
+   "id": "diod-11",
+   "label": "Diodorus Siculus, Library of History 11.58–59",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/11C*.html"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "A person",
+   "title": "Themistocles",
+   "text": "480 BC. Themistocles stands before the Athenian Assembly and asks for something no city does. Send the women and children away. Put every able-bodied man on a ship. Leave Athens to the Persians.\n\nThey vote yes.",
+   "image": {
+    "file": "File:Busto di temistocle, da originale greco del V secolo ac, dal decumano presso il casamento del temistocle.JPG",
+    "alt": "A marble bust of Themistocles: a broad, heavy face with a short beard and tight curls, a Roman copy of a Greek original.",
+    "focus": "50% 30%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Busto_di_temistocle%2C_da_originale_greco_del_V_secolo_ac%2C_dal_decumano_presso_il_casamento_del_temistocle.JPG/960px-Busto_di_temistocle%2C_da_originale_greco_del_V_secolo_ac%2C_dal_decumano_presso_il_casamento_del_temistocle.JPG",
+    "width": 2624,
+    "height": 4168,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Busto_di_temistocle,_da_originale_greco_del_V_secolo_ac,_dal_decumano_presso_il_casamento_del_temistocle.JPG",
+    "artist": "Sailko",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "A city turned to the sea",
+   "text": "Athens lies a few miles inland. When Themistocles was young, its ships beached on the open shore at Phalerum.\n\nHe moved the navy to Piraeus, a headland with three natural harbours that could be walled. The sea power that became Athens' empire and its golden age grew from there.",
+   "image": {
+    "file": "File:Map athenian empire 431 BC-en.svg",
+    "alt": "Map of the Aegean in 431 BC, showing Athens and the islands and coastal cities of its empire.",
+    "focus": "45% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Map_athenian_empire_431_BC-en.svg/960px-Map_athenian_empire_431_BC-en.svg.png",
+    "width": 993,
+    "height": 794,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Map_athenian_empire_431_BC-en.svg",
+    "artist": "Marsyas",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "src": [
+    "wiki-1"
+   ],
+   "pins": [
+    {
+     "year": -510,
+     "label": "Tyrants expelled"
+    },
+    {
+     "year": -493,
+     "label": "His archonship"
+    },
+    {
+     "year": -490,
+     "label": "Marathon"
+    },
+    {
+     "year": -480,
+     "label": "Salamis"
+    },
+    {
+     "year": -459,
+     "label": "Dies in Magnesia"
+    },
+    {
+     "year": -431,
+     "label": "Peloponnesian War"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The outsider",
+   "chapter": "I",
+   "title": "Not quite Athenian",
+   "text": "He was born around 524 BC in the deme of Phrearrhii. Plutarch calls his father, Neocles, “no very conspicuous man at Athens.” His mother may have come from Halicarnassus, Thrace or Acarnania, and the family seems to have lived at Cynosarges, an immigrant district outside the city walls.\n\nThemistocles talked well-born boys into exercising with him there. Already, Plutarch saw a trick in it: it blurred the line between “alien and legitimate.”",
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The outsider",
+   "chapter": "I",
+   "title": "For good or evil",
+   "text": "Even as a boy, Plutarch says, he was preparing for public life. His teacher told him: “My boy, you will be nothing insignificant, but definitely something great, either for good or evil.”\n\nHe grew up as Athens changed. In 510 BC the city threw out its tyrant, Hippias, and soon afterwards Cleisthenes handed political power to the people. A democracy needed new skills, and Themistocles had them.",
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The outsider",
+   "chapter": "I",
+   "title": "A man of the people",
+   "text": "He moved to the Ceramicus, a down-market part of the city, and canvassed where the voters were: the taverns, the markets, the docks. He practised law for ordinary people, the first Athenian to prepare for public life that way.\n\nIt worked. In 493 BC, at about thirty, he was elected archon, the highest office in Athens.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The sea",
+   "chapter": "II",
+   "title": "A new harbour",
+   "text": "As archon, Themistocles began building a new port at Piraeus to replace the beach at Phalerum. It was further from the city, but it had three natural harbours and could be fortified.\n\nThere was politics in it too. A navy needed rowers, and the rowers were the thetes, the poorest citizens. More ships put more power in the hands of ordinary Athenians, and so in the hands of the man they voted for.",
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The sea",
+   "chapter": "II",
+   "title": "The rival",
+   "text": "In 490 BC Themistocles fought at Marathon, possibly as one of Athens' ten generals. Afterwards the great families tore at each other, and the Athenians reached for a new weapon: ostracism, a vote to send a politician into exile for ten years.\n\nThemistocles moved into the gap. Against him stood Aristides, who cast himself as everything Themistocles was not. His followers called him “the just”.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The sea",
+   "chapter": "II",
+   "title": "Silver into ships",
+   "text": "In 483 BC a rich new seam of silver turned up in the mines at Laurion. Aristides wanted it shared out among the citizens. Themistocles wanted 200 triremes.\n\nHe didn't mention Persia, a threat too distant to frighten anyone. He talked about Aegina, the island Athens was already fighting. His motion carried.",
+   "image": {
+    "file": "File:Lavrion499.JPG",
+    "alt": "A large stone floor at Laurion edged with channels, where silver ore was washed.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Lavrion499.JPG/960px-Lavrion499.JPG",
+    "width": 1152,
+    "height": 768,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Lavrion499.JPG",
+    "artist": "Heinz Schmitz",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5"
+   },
+   "src": [
+    "wiki-1",
+    "hdt-7.144"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The sea",
+   "chapter": "II",
+   "title": "The first referendum",
+   "text": "The quarrel ran on through the winter, and in 482 BC it was settled by ostracism: a straight contest between the two men. Aristides lost and went into exile.\n\nThemistocles was now the foremost politician in Athens. As news came in of Persian preparations, the Athenians voted to build even more ships than he had asked for.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did Themistocles talk about Aegina, not Persia, when he asked for the fleet?",
+   "a": "Persia felt too distant to frighten the Athenians, while Aegina was an enemy they were already fighting. Naming Aegina got the ships built, and they were there when Persia came.",
+   "id": "themistocles-r1"
+  },
+  {
+   "type": "story",
+   "label": "III · The war",
+   "chapter": "III",
+   "title": "Leave the city",
+   "text": "In 480 BC the Persians came. Themistocles' plan was to hold the pass at Thermopylae while the allied fleet blocked the straits at Artemisium, and to make Sparta believe in it, Athens had to commit every ship.\n\nThat meant every able man at the oars and the city left behind. The Assembly agreed, and the women and children were sent to Troezen.",
+   "image": {
+    "file": "File:EPMA-13330-Themistocle decree-2.JPG",
+    "alt": "A marble slab inscribed with the Decree of Themistocles, in the National Archaeological Museum of Athens.",
+    "focus": "50% 40%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/EPMA-13330-Themistocle_decree-2.JPG/960px-EPMA-13330-Themistocle_decree-2.JPG",
+    "width": 1809,
+    "height": 2754,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:EPMA-13330-Themistocle_decree-2.JPG",
+    "artist": "Photo: Μαρσύας",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · The war",
+   "chapter": "III",
+   "title": "A bribe at Artemisium",
+   "text": "Off Artemisium, the Spartan admiral Eurybiades wanted to sail away without a fight. The local people, who would be left to the Persians, paid Themistocles a large bribe to keep the fleet there. He passed some of it to Eurybiades and kept the rest.\n\nThe fleet stayed. It held its own against a far larger navy for three days, and pulled out only when Thermopylae fell.",
+   "src": [
+    "wiki-1",
+    "hdt-8.4-5"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · The war",
+   "chapter": "III",
+   "title": "The trick",
+   "text": "Then came Salamis. Themistocles kept the fleet in the narrow strait and sent a servant, Sicinnus, to tell Xerxes he was “on the king's side” and that the Greeks were about to slip away. Xerxes sent his fleet into the strait and lost it there.\n\nYou'll see that night in full on Wednesday. Plutarch's verdict: he was “the man most instrumental in achieving the salvation of Hellas.”",
+   "image": {
+    "file": "File:Kaulbach, Wilhelm von - Die Seeschlacht bei Salamis - 1868.JPG",
+    "alt": "Wilhelm von Kaulbach's huge painting of Salamis: Greek ships surging forward, Persian ships breaking up, Xerxes on his throne on the shore.",
+    "focus": "50% 55%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Kaulbach%2C_Wilhelm_von_-_Die_Seeschlacht_bei_Salamis_-_1868.JPG/960px-Kaulbach%2C_Wilhelm_von_-_Die_Seeschlacht_bei_Salamis_-_1868.JPG",
+    "width": 5032,
+    "height": 2840,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Kaulbach,_Wilhelm_von_-_Die_Seeschlacht_bei_Salamis_-_1868.JPG",
+    "artist": "Wilhelm von Kaulbach",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "hdt-8.75",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Second place",
+   "title": "Everyone's second choice",
+   "text": "After the war the allied admirals voted for who had fought best. Each put himself first and Themistocles second, so nobody won.\n\nSparta gave him a prize of its own, “for his wisdom and cleverness.” At the next Olympic Games, Plutarch says, the crowd “neglected the contestants all day long to gaze on him.”",
+   "image": {
+    "file": "File:Themistocles honoured at Sparta, illustration from 'Hutchinson's History of the Nations', 1915.jpg",
+    "alt": "An early 20th-century illustration of Themistocles being honoured by the Spartans.",
+    "focus": "50% 40%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Themistocles_honoured_at_Sparta%2C_illustration_from_%27Hutchinson%27s_History_of_the_Nations%27%2C_1915.jpg",
+    "width": 379,
+    "height": 500,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Themistocles_honoured_at_Sparta,_illustration_from_%27Hutchinson%27s_History_of_the_Nations%27,_1915.jpg",
+    "artist": "Alfred C. Weatherstone",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · The war",
+   "chapter": "III",
+   "title": "Advantageous, and unjust",
+   "text": "Plutarch tells a story about how far his cunning went. Themistocles told the Assembly he had a plan he couldn't reveal in public, so they asked Aristides, now back from exile, to hear it alone.\n\nThe plan was to burn the other Greek cities' fleets where they wintered, leaving Athens master of the sea. Aristides reported back that nothing could be more advantageous, and nothing more unjust. The Athenians told Themistocles to drop it.",
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "What did the Athenians agree to in 480 BC so that Themistocles' plan could work?",
+   "a": "To send their families away, put every able man on the ships and leave the city to the Persians, so that the whole fleet could fight alongside the allies.",
+   "id": "themistocles-r2"
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "The walls",
+   "text": "With the Persians gone, Athens began rebuilding its walls. Sparta objected that nothing north of the Isthmus should be fortified, in case the Persians came back.\n\nThemistocles went to Sparta, insisted no building was going on, and told them to send envoys to see for themselves. By the time the envoys arrived, the walls were up. Athens held them until Sparta let Themistocles go home.",
+   "image": {
+    "file": "File:Athenians rebuilding their city under the direction of Themistocles.jpg",
+    "alt": "An illustration of Athenians lifting a stone block with a wooden hoist as they rebuild their walls.",
+    "focus": "50% 45%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Athenians_rebuilding_their_city_under_the_direction_of_Themistocles.jpg/960px-Athenians_rebuilding_their_city_under_the_direction_of_Themistocles.jpg",
+    "width": 1420,
+    "height": 1772,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Athenians_rebuilding_their_city_under_the_direction_of_Themistocles.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "thuc-1.90-91"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "Too proud",
+   "text": "Success wore thin. He built a shrine near his house to Artemis “of good counsel”, a broad hint about whose counsel had saved Greece. The poet Timocreon wrote drinking songs against him, and Sparta promoted a younger rival, Cimon.\n\nIn 472 or 471 BC the Athenians ostracized him. That, Plutarch says, was “not a penalty”, just a way of soothing “that jealousy which delights to humble the eminent.”",
+   "image": {
+    "file": "File:AGMA Ostrakon Thémistocle 1.jpg",
+    "alt": "A broken piece of pottery scratched with the name Themistocles, son of Neocles: a vote to exile him.",
+    "focus": "50% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/AGMA_Ostrakon_Th%C3%A9mistocle_1.jpg",
+    "width": 800,
+    "height": 778,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:AGMA_Ostrakon_Th%C3%A9mistocle_1.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "On the run",
+   "text": "In exile at Argos it got worse. Sparta accused him of plotting with its own disgraced general, Pausanias, and Athens summoned him for trial. He fled to Corcyra, then to Admetus, king of the Molossians.\n\nAthens declared him a traitor and seized his property. Admetus refused to hand him over and sent him on his way with gold.",
+   "image": {
+    "file": "File:Franc Kavčič - Temistokles išče zatočišče pri kralju Admetu.jpg",
+    "alt": "A neoclassical painting of Themistocles kneeling before King Admetus with a small boy at his side, as women and guards look on.",
+    "focus": "50% 45%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Franc_Kav%C4%8Di%C4%8D_-_Temistokles_i%C5%A1%C4%8De_zato%C4%8Di%C5%A1%C4%8De_pri_kralju_Admetu.jpg",
+    "width": 760,
+    "height": 526,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Franc_Kav%C4%8Di%C4%8D_-_Temistokles_i%C5%A1%C4%8De_zato%C4%8Di%C5%A1%C4%8De_pri_kralju_Admetu.jpg",
+    "artist": "Franz Caucig",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "thuc-1.135-138"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "A ship full of enemies",
+   "text": "He crossed to Pydna and took a ship for Asia. A storm drove it to Naxos, where an Athenian fleet was laying siege.\n\nThemistocles, travelling under a false name, told the captain who he was, and promised that if he were caught he would swear he had bribed the captain to carry him. The ship sailed on and landed him at Ephesus.",
+   "src": [
+    "wiki-1",
+    "thuc-1.135-138"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "He wrote to the new Persian king, Artaxerxes, the son of Xerxes. Thucydides adds that in the same letter he took false credit for keeping Xerxes' escape route open.",
+   "image": {
+    "file": "File:He stoods silent before King.jpg",
+    "alt": "Walter Crane's illustration of Themistocles standing silent before the Persian king on his throne.",
+    "focus": "50% 35%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/He_stoods_silent_before_King.jpg/960px-He_stoods_silent_before_King.jpg",
+    "width": 1818,
+    "height": 2570,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:He_stoods_silent_before_King.jpg",
+    "artist": "Walter Crane",
+    "license": "Public domain"
+   },
+   "src": [
+    "thuc-1.135-138"
+   ],
+   "quote": {
+    "text": "I, Themistocles, am come to you, who did your house more harm than any of the Hellenes, when I was compelled to defend myself against your father's invasion—harm, however, far surpassed by the good that I did him during his retreat, which brought no danger for me but much for him.",
+    "attribution": "Thucydides 1.137",
+    "translator": "Richard Crawley"
+   }
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "Governor of Magnesia",
+   "text": "He asked for a year to learn Persian and its customs, and the king gave it to him. At court he rose higher than any Greek before or since.\n\nArtaxerxes made him governor of Magnesia on the Maeander, with revenues from three cities: Magnesia for his bread, Myus for the rest of his table, Lampsacus for his wine. He may have been the first ruler to put his own portrait on his coins.",
+   "image": {
+    "file": "File:Coinage of Themistocles Magnesia.jpg",
+    "alt": "Both sides of a small silver coin from Magnesia struck in Themistocles' name.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Coinage_of_Themistocles_Magnesia.jpg/960px-Coinage_of_Themistocles_Magnesia.jpg",
+    "width": 1823,
+    "height": 1016,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Coinage_of_Themistocles_Magnesia.jpg",
+    "artist": "Bibliothèque nationale de France",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   },
+   "src": [
+    "wiki-1",
+    "thuc-1.135-138"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "Thucydides, writing within living memory of him, gave this verdict.",
+   "src": [
+    "thuc-1.135-138"
+   ],
+   "quote": {
+    "text": "Themistocles was a man who exhibited the most indubitable signs of genius; indeed, in this particular he has a claim on our admiration quite extraordinary and unparalleled. By his own native capacity, alike unformed and unsupplemented by study, he was at once the best judge in those sudden crises which admit of little or of no deliberation, and the best prophet of the future, even to its most distant possibilities.",
+    "attribution": "Thucydides 1.138",
+    "translator": "Richard Crawley"
+   }
+  },
+  {
+   "type": "story",
+   "label": "IV · The fall",
+   "chapter": "IV",
+   "title": "The end in Magnesia",
+   "text": "He died at Magnesia in 459 BC, aged 65. Thucydides says it was natural causes. A later story, which Plutarch tells, has the king order him to make war on Athens, and Themistocles drinking bull's blood rather than do it.\n\nRumour said his bones were carried home and buried secretly in Attica, where burying a traitor was against the law.",
+   "src": [
+    "wiki-1",
+    "thuc-1.135-138",
+    "plut-them"
+   ]
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "Saviour, or self-server?",
+   "src": [
+    "wiki-1",
+    "diod-11"
+   ],
+   "sides": [
+    {
+     "label": "The saviour",
+     "text": "Thucydides calls his talent unparalleled, and Diodorus puts him first among everyone on record. Plutarch calls him the man most responsible for saving Greece. Without his fleet and his trick, there's no victory at Salamis."
+    },
+    {
+     "label": "The self-server",
+     "text": "He took bribes and kept some, boasted, and built a shrine to his own good counsel. His message to Xerxes also bought Athens some mercy if the Greeks lost. He ended his life in the pay of Persia."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "The navy he left",
+   "text": "Themistocles turned Athens to the sea, and it stayed there. In 478 BC the Delian League put the Aegean's fleets under Athenian leadership, and under Pericles the league became an empire.\n\nHe had also set Athens up as Sparta's rival at sea. That rivalry broke open in 431 BC as the Peloponnesian War.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "You can still see it",
+   "text": "In the north wall of the Acropolis you can still see column drums from a temple the Persians destroyed, built into the wall when Athens rebuilt under Themistocles.\n\nNapoleon knew the story. Surrendering after Waterloo, he wrote that he came “like Themistocles, to throw myself upon the hospitality” of the British people.",
+   "image": {
+    "file": "File:Acropolis North wall Older Partenon columns.jpg",
+    "alt": "The north wall of the Acropolis in Athens, with a row of round marble column drums set into the stonework.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Acropolis_North_wall_Older_Partenon_columns.jpg/960px-Acropolis_North_wall_Older_Partenon_columns.jpg",
+    "width": 1386,
+    "height": 1739,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Acropolis_North_wall_Older_Partenon_columns.jpg",
+    "artist": "Seligmanwaite",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did a fleet of triremes shift power toward ordinary Athenians?",
+   "a": "The ships were rowed by the thetes, the poorest citizens, so a navy made them essential to the city's defence and put more power in their hands.",
+   "id": "themistocles-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1",
+    "thuc-1.90-91"
+   ],
+   "q": "How did Themistocles get the walls of Athens rebuilt when Sparta objected?",
+   "a": "He went to Sparta and stalled, denying that any building was going on, until the walls were finished. Then Athens held the Spartan envoys until he was allowed home.",
+   "id": "themistocles-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1",
+    "thuc-1.135-138"
+   ],
+   "q": "How did the man who beat Xerxes end up serving Xerxes' son?",
+   "a": "Ostracized, then accused of treason and hunted by Sparta and Athens, he fled east and offered his services to Artaxerxes, who made him governor of Magnesia.",
+   "id": "themistocles-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Aristides",
+   "kind": "person",
+   "names": [
+    "Aristides"
+   ],
+   "title": "Aristides",
+   "description": "Athenian general and statesman (530–468 BC)",
+   "extract": "Aristides was an ancient Athenian statesman. Nicknamed \"the Just\", he flourished at the beginning of Athens' Classical period and is remembered for his generalship in the Persian War. The ancient historian Herodotus cited him as \"the best and most honourable man in Athens\", and he received similarly reverent treatment in Plato's Socratic dialogues.",
+   "url": "https://en.wikipedia.org/wiki/Aristides",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Boston_%282019%29_-_194.jpg/330px-Boston_%282019%29_-_194.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Boston_(2019)_-_194.jpg",
+    "artist": "Another Believer",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Xerxes I",
+   "kind": "person",
+   "names": [
+    "Xerxes"
+   ],
+   "title": "Xerxes I",
+   "description": "King of Kings of the Achaemenid Empire from 486 to 465 BC",
+   "extract": "Xerxes I was a Persian ruler who reigned as the fourth King of Kings of the Achaemenid Empire, reigning from 486 BC until his assassination in 465 BC. He was the son of Darius the Great and Atossa.",
+   "url": "https://en.wikipedia.org/wiki/Xerxes_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/National_Museum_of_Iran_Darafsh_%28785%29.JPG/330px-National_Museum_of_Iran_Darafsh_%28785%29.JPG",
+    "width": 330,
+    "height": 498,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:National_Museum_of_Iran_Darafsh_(785).JPG",
+    "artist": "Darafsh",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   }
+  },
+  {
+   "wiki": "Artaxerxes I",
+   "kind": "person",
+   "names": [
+    "Artaxerxes"
+   ],
+   "title": "Artaxerxes I",
+   "description": "King of Kings of the Achaemenid Empire from 465 to 424 BC",
+   "extract": "Artaxerxes I was the fifth King of Kings of the Achaemenid Empire of Persia, from August 465 to December 424 BC. He was the third son of Xerxes I. In Greek sources he is also surnamed \"Long-handed\", allegedly because his right hand was longer than his left. Josephus and several ancient traditions identify him as King Ahasuerus, from the Book of Esther.",
+   "url": "https://en.wikipedia.org/wiki/Artaxerxes_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Relief_of_Artaxerxes_I%2C_from_his_tomb_in_Naqsh-e_Rustam.jpg/330px-Relief_of_Artaxerxes_I%2C_from_his_tomb_in_Naqsh-e_Rustam.jpg",
+    "width": 330,
+    "height": 458,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Relief_of_Artaxerxes_I,_from_his_tomb_in_Naqsh-e_Rustam.jpg",
+    "artist": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Eurybiades",
+   "kind": "person",
+   "names": [
+    "Eurybiades"
+   ],
+   "title": "Eurybiades",
+   "description": "Spartan commander in a Greco-Persian War (480–479 BC)",
+   "extract": "Eurybiades was the Spartan navarch in charge of the Greek navy during the Second Persian invasion of Greece.",
+   "url": "https://en.wikipedia.org/wiki/Eurybiades"
+  },
+  {
+   "wiki": "Cleisthenes",
+   "kind": "person",
+   "names": [
+    "Cleisthenes"
+   ],
+   "title": "Cleisthenes",
+   "description": "6th-century BC Athenian lawgiver",
+   "extract": "Cleisthenes, or Clisthenes, was an ancient Athenian lawgiver credited with reforming the constitution of ancient Athens and setting it on a democratic footing in 508 BC. For these accomplishments, historians refer to him as \"the father of Athenian democracy\". He was a member of the aristocratic Alcmaeonid clan. He was the younger son of Megacles and Agariste making him the maternal grandson of the tyrant Cleisthenes of Sicyon. He was also credited with increasing the power of the Athenian citizens' assembly and for reducing the power of the nobility over Athenian politics.",
+   "url": "https://en.wikipedia.org/wiki/Cleisthenes",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Cleisthenes.jpg/330px-Cleisthenes.jpg",
+    "width": 330,
+    "height": 430,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Cleisthenes.jpg",
+    "artist": "Photo: http://www.ohiostatehouse.org/Multimedia/MediaLibrary/Media.aspx?fileId=117260",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Hippias (tyrant)",
+   "kind": "person",
+   "names": [
+    "Hippias"
+   ],
+   "title": "Hippias (tyrant)",
+   "description": "Tyrant of Athens from 527 to 510 BC",
+   "extract": "Hippias was the last tyrant of Athens, ruling from 527 to 510 BC. He was one of the Peisistratids, a group of tyrants from the same family in ancient Greece. His father was Pisistratus, who preceded him as ruler of Athens, while his brother Hipparchus may have ruled jointly with him. Hippias also had an illegitimate son, Hegesistratus, whom he made tyrant of Sigeion. He was deposed when Cleomenes I of Sparta successfully invaded Athens and forced him to flee to the Achaemenid Empire.",
+   "url": "https://en.wikipedia.org/wiki/Hippias_(tyrant)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Number_Stories_of_Long_Ago_-_Plate_3.jpg/330px-Number_Stories_of_Long_Ago_-_Plate_3.jpg",
+    "width": 330,
+    "height": 506,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Number_Stories_of_Long_Ago_-_Plate_3.jpg",
+    "artist": "Author David Eugene Smith Publisher Ginn and company",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Sicinnus",
+   "kind": "person",
+   "names": [
+    "Sicinnus"
+   ],
+   "title": "Sicinnus",
+   "extract": "Sicinnus, a Persian traitor, and helper to the Athenian leader Themistocles and pedagogue to his children according to Plutarch. He is known for his actions as a negotiator between Themistocles and the Persian ruler Xerxes I during the Second Persian invasion of Greece. Sicinnus deceived Xerxes into sending his fleet into Themistocles' trap.",
+   "url": "https://en.wikipedia.org/wiki/Sicinnus"
+  },
+  {
+   "wiki": "Pausanias (general)",
+   "kind": "person",
+   "names": [
+    "Pausanias"
+   ],
+   "title": "Pausanias the Regent",
+   "description": "Spartan general and regent (died c. 477 BC)",
+   "extract": "Pausanias was a Spartan regent and a general. In 479 BC, as a leader of the Hellenic League's combined land forces, he won a pivotal victory against the Achaemenid Empire in the Battle of Plataea. Despite his role in ending the Second Persian invasion of Greece, Pausanias subsequently fell under suspicion of conspiring with the Persian king Xerxes I. After an interval of repeated arrests and debates about his guilt, he was starved to death by his fellow Spartans.",
+   "url": "https://en.wikipedia.org/wiki/Pausanias_the_Regent",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Pausanias_in_the_Capitoline_Museums%2C_Rome.jpg/330px-Pausanias_in_the_Capitoline_Museums%2C_Rome.jpg",
+    "width": 330,
+    "height": 496,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Pausanias_in_the_Capitoline_Museums,_Rome.jpg",
+    "artist": "Jona Lendering",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Cimon",
+   "kind": "person",
+   "names": [
+    "Cimon"
+   ],
+   "title": "Cimon",
+   "description": "5th-century BC Athenian statesman and general",
+   "extract": "Cimon was an Athenian strategos and politician.",
+   "url": "https://en.wikipedia.org/wiki/Cimon",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/KimonSculpture.jpg/330px-KimonSculpture.jpg",
+    "width": 330,
+    "height": 496,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:KimonSculpture.jpg",
+    "artist": "Markus Leupold-Löwenthal",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Timocreon",
+   "kind": "person",
+   "names": [
+    "Timocreon"
+   ],
+   "title": "Timocreon",
+   "description": "5th-century BC Greek lyric poet",
+   "extract": "Timocreon of Ialysus in Rhodes was a Greek lyric poet who flourished about 480 BC, at the time of the Persian Wars. His poetry survives only in a very few fragments, and some claim he has received less attention from modern scholars than he deserves. He seems to have composed convivial verses for drinking parties. However, he is remembered particularly for his bitter clashes with Themistocles and Simonides over the issue of his medizing, for which he had been banished from his home around the time of the Greek victory at the Battle of Salamis.",
+   "url": "https://en.wikipedia.org/wiki/Timocreon",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/Lip-Cup_sexual_intercourse_Ialysos_black_background.jpg/330px-Lip-Cup_sexual_intercourse_Ialysos_black_background.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Lip-Cup_sexual_intercourse_Ialysos_black_background.jpg",
+    "artist": "Jebulon",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Pericles",
+   "kind": "person",
+   "names": [
+    "Pericles"
+   ],
+   "title": "Pericles",
+   "description": "Athenian statesman and general (c. 495-429)",
+   "extract": "Pericles was a Greek statesman and general during the Golden Age of Athens. He was prominent and influential in Ancient Athenian politics, particularly between the Greco-Persian Wars and the Peloponnesian War, and was acclaimed by Thucydides, a contemporary historian, as \"the first citizen of Athens\". Pericles turned the Delian League into an Athenian empire and led his countrymen during the first two years of the Peloponnesian War.",
+   "url": "https://en.wikipedia.org/wiki/Pericles",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Pericles_Pio-Clementino_Inv269_n2.jpg/330px-Pericles_Pio-Clementino_Inv269_n2.jpg",
+    "width": 330,
+    "height": 500,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Pericles_Pio-Clementino_Inv269_n2.jpg",
+    "artist": "Copy of Kresilas",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Thucydides",
+   "kind": "person",
+   "names": [
+    "Thucydides"
+   ],
+   "title": "Thucydides",
+   "description": "5th-century BC Athenian historian and general",
+   "extract": "Thucydides was an Athenian historian and general. His History of the Peloponnesian War recounts the 5th century BC war between Sparta and Athens until the year 411 BC. Thucydides has been dubbed the father of \"scientific history\" by those who accept his claims to have applied strict standards of impartiality and evidence-gathering and analysis of cause and effect, without reference to intervention by the gods, as outlined in his introduction to his work.",
+   "url": "https://en.wikipedia.org/wiki/Thucydides",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Thucydides_pushkin01.jpg/330px-Thucydides_pushkin01.jpg",
+    "width": 330,
+    "height": 459,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Thucydides_pushkin01.jpg",
+    "artist": "user:shakko",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Plutarch",
+   "kind": "person",
+   "names": [
+    "Plutarch"
+   ],
+   "title": "Plutarch",
+   "description": "Greek philosopher and historian",
+   "extract": "Plutarch was a Greek and later Roman Middle Platonist philosopher, historian, biographer, essayist, and priest at the Temple of Apollo in Delphi. He is known primarily for his Parallel Lives, a series of biographies of illustrious Greeks and Romans, and Moralia, a collection of essays and speeches. Upon becoming a Roman citizen, he was possibly named Lucius Mestrius Plutarchus.",
+   "url": "https://en.wikipedia.org/wiki/Plutarch",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg/330px-Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_a_philosopher,_maybe_Plutarch,_2nd_century_BC,_AM_Delphi,_0135.jpg",
+    "artist": "Zde",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Diodorus Siculus",
+   "kind": "person",
+   "names": [
+    "Diodorus"
+   ],
+   "title": "Diodorus Siculus",
+   "description": "1st-century BC Greek historian",
+   "extract": "Diodorus Siculus or Diodorus of Sicily was an ancient Greek historian from Sicily. He is known for writing the monumental universal history Bibliotheca historica, in forty books, fifteen of which survive intact, between 60 and 30 BC. The history is arranged in three parts. The first covers mythic history up to the destruction of Troy, arranged geographically, describing regions around the world from Egypt, India and Arabia to Europe. The second covers the time from the Trojan War to the death of Alexander the Great. The third covers the period to about 60 BC.",
+   "url": "https://en.wikipedia.org/wiki/Diodorus_Siculus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Diodoro_siculo_-_storico_di_Agira.jpg/330px-Diodoro_siculo_-_storico_di_Agira.jpg",
+    "width": 330,
+    "height": 343,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Diodoro_siculo_-_storico_di_Agira.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Napoleon",
+   "kind": "person",
+   "names": [
+    "Napoleon"
+   ],
+   "title": "Napoleon",
+   "description": "Emperor of the French (1804–1814; 1815)",
+   "extract": "Napoleon Bonaparte, later known by his regnal name Napoleon I, was Emperor of the French from 18 May 1804 until his first abdication in 1814, with a brief restoration during the Hundred Days in 1815. He rose to prominence as a general during the French Revolution and led a series of military campaigns across Europe and the Middle East during the French Revolutionary and Napoleonic Wars. As a statesman, he implemented numerous legal and administrative reforms in France and Europe.",
+   "url": "https://en.wikipedia.org/wiki/Napoleon",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg/330px-Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg",
+    "width": 330,
+    "height": 550,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg",
+    "artist": "Jacques-Louis David",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Piraeus",
+   "kind": "place",
+   "names": [
+    "Piraeus"
+   ],
+   "title": "Piraeus",
+   "description": "Harbour of Athens and a port city in Attica, Greece",
+   "extract": "Piraeus is a port city within the Athens urban area, in the Attica region of Greece. It is located eight kilometres (5 mi) southwest of Athens city centre along the east coast of the Saronic Gulf in the Athens Riviera.",
+   "url": "https://en.wikipedia.org/wiki/Piraeus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/2011_Dimos_Pireos.png/330px-2011_Dimos_Pireos.png",
+    "width": 330,
+    "height": 230,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:2011_Dimos_Pireos.png",
+    "artist": "Pitichinaccio",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   }
+  },
+  {
+   "wiki": "Phalerum",
+   "kind": "place",
+   "names": [
+    "Phalerum"
+   ],
+   "title": "Phalerum",
+   "description": "Ancient port of Athens",
+   "extract": "Phalerum or Phaleron was a port of Ancient Athens, 5 km southwest of the Acropolis of Athens, on a bay of the Saronic Gulf. The bay is also referred to as \"Bay of Phalerum\".",
+   "url": "https://en.wikipedia.org/wiki/Phalerum",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Attica_06-13_Paleo_Faliro_04_beach.jpg/330px-Attica_06-13_Paleo_Faliro_04_beach.jpg",
+    "width": 330,
+    "height": 214,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Attica_06-13_Paleo_Faliro_04_beach.jpg",
+    "artist": "A.Savin",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Laurium",
+   "kind": "place",
+   "names": [
+    "Laurion"
+   ],
+   "title": "Lavrio",
+   "description": "Town in southeastern Attica, Greece",
+   "extract": "Lavrio, Lavrion or Laurium is a town in southeastern part of Attica, Greece. It is part of Athens metropolitan area and the seat of the municipality of Lavreotiki. Laurium was known in Classical antiquity for its silver mines, one of the chief sources of revenue of the Athenian state. The silver was mainly used for coinage. The Archaeological Museum of Lavrion shows much of the story of these mines.",
+   "url": "https://en.wikipedia.org/wiki/Lavrio",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/LavrioPort.jpg/330px-LavrioPort.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:LavrioPort.jpg",
+    "artist": "The original uploader was Apanag at Greek Wikipedia .",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Aegina",
+   "kind": "place",
+   "names": [
+    "Aegina"
+   ],
+   "title": "Aegina",
+   "description": "Greek island, south of Athens",
+   "extract": "Aegina is one of the Saronic Islands of Greece in the Saronic Gulf, 27 km (17 mi) from Athens. Tradition derives the name from Aegina, the mother of the mythological hero Aeacus, who was born on the island and became its king. In classical antiquity Aegina was a powerful city-state and at one point a rival of Athens. In modern times Aegina is known for the temple of Aphaia, pistachio production, and the pilgrimage site of St. Nektarios. Many Athenians have established vacation homes in Aegina.",
+   "url": "https://en.wikipedia.org/wiki/Aegina",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/%C3%84gina_Hafenblick.jpg/330px-%C3%84gina_Hafenblick.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%C3%84gina_Hafenblick.jpg",
+    "artist": "-- Xocolatl 20:16, 10 April 2008 (UTC)",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Troezen",
+   "kind": "place",
+   "names": [
+    "Troezen"
+   ],
+   "title": "Troezen",
+   "description": "Town in the Peloponnese, Greece",
+   "extract": "Troezen is a small town and a former municipality in the northeastern Peloponnese, Greece, on the Argolid Peninsula. Since the 2011 local government reform it is part of the municipality Troizinia-Methana, of which it is a municipal unit. It is part of the Islands regional unit. In the 2021 census it had a population of 4,668.",
+   "url": "https://en.wikipedia.org/wiki/Troezen",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Troizina_Village_Main_Square.JPG/330px-Troizina_Village_Main_Square.JPG",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Troizina_Village_Main_Square.JPG",
+    "artist": "Schuppi",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Thermopylae",
+   "kind": "place",
+   "names": [
+    "Thermopylae"
+   ],
+   "title": "Thermopylae",
+   "description": "Ancient fortified passage in central Greece",
+   "extract": "Thermopylae is a narrow pass and modern town in Lamia, Phthiotis, Greece. It derives its name from its hot sulphur springs. In Greek mythology the Hot Gates is one of the entrances to Hades.",
+   "url": "https://en.wikipedia.org/wiki/Thermopylae",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Thermopylae_ancient_coastline_large.jpg/330px-Thermopylae_ancient_coastline_large.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Thermopylae_ancient_coastline_large.jpg",
+    "artist": "Fkerasar",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   }
+  },
+  {
+   "wiki": "Kerameikos",
+   "kind": "place",
+   "names": [
+    "Ceramicus"
+   ],
+   "title": "Kerameikos",
+   "description": "Area of Athens, Greece",
+   "extract": "Kerameikos, also known by its Latinized form Ceramicus, is an area of Athens, Greece, located to the northwest of the Acropolis, which includes an extensive area both within and outside the ancient city walls, on both sides of the Dipylon Gate and by the banks of the Eridanos River. It was the potters' quarter of the city, from which the English word ceramic is derived, and was also the site of an important cemetery and numerous funerary sculptures erected along the Sacred Way, a road from Athens to Eleusis.",
+   "url": "https://en.wikipedia.org/wiki/Kerameikos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Kerameikos_Cemetery_on_July_28%2C_2019.jpg/330px-Kerameikos_Cemetery_on_July_28%2C_2019.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Kerameikos_Cemetery_on_July_28,_2019.jpg",
+    "artist": "George E. Koronaios",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Cynosarges",
+   "kind": "place",
+   "names": [
+    "Cynosarges"
+   ],
+   "title": "Cynosarges",
+   "description": "Area of ancient Athens",
+   "extract": "Cynosarges was a famous temple of Heracles, public gymnasium, and surrounding grove located just outside the walls of Ancient Athens on the southern bank of the Ilissos river and near the Diomeian gate. The modern suburb of Kynosargous is named after it.",
+   "url": "https://en.wikipedia.org/wiki/Cynosarges",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Votive_relief_NAMA3952.jpg/330px-Votive_relief_NAMA3952.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Votive_relief_NAMA3952.jpg",
+    "artist": "Jebulon",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Corfu",
+   "kind": "place",
+   "names": [
+    "Corcyra"
+   ],
+   "title": "Corfu",
+   "description": "Greek island in the Ionian Sea",
+   "extract": "Corfu or Kerkyra is one of the Ionian Islands in western Greece, and the northernmost island on Greece's west coast except for its satellite Diapontian Islands, which are also the westernmost point of all Greece. Corfu and the Diapontian Islands mark the International Hydrographic Organization border between the Ionian Sea to the south and the Adriatic Sea to the north. Within the Ionian Islands region, the regional unit of Corfu extends as far south as the Paxoi. The capital and largest city of the regional unit is also named Corfu.",
+   "url": "https://en.wikipedia.org/wiki/Corfu",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Pontikonisi.jpg/330px-Pontikonisi.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Pontikonisi.jpg",
+    "artist": "StefanosKozanis",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Ephesus",
+   "kind": "place",
+   "names": [
+    "Ephesus"
+   ],
+   "title": "Ephesus",
+   "description": "Ancient Greek city in Anatolia",
+   "extract": "Ephesus was an ancient Greek city on the coast of Ionia, in present-day Selçuk in İzmir Province, Turkey. It was built in the 10th century BC on the site of Apasa, a city-state that was also the capital of Arzawa, by Attic and Ionian Greek colonists. During the Classical Greek era, it was one of twelve cities that were members of the Ionian League. The city came under the control of the Roman Republic in 129 BC.",
+   "url": "https://en.wikipedia.org/wiki/Ephesus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Ephesus_Celsus_Library_Fa%C3%A7ade.jpg/330px-Ephesus_Celsus_Library_Fa%C3%A7ade.jpg",
+    "width": 330,
+    "height": 256,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ephesus_Celsus_Library_Fa%C3%A7ade.jpg",
+    "artist": "Benh LIEU SONG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Magnesia on the Maeander",
+   "kind": "place",
+   "names": [
+    "Magnesia on the Maeander",
+    "Magnesia"
+   ],
+   "title": "Magnesia on the Maeander",
+   "description": "Ancient Greek city in Ionia, modern Turkey",
+   "extract": "Magnesia or Magnesia on the Maeander was an ancient Greek city in Ionia, considerable in size, at an important location commercially and strategically in the triangle of Priene, Ephesus and Tralles. The city was named Magnesia, after the Magnetes from Thessaly who settled the area along with some Cretans. It was later called \"on the Meander\" to distinguish it from the nearby Lydian city Magnesia ad Sipylum. It was earlier the site of Leucophrys mentioned by several ancient writers.",
+   "url": "https://en.wikipedia.org/wiki/Magnesia_on_the_Maeander",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg/330px-%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg",
+    "width": 330,
+    "height": 204,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D1%81%D0%B8%D1%8F_%D0%BD%D0%B0_%D0%9C%D0%B5%D0%B0%D0%BD%D0%B4%D1%80%D0%B5._%D0%9F%D1%80%D0%BE%D0%BF%D0%B8%D0%BB%D0%B5%D0%B8.jpg",
+    "artist": "Vadimph",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Lampsacus",
+   "kind": "place",
+   "names": [
+    "Lampsacus"
+   ],
+   "title": "Lampsacus",
+   "description": "Ancient Greek city located on the eastern side of the Hellespont in the northern Troad",
+   "extract": "Lampsacus was an ancient Greek city located in modern day Turkey, situated on the eastern side of the Hellespont in the northern Troad. An inhabitant of Lampsacus was called a Lampsacene. The name has been transmitted in the nearby modern town of Lapseki.",
+   "url": "https://en.wikipedia.org/wiki/Lampsacus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Stater_Zeus_Lampsacus_CdM.jpg/330px-Stater_Zeus_Lampsacus_CdM.jpg",
+    "width": 330,
+    "height": 330,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Stater_Zeus_Lampsacus_CdM.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  }
+ ]
+}

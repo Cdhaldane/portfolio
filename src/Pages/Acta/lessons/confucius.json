@@ -1,0 +1,754 @@
+{
+ "v": 1,
+ "slug": "confucius",
+ "kind": "meanwhile",
+ "era": "east",
+ "title": "Confucius",
+ "subtitle": "c. 551–479 BC",
+ "summary": "Meanwhile in China: the teacher no ruler would employ, whose ideas ran China's government for two thousand years.",
+ "year": -479,
+ "yearLabel": "c. 551–479 BC",
+ "place": "The state of Lu, eastern China",
+ "minutes": 12,
+ "takeaways": [
+  "Confucius (c. 551–479 BC) taught in the small state of Lu during China's Spring and Autumn period, and never found a ruler who would govern by his ideas.",
+  "His teaching, preserved by his students in the Analects, put virtue, ritual, family loyalty and learning at the centre of good government and a good life.",
+  "From the Han dynasty until 1912, his ideas were China's official philosophy and the core of the exams that chose its officials."
+ ],
+ "teaser": "The general who led Athens through its golden age, and into the war that ended it.",
+ "teaserFor": "pericles",
+ "links": [
+  "salamis"
+ ],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Confucius",
+   "url": "https://en.wikipedia.org/wiki/Confucius"
+  },
+  {
+   "id": "analects",
+   "label": "Confucius, The Analects (trans. James Legge)",
+   "url": "https://www.gutenberg.org/ebooks/3330"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "Meanwhile",
+   "title": "Confucius",
+   "text": "479 BC, the year of Plataea. In the small state of Lu, in eastern China, an old teacher dies at about seventy-two. He spent more than a decade going from court to court, looking for a ruler who would govern by his ideas, and never found one.\n\nHis students wrote down what he said. Within four centuries an emperor made it the official philosophy of China.",
+   "image": {
+    "file": "File:孔子燕居像.png",
+    "alt": "A traditional Chinese painted portrait of Confucius: an old man with a long black beard, a dark cap and blue-trimmed robes.",
+    "focus": "50% 25%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/%E5%AD%94%E5%AD%90%E7%87%95%E5%B1%85%E5%83%8F.png/960px-%E5%AD%94%E5%AD%90%E7%87%95%E5%B1%85%E5%83%8F.png",
+    "width": 2291,
+    "height": 2828,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%E5%AD%94%E5%AD%90%E7%87%95%E5%B1%85%E5%83%8F.png",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "Meanwhile, in Lu",
+   "text": "Lu lay around the city of Qufu, in what is now Shandong province. In theory it belonged to the kings of Zhou. In practice China was split into rival states, and Lu was run by its own lords, who were themselves overshadowed by three great families.\n\nHistorians call these centuries the Spring and Autumn period.",
+   "image": {
+    "file": "File:Journey of Confucius.png",
+    "alt": "A map of eastern China showing the route Confucius travelled between rival states from 497 to 484 BC.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Journey_of_Confucius.png/960px-Journey_of_Confucius.png",
+    "width": 1272,
+    "height": 900,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Journey_of_Confucius.png",
+    "artist": "SY",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   },
+   "src": [
+    "wiki-1"
+   ],
+   "pins": [
+    {
+     "year": -551,
+     "label": "Confucius born"
+    },
+    {
+     "year": -497,
+     "label": "Leaves Lu"
+    },
+    {
+     "year": -480,
+     "label": "Salamis"
+    },
+    {
+     "year": -479,
+     "label": "Confucius dies"
+    },
+    {
+     "year": -221,
+     "label": "Qin unites China"
+    },
+    {
+     "year": -140,
+     "label": "Made state doctrine"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · A poor boy",
+   "chapter": "I",
+   "title": "Kong Qiu",
+   "text": "He was born Kong Qiu, probably in 551 BC, near Qufu. “Confucius” is a Latin form of Kongfuzi, roughly “Great Master Kong”, coined by Jesuit missionaries in the 16th century. In China today he is usually Kongzi, Master Kong.\n\nHis father, an elderly commander of the local garrison, died when he was three, and his mother raised him in poverty.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · A poor boy",
+   "chapter": "I",
+   "title": "Between classes",
+   "text": "He was born a shi, a class between the aristocracy and the common people. As a young man he took government jobs, worked as a bookkeeper and looked after sheep and horses, and used the money to give his mother a proper burial.\n\nWhen she died he mourned her for three years, as tradition required. He was twenty-three.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · A poor boy",
+   "chapter": "I",
+   "title": "A teacher for anyone",
+   "text": "He began teaching after he turned thirty. He charged no fees, asking only a symbolic gift of a bundle of dried meat, and turned no one away: noblemen, commoners, even former criminals.\n\nTradition credits him with 3,000 students over his life, about seventy of them outstanding. His favourite, Yan Hui, was probably the poorest of them all.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Office and exile",
+   "chapter": "II",
+   "title": "Minister of Crime",
+   "text": "In 501 BC Lu's great families, shaken by a rebellion, made him governor of a town. He rose to be Minister of Crime.\n\nHe set out to give power back to the duke by persuading the three families to tear down the walls of their own fortified cities. Two of them did. The third refused, and in 498 BC even the duke's army failed to bring its walls down.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Office and exile",
+   "chapter": "II",
+   "title": "Horses and dancing girls",
+   "text": "The great historian Sima Qian tells how it ended. The neighbouring state of Qi, worried that Lu was growing strong, sent its duke a hundred fine horses and eighty dancing girls. The duke neglected his duties for three days.\n\nConfucius decided to go, but leaving at once would shame his ruler. So he waited for a smaller lapse, when the duke failed to send him his share of the sacrificial meat, and left on that.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Office and exile",
+   "chapter": "II",
+   "title": "On the road",
+   "text": "In 497 BC he left Lu and spent more than a decade travelling between the courts of rival states, among them Wey, Zheng, Chen, Cai and Chu, explaining how a ruler ought to govern.\n\nThey listened. None of them did it.",
+   "image": {
+    "file": "File:Confucius and Laozi, fresco from a Western Han tomb of Dongping County, Shandong province, China.jpg",
+    "alt": "A faded Han dynasty tomb fresco of a line of robed figures, traditionally read as Confucius meeting Laozi.",
+    "focus": "50% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Confucius_and_Laozi%2C_fresco_from_a_Western_Han_tomb_of_Dongping_County%2C_Shandong_province%2C_China.jpg",
+    "width": 450,
+    "height": 304,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Confucius_and_Laozi,_fresco_from_a_Western_Han_tomb_of_Dongping_County,_Shandong_province,_China.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Office and exile",
+   "chapter": "II",
+   "title": "Home at last",
+   "text": "When he was sixty-eight, Lu's chief minister invited him home. He spent his last years teaching and, tradition says, editing the old classics of poetry, history and ritual.\n\nHe outlived his son and his favourite disciples. When he died, he was buried by the Si River, north of Qufu.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did Confucius leave Lu?",
+   "a": "His plan to bring down the fortified cities of Lu's great families failed and made him powerful enemies. Sima Qian adds a duke distracted by a rival's gift of horses and dancing girls.",
+   "id": "confucius-r1"
+  },
+  {
+   "type": "story",
+   "label": "III · What he taught",
+   "chapter": "III",
+   "title": "The Analects",
+   "text": "Almost everything we know of his teaching comes from the Analects, sayings collected by his students long after his death. Tradition credits him with writing or editing the Five Classics, but modern scholars are wary of pinning particular words on him.\n\nHe described himself as “a transmitter and not a maker”, reviving the ways of the ancients.",
+   "image": {
+    "file": "File:Rongo Analects 02.jpg",
+    "alt": "An old printed page of the Analects in Chinese characters, with smaller commentary between the lines.",
+    "focus": "50% 30%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Rongo_Analects_02.jpg",
+    "width": 712,
+    "height": 540,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Rongo_Analects_02.jpg",
+    "artist": "Confucius and his disciples,",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "analects"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "His idea of government, from the Analects.",
+   "src": [
+    "analects"
+   ],
+   "quote": {
+    "text": "If the people be led by laws, and uniformity sought to be given them by punishments, they will try to avoid the punishment, but have no sense of shame. … If they be led by virtue, and uniformity sought to be given them by the rules of propriety, they will have the sense of shame, and moreover will become good.",
+    "attribution": "Confucius, Analects 2.3",
+    "translator": "James Legge"
+   }
+  },
+  {
+   "type": "story",
+   "label": "III · What he taught",
+   "chapter": "III",
+   "title": "Ren, li and the gentleman",
+   "text": "Three ideas run through his teaching. Ren is humaneness: meeting your duties to others with real empathy. Li is ritual and propriety, from sacrifices to everyday manners, done at the right time in the right way. The junzi, the gentleman, is someone made good by study and practice.\n\nHe taught by example and story, not by rules, and believed a ruler who leads well hardly needs force.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · What he taught",
+   "chapter": "III",
+   "title": "The stable fire",
+   "text": "His students remembered small moments. Once, while he was at court, the stables burned down. When he got back, he asked: “Has any man been hurt?” He did not ask about the horses.\n\nLater readers took that one line as the heart of his humanism.",
+   "src": [
+    "wiki-1",
+    "analects"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "His disciple Zigong, Tsze-kung in this old translation, asked for one word to live by.",
+   "src": [
+    "analects"
+   ],
+   "quote": {
+    "text": "Tsze-kung asked, saying, 'Is there one word which may serve as a rule of practice for all one's life?' The Master said, 'Is not RECIPROCITY such a word? What you do not want done to yourself, do not do to others.",
+    "attribution": "Confucius, Analects 15.23",
+    "translator": "James Legge"
+   }
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Family",
+   "title": "Filial piety",
+   "text": "Respect for parents and ancestors sat at the centre of his ethics: family loyalty, care for elders, rites for the dead. He saw a strong family as the foundation of good government.\n\nThe same respect ran upward to rulers, with a duty attached: a good subordinate tells his superior when he is wrong.",
+   "image": {
+    "file": "File:The Classic of Filial Piety (開宗明義章 畫).jpg",
+    "alt": "A traditional Chinese painting of Confucius seated on a raised mat beneath a tree, surrounded by disciples, one kneeling before him.",
+    "focus": "50% 45%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/The_Classic_of_Filial_Piety_%28%E9%96%8B%E5%AE%97%E6%98%8E%E7%BE%A9%E7%AB%A0_%E7%95%AB%29.jpg/960px-The_Classic_of_Filial_Piety_%28%E9%96%8B%E5%AE%97%E6%98%8E%E7%BE%A9%E7%AB%A0_%E7%95%AB%29.jpg",
+    "width": 2162,
+    "height": 1916,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:The_Classic_of_Filial_Piety_(%E9%96%8B%E5%AE%97%E6%98%8E%E7%BE%A9%E7%AB%A0_%E7%95%AB).jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "analects"
+   ],
+   "q": "What did Confucius think ruling by laws and punishments alone would produce?",
+   "a": "People who avoid punishment but feel no shame. Leading by virtue and propriety, he said, gives them a sense of shame and makes them good.",
+   "id": "confucius-r2"
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "In between, he says, at thirty he stood firm, at forty he had no doubts, and at fifty he knew the decrees of Heaven.",
+   "image": {
+    "file": "File:Confucius, fresco from a Western Han tomb of Dongping County, Shandong province, China.jpg",
+    "alt": "A Han dynasty tomb fresco of Confucius in profile: an old man with a beard and a topknot, drawn in black ink on plaster.",
+    "focus": "50% 40%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Confucius%2C_fresco_from_a_Western_Han_tomb_of_Dongping_County%2C_Shandong_province%2C_China.jpg",
+    "width": 450,
+    "height": 338,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Confucius,_fresco_from_a_Western_Han_tomb_of_Dongping_County,_Shandong_province,_China.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "analects"
+   ],
+   "quote": {
+    "text": "At fifteen, I had my mind bent on learning. … At seventy, I could follow what my heart desired, without transgressing what was right.",
+    "attribution": "Confucius, Analects 2.4",
+    "translator": "James Legge"
+   }
+  },
+  {
+   "type": "story",
+   "label": "IV · After him",
+   "chapter": "IV",
+   "title": "Eclipse, then triumph",
+   "text": "His students spread his ideas, and two later thinkers built on them in opposite directions: Mencius stressed people's innate goodness, Xunzi the need for training. Then in 221 BC the Qin state conquered all of China and adopted the rival creed of Legalism, which put law, punishment and war first.\n\nIt took the next dynasty, the Han. Under Emperor Wu, his works became the official philosophy and required reading for the civil service exams.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · After him",
+   "chapter": "IV",
+   "title": "Two thousand years of exams",
+   "text": "From then until the end of imperial China in 1912, almost without a break, works tied to Confucius were what China's officials had to master.\n\nUnder the Song dynasty, Zhu Xi reworked his ideas, drawing on Buddhism and Daoism, into what the West calls Neo-Confucianism. It held sway in China, Japan, Korea and Vietnam until the 19th century.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "numbers",
+   "label": "By the numbers",
+   "title": "Confucius in numbers",
+   "src": [
+    "wiki-1"
+   ],
+   "rows": [
+    {
+     "value": "3,000",
+     "label": "Students over his lifetime, by tradition"
+    },
+    {
+     "value": "c. 70",
+     "label": "Of them counted as outstanding disciples"
+    },
+    {
+     "value": "1912",
+     "label": "End of the imperial China whose officials studied his works"
+    },
+    {
+     "value": "83",
+     "label": "Generations in his family tree, the longest recorded in the world"
+    },
+    {
+     "value": "2 million",
+     "label": "Registered descendants alive today"
+    },
+    {
+     "value": "100,000+",
+     "label": "Graves of his descendants in the cemetery at Qufu"
+    }
+   ]
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "Conservative, or reformer?",
+   "src": [
+    "wiki-1"
+   ],
+   "sides": [
+    {
+     "label": "A conservative",
+     "text": "He looked back with longing to the early Zhou, urged rulers to copy ancient models, and called himself a transmitter, not a maker. Respect for elders, superiors and ritual runs through everything he taught."
+    },
+    {
+     "label": "A reformer",
+     "text": "He used the old rites to argue for something new: rulers who earned power by their merit, not their lineage. And he opened education to anyone who brought a bundle of dried meat."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Confucius goes west",
+   "text": "Jesuit missionaries in China translated his works, and in 1687 a team of them published several in Paris. Enlightenment thinkers from Leibniz to Voltaire read him with interest.\n\nToday he appears on the frieze in the courtroom of the US Supreme Court, as a teacher of harmony, learning and virtue.",
+   "image": {
+    "file": "File:LifeAndWorksOfConfucius1687.jpg",
+    "alt": "Pages from a 1687 Jesuit book: an engraving of Confucius standing before shelves of books, beside a Latin title page.",
+    "focus": "50% 35%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/LifeAndWorksOfConfucius1687.jpg/960px-LifeAndWorksOfConfucius1687.jpg",
+    "width": 4000,
+    "height": 3240,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:LifeAndWorksOfConfucius1687.jpg",
+    "artist": "Prospero Intorcetta, Philippe Couplet, et al.",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Attacked, then honoured",
+   "text": "In the Cultural Revolution, Red Guards attacked his tomb, and in 1973 Mao launched a campaign to “Criticize Lin, Criticize Confucius”. By the early 1980s the attacks were over.\n\nNow his birthday is a week-long celebration in Qufu, and his family tree, recorded father to son for 83 generations, is the longest known pedigree in the world.",
+   "image": {
+    "file": "File:Confuciustombqufu.jpg",
+    "alt": "The tomb of Confucius at Qufu: a tall inscribed stone tablet in front of a grassy mound, with a stone incense burner and old trees.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Confuciustombqufu.jpg/960px-Confuciustombqufu.jpg",
+    "width": 1200,
+    "height": 1600,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Confuciustombqufu.jpg",
+    "artist": "Rolf Müller ( User:Rolfmueller )",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did Confucius spend more than a decade travelling between rival courts?",
+   "a": "He was looking for a ruler who would govern by his ideas, leading by virtue and ritual rather than force. They listened, but none put them into practice.",
+   "id": "confucius-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "analects"
+   ],
+   "q": "What one word did Confucius offer as a rule for life, and what did he mean by it?",
+   "a": "Reciprocity: what you do not want done to yourself, do not do to others.",
+   "id": "confucius-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "How did a teacher who never held power for long come to shape China's government for two thousand years?",
+   "a": "His students preserved and spread his teaching, and under Emperor Wu of Han it became the official philosophy and the basis of the civil service exams, which lasted until 1912.",
+   "id": "confucius-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Lu (state)",
+   "kind": "place",
+   "names": [
+    "Lu"
+   ],
+   "title": "Lu (state)",
+   "description": "Zhou dynasty vassal state (c.1042 – 249 BC)",
+   "extract": "Lu was a vassal state during the Zhou dynasty of ancient China located around modern southwest Shandong. Founded in the 11th century BC, its rulers were from a cadet branch of the House of Ji (姬) that ruled the Zhou dynasty. The first duke was Boqin, a son of the Duke of Zhou, who was brother of King Wu of Zhou and regent to King Cheng of Zhou.",
+   "url": "https://en.wikipedia.org/wiki/Lu_(state)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Sketch_Map_of_China_during_the_Chou_Dynasty.jpg/330px-Sketch_Map_of_China_during_the_Chou_Dynasty.jpg",
+    "width": 330,
+    "height": 224,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Sketch_Map_of_China_during_the_Chou_Dynasty.jpg",
+    "artist": "Friedrich Hirth",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Qi (state)",
+   "kind": "place",
+   "names": [
+    "Qi"
+   ],
+   "title": "Qi (state)",
+   "description": "Zhou dynasty Chinese state (1046–221 BCE)",
+   "extract": "Qi, or Ch'i in Wade–Giles romanization, was a regional state of the Zhou dynasty in ancient China, whose rulers held titles of Hou (侯), then Gong (公), before declaring themselves independent Kings (王). Its capital was Linzi, located in present-day Shandong. Qi was founded shortly after the Zhou conquest of Shang, c. 1046 BCE. Its first monarch was Jiang Ziya, minister of King Wen and a legendary figure in Chinese culture. His family ruled Qi for several centuries before it was replaced by the Tian family in 386 BCE.",
+   "url": "https://en.wikipedia.org/wiki/Qi_(state)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/EN-QI260BCE.jpg/330px-EN-QI260BCE.jpg",
+    "width": 330,
+    "height": 304,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:EN-QI260BCE.jpg",
+    "artist": "Philg88",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Qufu",
+   "kind": "place",
+   "names": [
+    "Qufu"
+   ],
+   "title": "Qufu",
+   "description": "County-level city in Shandong, People's Republic of China",
+   "extract": "Qufu is a county-level city in southwestern Shandong province, East China. It is located about 130 kilometres (81 mi) south of the provincial capital Jinan and 45 km (28 mi) northeast of the prefectural seat of Jining. Qufu has an area of 815 square kilometers, and a total population of 653,000 inhabitants, of which, 188,000 live in urban areas.",
+   "url": "https://en.wikipedia.org/wiki/Qufu",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Zhou_Gong_Miao_3.jpg/330px-Zhou_Gong_Miao_3.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Zhou_Gong_Miao_3.jpg",
+    "artist": "호고호",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Shandong",
+   "kind": "place",
+   "names": [
+    "Shandong"
+   ],
+   "title": "Shandong",
+   "description": "Province in East China",
+   "extract": "Shandong is a coastal province in East China which has played a major role in the development of the Chinese civilization and culture as it has served as a pivotal cultural and religious center for Taoism, Chinese Buddhism and Confucianism. Shandong's Mount Tai is the most revered mountain of Taoism and a site with one of the longest histories of continuous religious worship in the world. The Buddhist temples in the mountains south of the provincial capital of Jinan were once among the foremost Buddhist sites in China.",
+   "url": "https://en.wikipedia.org/wiki/Shandong",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e2/PenglaiPavilion.jpg/330px-PenglaiPavilion.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:PenglaiPavilion.jpg",
+    "artist": "Chrishcn",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+   }
+  },
+  {
+   "wiki": "Plataea",
+   "kind": "place",
+   "names": [
+    "Plataea"
+   ],
+   "title": "Plataea",
+   "description": "Ancient city in southeastern Boeotia, Greece",
+   "extract": "Plataea or Plataeae was an ancient Greek city-state situated in Boeotia near the frontier with Attica at the foot of Mt. Cithaeron, between the mountain and the river Asopus, which divided its territory from that of Thebes. Its inhabitants were known as the Plataeans.",
+   "url": "https://en.wikipedia.org/wiki/Plataea",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Plataea_battlefield.jpg/330px-Plataea_battlefield.jpg",
+    "width": 330,
+    "height": 187,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Plataea_battlefield.jpg",
+    "artist": "Geraki",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Yan Hui",
+   "kind": "person",
+   "names": [
+    "Yan Hui"
+   ],
+   "title": "Yan Hui",
+   "description": "Chinese philosopher (c. 521–481 BC)",
+   "extract": "Yan Hui was a Chinese philosopher. He was the favorite disciple of Confucius and one of the most revered figures of Confucianism. He is venerated in Confucian temples as one of the Four Sages.",
+   "url": "https://en.wikipedia.org/wiki/Yan_Hui",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Yan_Hui_Ziyuan_%28%E9%A1%8F%E5%9B%9E_%E5%AD%90%E6%B7%B5%29.jpg/330px-Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Yan_Hui_Ziyuan_%28%E9%A1%8F%E5%9B%9E_%E5%AD%90%E6%B7%B5%29.jpg",
+    "width": 330,
+    "height": 447,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Yan_Hui_Ziyuan_(%E9%A1%8F%E5%9B%9E_%E5%AD%90%E6%B7%B5).jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Duanmu Ci",
+   "kind": "person",
+   "names": [
+    "Zigong"
+   ],
+   "title": "Duanmu Ci",
+   "description": "Important disciple of Confucius (520–456 BC)",
+   "extract": "Duanmu Ci, also known by his courtesy name Zigong, was a Chinese businessman, philosopher, and politician. He was one of the most important and loyal disciples of Confucius. Among Confucius' students, he was the second best at speech, after only Zai Yu. He was a prominent diplomat of the Spring and Autumn period who served as a high official in several states, and was a very wealthy businessman.",
+   "url": "https://en.wikipedia.org/wiki/Duanmu_Ci",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Duanmu_Ci_Zigong_%28%E7%AB%AF%E6%9C%A8%E8%B3%9C_%E5%AD%90%E8%B2%A2%29.jpg/330px-Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Duanmu_Ci_Zigong_%28%E7%AB%AF%E6%9C%A8%E8%B3%9C_%E5%AD%90%E8%B2%A2%29.jpg",
+    "width": 330,
+    "height": 447,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Duanmu_Ci_Zigong_(%E7%AB%AF%E6%9C%A8%E8%B3%9C_%E5%AD%90%E8%B2%A2).jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Sima Qian",
+   "kind": "person",
+   "names": [
+    "Sima Qian"
+   ],
+   "title": "Sima Qian",
+   "description": "Chinese historian (c. 145 – c. 86 BCE)",
+   "extract": "Sima Qian was a Chinese historian during the early Han dynasty. He is considered the father of Chinese historiography for the Shiji, a general history of China covering more than two thousand years from the rise of the legendary Yellow Emperor and formation of the first Chinese polity to the reign of Emperor Wu of Han, during which Sima wrote. As the first universal history of the world as it was known to the ancient Chinese, the Shiji served as a model for official histories for subsequent dynasties across the Sinosphere until the 20th century.",
+   "url": "https://en.wikipedia.org/wiki/Sima_Qian",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Si_maqian.jpg/330px-Si_maqian.jpg",
+    "width": 330,
+    "height": 337,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Si_maqian.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Mencius",
+   "kind": "person",
+   "names": [
+    "Mencius"
+   ],
+   "title": "Mencius",
+   "description": "Confucian philosopher (c. 371 – c. 289 BC)",
+   "extract": "Mencius, born Meng Ke (孟軻), was a Chinese Confucian philosopher, often described as the Second Sage (亞聖) to reflect his traditional esteem relative to Confucius himself. He was part of Confucius's fourth generation of disciples, inheriting his ideology and developing it further. Living during the Warring States period, he is said to have spent much of his life travelling around the states offering counsel to different rulers. Conversations with these rulers form the basis of the Mencius, which would later be canonised as a Confucian classic.",
+   "url": "https://en.wikipedia.org/wiki/Mencius",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Meng_Ke_%28%E5%AD%9F%E8%BB%BB%29.jpg/330px-Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Meng_Ke_%28%E5%AD%9F%E8%BB%BB%29.jpg",
+    "width": 330,
+    "height": 447,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Half_Portraits_of_the_Great_Sage_and_Virtuous_Men_of_Old_-_Meng_Ke_(%E5%AD%9F%E8%BB%BB).jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Xunzi (philosopher)",
+   "kind": "person",
+   "names": [
+    "Xunzi"
+   ],
+   "title": "Xunzi (philosopher)",
+   "description": "Chinese Confucian philosopher (c. 310 – after 238 BCE)",
+   "extract": "Xunzi, born Xun Kuang, was a late Warring States period Confucian Chinese philosopher, often ranked as the third great Confucian philosopher of antiquity after his predecessors Confucius and Mencius. By his time, Confucianism had suffered considerable criticism from Taoist and Mohist thinkers, and Xunzi is traditionally regarded as a synthesizer of these traditions with earlier Confucian thought. The result was a thorough and cohesive revision of Confucianism, which was crucial to the philosophy's ability to flourish in the Han dynasty and throughout the later history of East Asia.",
+   "url": "https://en.wikipedia.org/wiki/Xunzi_(philosopher)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Portrait_of_Xun_Zi.jpg/330px-Portrait_of_Xun_Zi.jpg",
+    "width": 330,
+    "height": 425,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_Xun_Zi.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Emperor Wu of Han",
+   "kind": "person",
+   "names": [
+    "Emperor Wu"
+   ],
+   "title": "Emperor Wu of Han",
+   "description": "Emperor of China from 141 to 87 BC",
+   "extract": "Emperor Wu of Han, personal name Liu Che and courtesy name Tong, was the seventh emperor of the Han dynasty from 141 to 87 BC. His reign lasted 54 years – a record not broken until the reign of the Kangxi Emperor more than 1,800 years later – and remains the record for ethnic Han emperors. His reign resulted in a vast expansion of geopolitical influence for the Chinese civilization, and the development of a strong centralized state via governmental policies, economical reorganization and promotion of a hybrid Legalist–Confucian doctrine.",
+   "url": "https://en.wikipedia.org/wiki/Emperor_Wu_of_Han",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/%E6%BC%A2%E6%AD%A6%E5%B8%9D.jpg/330px-%E6%BC%A2%E6%AD%A6%E5%B8%9D.jpg",
+    "width": 330,
+    "height": 450,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%E6%BC%A2%E6%AD%A6%E5%B8%9D.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Zhu Xi",
+   "kind": "person",
+   "names": [
+    "Zhu Xi"
+   ],
+   "title": "Zhu Xi",
+   "description": "Chinese philosopher (1130–1200)",
+   "extract": "Zhu Xi, formerly romanized Chu Hsi, was a Chinese philosopher, historian, politician, poet, and calligrapher of the Southern Song dynasty. As a leading figure in the development of Neo-Confucianism, Zhu Xi played a pivotal role in shaping the intellectual foundations of later imperial China.",
+   "url": "https://en.wikipedia.org/wiki/Zhu_Xi",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/%E5%94%AF%E4%B8%80%E5%8F%AF%E9%9D%A0%E7%9A%84%E6%9C%B1%E7%86%B9%E7%94%BB%E5%83%8F.jpg/330px-%E5%94%AF%E4%B8%80%E5%8F%AF%E9%9D%A0%E7%9A%84%E6%9C%B1%E7%86%B9%E7%94%BB%E5%83%8F.jpg",
+    "width": 330,
+    "height": 371,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%E5%94%AF%E4%B8%80%E5%8F%AF%E9%9D%A0%E7%9A%84%E6%9C%B1%E7%86%B9%E7%94%BB%E5%83%8F.jpg",
+    "artist": "向史公哲曰",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Gottfried Wilhelm Leibniz",
+   "kind": "person",
+   "names": [
+    "Leibniz"
+   ],
+   "title": "Gottfried Wilhelm Leibniz",
+   "description": "German polymath (1646–1716)",
+   "extract": "Gottfried Wilhelm Leibniz was a German polymath active as a mathematician, philosopher, scientist, and diplomat. Alongside Isaac Newton, he is widely credited with the invention of calculus. He is also credited with making foundational contributions to other areas of mathematics, such as binary arithmetic and statistics.",
+   "url": "https://en.wikipedia.org/wiki/Gottfried_Wilhelm_Leibniz",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Christoph_Bernhard_Francke_-_Bildnis_des_Philosophen_Leibniz_%28ca._1695%29.jpg/330px-Christoph_Bernhard_Francke_-_Bildnis_des_Philosophen_Leibniz_%28ca._1695%29.jpg",
+    "width": 330,
+    "height": 407,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Christoph_Bernhard_Francke_-_Bildnis_des_Philosophen_Leibniz_(ca._1695).jpg",
+    "artist": "Christoph Bernhard Francke",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Voltaire",
+   "kind": "person",
+   "names": [
+    "Voltaire"
+   ],
+   "title": "Voltaire",
+   "description": "French writer and philosopher (1694–1778)",
+   "extract": "François-Marie Arouet, known by his pen name Voltaire, was a French Enlightenment writer, philosopher (philosophe), satirist, and historian. Famous for his wit and his criticism of Christianity and of slavery, Voltaire was an advocate of freedom of speech, freedom of religion, and separation of church and state.",
+   "url": "https://en.wikipedia.org/wiki/Voltaire",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Nicolas_de_Largilli%C3%A8re_-_Portrait_de_Voltaire_%281694-1778%29_en_1718_-_P208_-_mus%C3%A9e_Carnavalet_-_5_%28cropped%29.jpg/330px-Nicolas_de_Largilli%C3%A8re_-_Portrait_de_Voltaire_%281694-1778%29_en_1718_-_P208_-_mus%C3%A9e_Carnavalet_-_5_%28cropped%29.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Nicolas_de_Largilli%C3%A8re_-_Portrait_de_Voltaire_(1694-1778)_en_1718_-_P208_-_mus%C3%A9e_Carnavalet_-_5_(cropped).jpg",
+    "artist": "Nicolas de Largillière",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Mao Zedong",
+   "kind": "person",
+   "names": [
+    "Mao"
+   ],
+   "title": "Mao Zedong",
+   "description": "Leader of China from 1949 to 1976",
+   "extract": "Mao Zedong was a Chinese communist revolutionary, political theorist and the founder of the People's Republic of China (PRC). He served as China's paramount leader from 1949 until his death in 1976 primarily through his role as the Chairman of the Chinese Communist Party (CCP). Mao Zedong Thought, which he advocated as a Chinese adaptation of Marxism–Leninism, influenced movements and Maoist organizations worldwide.",
+   "url": "https://en.wikipedia.org/wiki/Mao_Zedong",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Mao_Zedong_1950_Portrait_%283x4_cropped%29%282%29.jpg/330px-Mao_Zedong_1950_Portrait_%283x4_cropped%29%282%29.jpg",
+    "width": 330,
+    "height": 445,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Mao_Zedong_1950_Portrait_(3x4_cropped)(2).jpg",
+    "artist": "Chen Zhengqing (1917–1966)",
+    "license": "Public domain"
+   }
+  }
+ ]
+}

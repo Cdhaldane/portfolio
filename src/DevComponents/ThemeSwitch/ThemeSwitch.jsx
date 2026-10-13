@@ -20,7 +20,7 @@ import "./ThemeSwitch.css";
 // Self-contained surfaces that are always dark and own their top-right
 // corner. The floating switch would do nothing there except cover their
 // controls (Top 5's header actions and table bar sit exactly where it floats).
-const HIDE_ON_PREFIXES = ["/dashboard/top5"];
+const HIDE_ON_PREFIXES = ["/dashboard/top5", "/acta"];
 
 /**
  * Resolve the starting theme: an explicit stored choice wins; otherwise fall

@@ -13,7 +13,7 @@ import { setLenis } from "./scrollControl";
  * from nested scroll containers, which Lenis would fight. Those routes keep
  * native scrolling.
  */
-const SKIP_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn"];
+const SKIP_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn", "/acta"];
 
 const SmoothScroll = () => {
   const { pathname } = useLocation();

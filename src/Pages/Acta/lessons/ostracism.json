@@ -1,0 +1,766 @@
+{
+ "v": 1,
+ "slug": "ostracism",
+ "kind": "idea",
+ "era": "greece",
+ "title": "Ostracism",
+ "subtitle": "487–417 BC",
+ "summary": "How Athenians voted a citizen into ten years' exile with broken pots, and why they stopped.",
+ "year": -487,
+ "yearLabel": "487–417 BC",
+ "place": "The agora, Athens",
+ "minutes": 12,
+ "takeaways": [
+  "Ostracism let the Athenians exile one citizen for ten years with no charge and no trial: first a vote on whether to hold one, then a vote on whom.",
+  "Created against would-be tyrants, it went on to settle political feuds, sending away Aristides in 482 BC and Themistocles around 471.",
+  "It fell out of use after the farce of Hyperbolus around 417 BC, but the word survives for shutting someone out."
+ ],
+ "teaser": "The 170-oar warship that won Salamis, and what a modern replica taught us about rowing one.",
+ "teaserFor": "the-trireme",
+ "links": [
+  "themistocles",
+  "salamis"
+ ],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Ostracism",
+   "url": "https://en.wikipedia.org/wiki/Ostracism"
+  },
+  {
+   "id": "wiki-2",
+   "label": "Wikipedia: Aristides",
+   "url": "https://en.wikipedia.org/wiki/Aristides"
+  },
+  {
+   "id": "wiki-3",
+   "label": "Wikipedia: Ancient Agora of Athens",
+   "url": "https://en.wikipedia.org/wiki/Ancient_Agora_of_Athens"
+  },
+  {
+   "id": "arist-22",
+   "label": "Aristotle, The Athenian Constitution 22 (trans. Frederic G. Kenyon)",
+   "url": "https://www.gutenberg.org/ebooks/26095"
+  },
+  {
+   "id": "plut-arist-7",
+   "label": "Plutarch, Life of Aristides 7 (trans. Bernadotte Perrin)",
+   "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Aristides*.html"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "An idea",
+   "title": "Ostracism",
+   "text": "Athens, 482 BC. In a fenced-off corner of the marketplace, thousands of citizens hand in broken pieces of pottery. Scratched on each one is a name.\n\nThis year it comes down to two men, Themistocles and Aristides. Whoever is named most will have ten days to leave Athens, and can't come back for ten years.",
+   "image": {
+    "file": "File:Aristides Ostrakon at the Stoa of Attalos Museum.jpg",
+    "alt": "A broken piece of pottery scratched with the name of Aristides, son of Lysimachus.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Aristides_Ostrakon_at_the_Stoa_of_Attalos_Museum.jpg/960px-Aristides_Ostrakon_at_the_Stoa_of_Attalos_Museum.jpg",
+    "width": 2881,
+    "height": 2161,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Aristides_Ostrakon_at_the_Stoa_of_Attalos_Museum.jpg",
+    "artist": "Nikos Kitsakis",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+   },
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "The marketplace of Athens",
+   "text": "The vote happened in the agora, the great open square below the Acropolis where Athenians traded, argued and met. The council house, law courts and a painted porch stood around its edges.\n\nThe ballots never left. Archaeologists digging here and in the Kerameikos have found around 12,000 of them.",
+   "image": {
+    "file": "File:AncientAgoraofAthensColour.jpg",
+    "alt": "The ancient agora of Athens today: green open ground scattered with ruins, the Temple of Hephaestus on a rise and a long two-storey colonnade.",
+    "focus": "50% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/AncientAgoraofAthensColour.jpg",
+    "width": 800,
+    "height": 600,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:AncientAgoraofAthensColour.jpg",
+    "artist": "https://www.flickr.com/people/jonezes/",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+   },
+   "src": [
+    "wiki-1",
+    "wiki-3"
+   ],
+   "pins": [
+    {
+     "year": -506,
+     "label": "Ostracism created"
+    },
+    {
+     "year": -490,
+     "label": "Marathon"
+    },
+    {
+     "year": -487,
+     "label": "First ostracism"
+    },
+    {
+     "year": -482,
+     "label": "Aristides"
+    },
+    {
+     "year": -471,
+     "label": "Themistocles"
+    },
+    {
+     "year": -417,
+     "label": "The last one"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · Two votes",
+   "chapter": "I",
+   "title": "Do you want to?",
+   "text": "Each winter, in the sixth month of the political year, the Assembly was asked one question: do you want to hold an ostracism this year? No names were mentioned.\n\nIf a majority said yes, the real vote came two months later. A trial works the other way round. It's as if a jury were first asked whether it wanted to find someone guilty, and only then whom.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · Two votes",
+   "chapter": "I",
+   "title": "Broken pots",
+   "text": "The ballots were ostraka, pieces of broken pottery: plentiful and free, the scrap paper of Athens. Papyrus came from Egypt and was too expensive to throw away.\n\nMany citizens couldn't write, so they gave a name to a scribe, who scratched it on the sherd. The sherds were piled face down to keep votes secret, and the archons counted them and sorted them by name.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · Two votes",
+   "chapter": "I",
+   "title": "Six thousand",
+   "text": "The man with the biggest pile was out, as long as enough people had voted. Plutarch says the result stood if at least 6,000 ballots were cast in all. Another ancient writer, Philochorus, says 6,000 had to name the same man.\n\nHistorians generally prefer Plutarch's version: 6,000 was also the number Athens later required to grant citizenship.",
+   "src": [
+    "wiki-1",
+    "plut-arist-7"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · Two votes",
+   "chapter": "I",
+   "title": "Ten days, ten years",
+   "text": "The loser had ten days to leave. If he came back before his time, the penalty was death.\n\nBut he kept his property and his status, and after ten years he could come home without disgrace. The Assembly could also call him back early, and sometimes did.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · Two votes",
+   "chapter": "I",
+   "title": "No charge, no defence",
+   "text": "Ostracism wasn't a trial. Nobody accused anyone, and the man expelled couldn't defend himself. The decision belonged to the whole people, so there was no prosecutor to take revenge on.\n\nIt was also mild by Athenian standards. Courts could sentence a politician to death, to crushing fines or to exile for life. Ostracism was meant to prevent trouble, not to punish it.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "How was an ostracism different from a trial?",
+   "a": "There was no charge and no defence. The people first voted on whether to expel anyone at all, and only two months later on whom.",
+   "id": "ostracism-r1"
+  },
+  {
+   "type": "story",
+   "label": "II · The first targets",
+   "chapter": "II",
+   "title": "A law against tyrants",
+   "text": "Aristotle says Cleisthenes created ostracism when he founded the democracy, around 506 BC. It went unused for nearly twenty years.\n\nThen came Marathon. Hippias, the son of the old tyrant, had landed with the Persian invaders, and tyranny and Persia looked like one threat. In 487 BC the Athenians used ostracism for the first time.",
+   "src": [
+    "wiki-1",
+    "arist-22"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "Aristotle explains who the law was really aimed at.",
+   "src": [
+    "arist-22"
+   ],
+   "quote": {
+    "text": "This had originally been passed as a precaution against men in high office, because Pisistratus took advantage of his position as a popular leader and general to make himself tyrant; and the first person ostracized was one of his relatives, Hipparchus son of Charmus, of the deme of Collytus, the very person on whose account especially Cleisthenes had enacted the law, as he wished to get rid of him.",
+    "attribution": "Aristotle, The Athenian Constitution 22",
+    "translator": "Frederic G. Kenyon"
+   }
+  },
+  {
+   "type": "story",
+   "label": "II · The first targets",
+   "chapter": "II",
+   "title": "The 480s",
+   "text": "For three years the Athenians expelled friends and relatives of the old tyrants. Then, Aristotle says, they began removing anyone who seemed more powerful than was good for the city: Xanthippus, the father of Pericles, in 484 BC, and Aristides in 482.\n\nOne man drew an enormous vote. 4,647 of the surviving ostraka name Megacles, a nephew of Cleisthenes, who may have been expelled twice.",
+   "src": [
+    "wiki-1",
+    "arist-22"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "In the gap, Aristides had asked what wrong Aristides had ever done him. He wrote his own name on the sherd and handed it back. Leaving the city, Plutarch says, he prayed that no crisis would ever force the Athenians to remember him.",
+   "image": {
+    "file": "File:Aristides and the Citizens.jpg",
+    "alt": "An illustration of Aristides writing on a potsherd for a rough-looking citizen in the agora.",
+    "focus": "50% 40%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Aristides_and_the_Citizens.jpg/960px-Aristides_and_the_Citizens.jpg",
+    "width": 1557,
+    "height": 2177,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Aristides_and_the_Citizens.jpg",
+    "artist": "Weston, W H; Plutarch; Rainey, W",
+    "license": "Public domain"
+   },
+   "src": [
+    "plut-arist-7"
+   ],
+   "quote": {
+    "text": "It is said that an unlettered and utterly boorish fellow handed his ostrakon to Aristides, and asked him to write Aristides on it. … “None whatever,” was the answer, “I don't even know the fellow, but I am tired of hearing him everywhere called 'The Just.",
+    "attribution": "Plutarch, Life of Aristides 7",
+    "translator": "Bernadotte Perrin"
+   }
+  },
+  {
+   "type": "story",
+   "label": "II · The first targets",
+   "chapter": "II",
+   "title": "Called home",
+   "text": "Two years later Xerxes was coming. The Athenians recalled their exiles to help defend the city, and Aristides and Xanthippus came home.\n\nAristides was elected general and fought at Salamis beside his old rival. You saw him yesterday, crossing from Aegina by night with the news that the fleet was surrounded.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The first targets",
+   "chapter": "II",
+   "title": "Themistocles' turn",
+   "text": "Around 471 BC Themistocles was ostracized himself.\n\nIn a well near the Acropolis, archaeologists found 190 ostraka with his name on them, written by about fourteen people. They were made in advance, perhaps to hand out to voters, perhaps to sell to men who couldn't write. Someone then dumped them in the well, maybe to hide them.",
+   "image": {
+    "file": "File:Ostraka for Ostracism, 5th century BC, Museum of the Ancient Agora, Athens, Greece (13896440260).jpg",
+    "alt": "Several pottery sherds in a museum case, each scratched with the name of Themistocles.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ostraka_for_Ostracism%2C_5th_century_BC%2C_Museum_of_the_Ancient_Agora%2C_Athens%2C_Greece_%2813896440260%29.jpg/960px-Ostraka_for_Ostracism%2C_5th_century_BC%2C_Museum_of_the_Ancient_Agora%2C_Athens%2C_Greece_%2813896440260%29.jpg",
+    "width": 3640,
+    "height": 3264,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ostraka_for_Ostracism,_5th_century_BC,_Museum_of_the_Ancient_Agora,_Athens,_Greece_(13896440260).jpg",
+    "artist": "Carole Raddato from FRANKFURT, Germany",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "What do the 190 ostraka found in a well suggest about how ostracisms worked?",
+   "a": "That a few people wrote Themistocles' name in advance, either to hand out to voters in an organised campaign or to sell to men who couldn't write.",
+   "id": "ostracism-r2"
+  },
+  {
+   "type": "story",
+   "label": "III · What it was for",
+   "chapter": "III",
+   "title": "Insults allowed",
+   "text": "Voters could add a few words to the name without spoiling the ballot. Surviving ostraka call Kallixenes “the traitor”, Archen “lover of foreigners”, Agasias “the donkey” and Megacles “the adulterer”.\n\nSome don't name a person at all. They say Limos: hunger.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · What it was for",
+   "chapter": "III",
+   "title": "Cutting off a faction's head",
+   "text": "Athenian politics ran on factions gathered around great men. Removing the leader for ten years could defuse a fight before it turned violent.\n\nLater it settled arguments about policy. Around 443 BC the Athenians ostracized Thucydides son of Melesias (not the historian), who led the opposition to Pericles' building programme on the Acropolis. By sending him away, they backed the plan.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Other cities",
+   "title": "Olive leaves",
+   "text": "Other cities copied the idea: Megara, Miletus, Argos and Syracuse. In Syracuse it was called petalismos, because the names were written on olive leaves.\n\nOstraka have even turned up at Chersonesos Taurica, though no ancient writer mentions an ostracism there.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The end",
+   "chapter": "IV",
+   "title": "The last ostracism",
+   "text": "Around 417 BC a politician named Hyperbolus urged the Athenians to ostracize one of his rivals, Nicias or Alcibiades. The two rivals set aside their own quarrel for a moment, pooled their influence, and got Hyperbolus ostracized instead.\n\nPlutarch says the Athenians were so disgusted that they never used ostracism again.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · The end",
+   "chapter": "IV",
+   "title": "What replaced it",
+   "text": "Ostracism could remove one man a year. A court action called the graphe paranomon could go after many more politicians, and hit them harder.\n\nThe danger had changed too. Athenian democracy was overthrown twice, in 411 and 404 BC, by groups of oligarchs rather than one ambitious man, and ostracism was no use against them. The Assembly still asked the question every year. It always said no.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "numbers",
+   "label": "By the numbers",
+   "title": "Counting sherds",
+   "src": [
+    "wiki-1"
+   ],
+   "rows": [
+    {
+     "value": "10",
+     "label": "Years of exile, with property kept"
+    },
+    {
+     "value": "10",
+     "label": "Days to leave the city"
+    },
+    {
+     "value": "6,000",
+     "label": "Votes needed for a valid result, on Plutarch's account"
+    },
+    {
+     "value": "c. 12,000",
+     "label": "Political ostraka excavated so far"
+    },
+    {
+     "value": "4,647",
+     "label": "Of them naming Megacles"
+    },
+    {
+     "value": "190",
+     "label": "Ready-made ballots against Themistocles found in one well"
+    }
+   ]
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "Safety valve, or rule by grudge?",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ],
+   "sides": [
+    {
+     "label": "A safety valve",
+     "text": "It was gentle by the standards of the time: no deaths, no confiscation, a fixed term. Removing one leader cooled feuds that could have ended in civil war, and the two-month wait kept the choice from being made in anger."
+    },
+    {
+     "label": "Rule by grudge",
+     "text": "There was no charge and no defence. Factions organised campaigns, and a man could be expelled because voters were sick of hearing about him. Aristides, praised by Herodotus as the best man in Athens, was one of its victims."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "A word that stayed",
+   "text": "The institution died; the word didn't. To ostracize now means to shut someone out, and psychologists study it. Kipling Williams, who has charted thousands of cases, finds the silent treatment is its commonest form.\n\nIgnored emails and missing likes have a name too: cyberostracism.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "You can still read the votes",
+   "text": "The Stoa of Attalos, a 2nd-century BC shopping arcade on the agora, has been rebuilt as the Museum of the Ancient Agora. Its cases hold ostraka naming Themistocles, Aristides and others, scratched by the men who voted against them.\n\nAmerican archaeologists began the great excavation of the agora in 1931.",
+   "image": {
+    "file": "File:Athen Stoa Ostrakismos 2.jpg",
+    "alt": "A museum display of pottery sherds inscribed with the names of Athenian politicians.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Athen_Stoa_Ostrakismos_2.jpg/960px-Athen_Stoa_Ostrakismos_2.jpg",
+    "width": 2560,
+    "height": 1920,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Athen_Stoa_Ostrakismos_2.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1",
+    "wiki-3"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why could an ostracized man come home after ten years without disgrace?",
+   "a": "Ostracism wasn't a punishment for a crime. There was no charge, he kept his property and status, and it existed to prevent trouble rather than to punish.",
+   "id": "ostracism-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "How did Hyperbolus bring ostracism to an end?",
+   "a": "He tried to get a rival expelled, but Nicias and Alcibiades combined their influence against him and he was ostracized instead. Plutarch says the Athenians were so disgusted they dropped it.",
+   "id": "ostracism-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1",
+    "arist-22"
+   ],
+   "q": "Who were the first targets of ostracism, and why them?",
+   "a": "Friends and relatives of the old tyrant family. The last tyrant's son, Hippias, had come back with the Persians at Marathon, so tyranny and Persia looked like one threat.",
+   "id": "ostracism-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Themistocles",
+   "kind": "person",
+   "names": [
+    "Themistocles"
+   ],
+   "title": "Themistocles",
+   "description": "Athenian politician and general (c. 524–459 BC)",
+   "extract": "Themistocles was an Athenian politician and general. He was one of a new breed of non-aristocratic politicians who rose to prominence in the early years of the Athenian democracy. As a politician, Themistocles was a populist, having the support of lower-class Athenians, and generally being at odds with the Athenian nobility. Elected archon in 493 BC, he convinced the polis to increase the naval power of Athens, a recurring theme in his political career.",
+   "url": "https://en.wikipedia.org/wiki/Themistocles",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Illustrerad_Verldshistoria_band_I_Ill_116.png/330px-Illustrerad_Verldshistoria_band_I_Ill_116.png",
+    "width": 330,
+    "height": 576,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Illustrerad_Verldshistoria_band_I_Ill_116.png",
+    "artist": "Evald Hansen",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Cleisthenes",
+   "kind": "person",
+   "names": [
+    "Cleisthenes"
+   ],
+   "title": "Cleisthenes",
+   "description": "6th-century BC Athenian lawgiver",
+   "extract": "Cleisthenes, or Clisthenes, was an ancient Athenian lawgiver credited with reforming the constitution of ancient Athens and setting it on a democratic footing in 508 BC. For these accomplishments, historians refer to him as \"the father of Athenian democracy\". He was a member of the aristocratic Alcmaeonid clan. He was the younger son of Megacles and Agariste making him the maternal grandson of the tyrant Cleisthenes of Sicyon. He was also credited with increasing the power of the Athenian citizens' assembly and for reducing the power of the nobility over Athenian politics.",
+   "url": "https://en.wikipedia.org/wiki/Cleisthenes",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Cleisthenes.jpg/330px-Cleisthenes.jpg",
+    "width": 330,
+    "height": 430,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Cleisthenes.jpg",
+    "artist": "Photo: http://www.ohiostatehouse.org/Multimedia/MediaLibrary/Media.aspx?fileId=117260",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Hippias (tyrant)",
+   "kind": "person",
+   "names": [
+    "Hippias"
+   ],
+   "title": "Hippias (tyrant)",
+   "description": "Tyrant of Athens from 527 to 510 BC",
+   "extract": "Hippias was the last tyrant of Athens, ruling from 527 to 510 BC. He was one of the Peisistratids, a group of tyrants from the same family in ancient Greece. His father was Pisistratus, who preceded him as ruler of Athens, while his brother Hipparchus may have ruled jointly with him. Hippias also had an illegitimate son, Hegesistratus, whom he made tyrant of Sigeion. He was deposed when Cleomenes I of Sparta successfully invaded Athens and forced him to flee to the Achaemenid Empire.",
+   "url": "https://en.wikipedia.org/wiki/Hippias_(tyrant)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Number_Stories_of_Long_Ago_-_Plate_3.jpg/330px-Number_Stories_of_Long_Ago_-_Plate_3.jpg",
+    "width": 330,
+    "height": 506,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Number_Stories_of_Long_Ago_-_Plate_3.jpg",
+    "artist": "Author David Eugene Smith Publisher Ginn and company",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Xanthippus (father of Pericles)",
+   "kind": "person",
+   "names": [
+    "Xanthippus"
+   ],
+   "title": "Xanthippus (father of Pericles)",
+   "description": "Athenian politician, father of Pericles (c.525–475 BC)",
+   "extract": "Xanthippus was a wealthy Athenian politician and general during the Greco-Persian Wars. He was the son of Ariphron and father of Pericles, both prominent Athenian statesmen. A marriage to Agariste, niece of Cleisthenes, linked Xanthippus with the Alcmaeonid clan, whose aristocratic interests he often represented in government. He was ostracized in 484 BC, likely arising from his rivalry with Themistocles, but he was recalled from exile when the Persians invaded Greece. He commanded the Athenian fleets in the Battle of Mycale and the Siege of Sestos.",
+   "url": "https://en.wikipedia.org/wiki/Xanthippus_(father_of_Pericles)"
+  },
+  {
+   "wiki": "Pericles",
+   "kind": "person",
+   "names": [
+    "Pericles"
+   ],
+   "title": "Pericles",
+   "description": "Athenian statesman and general (c. 495-429)",
+   "extract": "Pericles was a Greek statesman and general during the Golden Age of Athens. He was prominent and influential in Ancient Athenian politics, particularly between the Greco-Persian Wars and the Peloponnesian War, and was acclaimed by Thucydides, a contemporary historian, as \"the first citizen of Athens\". Pericles turned the Delian League into an Athenian empire and led his countrymen during the first two years of the Peloponnesian War.",
+   "url": "https://en.wikipedia.org/wiki/Pericles",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Pericles_Pio-Clementino_Inv269_n2.jpg/330px-Pericles_Pio-Clementino_Inv269_n2.jpg",
+    "width": 330,
+    "height": 500,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Pericles_Pio-Clementino_Inv269_n2.jpg",
+    "artist": "Copy of Kresilas",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Hyperbolus",
+   "kind": "person",
+   "names": [
+    "Hyperbolus"
+   ],
+   "title": "Hyperbolus",
+   "description": "Athenian politician (died 412/411 BC)",
+   "extract": "Hyperbolus was an Athenian politician active during the first half of the Peloponnesian War, coming to particular prominence after the death of Cleon. In 416 or 415 BC, he was the last Athenian to be ostracised.",
+   "url": "https://en.wikipedia.org/wiki/Hyperbolus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/42_-_Sto%C3%A0_of_Attalus_Museum_-_Ostracism_against_Hyperbolos_%28417_BC%29_-_Photo_by_Giovanni_Dall%27Orto%2C_Nov_9_2009.jpg/330px-42_-_Sto%C3%A0_of_Attalus_Museum_-_Ostracism_against_Hyperbolos_%28417_BC%29_-_Photo_by_Giovanni_Dall%27Orto%2C_Nov_9_2009.jpg",
+    "width": 330,
+    "height": 173,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:42_-_Sto%C3%A0_of_Attalus_Museum_-_Ostracism_against_Hyperbolos_(417_BC)_-_Photo_by_Giovanni_Dall%27Orto,_Nov_9_2009.jpg",
+    "artist": "Giovanni Dall'Orto .",
+    "license": "Attribution"
+   }
+  },
+  {
+   "wiki": "Nicias",
+   "kind": "person",
+   "names": [
+    "Nicias"
+   ],
+   "title": "Nicias",
+   "description": "Athenian politician and general (5th century BC)",
+   "extract": "Nicias was an Athenian politician and general, who was prominent during the Peloponnesian War. A member of the Athenian aristocracy, he inherited a large fortune from his father, and had investments in the silver mines around Laurion, in south-east Attica.",
+   "url": "https://en.wikipedia.org/wiki/Nicias",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Nicias%2C_p_105_%28World%27s_Famous_Orations_Vol_1%29.jpg/330px-Nicias%2C_p_105_%28World%27s_Famous_Orations_Vol_1%29.jpg",
+    "width": 330,
+    "height": 471,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Nicias,_p_105_(World%27s_Famous_Orations_Vol_1).jpg",
+    "artist": "William Jennings Bryan, Francis Whiting Halsey",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Alcibiades",
+   "kind": "person",
+   "names": [
+    "Alcibiades"
+   ],
+   "title": "Alcibiades",
+   "description": "Athenian general and statesman (c. 450–404 BC)",
+   "extract": "Alcibiades was an Athenian statesman and general. The last of the Alcmaeonidae, he played a major role in the second half of the Peloponnesian War as a strategic advisor, military commander, and politician, but subsequently fell from prominence.",
+   "url": "https://en.wikipedia.org/wiki/Alcibiades",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Detail_of_Alcibiades_from_Alcibiades_Being_Taught_by_Socrates_%281776%29_by_Fran%C3%A7ois-Andr%C3%A9_Vincent.jpg/330px-Detail_of_Alcibiades_from_Alcibiades_Being_Taught_by_Socrates_%281776%29_by_Fran%C3%A7ois-Andr%C3%A9_Vincent.jpg",
+    "width": 330,
+    "height": 445,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Detail_of_Alcibiades_from_Alcibiades_Being_Taught_by_Socrates_(1776)_by_Fran%C3%A7ois-Andr%C3%A9_Vincent.jpg",
+    "artist": "François-André Vincent",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Thucydides, son of Melesias",
+   "kind": "person",
+   "names": [
+    "Thucydides son of Melesias"
+   ],
+   "title": "Thucydides, son of Melesias",
+   "description": "Ancient Athenian conservative politician",
+   "extract": "Thucydides, son of Melesias was a prominent politician of ancient Athens and the leader for a number of years of the powerful conservative faction. While it is likely he is related to the later historian and general Thucydides, son of Olorus, the details are uncertain; maternal grandfather and grandson fits the available evidence.",
+   "url": "https://en.wikipedia.org/wiki/Thucydides%2C_son_of_Melesias"
+  },
+  {
+   "wiki": "Aristotle",
+   "kind": "person",
+   "names": [
+    "Aristotle"
+   ],
+   "title": "Aristotle",
+   "description": "Ancient Greek philosopher and polymath (384–322 BC)",
+   "extract": "Aristotle was an ancient Greek philosopher and polymath. His writings span the natural sciences, philosophy, linguistics, economics, politics, psychology, and the arts. As the founder of the Peripatetic school of philosophy in the Lyceum in Athens, he began the wider Aristotelian tradition that followed, which set the groundwork for the development of modern science.",
+   "url": "https://en.wikipedia.org/wiki/Aristotle",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Aristotle_Altemps_Inv8575.jpg/330px-Aristotle_Altemps_Inv8575.jpg",
+    "width": 330,
+    "height": 442,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Aristotle_Altemps_Inv8575.jpg",
+    "artist": "After Lysippos",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Plutarch",
+   "kind": "person",
+   "names": [
+    "Plutarch"
+   ],
+   "title": "Plutarch",
+   "description": "Greek philosopher and historian",
+   "extract": "Plutarch was a Greek and later Roman Middle Platonist philosopher, historian, biographer, essayist, and priest at the Temple of Apollo in Delphi. He is known primarily for his Parallel Lives, a series of biographies of illustrious Greeks and Romans, and Moralia, a collection of essays and speeches. Upon becoming a Roman citizen, he was possibly named Lucius Mestrius Plutarchus.",
+   "url": "https://en.wikipedia.org/wiki/Plutarch",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg/330px-Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_a_philosopher,_maybe_Plutarch,_2nd_century_BC,_AM_Delphi,_0135.jpg",
+    "artist": "Zde",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Acropolis of Athens",
+   "kind": "place",
+   "names": [
+    "Acropolis"
+   ],
+   "title": "Acropolis of Athens",
+   "description": "Ancient citadel above the city of Athens",
+   "extract": "The Acropolis of Athens is an ancient citadel located on a rocky outcrop above the city of Athens, Greece, and contains the remains of several ancient buildings of great architectural and historical significance, the most famous being the Parthenon. The word Acropolis is from Greek ἄκρον (akron) 'highest point, extremity' and πόλις (polis) 'city'. The term acropolis is generic and there are many other acropoleis in Greece. During ancient times the Acropolis of Athens was also more properly known as Cecropia (Κεκροπία), after the legendary serpent-man Cecrops, the supposed first Athenian king.",
+   "url": "https://en.wikipedia.org/wiki/Acropolis_of_Athens",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/330px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "artist": "Giles Laurent",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Kerameikos",
+   "kind": "place",
+   "names": [
+    "Kerameikos"
+   ],
+   "title": "Kerameikos",
+   "description": "Area of Athens, Greece",
+   "extract": "Kerameikos, also known by its Latinized form Ceramicus, is an area of Athens, Greece, located to the northwest of the Acropolis, which includes an extensive area both within and outside the ancient city walls, on both sides of the Dipylon Gate and by the banks of the Eridanos River. It was the potters' quarter of the city, from which the English word ceramic is derived, and was also the site of an important cemetery and numerous funerary sculptures erected along the Sacred Way, a road from Athens to Eleusis.",
+   "url": "https://en.wikipedia.org/wiki/Kerameikos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Kerameikos_Cemetery_on_July_28%2C_2019.jpg/330px-Kerameikos_Cemetery_on_July_28%2C_2019.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Kerameikos_Cemetery_on_July_28,_2019.jpg",
+    "artist": "George E. Koronaios",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Stoa of Attalos",
+   "kind": "place",
+   "names": [
+    "Stoa of Attalos"
+   ],
+   "title": "Stoa of Attalos",
+   "description": "Ancient covered walkway in Athens, Greece",
+   "extract": "The Stoa of Attalos was a stoa in the Agora of Athens, Greece. It was built by and named after King Attalos II of Pergamon, who ruled between 159 and 138 BC. The building was reconstructed from 1952 to 1956 by the American School of Classical Studies at Athens and currently houses the Museum of the Ancient Agora.",
+   "url": "https://en.wikipedia.org/wiki/Stoa_of_Attalos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Attica_06-13_Athens_22_View_from_Acropolis_Hill_-_Museum_of_Ancient_Agora.jpg/330px-Attica_06-13_Athens_22_View_from_Acropolis_Hill_-_Museum_of_Ancient_Agora.jpg",
+    "width": 330,
+    "height": 245,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Attica_06-13_Athens_22_View_from_Acropolis_Hill_-_Museum_of_Ancient_Agora.jpg",
+    "artist": "A.Savin",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Syracuse, Sicily",
+   "kind": "place",
+   "names": [
+    "Syracuse"
+   ],
+   "title": "Syracuse, Sicily",
+   "description": "City in Sicily, Italy",
+   "extract": "Syracuse is a city and comune (municipality), capital of the free municipal consortium of the same name, located in the autonomous island region of Sicily in southern Italy. As of 2026, with a population of 115,515, it is the 4th-largest city in Sicily, following Palermo, Catania, and Messina.",
+   "url": "https://en.wikipedia.org/wiki/Syracuse%2C_Sicily",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Ortigia_%28SR%29.jpg/330px-Ortigia_%28SR%29.jpg",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ortigia_(SR).jpg",
+    "artist": "AndreaCT78",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+   }
+  },
+  {
+   "wiki": "Miletus",
+   "kind": "place",
+   "names": [
+    "Miletus"
+   ],
+   "title": "Miletus",
+   "description": "Ancient Greek city in Anatolia",
+   "extract": "Miletus was an influential ancient Greek city on the western coast of Anatolia, near the mouth of the Maeander River in present day Turkey. Renowned in antiquity for its wealth, maritime power, and extensive network of colonies, Miletus was a major center of trade, culture, and innovation from the Bronze Age through the Roman period. The city played a foundational role in the development of early Greek philosophy and science, serving as the home of the Milesian school with thinkers such as Thales, Anaximander, and Anaximenes.",
+   "url": "https://en.wikipedia.org/wiki/Miletus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Miletus_-_Ancient_Greek_theatre_02.jpg/330px-Miletus_-_Ancient_Greek_theatre_02.jpg",
+    "width": 330,
+    "height": 222,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Miletus_-_Ancient_Greek_theatre_02.jpg",
+    "artist": "Bernard Gagnon",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Chersonesus",
+   "kind": "place",
+   "names": [
+    "Chersonesos Taurica"
+   ],
+   "title": "Chersonesus",
+   "description": "Ancient Greek colonial ruins in Sevastopol, Crimea",
+   "extract": "Chersonesus, contracted in medieval Greek to Cherson (Χερσών), was an ancient Greek colony founded approximately 2,500 years ago in the southwestern part of the Crimean Peninsula. Settlers from Heraclea Pontica in Bithynia established the colony in the 6th century BC.",
+   "url": "https://en.wikipedia.org/wiki/Chersonesus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Chersonesos_ruins.jpg/330px-Chersonesos_ruins.jpg",
+    "width": 330,
+    "height": 187,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Chersonesos_ruins.jpg",
+    "artist": "Dmitry A. Mottl",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  }
+ ]
+}

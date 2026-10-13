@@ -29,7 +29,7 @@ import "./PageTransition.css";
 // Surfaces that own their whole viewport and navigate internally. They animate
 // once on the way in and out, but not between their own sub-routes — a fade on
 // every move inside a game would be noise.
-const GROUPED_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn"];
+const GROUPED_PREFIXES = ["/dashboard", "/budgetter", "/gallows-hymn", "/acta"];
 
 const groupKey = (pathname) =>
   GROUPED_PREFIXES.find((p) => pathname.startsWith(p)) || pathname;

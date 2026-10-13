@@ -1,0 +1,770 @@
+{
+ "v": 1,
+ "slug": "the-trireme",
+ "kind": "object",
+ "era": "greece",
+ "title": "The trireme",
+ "subtitle": "7th–4th century BC",
+ "summary": "The oared warship that won Salamis, carried Athens' democracy and could outrun a death sentence.",
+ "year": -480,
+ "yearLabel": "7th–4th century BC",
+ "place": "Piraeus and the Aegean",
+ "minutes": 12,
+ "takeaways": [
+  "A trireme was a warship about 37 metres long, driven by 170 rowers on three levels, built light for speed and armed with a bronze ram.",
+  "Its rowers were free men, in Athens mostly the poorest citizens, so the navy was the backbone of both Athenian democracy and its empire.",
+  "Thucydides' race to Mytilene shows what a crew could do, and the replica Olympias proved the three-level design really works."
+ ],
+ "teaser": "While Greece fought Persia, a teacher in the state of Lu spent years looking for a ruler who would listen.",
+ "teaserFor": "confucius",
+ "links": [
+  "themistocles",
+  "salamis"
+ ],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Trireme",
+   "url": "https://en.wikipedia.org/wiki/Trireme"
+  },
+  {
+   "id": "thuc-1.13",
+   "label": "Thucydides 1.13 (trans. Richard Crawley)",
+   "url": "https://www.gutenberg.org/ebooks/7142"
+  },
+  {
+   "id": "thuc-3.36-50",
+   "label": "Thucydides 3.36–50 (trans. Richard Crawley)",
+   "url": "https://www.gutenberg.org/ebooks/7142"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "An object",
+   "title": "The trireme",
+   "text": "427 BC. Two Athenian warships are crossing the Aegean, a day and a night apart. The first carries an order to kill every man in Mytilene, a city on Lesbos that had rebelled. The second carries the order cancelling it.\n\nIts rowers eat at their oars and sleep in shifts. Everything depends on how fast 170 men can row.",
+   "image": {
+    "file": "File:\"Olympias\", Nachbau einer Triere im Schiffsmuseum Trokadero Marina, Paleo Faliro, Athen.jpg",
+    "alt": "The replica trireme Olympias afloat in a harbour near Athens, two masts up, its long hull lined with oar ports.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/%22Olympias%22%2C_Nachbau_einer_Triere_im_Schiffsmuseum_Trokadero_Marina%2C_Paleo_Faliro%2C_Athen.jpg/960px-%22Olympias%22%2C_Nachbau_einer_Triere_im_Schiffsmuseum_Trokadero_Marina%2C_Paleo_Faliro%2C_Athen.jpg",
+    "width": 2016,
+    "height": 980,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%22Olympias%22,_Nachbau_einer_Triere_im_Schiffsmuseum_Trokadero_Marina,_Paleo_Faliro,_Athen.jpg",
+    "artist": "Da jackson",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   },
+   "src": [
+    "thuc-3.36-50"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "Three hundred years at sea",
+   "text": "From the 7th to the 4th century BC the trireme was the leading warship of the Mediterranean. Phoenicians, Greeks and Persians built them, and later the Romans.\n\nAthens kept its fleet in sheds at Zea, a harbour of Piraeus. Excavated, the sheds are about 40 metres long and only 6 wide, and they tell us the size of the ships.",
+   "image": {
+    "file": "File:Model of a greek trireme.jpg",
+    "alt": "A detailed model of a Greek trireme, showing the three banks of oars and the bronze ram at the bow.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Model_of_a_greek_trireme.jpg/960px-Model_of_a_greek_trireme.jpg",
+    "width": 2370,
+    "height": 1380,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Model_of_a_greek_trireme.jpg",
+    "artist": "Unknown",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "src": [
+    "wiki-1",
+    "thuc-1.13"
+   ],
+   "pins": [
+    {
+     "year": -700,
+     "label": "Corinth builds triremes"
+    },
+    {
+     "year": -525,
+     "label": "First used in battle"
+    },
+    {
+     "year": -480,
+     "label": "Salamis"
+    },
+    {
+     "year": -427,
+     "label": "The race to Mytilene"
+    },
+    {
+     "year": -405,
+     "label": "Athens' fleet destroyed"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The machine",
+   "chapter": "I",
+   "title": "Three rows",
+   "text": "The name means three-rower. Each side had three rows of oars, one man to an oar: 62 thranites on top, rowing through an outrigger that jutted out from the hull, then 54 zygites, then 54 thalamites at the bottom, nearest the water.\n\nThat is 170 oars on a hull just under 37 metres long.",
+   "image": {
+    "file": "File:Trireme cut-fr.svg",
+    "alt": "Cross-section diagram of a trireme showing three staggered rowers on each side, the top one reaching out over an outrigger.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/32/Trireme_cut-fr.svg/960px-Trireme_cut-fr.svg.png",
+    "width": 1280,
+    "height": 850,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Trireme_cut-fr.svg",
+    "artist": "Eric Gaba ( Sting - fr:Sting )",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The machine",
+   "chapter": "I",
+   "title": "Rowing blind",
+   "text": "Of the 170 rowers, 108 couldn't see the water. They kept time by a piper and by chants: Aristophanes' comedy The Frogs preserves two, “ryppapai” and “o opop”.\n\nThe bottom row had the worst seats, underneath their colleagues and splashed by water coming in through the oar holes, despite the leather sleeves around the oars.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The machine",
+   "chapter": "I",
+   "title": "Light enough to carry",
+   "text": "Builders put up the outer hull first and fitted the ribs afterwards, the reverse of modern practice. Light woods like fir kept the weight down, so as few as 140 men could carry a trireme ashore.\n\nThey had to, every night. A hull left in the sea soaked up water and slowed down, and there was no room aboard to sleep or to store food. Each man needed about 2 gallons of drinking water a day.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The machine",
+   "chapter": "I",
+   "title": "The secret cables",
+   "text": "Two great ropes, the hypozomata, probably ran the length of the hull under the main beams, each twice as long as the ship and pulled to a tension of about 13.5 tonnes. They held the hull together against the sea and the shock of ramming.\n\nAthens treated them as a military secret: exporting one was a capital crime. To disarm a trireme, you took its hypozomata away.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The machine",
+   "chapter": "I",
+   "title": "Eyes on the bow",
+   "text": "A finished trireme was decorated: eyes, a nameplate, a painted figurehead. A wooden statue of a god above the bronze ram showed which city it came from.\n\nIn Athens rich citizens paid for most of the ships, and they competed for the most impressive one, to frighten the enemy and to attract the best rowers.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did triremes have to be hauled ashore every night?",
+   "a": "A hull left in the sea soaked up water and got slower, and the ship had no room for its crew to sleep or to store their food and water.",
+   "id": "the-trireme-r1"
+  },
+  {
+   "type": "story",
+   "label": "II · The crew",
+   "chapter": "II",
+   "title": "Two hundred men",
+   "text": "A trireme carried about 200 people: the 170 rowers, a deck crew of officers and sailors, and a few marines. At Salamis each Athenian ship had 14 hoplites and 4 archers aboard.\n\nThe helmsman was often the real commander. A boatswain and a piper set the stroke, and two officers watched the rowers on each side.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The crew",
+   "chapter": "II",
+   "title": "Free men at the oars",
+   "text": "The rowers weren't galley slaves. In Athens they were mostly the thetes, the poorest citizens, alongside resident foreigners and hired hands. A typical crew in the Peloponnesian War was 80 citizens, 60 metics and 60 foreigners.\n\nWhen slaves were needed in an emergency, they were usually freed first.",
+   "image": {
+    "file": "File:ACMA Relief Lenormant.jpg",
+    "alt": "A marble relief fragment from the Athenian Acropolis showing the rowers of a trireme side by side at their oars.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/ACMA_Relief_Lenormant.jpg/960px-ACMA_Relief_Lenormant.jpg",
+    "width": 1000,
+    "height": 802,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:ACMA_Relief_Lenormant.jpg",
+    "artist": "Photo: Marsyas (2006)",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · The crew",
+   "chapter": "II",
+   "title": "The trierarch",
+   "text": "Each ship had a patron, the trierarch: a rich citizen who had to man, fit out and maintain it for a year. The ship belonged to Athens; the bills belonged to him.\n\nIt brought great prestige and could drain a fortune. By the 4th century two men often shared it.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Democracy at sea",
+   "title": "Rich and poor on one bench",
+   "text": "Athens' fleet of more than 200 triremes gave its poorer citizens steady work, and the historians who write about it see that as a pillar of Athens' radical democracy. Rich and poor rowed side by side.\n\nThe historian Victor Davis Hanson argues that this taught thousands of men to act together, in cramped conditions and under dire circumstances.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · Ram and run",
+   "chapter": "III",
+   "title": "The ram",
+   "text": "The weapon was a bronze ram on the bow at the waterline. The best attack came from behind, aiming not to punch one hole but to tear open as much of the enemy's hull as possible.\n\nThe angle mattered. At 60 degrees, about 4 knots was enough to break through. At 30 degrees you needed 8.",
+   "image": {
+    "file": "File:Trireme Ram.jpg",
+    "alt": "A heavy bronze ram from an ancient warship, with flat fins at the front for tearing open a hull.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/Trireme_Ram.jpg/960px-Trireme_Ram.jpg",
+    "width": 7712,
+    "height": 4352,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Trireme_Ram.jpg",
+    "artist": "Mariegriffiths",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · Ram and run",
+   "chapter": "III",
+   "title": "Sailing around, sailing through",
+   "text": "Fleets had names for their moves. The periplous swept around the enemy's flank to hit them from behind. The diekplous punched through a gap in their line, then wheeled to ram from the rear. A fleet afraid of both formed a kyklos, a defensive circle.\n\nAll of it came down to accelerating, rowing and turning faster than the other side.",
+   "image": {
+    "file": "File:Kyklos.jpg",
+    "alt": "A diagram seen from above of warships drawn up in a defensive circle.",
+    "focus": "50% 50%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Kyklos.jpg",
+    "width": 595,
+    "height": 589,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Kyklos.jpg",
+    "artist": "Nautikus",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "III · Ram and run",
+   "chapter": "III",
+   "title": "Athens versus Sparta",
+   "text": "Athenian crews trained in peacetime and became professionals who rammed at will in open water. Their enemies did better near land, in calm water, with more ships and soldiers on deck to turn a sea battle into an infantry fight.\n\nThat is how Sparta, once it had Persian money to build fleet after fleet, finally won: it destroyed the Athenian fleet at Aegospotami.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did the angle of a ramming attack matter?",
+   "a": "The more square-on the hit, the less speed it needed: about 4 knots at 60 degrees, but 8 knots at 30.",
+   "id": "the-trireme-r2"
+  },
+  {
+   "type": "story",
+   "label": "IV · The race",
+   "chapter": "IV",
+   "title": "A decree in anger",
+   "text": "In 427 BC Mytilene, on Lesbos, rebelled against Athens and was crushed. In the fury of the moment the Athenian Assembly voted to kill every grown man in the city and enslave the women and children, and sent a trireme to carry the order.\n\nThe next day many regretted it. After a fierce debate a second vote reversed it, by a show of hands that was almost equal. A second trireme set off, a day and a night behind.",
+   "src": [
+    "thuc-3.36-50"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "How the crew of the second ship made up the time, as Thucydides tells it.",
+   "src": [
+    "thuc-3.36-50"
+   ],
+   "quote": {
+    "text": "Wine and barley-cakes were provided for the vessel by the Mitylenian ambassadors, and great promises made if they arrived in time; which caused the men to use such diligence upon the voyage that they took their meals of barley-cakes kneaded with oil and wine as they rowed, and only slept by turns while the others were at the oar.",
+    "attribution": "Thucydides 3.49",
+    "translator": "Richard Crawley"
+   }
+  },
+  {
+   "type": "story",
+   "label": "IV · The race",
+   "chapter": "IV",
+   "title": "Just in time",
+   "text": "They had no headwind, and the first ship, in no hurry on such a horrible errand, arrived only just ahead. The Athenian commander, Paches, had just read the decree and was preparing to carry it out when the second ship put into port and stopped the massacre.\n\nMytilene's ringleaders, rather more than a thousand men, were executed anyway on a motion by Cleon.",
+   "src": [
+    "thuc-3.36-50"
+   ]
+  },
+  {
+   "type": "numbers",
+   "label": "By the numbers",
+   "title": "A trireme in numbers",
+   "src": [
+    "wiki-1"
+   ],
+   "rows": [
+    {
+     "value": "170",
+     "label": "Rowers, on three levels"
+    },
+    {
+     "value": "c. 37 m",
+     "label": "Length, from the ship sheds at Zea"
+    },
+    {
+     "value": "6,000",
+     "label": "Days of labour to build one"
+    },
+    {
+     "value": "13.5 t",
+     "label": "Tension on each of the great hull cables"
+    },
+    {
+     "value": "80–100 km",
+     "label": "A good day's rowing, in 6 to 8 hours"
+    },
+    {
+     "value": "9 knots",
+     "label": "Top speed of the replica Olympias, in 1988"
+    }
+   ]
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "Who invented it?",
+   "src": [
+    "wiki-1",
+    "thuc-1.13"
+   ],
+   "sides": [
+    {
+     "label": "Corinth",
+     "text": "Thucydides says Corinth was the first place in Greece to build these galleys, and that the Corinthian shipwright Ameinocles built four ships for Samos around 700 BC. Pliny and Diodorus took that to mean Corinth invented them."
+    },
+    {
+     "label": "Phoenicia",
+     "text": "Clement of Alexandria credits the people of Sidon. An Assyrian relief from Nineveh shows warships from Tyre and Sidon with rams and oars at two levels, which some scholars read as triremes."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Olympias",
+   "text": "Between 1985 and 1987 a shipbuilder in Piraeus built Olympias, a full-size Athenian trireme, advised by the historian J. S. Morrison and the naval architect John Coates. With 170 volunteers at the oars it reached 9 knots in 1988 and turned 180 degrees in a minute.\n\nIt settled an old argument: three staggered rows, one man per oar, works.",
+   "image": {
+    "file": "File:Olympias.1.JPG",
+    "alt": "Olympias on land under a shelter: a long wooden hull with a painted eye and a ram at the bow.",
+    "focus": "35% 55%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/Olympias.1.JPG/960px-Olympias.1.JPG",
+    "width": 1280,
+    "height": 960,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Olympias.1.JPG",
+    "artist": "Χρήστης Templar52",
+    "license": "Attribution"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Too tall for the past",
+   "text": "The modern crews found Olympias cramped. People today are on average about 6 cm taller than ancient Greeks, and a ship built to ancient measurements left them too little room to row at full power. That may be why the ancient speed records still stand.\n\nIn 2004 Olympias carried the Olympic flame into Piraeus for the Athens Games.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Bigger ships",
+   "text": "After the 4th century BC the great navies moved to bigger warships, with several men to an oar and armour against rams. Smaller navies kept building triremes, and Rome's imperial fleet came back to light triremes.\n\nFrom them grew the dromon, the warship of Byzantium.",
+   "image": {
+    "file": "File:Romtrireme.jpg",
+    "alt": "A Roman mosaic from Tunisia showing an oared warship on a blue sea.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Romtrireme.jpg/960px-Romtrireme.jpg",
+    "width": 2272,
+    "height": 1575,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Romtrireme.jpg",
+    "artist": "Mathiasrex",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "Why did a navy of triremes matter for Athenian democracy?",
+   "a": "It gave the poorest citizens steady work as rowers, which gave them weight in the city and helped keep its democracy radical.",
+   "id": "the-trireme-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-1"
+   ],
+   "q": "What were the hypozomata, and why did Athens guard them?",
+   "a": "Great tensioned cables that held the hull together against waves and the shock of ramming. A trireme couldn't fight without them, so exporting them was a capital crime.",
+   "id": "the-trireme-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "thuc-3.36-50"
+   ],
+   "q": "How did the second ship reach Mytilene in time?",
+   "a": "Promised rewards, its rowers ate barley-cakes soaked in oil and wine at their oars and slept in turns, there was no headwind, and the first ship was in no hurry.",
+   "id": "the-trireme-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Thucydides",
+   "kind": "person",
+   "names": [
+    "Thucydides"
+   ],
+   "title": "Thucydides",
+   "description": "5th-century BC Athenian historian and general",
+   "extract": "Thucydides was an Athenian historian and general. His History of the Peloponnesian War recounts the 5th century BC war between Sparta and Athens until the year 411 BC. Thucydides has been dubbed the father of \"scientific history\" by those who accept his claims to have applied strict standards of impartiality and evidence-gathering and analysis of cause and effect, without reference to intervention by the gods, as outlined in his introduction to his work.",
+   "url": "https://en.wikipedia.org/wiki/Thucydides",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Thucydides_pushkin01.jpg/330px-Thucydides_pushkin01.jpg",
+    "width": 330,
+    "height": 459,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Thucydides_pushkin01.jpg",
+    "artist": "user:shakko",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Aristophanes",
+   "kind": "person",
+   "names": [
+    "Aristophanes"
+   ],
+   "title": "Aristophanes",
+   "description": "Classical Athenian comic playwright (c. 446 – c. 386 BC)",
+   "extract": "Aristophanes was an Ancient Greek comic playwright from Athens. He wrote forty plays, of which eleven survive virtually complete. The majority of his surviving plays belong to the genre of comic drama known as Old Comedy and are considered its most valuable examples. Aristophanes's plays were performed at the religious festivals of Athens, mostly the City Dionysia and the Lenaia, and several of them won the first prize in their respective competitions.",
+   "url": "https://en.wikipedia.org/wiki/Aristophanes",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Bust_of_Aristophanes.jpg/330px-Bust_of_Aristophanes.jpg",
+    "width": 330,
+    "height": 481,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Bust_of_Aristophanes.jpg",
+    "artist": "Alexander Mayatsky",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Victor Davis Hanson",
+   "kind": "person",
+   "names": [
+    "Victor Davis Hanson"
+   ],
+   "title": "Victor Davis Hanson",
+   "description": "American Professor (born 1953)",
+   "extract": "Victor Davis Hanson is an American classicist, military historian, conservative political commentator, and farmer. He is a commentator on modern and ancient warfare and contemporary politics for the New York Times, the Wall Street Journal, the National Review and the Washington Times.",
+   "url": "https://en.wikipedia.org/wiki/Victor_Davis_Hanson",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Victor_Davis_Hanson.jpg/330px-Victor_Davis_Hanson.jpg",
+    "width": 330,
+    "height": 250,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Victor_Davis_Hanson.jpg",
+    "artist": "No machine-readable author provided. Rune X2 assumed (based on copyright claims)",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Cleon",
+   "kind": "person",
+   "names": [
+    "Cleon"
+   ],
+   "title": "Cleon",
+   "description": "Athenian statesman and general (died 422 BC)",
+   "extract": "Cleon was an Athenian politician and general (strategos) during the Peloponnesian War. The son of Cleaenetus, a wealthy tanner, Cleon was among the first prominent Athenian politicians of the 5th century BC to obtain power from outside the established elite.",
+   "url": "https://en.wikipedia.org/wiki/Cleon"
+  },
+  {
+   "wiki": "Pliny the Elder",
+   "kind": "person",
+   "names": [
+    "Pliny"
+   ],
+   "title": "Pliny the Elder",
+   "description": "Roman military commander and writer (AD23/24–79)",
+   "extract": "Gaius Plinius Secundus, known in English as Pliny the Elder, was a Roman author, naturalist, scientist, naval and army commander of the early Roman Empire, procurator, and friend of the emperor Vespasian. Pliny wrote the encyclopedic Naturalis Historia, a thirty-seven-volume work covering a vast array of topics on human knowledge and the natural world, which became an editorial model for encyclopedias. He spent most of his spare time studying, writing, and investigating natural and geographic phenomena in the field.",
+   "url": "https://en.wikipedia.org/wiki/Pliny_the_Elder",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Grande_Illustrazione_del_Lombardo_Veneto_Vol_3_Plinio_Secondo_300dpi.jpg/330px-Grande_Illustrazione_del_Lombardo_Veneto_Vol_3_Plinio_Secondo_300dpi.jpg",
+    "width": 330,
+    "height": 407,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Grande_Illustrazione_del_Lombardo_Veneto_Vol_3_Plinio_Secondo_300dpi.jpg",
+    "artist": "Geoffrey",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Diodorus Siculus",
+   "kind": "person",
+   "names": [
+    "Diodorus"
+   ],
+   "title": "Diodorus Siculus",
+   "description": "1st-century BC Greek historian",
+   "extract": "Diodorus Siculus or Diodorus of Sicily was an ancient Greek historian from Sicily. He is known for writing the monumental universal history Bibliotheca historica, in forty books, fifteen of which survive intact, between 60 and 30 BC. The history is arranged in three parts. The first covers mythic history up to the destruction of Troy, arranged geographically, describing regions around the world from Egypt, India and Arabia to Europe. The second covers the time from the Trojan War to the death of Alexander the Great. The third covers the period to about 60 BC.",
+   "url": "https://en.wikipedia.org/wiki/Diodorus_Siculus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Diodoro_siculo_-_storico_di_Agira.jpg/330px-Diodoro_siculo_-_storico_di_Agira.jpg",
+    "width": 330,
+    "height": 343,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Diodoro_siculo_-_storico_di_Agira.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Clement of Alexandria",
+   "kind": "person",
+   "names": [
+    "Clement of Alexandria"
+   ],
+   "title": "Clement of Alexandria",
+   "description": "Christian theologian (c. 150 – c. 215)",
+   "extract": "Titus Flavius Clemens, also known as Clement of Alexandria, was a Christian theologian and philosopher who taught at the Catechetical School of Alexandria. Among his pupils were Origen and Alexander of Jerusalem. A convert to Christianity, he was an educated man who was familiar with classical Greek philosophy and literature. As his three major works demonstrate, Clement was influenced by Hellenistic philosophy to a greater extent than any other Christian thinker of his time, and in particular, by Plato and the Stoics.",
+   "url": "https://en.wikipedia.org/wiki/Clement_of_Alexandria",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/Clement_alexandrin.jpg/330px-Clement_alexandrin.jpg",
+    "width": 330,
+    "height": 403,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Clement_alexandrin.jpg",
+    "artist": "André Thévet",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "John Sinclair Morrison",
+   "kind": "person",
+   "names": [
+    "J. S. Morrison"
+   ],
+   "title": "John Sinclair Morrison",
+   "description": "English classicist",
+   "extract": "John Sinclair Morrison was an English classicist whose work led to the reconstruction of an Athenian Trireme, an ancient oared warship.",
+   "url": "https://en.wikipedia.org/wiki/John_Sinclair_Morrison",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/John_Sinclar_Morrison.png/330px-John_Sinclar_Morrison.png",
+    "width": 330,
+    "height": 371,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:John_Sinclar_Morrison.png",
+    "artist": "TolstyiBarsuk",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "John Coates (naval architect)",
+   "kind": "person",
+   "names": [
+    "John Coates"
+   ],
+   "title": "John Coates (naval architect)",
+   "description": "British naval architect (1922–2010)",
+   "extract": "John Francis Coates, OBE, RCNC was a British naval architect best known for his work on the study of construction of the Ancient Greek trireme. His research led to the construction of the first working replica of triremes, the fastest and most devastating warship of Classical Mediterranean empires, and gave a greater understanding of how they were built and used. He also carried out research into the use of shipping in Northern Europe during the Bronze Age, in particular the Ferriby Bronze Age boat and the Dover Boat.",
+   "url": "https://en.wikipedia.org/wiki/John_Coates_(naval_architect)"
+  },
+  {
+   "wiki": "Mytilene",
+   "kind": "place",
+   "names": [
+    "Mytilene"
+   ],
+   "title": "Mytilene",
+   "description": "Capital of the Greek island of Lesbos",
+   "extract": "Mytilene is the capital of the Greek island of Lesbos, and its port. It is also the capital and administrative center of the North Aegean Region, and hosts the headquarters of the University of the Aegean. It was founded in the 11th century BC.",
+   "url": "https://en.wikipedia.org/wiki/Mytilene",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Mytilene_Montage_L.png/330px-Mytilene_Montage_L.png",
+    "width": 330,
+    "height": 492,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Mytilene_Montage_L.png",
+    "artist": "SilentResident (compilation, sources to attribute see above; if any of the sourc",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Lesbos",
+   "kind": "place",
+   "names": [
+    "Lesbos"
+   ],
+   "title": "Lesbos",
+   "description": "Greek island in the North Aegean",
+   "extract": "Lesbos or Lesvos is a Greek island located in the northeastern Aegean Sea. It has an area of 1,633 km2 (631 sq mi), with approximately 400 km (249 mi) of coastline, making it the third largest island in Greece and the eighth largest in the Mediterranean. It is separated from Asia Minor by the narrow Mytilini Strait. On the southeastern coast is the island's capital and largest city, Mytilene (Μυτιλήνη), whose name is also used for the island as a whole. Lesbos is a separate regional unit with the seat in Mytilene, which is also the capital of the larger North Aegean region.",
+   "url": "https://en.wikipedia.org/wiki/Lesbos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Mytilene_2010-04-03.jpg/330px-Mytilene_2010-04-03.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Mytilene_2010-04-03.jpg",
+    "artist": "Koutrolm",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Piraeus",
+   "kind": "place",
+   "names": [
+    "Piraeus"
+   ],
+   "title": "Piraeus",
+   "description": "Harbour of Athens and a port city in Attica, Greece",
+   "extract": "Piraeus is a port city within the Athens urban area, in the Attica region of Greece. It is located eight kilometres (5 mi) southwest of Athens city centre along the east coast of the Saronic Gulf in the Athens Riviera.",
+   "url": "https://en.wikipedia.org/wiki/Piraeus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/2011_Dimos_Pireos.png/330px-2011_Dimos_Pireos.png",
+    "width": 330,
+    "height": 230,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:2011_Dimos_Pireos.png",
+    "artist": "Pitichinaccio",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   }
+  },
+  {
+   "wiki": "Ancient Corinth",
+   "kind": "place",
+   "names": [
+    "Corinth"
+   ],
+   "title": "Ancient Corinth",
+   "description": "Ancient city-state in mainland Greece",
+   "extract": "Corinth was a city-state (polis) on the Isthmus of Corinth, the narrow stretch of land that joins the Peloponnese peninsula to mainland Greece, roughly halfway between Athens and Sparta. The modern city of Corinth is located approximately 5 kilometres (3.1 mi) northeast of the ancient ruins. Since 1896, systematic archaeological investigations of the Corinth Excavations by the American School of Classical Studies at Athens have revealed large parts of the ancient city, and recent excavations conducted by the Greek Ministry of Culture have brought to light important new facets of antiquity.",
+   "url": "https://en.wikipedia.org/wiki/Ancient_Corinth",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Ravel_1008.2.jpg/330px-Ravel_1008.2.jpg",
+    "width": 330,
+    "height": 161,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ravel_1008.2.jpg",
+    "artist": "CNG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+   }
+  },
+  {
+   "wiki": "Sidon",
+   "kind": "place",
+   "names": [
+    "Sidon"
+   ],
+   "title": "Sidon",
+   "description": "Capital city of South Governorate, Lebanon",
+   "extract": "Sidon, or Saida, is the third-largest city in Lebanon. It is located on the Mediterranean coast in the South Governorate, of which it is the capital. Tyre, to the south, and the Lebanese capital of Beirut, to the north, are each about 40 kilometres away. Sidon has a population of about 80,000 within the city limits, while its metropolitan area has more than a quarter-million inhabitants.",
+   "url": "https://en.wikipedia.org/wiki/Sidon",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9d/View_from_Sidon%27s_Sea_Castle%2C_Sidon%2C_Lebanon.jpg/330px-View_from_Sidon%27s_Sea_Castle%2C_Sidon%2C_Lebanon.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:View_from_Sidon%27s_Sea_Castle,_Sidon,_Lebanon.jpg",
+    "artist": "Vyacheslav Argenberg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+   }
+  },
+  {
+   "wiki": "Tyre, Lebanon",
+   "kind": "place",
+   "names": [
+    "Tyre"
+   ],
+   "title": "Tyre, Lebanon",
+   "description": "City in Lebanon",
+   "extract": "Tyre is a city in Lebanon, and one of the oldest continuously inhabited cities in the world. It was one of the earliest Phoenician metropolises and the legendary birthplace of Europa, her brothers Cadmus and Phoenix, and Carthage's founder Dido (Elissa). The city has many ancient sites, including the Tyre Hippodrome, and was added as a whole to the list of UNESCO World Heritage Sites in 1984. The historian Ernest Renan described it as \"a city of ruins, built out of ruins\".",
+   "url": "https://en.wikipedia.org/wiki/Tyre%2C_Lebanon",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cc/SubmergedEgyptianHarbour_TyreSour_Lebanon_RomanDeckert04112019.jpg/330px-SubmergedEgyptianHarbour_TyreSour_Lebanon_RomanDeckert04112019.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:SubmergedEgyptianHarbour_TyreSour_Lebanon_RomanDeckert04112019.jpg",
+    "artist": "RomanDeckert",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Samos",
+   "kind": "place",
+   "names": [
+    "Samos"
+   ],
+   "title": "Samos",
+   "description": "Greek island in the eastern Aegean Sea",
+   "extract": "Samos is a Greek island in the eastern Aegean Sea, south of Chios, north of Patmos and the Dodecanese archipelago, and off the coast of western Turkey, from which it is separated by the 1.6-kilometre-wide (1.0 mi) Mycale Strait. It is also a separate regional unit of the North Aegean region.",
+   "url": "https://en.wikipedia.org/wiki/Samos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Samos_049_2009.JPG/330px-Samos_049_2009.JPG",
+    "width": 330,
+    "height": 220,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Samos_049_2009.JPG",
+    "artist": "Pe-sa",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Aegospotami",
+   "kind": "place",
+   "names": [
+    "Aegospotami"
+   ],
+   "title": "Aegospotami",
+   "description": "River in Turkey",
+   "extract": "Aegospotami or Aegospotamos is the ancient Greek name for a small river or rivers issuing into the Hellespont, northeast of Sestos.",
+   "url": "https://en.wikipedia.org/wiki/Aegospotami"
+  }
+ ]
+}

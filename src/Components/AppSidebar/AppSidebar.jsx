@@ -15,7 +15,7 @@ const SOCIAL_LINKS = [
 // budgetter ("/budgetter*"), bowler ("/bowler*") and garage ("/garage*")
 // are private tools behind their own auth gate; gallows-hymn ("/gallows-hymn") is a
 // full-bleed game launcher.
-const HIDE_SIDEBAR_PREFIXES = ["/dashboard", "/budgetter", "/bowler", "/garage", "/gallows-hymn"];
+const HIDE_SIDEBAR_PREFIXES = ["/dashboard", "/budgetter", "/bowler", "/garage", "/gallows-hymn", "/acta"];
 
 /**
  * AppSidebar — the reusable left rail shared across the site.

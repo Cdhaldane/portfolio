@@ -55,6 +55,8 @@ const Bowler = lazy(() => import("./Pages/Bowler/Bowler"));
 // ...and for the private /garage car log (datalogs, work log, service).
 const GarageGate = lazy(() => import("./Pages/Garage/GarageGate"));
 const Garage = lazy(() => import("./Pages/Garage/Garage"));
+// Public daily history lessons (/acta). Its desk loads Clerk on its own.
+const Acta = lazy(() => import("./Pages/Acta/Acta"));
 // Dev-only design preview (mock data, no auth) — dead-code eliminated from
 // production builds by the NODE_ENV check at the route below.
 const BudgetPreview =
@@ -111,6 +113,7 @@ const App = () => {
             <Route path="/garage" element={<GarageGate />}>
               <Route index element={<Garage />} />
             </Route>
+            <Route path="/acta/*" element={<Acta />} />
             {BudgetPreview && (
               <Route path="/budgetter-preview" element={<BudgetPreview />} />
             )}

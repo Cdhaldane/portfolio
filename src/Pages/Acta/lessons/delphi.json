@@ -1,0 +1,1017 @@
+{
+ "v": 1,
+ "slug": "delphi",
+ "kind": "place",
+ "era": "greece",
+ "title": "Delphi",
+ "subtitle": "8th century BC – AD 390",
+ "summary": "The mountain sanctuary where Apollo spoke through a woman of Delphi, and every Greek city came to ask what to do.",
+ "year": -480,
+ "yearLabel": "8th century BC – AD 390",
+ "place": "Mount Parnassus, central Greece",
+ "minutes": 14,
+ "takeaways": [
+  "Delphi, on Mount Parnassus, was the oracle every Greek city consulted: Apollo spoke through a woman of Delphi, the Pythia, on one day a month.",
+  "Its answers could be riddles: Croesus was told he would destroy a great empire, and Athens was promised a wood-built wall before Salamis.",
+  "What inspired the Pythia is still argued over, from gases rising along faults under the temple to no trance at all."
+ ],
+ "teaser": "The night Themistocles tricked a king into the narrows, and what the Greek fleet did there at dawn.",
+ "teaserFor": "salamis",
+ "links": [
+  "themistocles"
+ ],
+ "sources": [
+  {
+   "id": "wiki-1",
+   "label": "Wikipedia: Delphi",
+   "url": "https://en.wikipedia.org/wiki/Delphi"
+  },
+  {
+   "id": "wiki-2",
+   "label": "Wikipedia: Pythia",
+   "url": "https://en.wikipedia.org/wiki/Pythia"
+  },
+  {
+   "id": "hdt-1.53",
+   "label": "Herodotus, Histories 1.53 and 1.91 (trans. A. D. Godley)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+1.53"
+  },
+  {
+   "id": "hdt-7.140",
+   "label": "Herodotus, Histories 7.140–141 (trans. A. D. Godley)",
+   "url": "https://www.perseus.tufts.edu/hopper/text?doc=Hdt.+7.140"
+  }
+ ],
+ "cards": [
+  {
+   "type": "open",
+   "label": "A place",
+   "title": "Delphi",
+   "text": "The seventh day of the month, high on Mount Parnassus. A woman of Delphi has bathed in a sacred spring. In front of the temple, a priest sprinkles water over a young goat.\n\nIf the goat shakes it off, the god will speak today. If it doesn't, the god has refused, and there will be no answer.",
+   "image": {
+    "file": "File:John Collier - Priestess of Delphi.jpg",
+    "alt": "John Collier's painting of the Pythia: a woman in red robes sitting on a tall bronze tripod, vapour rising around her in a dark chamber.",
+    "focus": "50% 30%",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/John_Collier_-_Priestess_of_Delphi.jpg",
+    "width": 345,
+    "height": 697,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:John_Collier_-_Priestess_of_Delphi.jpg",
+    "artist": "John Collier",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "where",
+   "label": "Where & when",
+   "title": "A ledge on Parnassus",
+   "text": "Delphi clings to the southwestern slope of Mount Parnassus in central Greece, above a valley that runs down toward the Gulf of Corinth.\n\nEvery Greek city could come here, and none of them owned it. A council of states, the Amphictyonic League, looked after the sanctuary.",
+   "image": {
+    "file": "File:Delphi Temple of Apollo.jpg",
+    "alt": "The ruined Temple of Apollo at Delphi: a few standing columns on a stone platform, with mountains and a deep valley behind.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6a/Delphi_Temple_of_Apollo.jpg/960px-Delphi_Temple_of_Apollo.jpg",
+    "width": 5070,
+    "height": 3763,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Delphi_Temple_of_Apollo.jpg",
+    "artist": "Skyring",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   },
+   "src": [
+    "wiki-1"
+   ],
+   "pins": [
+    {
+     "year": -586,
+     "label": "Pythian Games begin"
+    },
+    {
+     "year": -548,
+     "label": "Temple burns"
+    },
+    {
+     "year": -480,
+     "label": "The wooden wall"
+    },
+    {
+     "year": -86,
+     "label": "Sulla sacks it"
+    },
+    {
+     "year": 390,
+     "label": "Temple destroyed"
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The navel of the world",
+   "chapter": "I",
+   "title": "Two eagles",
+   "text": "The Greeks said Zeus wanted to find the centre of the earth. He let two eagles fly from its eastern and western edges, and their paths crossed over Delphi.\n\nThe spot was marked by the omphalos, the navel: an egg-shaped stone that stood in the innermost part of the temple, flanked by two golden eagles.",
+   "image": {
+    "file": "File:Omphalos museum.jpg",
+    "alt": "The omphalos in the Delphi museum: a rounded, egg-shaped stone carved with a net-like pattern.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7a/Omphalos_museum.jpg/960px-Omphalos_museum.jpg",
+    "width": 2448,
+    "height": 3264,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Omphalos_museum.jpg",
+    "artist": "Yucatan ( Юкатан )",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   },
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The navel of the world",
+   "chapter": "I",
+   "title": "A god moves in",
+   "text": "In the oldest stories the place belonged to Gaia, the Earth. Apollo took it by killing the serpent that guarded it, Python, and the site's old name, Pytho, was said to come from the Greek verb for “to rot”.\n\nAnother legend has Apollo arriving as a dolphin. He leapt onto a ship sailing from Crete and steered it here, and its Cretan crew became his first priests.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "I · The navel of the world",
+   "chapter": "I",
+   "title": "Rocky Pytho",
+   "text": "Homer already knew the “stone floor” of “rocky Pytho”. Offerings at the site multiply from the late 8th century BC, and by the 7th century Delphi was the oracle all of Greece took seriously.\n\nThe temple ruins you can see today are from the 4th century BC. An earlier temple burned in 548 BC and was rebuilt by the Alcmaeonids, a powerful family banned from Athens.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Asking the god",
+   "chapter": "II",
+   "title": "The Pythia",
+   "text": "The god spoke through a woman, the Pythia, chosen from the women of Delphi for her sober life and good character. Some came from great families and were well educated. Others, in the archaeologist John Hale's words, “could not write her own name.”\n\nAt the oracle's busiest, three women shared the role: two taking turns, one in reserve. After a young Pythia was abducted, Diodorus says, Delphi chose women over fifty and dressed them as girls.",
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Asking the god",
+   "chapter": "II",
+   "title": "Nine months a year",
+   "text": "Apollo was said to spend the winter far to the north, among the Hyperboreans, while Dionysus took over his temple. For those months there were no prophecies.\n\nThe rest of the year the Pythia sat once a month, on the seventh day, which was sacred to Apollo. Every question from every city had to fit into those days.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Asking the god",
+   "chapter": "II",
+   "title": "The queue",
+   "text": "Consultants climbed the winding Sacred Way carrying laurel branches, with a young goat to sacrifice and a fee to pay. They drew lots for their turn, though envoys of cities, and people who gave Apollo more, went ahead.\n\nEach visitor was accompanied by a proxenos, an agent for his home city whose job was to vouch for him. That cost money too.",
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Asking the god",
+   "chapter": "II",
+   "title": "The tripod",
+   "text": "Once the goat had passed the test and been sacrificed, smoke from the altar told everyone the oracle was open. The Pythia went down into the adyton, the place no one else could enter.\n\nThere she sat on a tall tripod over an opening in the floor, holding laurel leaves and a dish of spring water, beside the navel stone.",
+   "image": {
+    "file": "File:Heinrich Leutemann - The Oracle at Delphi (1885).jpg",
+    "alt": "A 19th-century engraving of the Pythia entranced on her tripod as robed priests and visitors look on.",
+    "focus": "50% 40%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Heinrich_Leutemann_-_The_Oracle_at_Delphi_%281885%29.jpg/960px-Heinrich_Leutemann_-_The_Oracle_at_Delphi_%281885%29.jpg",
+    "width": 1260,
+    "height": 896,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Heinrich_Leutemann_-_The_Oracle_at_Delphi_(1885).jpg",
+    "artist": "Heinrich Leutemann",
+    "license": "Public domain"
+   },
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "II · Asking the god",
+   "chapter": "II",
+   "title": "Know thyself",
+   "text": "Carved at the temple were three sayings: “Know thyself”, “Nothing in excess” and “Make a pledge and mischief is nigh”, along with a mysterious letter E that even ancient writers argued about.\n\nThe Greeks credited the sayings to the Seven Sages. Modern scholars suspect they were simply popular proverbs that picked up famous names later.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-2"
+   ],
+   "q": "Why couldn't you consult the oracle whenever you liked?",
+   "a": "The Pythia prophesied only on the seventh day of each month, and not at all in winter, when Apollo was said to be away and Dionysus held his temple.",
+   "id": "delphi-r1"
+  },
+  {
+   "type": "story",
+   "label": "III · Riddles",
+   "chapter": "III",
+   "title": "A great empire",
+   "text": "Kings asked too. Croesus, king of Lydia, sent to ask whether he should lead an army against the Persians. The answer: if he did, he would destroy a great empire.\n\nHe attacked, and lost his kingdom. Afterwards the priestess said he had only himself to blame. He should have asked whose empire the god meant: his own, or Cyrus'.",
+   "src": [
+    "hdt-1.53"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "As Xerxes prepared to invade, Athens sent to Delphi. The priestess, Aristonice, gave this answer.",
+   "src": [
+    "hdt-7.140"
+   ],
+   "quote": {
+    "text": "Wretches, why do you linger here? Rather flee from your houses and city, Flee to the ends of the earth from the circle embattled of Athens! The head will not remain in its place, nor in the body, Nor the feet beneath, nor the hands, nor the parts between; But all is ruined",
+    "attribution": "Herodotus, Histories 7.140",
+    "translator": "A. D. Godley"
+   }
+  },
+  {
+   "type": "story",
+   "label": "III · Riddles",
+   "chapter": "III",
+   "title": "Back as suppliants",
+   "text": "The Athenian envoys gave themselves up for lost. A leading Delphian, Timon, told them to go back to the oracle carrying boughs of supplication, as suppliants.\n\nThey did, and told the god they would not leave his temple until they died unless he gave them a better answer for their country. The priestess spoke again.",
+   "src": [
+    "hdt-7.140"
+   ]
+  },
+  {
+   "type": "quote",
+   "label": "Primary source",
+   "text": "The second answer, the one Athens would argue over. The Trito-born is Athena. Tomorrow you'll see what Themistocles made of it.",
+   "src": [
+    "hdt-7.140"
+   ],
+   "quote": {
+    "text": "Yet a wood-built wall will by Zeus all-seeing be granted To the Trito-born, a stronghold for you and your children. … Divine Salamis, you will bring death to women's sons When the corn is scattered, or the harvest gathered in.",
+    "attribution": "Herodotus, Histories 7.141",
+    "translator": "A. D. Godley"
+   }
+  },
+  {
+   "type": "story",
+   "label": "III · Riddles",
+   "chapter": "III",
+   "title": "Did she rave?",
+   "text": "Later writers said the Pythia fell into a frenzy from vapours rising out of the rock and spoke gibberish, which priests turned into verse.\n\nNot everyone agrees. Scholars such as Joseph Fontenrose and Lisa Maurizio point out that the ancient sources consistently show her speaking intelligibly, in her own voice. Herodotus, writing in the 5th century BC, has her speaking in verse herself.",
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "aside",
+   "label": "Aside · Plutarch",
+   "title": "A priest's view",
+   "text": "One of our best witnesses worked there. Plutarch, the biographer, served as a priest at Delphi around AD 100. He wrote that sometimes the room where consultants waited filled with a fragrance, “as if the adyton were sending forth the essences of the sweetest and most expensive perfumes from a spring.”\n\nHe also described a session held despite bad omens. The Pythia became hysterical and died a few days later.",
+   "src": [
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-7.140"
+   ],
+   "q": "How did the oracle's second answer to Athens differ from the first?",
+   "a": "The first told the Athenians to flee to the ends of the earth. The second, given when they came back as suppliants, offered hope: a wood-built wall would hold, and divine Salamis would bring death to women's sons.",
+   "id": "delphi-r2"
+  },
+  {
+   "type": "story",
+   "label": "IV · Treasure and ruin",
+   "chapter": "IV",
+   "title": "Thanks in stone",
+   "text": "Cities thanked the god in stone. Along the Sacred Way they built small treasuries for their offerings, often a tenth of the spoils of a war. Athens built one after Marathon in 490 BC; it has been restored.\n\nThe island of Siphnos paid a tenth of the yield of its silver mines, until the sea flooded the workings.",
+   "image": {
+    "file": "File:Treasury house of Athens in Delphi (July 2018).jpg",
+    "alt": "The restored Treasury of the Athenians at Delphi: a small marble temple-like building with two columns at the front.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Treasury_house_of_Athens_in_Delphi_%28July_2018%29.jpg/960px-Treasury_house_of_Athens_in_Delphi_%28July_2018%29.jpg",
+    "width": 2048,
+    "height": 1365,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Treasury_house_of_Athens_in_Delphi_(July_2018).jpg",
+    "artist": "Szymon Kobalczyk",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · Treasure and ruin",
+   "chapter": "IV",
+   "title": "The Pythian Games",
+   "text": "Every four years from 586 BC, athletes from all over the Greek world competed at Delphi. Winners got a crown of laurel, cut by a boy who re-enacted Apollo's killing of the serpent.\n\nDelphi's games stood out for their music contests. The stadium up the hill, rebuilt in the 2nd century AD, seated 6,500.",
+   "image": {
+    "file": "File:Αρχαίο στάδιο Δελφών2.jpg",
+    "alt": "The ancient stadium at Delphi: a long, narrow running track lined with stone seats, high on the mountainside among pines.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/%CE%91%CF%81%CF%87%CE%B1%CE%AF%CE%BF_%CF%83%CF%84%CE%AC%CE%B4%CE%B9%CE%BF_%CE%94%CE%B5%CE%BB%CF%86%CF%8E%CE%BD2.jpg/960px-%CE%91%CF%81%CF%87%CE%B1%CE%AF%CE%BF_%CF%83%CF%84%CE%AC%CE%B4%CE%B9%CE%BF_%CE%94%CE%B5%CE%BB%CF%86%CF%8E%CE%BD2.jpg",
+    "width": 5184,
+    "height": 3456,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:%CE%91%CF%81%CF%87%CE%B1%CE%AF%CE%BF_%CF%83%CF%84%CE%AC%CE%B4%CE%B9%CE%BF_%CE%94%CE%B5%CE%BB%CF%86%CF%8E%CE%BD2.jpg",
+    "artist": "Konstantinos Tamateas",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · Treasure and ruin",
+   "chapter": "IV",
+   "title": "The hearth of Greece",
+   "text": "An eternal flame burned in the temple's inner hearth. After the victory over the Persians at Plataea in 479 BC, the Greek cities put out their fires and brought new fire from Delphi.\n\nColonists were dedicated at Delphi before they sailed. Cicero later remarked that no expedition was undertaken and no colony sent out without the oracle's sanction.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · Treasure and ruin",
+   "chapter": "IV",
+   "title": "Looted and revived",
+   "text": "Delphi's wealth made it a target. The Roman general Sulla sacked it in 86 BC, and Nero plundered it in AD 66. Emperor Hadrian revived the oracle in the 2nd century AD.\n\nThen Constantine stripped monuments to decorate his new capital, Constantinople, among them a bronze column of three twisted serpents. You'll meet it tomorrow.",
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "story",
+   "label": "IV · Treasure and ruin",
+   "chapter": "IV",
+   "title": "The last answer",
+   "text": "When Emperor Julian tried to revive the old gods, his doctor Oribasius went to Delphi. The answer he brought back, as it has come down to us: “Tell the king that the flute has fallen to the ground. Phoebus does not have a home any more, neither an oracular laurel, nor a speaking fountain, because the talking water has dried out.”\n\nLate in the 4th century AD the Christian emperor Theodosius I shut the oracle down.",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "numbers",
+   "label": "By the numbers",
+   "title": "The oracle in numbers",
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ],
+   "rows": [
+    {
+     "value": "535–615",
+     "label": "Delphic oracles known to have survived from antiquity"
+    },
+    {
+     "value": "7th",
+     "label": "The day of the month the Pythia prophesied"
+    },
+    {
+     "value": "3",
+     "label": "Pythias serving at once, at the oracle's busiest"
+    },
+    {
+     "value": "c. 1,000",
+     "label": "Freed slaves whose release is carved on one wall of the sanctuary"
+    },
+    {
+     "value": "0.3 ppm",
+     "label": "Ethylene found in a spring above the temple in 2001"
+    }
+   ]
+  },
+  {
+   "type": "disagree",
+   "label": "Historians disagree",
+   "title": "What made her prophesy?",
+   "src": [
+    "wiki-2"
+   ],
+   "sides": [
+    {
+     "label": "Gas from the rock",
+     "text": "Geologists found two faults crossing under the temple, bitumen that gives off hydrocarbons when earthquakes heat it, and traces of ethylene in a spring nearby. Ethylene can cause trances like the ones Plutarch describes."
+    },
+    {
+     "label": "No gas needed",
+     "text": "The French excavators of the 1890s found no chasm, and for decades scholars agreed there was none. Some still argue ethylene is impossible here, and that the sources show a woman speaking clearly, not a drugged medium."
+    }
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "Under a village",
+   "text": "For centuries the village of Kastri sat on top of the ruins, its people quarrying the ancient stone. Travellers came anyway. Cyriacus of Ancona described the remains in 1436; Lord Byron came in 1809 and carved his name on a column.\n\nAfter an earthquake damaged Kastri, the villagers took a new village nearby, and French archaeologists dug out the sanctuary in the 1890s.",
+   "image": {
+    "file": "File:Fouilles de Delphes (1902) (14792888433).jpg",
+    "alt": "A black-and-white photograph from 1902 of the newly excavated polygonal wall at Delphi, below the cliffs.",
+    "focus": "50% 50%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Fouilles_de_Delphes_%281902%29_%2814792888433%29.jpg/960px-Fouilles_de_Delphes_%281902%29_%2814792888433%29.jpg",
+    "width": 3585,
+    "height": 2646,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Fouilles_de_Delphes_(1902)_(14792888433).jpg",
+    "artist": "Homolle, Théophile, 1848-1925; Ecole française d'Athènes",
+    "license": "No restrictions",
+    "licenseUrl": "https://www.flickr.com/commons/usage/"
+   },
+   "src": [
+    "wiki-1",
+    "wiki-2"
+   ]
+  },
+  {
+   "type": "ripple",
+   "label": "Ripples",
+   "title": "What's there now",
+   "text": "The museum at Delphi holds the bronze Charioteer, one of the best-known statues to survive from antiquity, and the earliest known written notation of a melody.\n\nForecasters still use the Delphi technique, a method named after the oracle. And visitors still climb the Sacred Way that the consultants walked.",
+   "image": {
+    "file": "File:AurigaDelfi.jpg",
+    "alt": "The bronze Charioteer of Delphi: a life-size young man in a long pleated robe, holding the remains of reins.",
+    "focus": "50% 25%",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/AurigaDelfi.jpg/960px-AurigaDelfi.jpg",
+    "width": 2063,
+    "height": 3499,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:AurigaDelfi.jpg",
+    "artist": "RaminusFalcon",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   },
+   "src": [
+    "wiki-1"
+   ]
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-2"
+   ],
+   "q": "What did a consultant have to do before the Pythia would answer?",
+   "a": "Come on one of her monthly days, climb the Sacred Way with laurel, a goat and a fee, wait for their turn with a local agent to vouch for them, and hope the goat shook off the water.",
+   "id": "delphi-r3"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "hdt-1.53"
+   ],
+   "q": "What went wrong for Croesus, according to the priestess?",
+   "a": "He was told that attacking Persia would destroy a great empire, but he never asked whose. He attacked, and the empire destroyed was his own.",
+   "id": "delphi-r4"
+  },
+  {
+   "type": "recall",
+   "label": "Check yourself",
+   "src": [
+    "wiki-2"
+   ],
+   "q": "What's the evidence that gas inspired the Pythia, and what's the case against it?",
+   "a": "Two faults cross under the temple, the rock holds hydrocarbons, and a nearby spring contains ethylene. Against it: excavators found no chasm, some experts call ethylene impossible, and the sources may show her speaking clearly.",
+   "id": "delphi-r5"
+  }
+ ],
+ "mentions": [
+  {
+   "wiki": "Mount Parnassus",
+   "kind": "place",
+   "names": [
+    "Mount Parnassus"
+   ],
+   "title": "Mount Parnassus",
+   "description": "Mountain of central Greece that hosts Delphi",
+   "extract": "Mount Parnassus is a mountain range in Central Greece that is, and historically has been, especially culturally and religiously valuable to the Greek nation and the earlier Greek city-states. It is a major destination on a domestic and international level for athletic and cultural tourism. The mountain is also the location of historical, archaeological, and other cultural sites, such as the Oracle of Delphi perched on the southern slopes of the mountain in a rift valley north of the Gulf of Corinth.",
+   "url": "https://en.wikipedia.org/wiki/Mount_Parnassus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Parnassos2.jpg/330px-Parnassos2.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Parnassos2.jpg",
+    "artist": "Electron08",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Apollo",
+   "kind": "person",
+   "names": [
+    "Apollo"
+   ],
+   "title": "Apollo",
+   "description": "Ancient Greek god",
+   "extract": "Apollo is one of the Olympian deities in ancient Greek religion and mythology. His numerous functions include light, healing, prophecy, music, poetry, and archery. He is the son of Zeus and Leto, and the twin brother of Artemis, goddess of the hunt. He is considered to be the most beautiful god and is represented as the ideal of the kouros or ephebe, a beardless, athletic youth.",
+   "url": "https://en.wikipedia.org/wiki/Apollo",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Italy-3104_-_Apollo_%285378415112%29.jpg/330px-Italy-3104_-_Apollo_%285378415112%29.jpg",
+    "width": 330,
+    "height": 497,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Italy-3104_-_Apollo_(5378415112).jpg",
+    "artist": "Dennis G. Jarvis",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+   }
+  },
+  {
+   "wiki": "Zeus",
+   "kind": "person",
+   "names": [
+    "Zeus"
+   ],
+   "title": "Zeus",
+   "description": "Greek god of the sky and king of the gods",
+   "extract": "Zeus is the supreme deity of the Greek pantheon. He is a sky and thunder god in ancient Greek religion and mythology, who rules as king of the gods on Mount Olympus.",
+   "url": "https://en.wikipedia.org/wiki/Zeus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Zeus_Otricoli_Pio-Clementino_Inv257.jpg/330px-Zeus_Otricoli_Pio-Clementino_Inv257.jpg",
+    "width": 330,
+    "height": 502,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Zeus_Otricoli_Pio-Clementino_Inv257.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Gaia",
+   "kind": "person",
+   "names": [
+    "Gaia"
+   ],
+   "title": "Gaia",
+   "description": "Personification of the Earth in Greek mythology",
+   "extract": "In Greek mythology, Gaia, also spelled Gaea, is the personification of Earth. She is the mother of Uranus (Sky), with whom she conceived the Titans, the Cyclopes, and the Giants, as well as of Pontus (Sea), from whose union she bore the primordial sea gods. Her equivalent in the Roman pantheon was Terra.",
+   "url": "https://en.wikipedia.org/wiki/Gaia",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Gaia_mosaic_antioch.png/330px-Gaia_mosaic_antioch.png",
+    "width": 330,
+    "height": 399,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Gaia_mosaic_antioch.png",
+    "artist": "Sglbl",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Dionysus",
+   "kind": "person",
+   "names": [
+    "Dionysus"
+   ],
+   "title": "Dionysus",
+   "description": "Ancient Greek god of winemaking and wine",
+   "extract": "In ancient Greek religion and myth, Dionysus is the god of wine-making, orchards, fruit, vegetation, fertility, festivity, insanity, ritual madness, religious ecstasy, and theatre. He was also known as Bacchus by the Greeks for a frenzy he is said to induce called baccheia. His wine, music, and ecstatic dance were considered to free his followers from self-conscious fear and care, and subvert the oppressive restraints of the powerful.",
+   "url": "https://en.wikipedia.org/wiki/Dionysus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Dionysos_Louvre_Ma87_n2.jpg/330px-Dionysos_Louvre_Ma87_n2.jpg",
+    "width": 330,
+    "height": 650,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Dionysos_Louvre_Ma87_n2.jpg",
+    "artist": "Marie-Lan Nguyen",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5"
+   }
+  },
+  {
+   "wiki": "Croesus",
+   "kind": "person",
+   "names": [
+    "Croesus"
+   ],
+   "title": "Croesus",
+   "description": "King of Lydia from 585 or 561 to 547 BC",
+   "extract": "Croesus was the last king of Lydia from 585 BC to 546 BC. He was renowned for his great wealth, as well as his ultimate defeat by the Persian king Cyrus the Great following the siege of Sardis.",
+   "url": "https://en.wikipedia.org/wiki/Croesus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Croesus_portrait.jpg/330px-Croesus_portrait.jpg",
+    "width": 330,
+    "height": 329,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Croesus_portrait.jpg",
+    "artist": "Marco Prins",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Cyrus the Great",
+   "kind": "person",
+   "names": [
+    "Cyrus"
+   ],
+   "title": "Cyrus the Great",
+   "description": "Founder of the Achaemenid Empire",
+   "extract": "Cyrus II of Persia, commonly known as Cyrus the Great, was the founder of the Achaemenid Empire. Hailing from Persis, he brought the Achaemenid dynasty to power by defeating the Median Empire and embracing all of the previous civilized states of the ancient Near East, expanding vastly across most of West Asia and much of Central Asia to create what would soon become the largest empire in history at the time.",
+   "url": "https://en.wikipedia.org/wiki/Cyrus_the_Great",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/57/Cyrus_II_%28The_Great%29_%28cropped%29.jpg/330px-Cyrus_II_%28The_Great%29_%28cropped%29.jpg",
+    "width": 330,
+    "height": 531,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Cyrus_II_(The_Great)_(cropped).jpg",
+    "artist": "Surenae",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Xerxes I",
+   "kind": "person",
+   "names": [
+    "Xerxes"
+   ],
+   "title": "Xerxes I",
+   "description": "King of Kings of the Achaemenid Empire from 486 to 465 BC",
+   "extract": "Xerxes I was a Persian ruler who reigned as the fourth King of Kings of the Achaemenid Empire, reigning from 486 BC until his assassination in 465 BC. He was the son of Darius the Great and Atossa.",
+   "url": "https://en.wikipedia.org/wiki/Xerxes_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/National_Museum_of_Iran_Darafsh_%28785%29.JPG/330px-National_Museum_of_Iran_Darafsh_%28785%29.JPG",
+    "width": 330,
+    "height": 498,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:National_Museum_of_Iran_Darafsh_(785).JPG",
+    "artist": "Darafsh",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+   }
+  },
+  {
+   "wiki": "Homer",
+   "kind": "person",
+   "names": [
+    "Homer"
+   ],
+   "title": "Homer",
+   "description": "Ancient Greek poet",
+   "extract": "Homer was an ancient Greek poet who is traditionally credited as the author of the Iliad and the Odyssey, two epic poems that are foundational works of ancient Greek literature. Homer was highly revered in ancient Greek society and is considered one of the most influential authors in history. The question of Homer's identity and existence—dubbed the \"Homeric Question\"—continues to be debated, and scholars generally regard the two poems as the works of separate authors.",
+   "url": "https://en.wikipedia.org/wiki/Homer",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Homer_At_the_British_Museum_2024_%283x4_cropped%29.jpg/330px-Homer_At_the_British_Museum_2024_%283x4_cropped%29.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Homer_At_the_British_Museum_2024_(3x4_cropped).jpg",
+    "artist": "Photograph by Mike Peel ( www.mikepeel.net ).",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Herodotus",
+   "kind": "person",
+   "names": [
+    "Herodotus"
+   ],
+   "title": "Herodotus",
+   "description": "Greek historian and geographer (c. 484–c. 425 BC)",
+   "extract": "Herodotus was a Greek historian and geographer from the Greek city of Halicarnassus, under Persian control in the 5th century BC, and a later citizen of Thurii in modern Calabria, Italy. He wrote the Histories, a detailed account of the Greco-Persian Wars, among other subjects such as the rise of the Achaemenid dynasty of Cyrus. He has been described as \"The Father of History\", a title conferred on him by the ancient Roman orator Cicero.",
+   "url": "https://en.wikipedia.org/wiki/Herodotus",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Marble_bust_of_Herodotos_MET_DT11742_%28cropped%29.jpg/330px-Marble_bust_of_Herodotos_MET_DT11742_%28cropped%29.jpg",
+    "width": 330,
+    "height": 440,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Marble_bust_of_Herodotos_MET_DT11742_(cropped).jpg",
+    "artist": "Unknown",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+   }
+  },
+  {
+   "wiki": "Plutarch",
+   "kind": "person",
+   "names": [
+    "Plutarch"
+   ],
+   "title": "Plutarch",
+   "description": "Greek philosopher and historian",
+   "extract": "Plutarch was a Greek and later Roman Middle Platonist philosopher, historian, biographer, essayist, and priest at the Temple of Apollo in Delphi. He is known primarily for his Parallel Lives, a series of biographies of illustrious Greeks and Romans, and Moralia, a collection of essays and speeches. Upon becoming a Roman citizen, he was possibly named Lucius Mestrius Plutarchus.",
+   "url": "https://en.wikipedia.org/wiki/Plutarch",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg/330px-Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_a_philosopher,_maybe_Plutarch,_2nd_century_BC,_AM_Delphi,_0135.jpg",
+    "artist": "Zde",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Cicero",
+   "kind": "person",
+   "names": [
+    "Cicero"
+   ],
+   "title": "Cicero",
+   "description": "Roman statesman and lawyer (106–43 BC)",
+   "extract": "Marcus Tullius Cicero was a Roman statesman, lawyer, scholar, philosopher, orator, and writer who tried to uphold optimate principles during the political crises of the Roman Republic that led to the establishment of the Roman Empire. The extensive writings of Cicero include treatises on rhetoric, philosophy, and politics. He is considered one of Rome's greatest orators and prose stylists and the innovator of what became known as \"Ciceronian rhetoric\". Cicero was educated in Rome and in Greece.",
+   "url": "https://en.wikipedia.org/wiki/Cicero",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Bust_of_Cicero_%281st-cent._BC%29_-_Palazzo_Nuovo_-_Musei_Capitolini_-_Rome_2016.jpg/330px-Bust_of_Cicero_%281st-cent._BC%29_-_Palazzo_Nuovo_-_Musei_Capitolini_-_Rome_2016.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Bust_of_Cicero_(1st-cent._BC)_-_Palazzo_Nuovo_-_Musei_Capitolini_-_Rome_2016.jpg",
+    "artist": "José Luiz",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Sulla",
+   "kind": "person",
+   "names": [
+    "Sulla"
+   ],
+   "title": "Sulla",
+   "description": "Roman general and dictator (138–78 BC)",
+   "extract": "Lucius Cornelius Sulla Felix, commonly known as Sulla, was a Roman general and statesman of the late Roman Republic. He came to prominence for his military exploits and was the first general during the late republic to march on Rome and win a civil war. After purging his opponents, he assumed the dictatorship, sought to strengthen the republican system through constitutional reforms, and resigned his plenary powers after their enactment.",
+   "url": "https://en.wikipedia.org/wiki/Sulla",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Q._Pompeius_Rufus%2C_denarius%2C_54_BC%2C_RRC_434-1_%28Sulla_only%29.jpg/330px-Q._Pompeius_Rufus%2C_denarius%2C_54_BC%2C_RRC_434-1_%28Sulla_only%29.jpg",
+    "width": 330,
+    "height": 293,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Q._Pompeius_Rufus,_denarius,_54_BC,_RRC_434-1_(Sulla_only).jpg",
+    "artist": "CNG",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5"
+   }
+  },
+  {
+   "wiki": "Nero",
+   "kind": "person",
+   "names": [
+    "Nero"
+   ],
+   "title": "Nero",
+   "description": "Roman emperor from AD 54 to 68",
+   "extract": "Nero Claudius Caesar Augustus Germanicus was Roman emperor from AD 54 until his suicide in AD 68. He was the final emperor of the Julio-Claudian dynasty, which comprised the first five emperors.",
+   "url": "https://en.wikipedia.org/wiki/Nero",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Nero_Glyptothek_Munich_321.jpg/330px-Nero_Glyptothek_Munich_321.jpg",
+    "width": 330,
+    "height": 449,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Nero_Glyptothek_Munich_321.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Hadrian",
+   "kind": "person",
+   "names": [
+    "Hadrian"
+   ],
+   "title": "Hadrian",
+   "description": "Roman emperor from 117 to 138",
+   "extract": "Hadrian was the Roman emperor from 117 to 138. His form of address as Roman emperor was Imperator Caesar Traianus Hadrianus Augustus. Hadrian was born in Italica, in the present-day Andalusian province of Seville in southern Spain, an Italic settlement in Hispania Baetica; his gens Aelia came from the town of Hadria in central Italy. He was a member of the Nerva–Antonine dynasty.",
+   "url": "https://en.wikipedia.org/wiki/Hadrian",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/M%C3%BCnchen_SMAEK_2019-03-23n.jpg/330px-M%C3%BCnchen_SMAEK_2019-03-23n.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:M%C3%BCnchen_SMAEK_2019-03-23n.jpg",
+    "artist": "Djehouty",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Constantine the Great",
+   "kind": "person",
+   "names": [
+    "Constantine"
+   ],
+   "title": "Constantine the Great",
+   "description": "Roman emperor from 306 to 337",
+   "extract": "Constantine I, also known as Constantine the Great, was Roman emperor from AD 306 to 337 and the first Roman emperor to convert to Christianity. He played a pivotal role in elevating the status of Christianity in the Roman Empire, the Edict of Milan decriminalising Christian practice and ceasing Christian persecution. This was a turning point in the Christianisation of the Roman Empire. He founded the city of Constantinople and made it the capital of the Empire, which it remained for over a millennium.",
+   "url": "https://en.wikipedia.org/wiki/Constantine_the_Great",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Constantine_I_The_Great%2C_Colossal_bronze_statue_fragments%2C_Capitoline_Museums.jpg/330px-Constantine_I_The_Great%2C_Colossal_bronze_statue_fragments%2C_Capitoline_Museums.jpg",
+    "width": 330,
+    "height": 495,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Constantine_I_The_Great,_Colossal_bronze_statue_fragments,_Capitoline_Museums.jpg",
+    "artist": "Apaleutos25",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Julian (emperor)",
+   "kind": "person",
+   "names": [
+    "Julian"
+   ],
+   "title": "Julian (emperor)",
+   "description": "Roman emperor from 361 to 363, Neoplatonic philosopher",
+   "extract": "Julian was Caesar of Western Rome from 355 to 360 and Roman emperor from 361 to 363, as well as a notable philosopher and author in Greek. His rejection of Christianity, public conversion to paganism, and promotion of Neoplatonic Hellenism caused him to be remembered as Julian the Apostate in the Christian tradition.",
+   "url": "https://en.wikipedia.org/wiki/Julian_(emperor)",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Juliancng8851obverse.jpg/330px-Juliancng8851obverse.jpg",
+    "width": 330,
+    "height": 312,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Juliancng8851obverse.jpg",
+    "artist": "Classical Numismatic Group",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5"
+   }
+  },
+  {
+   "wiki": "Oribasius",
+   "kind": "person",
+   "names": [
+    "Oribasius"
+   ],
+   "title": "Oribasius",
+   "description": "Greek medical writer",
+   "extract": "Oribasius or Oreibasius was a Greek medical writer and the personal physician of the Roman emperor Julian. He studied at Alexandria under physician Zeno of Cyprus before joining Julian's retinue. He was involved in Julian's coronation in 361, and remained with the emperor until Julian's death in 363. In the wake of this event, Oribasius was banished to foreign courts for a time, but was later recalled by the emperor Valens.",
+   "url": "https://en.wikipedia.org/wiki/Oribasius",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Heraklas_Plinthios_Brokhos_Jaw_Sling.jpg/330px-Heraklas_Plinthios_Brokhos_Jaw_Sling.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Heraklas_Plinthios_Brokhos_Jaw_Sling.jpg",
+    "artist": "David J. Fred ( Dfred )",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Theodosius I",
+   "kind": "person",
+   "names": [
+    "Theodosius I"
+   ],
+   "title": "Theodosius I",
+   "description": "Roman emperor from 379 to 395",
+   "extract": "Theodosius I, also known as Theodosius the Great, was Roman emperor from 379 to 395. He won two civil wars and was instrumental in establishing the Nicene Creed as the orthodox doctrine for Nicene Christianity. Theodosius was the last emperor to rule the entire Roman Empire. After his death, his sons Arcadius and Honorius ruled from separate courts in the east and the west, continuing the late Roman practice of rule by multiple emperors.",
+   "url": "https://en.wikipedia.org/wiki/Theodosius_I",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Bust_of_Theodosius_I.jpg/330px-Bust_of_Theodosius_I.jpg",
+    "width": 330,
+    "height": 514,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Bust_of_Theodosius_I.jpg",
+    "artist": "www.livius.org",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Cyriacus of Ancona",
+   "kind": "person",
+   "names": [
+    "Cyriacus of Ancona"
+   ],
+   "title": "Cyriacus of Ancona",
+   "description": "15th-century humanist and antiquarian from the Republic of Ancona",
+   "extract": "Cyriacus of Ancona or Ciriaco de' Pizzicolli was a humanist and antiquarian who came from a prominent family of merchants in Ancona, a maritime republic on the Adriatic coast of the Italian Peninsula. He has been called the \"Father of Archaeology\":",
+   "url": "https://en.wikipedia.org/wiki/Cyriacus_of_Ancona",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Ciriaco_d%27Ancona_di_Benozzo_Gozzoli.jpg/330px-Ciriaco_d%27Ancona_di_Benozzo_Gozzoli.jpg",
+    "width": 330,
+    "height": 422,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Ciriaco_d%27Ancona_di_Benozzo_Gozzoli.jpg",
+    "artist": "Benozzo Gozzoli",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Lord Byron",
+   "kind": "person",
+   "names": [
+    "Lord Byron"
+   ],
+   "title": "Lord Byron",
+   "description": "British poet (1788–1824)",
+   "extract": "George Noel Gordon Byron, 6th Baron Byron, was a British poet. He was one of the major figures of the Romantic movement, and is regarded as being among the greatest British poets. Among his best-known works are the lengthy narratives Don Juan and Childe Harold's Pilgrimage; many of his shorter lyrics in Hebrew Melodies also became popular.",
+   "url": "https://en.wikipedia.org/wiki/Lord_Byron",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Byron_1813_by_Phillips.jpg/330px-Byron_1813_by_Phillips.jpg",
+    "width": 330,
+    "height": 425,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Byron_1813_by_Phillips.jpg",
+    "artist": "Thomas Phillips",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Lydia",
+   "kind": "place",
+   "names": [
+    "Lydia"
+   ],
+   "title": "Lydia",
+   "description": "Ancient Anatolian kingdom",
+   "extract": "Lydia was a powerful Iron Age civilization prominent in western Anatolia in the 8th to 6th centuries BCE. Its capital and only city at Sardis. They are known in part for the world's first coinage, and rapid expansion based on their immense wealth in gold. They established cultural, economic, military, and diplomatic relations with the Greeks to their west, and the Assyrians, Babylonians, Egyptians, Phrygians, and others to the east and south.",
+   "url": "https://en.wikipedia.org/wiki/Lydia",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Kingdom_of_Lydia.png/330px-Kingdom_of_Lydia.png",
+    "width": 330,
+    "height": 184,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Kingdom_of_Lydia.png",
+    "artist": "Ennomus",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Gulf of Corinth",
+   "kind": "place",
+   "names": [
+    "Gulf of Corinth"
+   ],
+   "title": "Gulf of Corinth",
+   "description": "Inlet between mainland Greece and the Peloponnese",
+   "extract": "The Gulf of Corinth or the Corinthian Gulf is an inlet of the Ionian Sea, separating the Peloponnese from western mainland Greece. It is bounded in the east by the Isthmus of Corinth which includes the shipping-designed Corinth Canal and in the west by the Rion Strait which widens into the shorter Gulf of Patras and whose narrowest point has been crossed since 2004 by the Rio–Antirrio Bridge.",
+   "url": "https://en.wikipedia.org/wiki/Gulf_of_Corinth",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Golful_Corintului.JPG/330px-Golful_Corintului.JPG",
+    "width": 330,
+    "height": 389,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Golful_Corintului.JPG",
+    "artist": "Bogdan29roman",
+    "license": "Public domain"
+   }
+  },
+  {
+   "wiki": "Siphnos",
+   "kind": "place",
+   "names": [
+    "Siphnos"
+   ],
+   "title": "Sifnos",
+   "description": "Island municipality in Greece",
+   "extract": "Sifnos is an island municipality in the Cyclades island group in Greece. The main town, near the center, known as Apollonia, is home of the island's folklore museum and library. The town's name is thought to come from an ancient temple of Apollo on the site of the church of Panayia Yeraniofora. The second-largest town is Artemonas, thought to be named after an ancient temple of Apollo's sister Artemis, located at the site of the church of Panayia Kokhi. The village of Kastro, was the capital of the island during ancient times until 1836.",
+   "url": "https://en.wikipedia.org/wiki/Sifnos",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Sifnos09view.jpg/330px-Sifnos09view.jpg",
+    "width": 330,
+    "height": 248,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Sifnos09view.jpg",
+    "artist": "Jon Corelis",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  },
+  {
+   "wiki": "Plataea",
+   "kind": "place",
+   "names": [
+    "Plataea"
+   ],
+   "title": "Plataea",
+   "description": "Ancient city in southeastern Boeotia, Greece",
+   "extract": "Plataea or Plataeae was an ancient Greek city-state situated in Boeotia near the frontier with Attica at the foot of Mt. Cithaeron, between the mountain and the river Asopus, which divided its territory from that of Thebes. Its inhabitants were known as the Plataeans.",
+   "url": "https://en.wikipedia.org/wiki/Plataea",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Plataea_battlefield.jpg/330px-Plataea_battlefield.jpg",
+    "width": 330,
+    "height": 187,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Plataea_battlefield.jpg",
+    "artist": "Geraki",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+   }
+  },
+  {
+   "wiki": "Constantinople",
+   "kind": "place",
+   "names": [
+    "Constantinople"
+   ],
+   "title": "Constantinople",
+   "description": "Capital of the Byzantine Empire",
+   "extract": "Constantinople, the modern Istanbul, was the capital of the Roman Empire and Byzantine Empire from 330 until its takeover by the Ottoman Empire in 1453. After this, it continued to function as the Ottoman capital until the abolition of the Ottoman sultanate in 1922.",
+   "url": "https://en.wikipedia.org/wiki/Constantinople",
+   "image": {
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Byzantine_Constantinople-en.png/330px-Byzantine_Constantinople-en.png",
+    "width": 330,
+    "height": 298,
+    "descUrl": "https://commons.wikimedia.org/wiki/File:Byzantine_Constantinople-en.png",
+    "artist": "Cplakidas",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+   }
+  }
+ ]
+}
