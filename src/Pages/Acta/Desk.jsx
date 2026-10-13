@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { SignIn } from "@clerk/clerk-react";
 import Feed from "./Feed";
-import { deskLoad, deskOp } from "./api";
+import { deskLoad, deskOp, meLoad } from "./api";
 import { setOwnerDevice, useShell } from "./shell";
 import { KIND_LABEL } from "./lessonUtil";
 
@@ -68,7 +68,7 @@ function Confirm({ children, onConfirm, disabled, className = "ac-btn" }) {
   );
 }
 
-function DeskShell({ children, owner }) {
+function DeskShell({ children, owner, here = "Desk", title = "The desk", intro = null }) {
   return (
     <div className="ac-page ac-desk">
       <Helmet>
@@ -78,7 +78,7 @@ function DeskShell({ children, owner }) {
       <nav className="ac-pnav" aria-label="Acta">
         <Link to="/acta">Today</Link>
         <Link to="/acta/archive">Archive</Link>
-        <span className="is-on">Desk</span>
+        <span className="is-on">{here}</span>
         {owner && owner.signedIn ? (
           <button type="button" className="ac-link" onClick={() => owner.signOut({ redirectUrl: "/acta" })}>
             Sign out
@@ -87,7 +87,8 @@ function DeskShell({ children, owner }) {
       </nav>
       <header className="ac-page-head">
         <p className="ac-label">Charlie only</p>
-        <h1 className="ac-page-title">The desk</h1>
+        <h1 className="ac-page-title">{title}</h1>
+        {intro ? <p className="ac-page-intro">{intro}</p> : null}
       </header>
       {children}
     </div>
@@ -122,6 +123,87 @@ export default function Desk() {
     );
   }
   return <DeskApp owner={owner} />;
+}
+
+// ---------------------------------------------------------------------------
+// /acta/sign-in: the reading pages' "Sign in". Checks the account is on
+// ACTA_EDITOR_USER_IDS, marks this device as Charlie's (so Clerk keeps loading
+// here) and goes back to where it came from.
+
+/** Only ever send people back to an Acta page. */
+const safeNext = (raw) => (raw && /^\/acta(\/|\?|$)/.test(raw) ? raw : "/acta/archive");
+
+export function SignInPage() {
+  const { owner } = useShell();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get("next"));
+  const navigate = useNavigate();
+  const [check, setCheck] = useState(null);
+  const signedIn = Boolean(owner && owner.signedIn);
+  const getToken = owner ? owner.getToken : null;
+
+  useEffect(() => {
+    if (!signedIn) return undefined;
+    let live = true;
+    setCheck(null);
+    meLoad(getToken).then((r) => {
+      if (!live) return;
+      if (!r.ok) return setCheck(r);
+      setOwnerDevice(true);
+      return navigate(next, { replace: true });
+    });
+    return () => {
+      live = false;
+    };
+  }, [signedIn, getToken, next, navigate]);
+
+  const shell = (children) => (
+    <DeskShell owner={owner} here="Sign in" title="Sign in" intro="For Charlie: opens every lesson early and keeps your reading in sync across devices.">
+      {children}
+    </DeskShell>
+  );
+
+  if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) return shell(<p className="ac-note">Sign-in isn't configured on this build.</p>);
+  if (!owner || !owner.loaded) return shell(<p className="ac-note">Checking who you are…</p>);
+  if (!signedIn) {
+    return shell(
+      <div className="ac-clerk">
+        <SignIn routing="hash" forceRedirectUrl={`/acta/sign-in?next=${encodeURIComponent(next)}`} />
+      </div>
+    );
+  }
+  if (check && check.status === 403) {
+    return shell(
+      <div className="ac-card-plain">
+        <p>
+          <b>You're signed in, but not as an Acta editor.</b>
+        </p>
+        {check.userId ? (
+          <p className="ac-note">
+            Signed in as <code>{check.userId}</code>. If that's you, add it to <code>ACTA_EDITOR_USER_IDS</code> in Vercel and redeploy.
+          </p>
+        ) : null}
+        <div className="ac-btns">
+          <Link className="ac-btn" to={next}>
+            Go back
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  if (check) {
+    return shell(
+      <>
+        <p className="ac-error">{check.error}</p>
+        <div className="ac-btns">
+          <Link className="ac-btn" to={next}>
+            Go back
+          </Link>
+        </div>
+      </>
+    );
+  }
+  return shell(<p className="ac-note">Signed in. Taking you back…</p>);
 }
 
 function DeskApp({ owner }) {

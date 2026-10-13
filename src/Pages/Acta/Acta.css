@@ -1411,6 +1411,19 @@ html.acta-on body {
 .ac-arch-state.is-done {
   color: var(--ac-accent);
 }
+/* Charlie's full archive: lessons that aren't out yet, or aren't written. */
+.ac-arch-when {
+  font: 500 10px/1.4 var(--ac-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ac-accent);
+}
+.ac-arch-item.is-unwritten {
+  opacity: 0.55;
+}
+.ac-arch-item.is-unwritten b {
+  font-style: italic;
+}
 
 .ac-tl {
   margin: 0;

@@ -78,6 +78,18 @@ export async function meSave(getToken, payload) {
   return res.ok ? { ok: true } : fail(res, data, "Couldn't save your reading log.");
 }
 
+/** Every scheduled lesson, out yet or not (Charlie's archive). */
+export async function ownerArchive(getToken) {
+  const { res, data } = await budgetFetch(getToken, `${BASE}/all-lessons`);
+  return res.ok && data ? { ok: true, lessons: data.lessons || [], date: data.date } : fail(res, data, "Couldn't load every lesson.");
+}
+
+/** One lesson before its day (or while held back). */
+export async function ownerLesson(getToken, slug) {
+  const { res, data } = await budgetFetch(getToken, `${BASE}/any-lesson?slug=${encodeURIComponent(slug)}`);
+  return res.ok && data && data.lesson ? { ok: true, lesson: data.lesson, date: data.date } : fail(res, data, "Couldn't open that lesson.");
+}
+
 export async function askQuestion(getToken, payload) {
   const { res, data } = await budgetFetch(getToken, `${BASE}/ask`, { method: "POST", body: JSON.stringify(payload) });
   return res.ok ? { ok: true, answer: data.answer } : fail(res, data, "Couldn't get an answer.");

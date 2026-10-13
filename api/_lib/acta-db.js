@@ -348,6 +348,22 @@ async function archive(sql, today) {
   );
 }
 
+/**
+ * Every scheduled lesson, live or not, newest date first: Charlie's archive.
+ * Unwritten lessons fall back to their topic's title and dates.
+ */
+async function everyLesson(sql) {
+  return sql`
+    SELECT l.slug, l.day, l.publish_on, l.status, l.held, (l.data IS NOT NULL) AS written,
+           COALESCE(l.data->>'title', t.title) AS title, l.data->>'subtitle' AS subtitle,
+           l.data->>'summary' AS summary, COALESCE(l.data->>'kind', t.kind) AS kind,
+           COALESCE(l.data->>'era', t.era) AS era, COALESCE((l.data->>'year')::int, t.year) AS year,
+           COALESCE(l.data->>'yearLabel', t.year_label) AS year_label,
+           l.data->'takeaways' AS takeaways, (l.data->>'minutes')::int AS minutes
+      FROM acta_lessons l LEFT JOIN acta_topics t ON t.id = l.topic_id
+     ORDER BY l.publish_on DESC, l.id DESC`;
+}
+
 /** The next scheduled topic after `date` (for the close card's "tomorrow"). */
 async function nextAfter(sql, date) {
   const [r] = await sql`
@@ -489,6 +505,7 @@ function createStore(sql) {
     liveBySlug: bind(liveBySlug),
     lessonBySlug: bind(lessonBySlug),
     archive: bind(archive),
+    everyLesson: bind(everyLesson),
     nextAfter: bind(nextAfter),
     neighbours: bind(neighbours),
     scheduledFrom: bind(scheduledFrom),

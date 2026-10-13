@@ -153,7 +153,7 @@ test("push subscriptions are validated", async () => {
 });
 
 test("owner routes need the Acta allowlist; anonymous callers learn nothing", async () => {
-  for (const [method, action] of [["GET", "desk"], ["POST", "desk"], ["GET", "me"], ["POST", "ask"]]) {
+  for (const [method, action] of [["GET", "desk"], ["POST", "desk"], ["GET", "me"], ["POST", "ask"], ["GET", "all-lessons"], ["GET", "any-lesson"]]) {
     const anon = setup({ who: null });
     const res = await anon.call(method, action, { body: { op: "advance" } });
     assert.equal(res.statusCode, 401, `${method} ${action}`);
@@ -161,6 +161,48 @@ test("owner routes need the Acta allowlist; anonymous callers learn nothing", as
     const stranger = setup({ who: "user_other" });
     assert.equal((await stranger.call(method, action, { body: { op: "advance" } })).statusCode, 403);
   }
+});
+
+test("Charlie's archive lists every scheduled lesson, out or not", async () => {
+  const { call, store } = setup();
+  await liveLesson(store, { slug: "past", date: "2026-10-20", title: "Past" });
+  const future = await liveLesson(store, { slug: "future", date: "2026-10-23", title: "Future" });
+  const held = await liveLesson(store, { slug: "held", date: "2026-10-19", title: "Held" });
+  await store.updateLesson(held.id, { held: true });
+  const unwritten = await liveLesson(store, { slug: "unwritten", date: "2026-10-26", title: "Unwritten" });
+  await store.updateLesson(unwritten.id, { status: "queued", data: null });
+
+  // Visitors see only what's out.
+  assert.deepEqual((await call("GET", "archive")).body.lessons.map((l) => l.slug), ["past"]);
+
+  const res = await call("GET", "all-lessons");
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers["cache-control"], "no-store");
+  const bySlug = Object.fromEntries(res.body.lessons.map((l) => [l.slug, l]));
+  assert.deepEqual(res.body.lessons.map((l) => l.slug), ["unwritten", "future", "past", "held"]);
+  assert.equal(bySlug.past.live, true);
+  assert.equal(bySlug.future.live, false);
+  assert.equal(bySlug.future.written, true);
+  assert.equal(bySlug.held.held, true);
+  assert.equal(bySlug.held.live, false);
+  assert.equal(bySlug.unwritten.written, false);
+  assert.equal(bySlug.unwritten.status, "queued");
+  assert.equal(bySlug.unwritten.title, "Topic 1-0", "an unwritten lesson shows its topic's title");
+  assert.ok(future);
+});
+
+test("Charlie can open a lesson before its day; visitors can't", async () => {
+  const { call, store } = setup();
+  await liveLesson(store, { slug: "future", date: "2026-10-23", title: "Future" });
+  assert.equal((await call("GET", "lesson", { query: { slug: "future" } })).statusCode, 404);
+  const res = await call("GET", "any-lesson", { query: { slug: "future" } });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.lesson.title, "Future");
+  assert.equal(res.body.lesson.live, false);
+  const queued = await liveLesson(store, { slug: "queued", date: "2026-10-26" });
+  await store.updateLesson(queued.id, { status: "queued", data: null });
+  assert.equal((await call("GET", "any-lesson", { query: { slug: "queued" } })).statusCode, 404);
+  assert.equal((await call("GET", "any-lesson", { query: { slug: "../x" } })).statusCode, 400);
 });
 
 test("me round-trips Charlie's reading state", async () => {

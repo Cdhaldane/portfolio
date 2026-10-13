@@ -17,11 +17,13 @@ import "./Acta.css";
  * theme colour for Acta's own, so "Add to Home Screen" installs Acta rather
  * than the portfolio, and restores them on the way out.
  *
- * Clerk loads only on Charlie's devices (after he's opened the desk once) and
- * on the desk itself. Everyone else gets a fully working page without it.
+ * Clerk loads only on Charlie's devices (once signed in there) and on the desk
+ * and sign-in pages. Everyone else gets a fully working page without it.
  */
 
 const Desk = lazy(() => import("./Desk"));
+const SignInPage = lazy(() => import("./Desk").then((m) => ({ default: m.SignInPage })));
+const OWNER_PATHS = ["/acta/desk", "/acta/sign-in"];
 const OwnerRoot = lazy(() => import("./owner"));
 
 const ERA_KEY = "acta:era";
@@ -105,6 +107,7 @@ function ActaInner({ owner }) {
             <Route path="review" element={<Review />} />
             <Route path="saved" element={<Saved />} />
             <Route path="desk/*" element={<Desk />} />
+            <Route path="sign-in" element={<SignInPage />} />
             <Route path=":slug" element={<LessonRoute />} />
           </Routes>
         </Suspense>
@@ -115,7 +118,7 @@ function ActaInner({ owner }) {
 
 export default function Acta() {
   const { pathname } = useLocation();
-  const wantsOwner = Boolean(process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) && (isOwnerDevice() || pathname.startsWith("/acta/desk"));
+  const wantsOwner = Boolean(process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) && (isOwnerDevice() || OWNER_PATHS.some((p) => pathname.startsWith(p)));
   if (!wantsOwner) return <ActaInner owner={null} />;
   return (
     <Suspense fallback={<ActaInner owner={null} />}>

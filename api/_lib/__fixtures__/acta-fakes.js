@@ -131,6 +131,32 @@ function createFakeStore({ seeds = {} } = {}) {
         .reverse()
         .map((l) => ({ slug: l.slug, day: l.day, publish_on: l.publish_on, title: l.data.title, subtitle: l.data.subtitle, summary: l.data.summary, kind: l.data.kind, era: l.data.era, year: l.data.year, year_label: l.data.yearLabel, takeaways: l.data.takeaways, minutes: l.data.minutes }));
     },
+    async everyLesson() {
+      return [...db.lessons]
+        .sort(byDate)
+        .reverse()
+        .map((l) => {
+          const t = topicOf(l);
+          const d = l.data || {};
+          return {
+            slug: l.slug,
+            day: l.day,
+            publish_on: l.publish_on,
+            status: l.status,
+            held: l.held,
+            written: Boolean(l.data),
+            title: d.title || t.title,
+            subtitle: d.subtitle || null,
+            summary: d.summary || null,
+            kind: d.kind || t.kind,
+            era: d.era || t.era,
+            year: d.year != null ? d.year : t.year,
+            year_label: d.yearLabel || t.yearLabel,
+            takeaways: d.takeaways || null,
+            minutes: d.minutes || null,
+          };
+        });
+    },
     async nextAfter(date) {
       const l = [...db.lessons].sort(byDate).find((x) => x.publish_on > date && !x.held);
       if (!l) return null;

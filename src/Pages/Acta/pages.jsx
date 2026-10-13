@@ -1,14 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { fetchArchive } from "./api";
-import { SAMPLE_LESSON, useShell } from "./shell";
+import { fetchArchive, ownerArchive } from "./api";
+import { SAMPLE_LESSON, useOwnerSettled, useShell } from "./shell";
 import { KIND_LABEL, formatYear } from "./lessonUtil";
 import { addDays, dueItems, gradeItem, localISO, nextDue, update, useActa, whenLabel } from "./store";
 import { Loading } from "./Today";
 
 // ---------------------------------------------------------------------------
 // Shell for the scrolling pages
+
+/** Sign in (Charlie: early lessons, synced reading) or out. Not on builds without Clerk. */
+function OwnerLink() {
+  const { owner } = useShell();
+  const { pathname } = useLocation();
+  if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || (owner && !owner.loaded)) return null;
+  if (owner && owner.signedIn) {
+    return (
+      <button type="button" className="ac-link" onClick={() => owner.signOut({ redirectUrl: pathname })}>
+        Sign out
+      </button>
+    );
+  }
+  return (
+    <Link className="ac-link" to={`/acta/sign-in?next=${encodeURIComponent(pathname)}`}>
+      Sign in
+    </Link>
+  );
+}
 
 function PageNav() {
   const deck = useActa((s) => s.deck);
@@ -31,6 +50,7 @@ function PageNav() {
       <NavLink to="/acta/saved" className={link}>
         Saved
       </NavLink>
+      <OwnerLink />
     </nav>
   );
 }
@@ -52,27 +72,55 @@ export function Page({ kicker, title, intro, children }) {
   );
 }
 
-/** Live lessons from the API, or just the sample when there's no API. */
-function useArchive() {
-  const [state, setState] = useState({ status: "loading", lessons: [] });
+/**
+ * Live lessons from the API, or just the sample when there's no API. With
+ * `everything` and a signed-in `owner` (Charlie) it returns every scheduled
+ * lesson instead, out yet or not, and `full` is true. That view waits for
+ * Clerk before deciding, so it doesn't flash the public list first.
+ */
+function useArchive({ everything = false, owner = null } = {}) {
+  const [state, setState] = useState({ status: "loading", lessons: [], full: false, today: null });
+  const settled = useOwnerSettled(owner);
+  const ownerReady = !everything || settled;
+  const getToken = everything && owner && owner.signedIn ? owner.getToken : null;
   useEffect(() => {
+    if (!ownerReady) return undefined;
     const ac = new AbortController();
-    fetchArchive(ac.signal).then((r) => {
+    (async () => {
+      if (getToken) {
+        const o = await ownerArchive(getToken);
+        if (ac.signal.aborted) return;
+        if (o.ok) return setState({ status: "ok", lessons: o.lessons, full: true, today: o.date || null });
+      }
+      const r = await fetchArchive(ac.signal);
       if (r.aborted) return;
       const lessons = r.ok ? r.data.lessons : [];
       if (!lessons.length) {
         const s = SAMPLE_LESSON;
         lessons.push({ slug: s.slug, day: null, publishOn: null, title: s.title, subtitle: s.subtitle, summary: s.summary, kind: s.kind, era: s.era, year: s.year, yearLabel: s.yearLabel, minutes: s.minutes, takeaways: s.takeaways, sample: true });
       }
-      setState({ status: r.ok ? "ok" : "offline", lessons });
-    });
+      return setState({ status: r.ok ? "ok" : "offline", lessons, full: false, today: null });
+    })();
     return () => ac.abort();
-  }, []);
+  }, [ownerReady, getToken]);
   return state;
 }
 
+const UNWRITTEN = {
+  queued: "Not written yet",
+  failed: "Writing failed",
+  needs_review: "Needs your review",
+};
+
 const fmtDate = (iso) =>
   iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }) : "";
+
+/** Why a lesson in Charlie's full archive isn't out for everyone yet. */
+const whenOut = (l, today) => {
+  if (l.held) return "Held back · only you can see it";
+  if (!today || l.publishOn > today) return `Goes live ${fmtDate(l.publishOn)}`;
+  return l.publishOn === today ? "Due today" : `Was due ${fmtDate(l.publishOn)}`;
+};
 
 const mondayOf = (iso) => {
   const d = new Date(`${iso}T12:00:00Z`);
@@ -83,7 +131,10 @@ const mondayOf = (iso) => {
 // Archive
 
 export function Archive() {
-  const { lessons, status } = useArchive();
+  const { owner } = useShell();
+  const { lessons: listed, status, full, today } = useArchive({ everything: true, owner });
+  // Charlie's full view reads as a calendar, first lesson first.
+  const lessons = useMemo(() => (full ? [...listed].reverse() : listed), [listed, full]);
   const progress = useActa((s) => s.progress);
   const [q, setQ] = useState("");
   const shown = useMemo(() => {
@@ -103,10 +154,19 @@ export function Archive() {
     return out;
   }, [shown]);
   const done = lessons.filter((l) => progress[l.slug] && progress[l.slug].done).length;
+  const out = lessons.filter((l) => !full || l.live).length;
 
   if (status === "loading") return <Loading />;
   return (
-    <Page kicker="Archive" title="Every lesson so far" intro={`${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"} · ${done} read`}>
+    <Page
+      kicker="Archive"
+      title={full ? "Every lesson" : "Every lesson so far"}
+      intro={
+        full
+          ? `All ${lessons.length} scheduled lessons, ${out} out so far · ${done} read. You can open the rest early; only you can see them.`
+          : `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"} · ${done} read`
+      }
+    >
       <label className="ac-field ac-search">
         <span className="ac-sr">Search the archive</span>
         <input id="ac-archive-search" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search: Themistocles, 480, democracy…" />
@@ -117,21 +177,35 @@ export function Archive() {
           <ol>
             {w.items.map((l) => {
               const p = progress[l.slug];
+              // Only in Charlie's full view: lessons that aren't out, or aren't written.
+              const unwritten = full && l.written === false;
+              const early = full && !l.live && !unwritten;
+              const state = p && p.done ? "Read" : p ? `${Math.round(((p.max || 0) / Math.max(1, p.total || 1)) * 100)}%` : unwritten ? UNWRITTEN[l.status] || "Being written" : `${l.minutes || 15} min`;
+              const inner = (
+                <>
+                  <span className="ac-arch-day">{l.day ? l.day : "·"}</span>
+                  <span className="ac-arch-main">
+                    <span className="ac-arch-kind">
+                      {KIND_LABEL[l.kind] || ""} · {l.yearLabel}
+                    </span>
+                    <b>{l.title}</b>
+                    {l.summary ? <span className="ac-arch-sum">{l.summary}</span> : null}
+                    {early || unwritten ? (
+                      <span className="ac-arch-when">{whenOut(l, today)}</span>
+                    ) : null}
+                  </span>
+                  <span className={`ac-arch-state${p && p.done ? " is-done" : p ? " is-started" : ""}`}>{state}</span>
+                </>
+              );
               return (
                 <li key={l.slug}>
-                  <Link to={`/acta/${l.slug}`} className="ac-arch-item">
-                    <span className="ac-arch-day">{l.day ? l.day : "·"}</span>
-                    <span className="ac-arch-main">
-                      <span className="ac-arch-kind">
-                        {KIND_LABEL[l.kind] || ""} · {l.yearLabel}
-                      </span>
-                      <b>{l.title}</b>
-                      {l.summary ? <span className="ac-arch-sum">{l.summary}</span> : null}
-                    </span>
-                    <span className={`ac-arch-state${p && p.done ? " is-done" : p ? " is-started" : ""}`}>
-                      {p && p.done ? "Read" : p ? `${Math.round(((p.max || 0) / Math.max(1, p.total || 1)) * 100)}%` : `${l.minutes || 15} min`}
-                    </span>
-                  </Link>
+                  {unwritten ? (
+                    <div className="ac-arch-item is-unwritten">{inner}</div>
+                  ) : (
+                    <Link to={`/acta/${l.slug}`} className={`ac-arch-item${early ? " is-early" : ""}`}>
+                      {inner}
+                    </Link>
+                  )}
                 </li>
               );
             })}

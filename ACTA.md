@@ -80,11 +80,11 @@ started from.
 | `POSTGRES_URL` | everything (already set) |
 | `ANTHROPIC_API_KEY` | writing lessons, proposing seasons, Ask |
 | `CRON_SECRET` | the daily cron (already set for Budgetter) |
-| `ACTA_EDITOR_USER_IDS` | the desk and Ask (fail-closed) |
+| `ACTA_EDITOR_USER_IDS` | the desk, Ask and the full archive (fail-closed) |
 | `REACT_APP_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | desk sign-in (already set) |
 | `ACTA_VAPID_PUBLIC_KEY`, `ACTA_VAPID_PRIVATE_KEY`, `ACTA_VAPID_SUBJECT` | optional daily reminders (`npx web-push generate-vapid-keys`) |
 
-First run: deploy, open `/acta/desk`, sign in, copy the user id it shows into
+First run: deploy, open `/acta/desk` (or "Sign in" in the nav), sign in, copy the user id it shows into
 `ACTA_EDITOR_USER_IDS`, redeploy, approve Season 1. Until the first lesson
 goes live, `/acta` shows the bundled Salamis lesson as a sample.
 
@@ -100,8 +100,10 @@ goes live, `/acta` shows the bundled Salamis lesson as a sample.
 - A mention links only where a name occurs as a whole word in prose (card
   text, quote notes, debate sides; never titles, quotes or questions), and
   only the first time per card. Names are case-sensitive and exact.
-- Visitors never load Clerk: owner mode is lazy and only on devices where the
-  desk has been opened (`localStorage["acta:owner"]`).
+- Visitors never load Clerk: owner mode is lazy and only on devices where
+  Charlie has signed in (`localStorage["acta:owner"]`), plus `/acta/desk` and
+  `/acta/sign-in`. Signed in, the archive lists every scheduled lesson (out or
+  not, via `all-lessons`) and `/acta/:slug` opens unreleased ones (`any-lesson`).
 - The feed is a native scroll-snap container; Lenis is off for `/acta`
   (`SmoothScroll` `SKIP_PREFIXES`). Sidebar and theme switch are hidden too.
 - Tests: `npm run test:api` (pipeline, handler, sources, lesson, schedule,

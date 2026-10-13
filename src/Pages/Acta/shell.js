@@ -1,6 +1,6 @@
 // Shared context for the Acta surface: the current era skin and, on Charlie's
 // own devices, the signed-in owner (token getter for Ask, sync and the desk).
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import SAMPLE from "./lessons/salamis.json";
 
 export const ShellContext = createContext({ era: "greece", setEra: () => {}, owner: null });
@@ -30,4 +30,21 @@ export function setOwnerDevice(on) {
   } catch {
     /* storage blocked: owner mode just won't stick */
   }
+}
+
+/**
+ * Whether we know yet if Charlie is signed in. On an owner device the Clerk
+ * chunk and session take a moment, and owner-only views (the full archive,
+ * early lessons) should wait rather than flash the public version first. Gives
+ * up after a few seconds so a Clerk that never loads can't hang the page.
+ */
+export function useOwnerSettled(owner) {
+  const pending = owner ? !owner.loaded : Boolean(process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) && isOwnerDevice();
+  const [gaveUp, setGaveUp] = useState(false);
+  useEffect(() => {
+    if (!pending) return undefined;
+    const t = setTimeout(() => setGaveUp(true), 4000);
+    return () => clearTimeout(t);
+  }, [pending]);
+  return !pending || gaveUp;
 }

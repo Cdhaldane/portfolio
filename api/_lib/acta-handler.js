@@ -14,6 +14,8 @@
 //   POST ask                a follow-up question about one card
 //   GET  desk               seasons, lessons, flags and setup status
 //   POST desk { op, … }     approve seasons, edit topics, run the pipeline…
+//   GET  all-lessons        every scheduled lesson, out yet or not (his archive)
+//   GET  any-lesson?slug=…  one lesson before its day, or while held
 // Cron (Authorization: Bearer CRON_SECRET, sent by Vercel):
 //   GET  cron               advance the pipeline, propose a season when the
 //                           calendar runs low, send the daily reminder
@@ -34,6 +36,25 @@ function safeEqual(a, b) {
 }
 
 const body = (req) => (req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {});
+
+/** An archive row as the page lists it. */
+const archiveEntry = (r) => ({
+  slug: r.slug,
+  day: r.day,
+  publishOn: r.publish_on,
+  title: r.title,
+  subtitle: r.subtitle,
+  summary: r.summary,
+  kind: r.kind,
+  era: r.era,
+  year: r.year,
+  yearLabel: r.year_label,
+  minutes: r.minutes,
+  takeaways: r.takeaways || [],
+});
+
+/** Would a visitor see this lesson today? */
+const isLive = (r, day) => r.status === "ready" && !r.held && r.written !== false && r.publish_on <= day;
 const intOrNull = (v) => (Number.isInteger(v) ? v : null);
 
 function createActaHandler({
@@ -130,24 +151,7 @@ function createActaHandler({
     if (!store) return res.status(200).json({ ok: true, date: day, lessons: [] });
     const rows = await store.archive(day);
     res.setHeader("Cache-Control", PUBLIC_CACHE);
-    return res.status(200).json({
-      ok: true,
-      date: day,
-      lessons: rows.map((r) => ({
-        slug: r.slug,
-        day: r.day,
-        publishOn: r.publish_on,
-        title: r.title,
-        subtitle: r.subtitle,
-        summary: r.summary,
-        kind: r.kind,
-        era: r.era,
-        year: r.year,
-        yearLabel: r.year_label,
-        minutes: r.minutes,
-        takeaways: r.takeaways || [],
-      })),
-    });
+    return res.status(200).json({ ok: true, date: day, lessons: rows.map(archiveEntry) });
   }
 
   async function postFlag(req, res) {
@@ -213,6 +217,41 @@ function createActaHandler({
     const card = cardIndex !== null ? row.data.cards[cardIndex] || null : null;
     const msg = await claude.runNow(claude.askParams(row.data, card, full.sources, question));
     return res.status(200).json({ ok: true, answer: claude.textFrom(msg) });
+  }
+
+  /** Charlie's archive: every scheduled lesson, out yet or not, with its state. */
+  async function getEveryLesson(res) {
+    const store = await storeOr503();
+    const day = today();
+    const rows = await store.everyLesson();
+    return res.status(200).json({
+      ok: true,
+      date: day,
+      lessons: rows.map((r) => ({
+        ...archiveEntry(r),
+        status: r.status,
+        held: Boolean(r.held),
+        written: Boolean(r.written),
+        live: isLive(r, day),
+      })),
+    });
+  }
+
+  /** One lesson whatever its status, for Charlie to read before its day. */
+  async function getAnyLesson(res, query) {
+    const slug = String(query.slug || "");
+    if (!SLUG.test(slug)) return res.status(400).json({ error: "That isn't a lesson." });
+    const store = await storeOr503();
+    const row = await store.lessonBySlug(slug);
+    if (!row) return res.status(404).json({ error: "There's no lesson with that name on the calendar." });
+    if (!row.data) return res.status(404).json({ error: "That lesson isn't written yet.", status: row.status });
+    const day = today();
+    const lesson = await publicLesson(store, row, day);
+    return res.status(200).json({
+      ok: true,
+      date: day,
+      lesson: { ...lesson, status: row.status, held: Boolean(row.held), live: isLive({ ...row, written: true }, day) },
+    });
   }
 
   function deskLesson(l) {
@@ -370,6 +409,8 @@ function createActaHandler({
     me: { GET: handleMe, PUT: handleMe },
     ask: { POST: postAsk },
     desk: { GET: (req, res) => getDesk(res), POST: postDesk },
+    "all-lessons": { GET: (req, res) => getEveryLesson(res) },
+    "any-lesson": { GET: (req, res) => getAnyLesson(res, req.query || {}) },
   };
 
   return async function actaHandler(req, res) {
