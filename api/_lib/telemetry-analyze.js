@@ -21,7 +21,7 @@
 // Bump the +jsN suffix for a port-only change, and the mqbtel part whenever
 // the goldens are regenerated from a new mqbtel revision. Stored rows with an
 // older value are re-run by POST { action: "reanalyze" }.
-const ANALYZER_VERSION = "mqbtel@c5e540b+js1";
+const ANALYZER_VERSION = "mqbtel@8b36739+js1";
 
 // --- columns.py ---------------------------------------------------------------
 
@@ -374,9 +374,18 @@ const PULL_MIN_DURATION_S = 2.0;
 const KNOCK_WATCH_DEG = 0.0; // any retard at all is worth noting
 const KNOCK_WARN_DEG = 3.0; // sustained/large retard
 const KNOCK_ON_BOOST_PSI = 3.0; // retard above this boost counts as "under load"
+const KNOCK_EVENT_BOOST_PSI = 15.0; // a knock event under boost: retard while boost reaches this...
+// ...starting this soon after boost arrives is tip-in knock; later is
+// late-pull knock, which tracks charge air heat.
+const KNOCK_TIPIN_S = 1.0;
+const KNOCK_CAT_LATER_S = 1.0; // charge air this long after onset too: the sensor lags fast climbs
+const KNOCK_SHIFT_LEAD_S = 0.3; // an event starting this soon before a gear change counts as during it
 
 const CAT_WATCH_C = 70.0; // charge air getting warm
 const CAT_WARN_C = 90.0; // clear heat soak
+// Charge air rise over this much of a pull's boost: the intercooler's
+// before/after number. Pulls last 2+ s, so nearly every one has it.
+const CAT_RISE_S = 2.0;
 
 const LTFT_WATCH_PCT = 5.0;
 const LTFT_WARN_PCT = 10.0;
@@ -386,8 +395,16 @@ const BOOST_UNDERSHOOT_MIN_S = 0.5; // ...sustained (median over windows this lo
 // Boost still climbing faster than this is spool-up: boost trails its set
 // point and AFR trails its enrichment target.
 const BOOST_SPOOL_PSI_PER_S = 10.0;
-const RAIL_DROOP_WARN_PCT = 10.0; // rail pressure falling short of set point
+const RAIL_DROOP_WARN_PCT = 10.0; // rail pressure short of set point...
+const RAIL_DROOP_MIN_S = 0.5; // ...sustained (median over windows this long)
 const RAIL_MIN_SP_PSI = 1500.0; // only judge droop when the ECU is asking for real pressure
+// Pump health over time. The cam-driven pump struggles most with lots of fuel
+// per stroke at low rpm, so droop only compares between logs at the same load:
+// track its 90th percentile in one fixed band that most real pulls cross.
+const RAIL_REF_RPM = Object.freeze([4000, 5500]);
+const RAIL_REF_AIR_MG = 1450.0; // air mass per stroke at or above this
+const RAIL_REF_MIN_SAMPLES = 10;
+const RAIL_REF_TEXT = `${RAIL_REF_RPM[0]}-${RAIL_REF_RPM[1]} rpm, ${pyFixed(RAIL_REF_AIR_MG, 0)}+ mg/stroke`;
 const AFR_LEAN_WARN = 0.5; // actual leaner than target, under boost...
 const AFR_LEAN_MIN_S = 0.3; // ...sustained (median over windows this long)
 const AFR_BOOSTED_PSI = 10.0; // "under boost" for the AFR check
@@ -432,7 +449,7 @@ const CHECKS = Object.freeze({
   cat: ["Charge air heat soak", ["cat_c"]],
   trims: ["Fuel trims", ["ltft_pct", "rpm"]],
   boost: ["Boost vs set point", ["put_psia", "put_sp_psia", "pedal_pct", "rpm", "time_s"]],
-  rail: ["Rail pressure (HPFP)", ["rail_psi", "rail_sp_psi", "pedal_pct", "rpm"]],
+  rail: ["Rail pressure (HPFP)", ["rail_psi", "rail_sp_psi", "pedal_pct", "rpm", "time_s"]],
   hpfp: ["Fuel pump headroom", [HPFP_VOL, "pedal_pct", "rpm", "time_s"]],
   afr: ["AFR under boost", ["afr", "afr_sp", "boost_psi", "time_s"]],
   clutch: ["DSG clutch slip", [CLUTCH1_SLIP, "gear", "torque_ftlb", "speed_mph", "time_s"]],
@@ -449,7 +466,7 @@ const CHECK_REQUIRES = Object.freeze({
     `boost settled for ${BOOST_UNDERSHOOT_MIN_S}+ s once spooled. Log a WOT pull.`,
   rail:
     "Rail pressure actual and set point, with 5+ full-load samples asking for " +
-    `${pyFixed(RAIL_MIN_SP_PSI, 0)}+ psi. Log a WOT pull.`,
+    `${pyFixed(RAIL_MIN_SP_PSI, 0)}+ psi, held for ${RAIL_DROOP_MIN_S}+ s. Log a WOT pull.`,
   hpfp:
     `HPFP effective pump volume, with 5+ full-load samples (${FULL_LOAD_TEXT}) held ` +
     `for ${HPFP_MIN_S}+ s. Log a WOT pull.`,
@@ -538,22 +555,6 @@ function median(values) {
   const s = values.slice().sort((a, b) => a - b);
   const mid = s.length >> 1;
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
-}
-
-/**
- * max(series.rolling(5, min_periods=3).median()): a trailing window over the
- * rows given (not seconds), NaN-skipping, NaN where fewer than 3 values.
- */
-function maxRollingMedian(values, window = 5, minPeriods = 3) {
-  let best = NaN;
-  for (let i = 0; i < values.length; i += 1) {
-    const win = [];
-    for (let j = Math.max(0, i - window + 1); j <= i; j += 1) if (isNum(values[j])) win.push(values[j]);
-    if (win.length < minPeriods) continue;
-    const m = median(win);
-    if (Number.isNaN(best) || m > best) best = m;
-  }
-  return best;
 }
 
 function durationS(log) {
@@ -661,7 +662,8 @@ function findPulls(
       for (const [, arr] of knock) for (const r of rows) if (arr[r] > maxKnock) maxKnock = arr[r];
     }
     const g = gear ? modeOf(gear, rows) : null;
-    const curve = powerCurve(log, rows.filter((r) => !shifting[r]));
+    const clear = rows.filter((r) => !shifting[r]); // the DSG's shift torque cut drops timing too
+    const curve = powerCurve(log, clear);
     // Python's max(curve, key=hp): the first of equal peaks wins.
     let top = null;
     for (const c of curve) if (top === null || c.hp > top.hp) top = c;
@@ -678,17 +680,59 @@ function findPulls(
       cat_start_c: cat ? cat[first] : null,
       cat_end_c: cat ? cat[last] : null,
       cat_max_c: colMax(log, "cat_c", rows),
-      timing_median_deg: medianOf(colOf(log, "timing_deg"), rows),
+      timing_median_deg: medianOf(colOf(log, "timing_deg"), clear),
       peak_hp: top ? top.hp : null,
       peak_hp_rpm: top ? top.rpm : null,
       hpfp_max_pct: colMax(log, HPFP_VOL, rows),
       airflow_pct: airflowPct(log, rows),
       torque_ceiling_pct: torqueCeilingPct(log, rows, peakTorque),
       torque_limited_pct: torqueLimitedPct(log, rows),
+      boost_s: boostS(log, rows),
+      cat_rise_c: catRise(log, rows),
+      cat_over_iat_c: catOverIat(log, rows),
       curve,
     });
   }
   return pulls;
+}
+
+/** Time in the pull at PULL_BOOST_PSI+: diff() with the first step (and any NaN) as 0. */
+function boostS(log, rows) {
+  const boost = colOf(log, "boost_psi");
+  if (!boost) return null;
+  const t = colOf(log, "time_s");
+  let sum = 0.0;
+  for (let k = 1; k < rows.length; k += 1) {
+    const dt = t[rows[k]] - t[rows[k - 1]];
+    if (boost[rows[k]] >= PULL_BOOST_PSI && isNum(dt)) sum += dt;
+  }
+  return sum;
+}
+
+/**
+ * Charge air rise over the first CAT_RISE_S after boost reaches PULL_BOOST_PSI.
+ *
+ * A fixed slice of boost, so a short burst and a long pull compare: the number
+ * an intercooler upgrade should bring down. Null if the pull's boost is shorter.
+ */
+function catRise(log, rows) {
+  const cat = colOf(log, "cat_c");
+  const boost = colOf(log, "boost_psi");
+  if (!cat || !boost) return null;
+  const t = colOf(log, "time_s");
+  const first = rows.find((r) => boost[r] >= PULL_BOOST_PSI);
+  if (first === undefined) return null;
+  const later = rows.find((r) => t[r] >= t[first] + CAT_RISE_S);
+  if (later === undefined) return null;
+  const rise = cat[later] - cat[first];
+  return isNum(rise) ? rise : null;
+}
+
+/** Peak charge air above the intake air going into the turbo: heat the intercooler left in. */
+function catOverIat(log, rows) {
+  const cat = colMax(log, "cat_c", rows);
+  const iat = medianOf(colOf(log, "iat_c"), rows);
+  return cat === null || iat === null ? null : cat - iat;
 }
 
 /** _median: NaN-skipping median of `arr` over `rows`, null if absent or all NaN. */
@@ -786,14 +830,7 @@ function checkKnock(log, s) {
     s.knock[c] = [arr.length ? max : NaN, count];
   }
 
-  let worstCyl = null;
-  let worst = -Infinity;
-  for (const [c, [m]] of Object.entries(s.knock)) {
-    if (worstCyl === null || m > worst) {
-      worstCyl = c;
-      worst = m;
-    }
-  }
+  const worst = Math.max(...Object.values(s.knock).map(([m]) => m));
 
   const n = log.length;
   const rowMax = new Float64Array(n);
@@ -824,12 +861,21 @@ function checkKnock(log, s) {
   const boost = colOf(log, "boost_psi");
   const onBoost = boost ? (i) => events(i) && boost[i] >= KNOCK_ON_BOOST_PSI : events; // can't tell, so assume the worst
   const serious = (i) => events(i) && rowMax[i] > KNOCK_WARN_DEG && (onBoost(i) || !uniform(i));
-  const peaks = Object.values(s.knock).map(([m]) => m);
-  const cyl =
-    peaks.length > 1 && Math.min(...peaks) === worst ? "all cylinders" : worstCyl.replace("kr_cyl", "cyl ");
+  // Name every cylinder that reached the worst value, not the first of a tie, and say
+  // when retard reached all of them: knock on pairs or everywhere isn't one bad coil.
+  const knock = Object.entries(s.knock);
+  const atWorst = knock.filter(([, [m]]) => m === worst).map(([c]) => c);
+  const everywhere = knock.length > 1 && knock.every(([, [, k]]) => k > 0);
+  const cyl = knock.length > 1 && atWorst.length === knock.length ? "all cylinders" : cylinders(atWorst);
+  const spread = everywhere && cyl !== "all cylinders" ? ", retard on every cylinder" : "";
   const nOnBoost = rowsWhere(n, onBoost).length;
   if (rowsWhere(n, serious).length) {
-    flag(s, "knock", "warn", `Knock retard up to ${pyFixed(worst, 2)} deg on ${cyl} under load (${nEvents} samples).`);
+    flag(
+      s,
+      "knock",
+      "warn",
+      `Knock retard up to ${pyFixed(worst, 2)} deg on ${cyl} under load (${nEvents} samples${spread}).`
+    );
   } else if (rowsWhere(n, uniform).length === nEvents && !nOnBoost) {
     flag(
       s,
@@ -840,7 +886,12 @@ function checkKnock(log, s) {
     );
   } else {
     const where = nOnBoost ? `, ${nOnBoost} on boost` : "";
-    flag(s, "knock", "watch", `Minor knock retard (${pyFixed(worst, 2)} deg max on ${cyl}, ${nEvents} samples${where}).`);
+    flag(
+      s,
+      "knock",
+      "watch",
+      `Minor knock retard (${pyFixed(worst, 2)} deg max on ${cyl}, ${nEvents} samples${where}${spread}).`
+    );
   }
 
   // One cylinder carrying most of the events points at that cylinder specifically.
@@ -858,6 +909,110 @@ function checkKnock(log, s) {
       );
     }
   }
+
+  s.knock_events = knockEvents(log, kr);
+  if (s.knock_events.length) flag(s, "knock", "info", knockEventsText(s.knock_events));
+}
+
+/** "cyl 3" or "cyls 1/2" from knock column names. */
+function cylinders(cols) {
+  const nums = cols.map((c) => Number(c.replace("kr_cyl", ""))).sort((a, b) => a - b);
+  return (nums.length === 1 ? "cyl " : "cyls ") + nums.join("/");
+}
+
+/**
+ * Retard events that reached KNOCK_EVENT_BOOST_PSI, told apart by when they start.
+ *
+ * Tip-in knock begins within KNOCK_TIPIN_S of boost arriving; late-pull knock
+ * comes seconds in and follows charge air heat. Charge air is given at onset and
+ * again KNOCK_CAT_LATER_S later, because the sensor trails the real air on a fast
+ * climb. Events that begin in a gear change are marked: several of the owner's
+ * deepest land right at the torque handover.
+ */
+function knockEvents(log, kr) {
+  const t = colOf(log, "time_s");
+  const boost = colOf(log, "boost_psi");
+  const n = log.length;
+  if (!boost || !t || !kr.length || !n) return [];
+  const boosted = maskWhere(n, (i) => boost[i] >= KNOCK_EVENT_BOOST_PSI);
+  // When boost last arrived, carried forward the way ffill() does (a NaN time doesn't).
+  const began = new Float64Array(n);
+  let last = NaN;
+  for (let i = 0; i < n; i += 1) {
+    if (boosted[i] && !(i > 0 && boosted[i - 1]) && isNum(t[i])) last = t[i];
+    began[i] = last;
+  }
+  const shifting = afterShift(log);
+  const active = maskWhere(n, (i) => kr.some(([, arr]) => arr[i] > KNOCK_WATCH_DEG));
+  const gear = colOf(log, "gear");
+  const rpm = colOf(log, "rpm");
+  const cat = colOf(log, "cat_c");
+  const timing = colOf(log, "timing_deg");
+  const value = (arr, i) => (!arr || i >= arr.length || !isNum(arr[i]) ? null : arr[i]);
+  const events = [];
+  let lo = 0;
+  while (lo < n) {
+    if (!active[lo]) {
+      lo += 1;
+      continue;
+    }
+    let hi = lo;
+    while (hi < n && active[hi]) hi += 1; // one event is rows [lo, hi)
+    const start = lo;
+    lo = hi;
+    if (!boosted.subarray(start, hi).some(Boolean)) continue;
+    const into = boosted[start] ? t[start] - began[start] : 0.0;
+    const lead = searchSorted(t, t[start] + KNOCK_SHIFT_LEAD_S, "right");
+    let depth = -Infinity;
+    const cyls = [];
+    for (const [c, arr] of kr) {
+      const peak = nanMax(arr.subarray(start, hi));
+      if (peak > depth) depth = peak;
+      if (peak > KNOCK_WATCH_DEG) cyls.push(Number(c.replace("kr_cyl", "")));
+    }
+    const g = value(gear, start);
+    events.push({
+      start_s: t[start],
+      duration_s: t[hi - 1] - t[start],
+      kind: into < KNOCK_TIPIN_S ? "tip-in" : "late-pull",
+      gear: g === null ? null : Math.trunc(g),
+      rpm: rpm[start],
+      boost_psi: boost[start],
+      into_boost_s: into,
+      depth_deg: depth,
+      cylinders: cyls,
+      cat_onset_c: value(cat, start),
+      cat_later_c: value(cat, searchSorted(t, t[start] + KNOCK_CAT_LATER_S, "left")),
+      timing_deg: value(timing, start),
+      during_shift: shifting.subarray(start, lead).some(Boolean),
+    });
+  }
+  return events;
+}
+
+function knockEventsText(events) {
+  const parts = [];
+  for (const [kind, label] of [
+    ["tip-in", `at tip-in (first ${KNOCK_TIPIN_S} s of boost)`],
+    ["late-pull", "late in a pull"],
+  ]) {
+    const ev = events.filter((e) => e.kind === kind);
+    if (!ev.length) continue;
+    let part = `${ev.length} ${label}, up to ${pyFixed(Math.max(...ev.map((e) => e.depth_deg)), 2)} deg`;
+    if (kind === "late-pull") {
+      const cats = ev.flatMap((e) => [e.cat_onset_c, e.cat_later_c]).filter((c) => c !== null);
+      if (cats.length) {
+        const lo = pyFixed(Math.min(...cats), 0);
+        const hi = pyFixed(Math.max(...cats), 0);
+        part += `, charge air ${lo === hi ? lo : `${lo}-${hi}`} C`;
+      }
+    }
+    parts.push(part);
+  }
+  let text = `Knock under boost: ${parts.join("; ")}`;
+  const shifting = events.filter((e) => e.during_shift).length;
+  if (shifting) text += `; ${shifting} of ${events.length} began during a gear change`;
+  return `${text}.`;
 }
 
 function checkCat(log, s) {
@@ -933,11 +1088,6 @@ function fullLoadMask(log) {
   );
 }
 
-function fullLoadRows(log) {
-  const full = fullLoadMask(log);
-  return rowsWhere(log.length, (i) => full[i]);
-}
-
 /**
  * True while boost is still building: spool-up, or recovery after a shift.
  * diff() / diff() as pandas has it: row 0 and 0/0 are NaN (false), and a
@@ -971,13 +1121,16 @@ function settledMask(log, mask, pressureCol) {
   return maskWhere(log.length, (i) => mask[i] && !spool[i] && !shift[i]);
 }
 
-/** numpy.searchsorted(a, key, side="right") for a non-NaN key: NaN sorts last. */
-function searchSortedRight(a, key) {
+/** numpy's ordering: NaN sorts after every number. */
+const sortsBefore = (x, y) => x < y || (Number.isNaN(y) && !Number.isNaN(x));
+
+/** numpy.searchsorted(a, key, side): the same binary search, so the same index. */
+function searchSorted(a, key, side) {
   let lo = 0;
   let hi = a.length;
   while (lo < hi) {
     const mid = lo + ((hi - lo) >> 1);
-    if (a[mid] <= key) lo = mid + 1;
+    if (side === "left" ? sortsBefore(a[mid], key) : !sortsBefore(key, a[mid])) lo = mid + 1;
     else hi = mid;
   }
   return lo;
@@ -992,6 +1145,15 @@ function searchSortedRight(a, key) {
  * stretch lasts `minS`.
  */
 function held(log, values, mask, minS) {
+  const worst = heldWindow(log, values, mask, minS);
+  return worst === null ? null : worst[0];
+}
+
+/**
+ * `held`, plus where: [level, first row, last row] of the worst window. The
+ * first window to reach the worst level wins a tie.
+ */
+function heldWindow(log, values, mask, minS) {
   const time = colOf(log, "time_s");
   const keep = (i) => mask[i] && isNum(values[i]);
   let worst = null;
@@ -1001,6 +1163,7 @@ function held(log, values, mask, minS) {
       i += 1;
       continue;
     }
+    const first = i;
     const t = [];
     const v = [];
     for (; i < log.length && keep(i); i += 1) {
@@ -1009,9 +1172,9 @@ function held(log, values, mask, minS) {
     }
     for (let k = 0; k < t.length; k += 1) {
       if (!(t[k] - t[0] >= minS)) continue;
-      const level = median(v.slice(searchSortedRight(t, t[k] - minS), k + 1));
-      // Python's max(worst, level): the first stays unless the second is greater.
-      worst = worst === null || level > worst ? level : worst;
+      const j = searchSorted(t, t[k] - minS, "right");
+      const level = median(v.slice(j, k + 1));
+      if (worst === null || level > worst[0]) worst = [level, first + j, first + k];
     }
   }
   return worst;
@@ -1065,7 +1228,7 @@ function checkBoost(log, s) {
   }
 }
 
-/** HPFP health: does rail pressure keep up with demand? */
+/** HPFP health: does rail pressure keep up with demand, and did fuelling hold when it didn't? */
 function checkRail(log, s) {
   const gone = missing(log, "rail");
   if (gone.length) {
@@ -1074,17 +1237,95 @@ function checkRail(log, s) {
   }
   const sp = colOf(log, "rail_sp_psi");
   const rail = colOf(log, "rail_psi");
-  const fl = fullLoadRows(log).filter((i) => sp[i] > RAIL_MIN_SP_PSI);
-  if (fl.length < 5) {
-    record(s, "rail", "idle", noFullLoad(fl.length));
+  const full = fullLoadMask(log);
+  const loaded = maskWhere(log.length, (i) => full[i] && sp[i] > RAIL_MIN_SP_PSI);
+  const n = countOf(loaded);
+  if (n < 5) {
+    record(s, "rail", "idle", noFullLoad(n));
     return;
   }
-  s.rail_droop_pct = maxRollingMedian(fl.map((i) => ((sp[i] - rail[i]) / sp[i]) * 100));
-  const x = s.rail_droop_pct;
-  record(s, "rail", "ran", `${fl.length} full-load samples, worst droop ${pyFixed(x, 0)}%.`);
-  if (x >= RAIL_DROOP_WARN_PCT) {
-    flag(s, "rail", "warn", `Rail pressure dropping ${pyFixed(x, 0)}% below target — HPFP may be at its limit.`);
+  const droop = sp.map((v, i) => ((v - rail[i]) / v) * 100);
+  const worst = heldWindow(log, droop, loaded, RAIL_DROOP_MIN_S);
+  if (worst === null) {
+    record(s, "rail", "idle", `${n} full-load samples, but none held for ${RAIL_DROOP_MIN_S} s. Log a longer pull.`);
+    return;
   }
+  const [level, lo, hi] = worst;
+  s.rail_droop_pct = level;
+  let detail = `${n} full-load samples, worst held droop ${pyFixed(level, 0)}%.`;
+  const ref = railReference(log, droop, loaded);
+  if (ref !== null) {
+    [s.rail_ref_droop_pct, s.rail_ref_samples] = ref;
+    detail +=
+      ` At the reference load (${RAIL_REF_TEXT}), 90% of ${ref[1]} samples ` +
+      `were within ${pyFixed(ref[0], 0)}%.`;
+  }
+  record(s, "rail", "ran", detail);
+  if (level < RAIL_DROOP_WARN_PCT) return;
+
+  // Where the worst window sat, and whether AFR held through it.
+  const w = [];
+  for (let i = lo; i <= hi; i += 1) w.push(i);
+  const gear = colOf(log, "gear");
+  const g = gear ? modeOf(gear, w) : null;
+  let where = `${pyFixed(medianOf(colOf(log, "rpm"), w) ?? NaN, 0)} rpm`;
+  if (g !== null) where = `gear ${Math.trunc(g)} at ${where}`;
+  let fuel = "";
+  const afr = colOf(log, "afr");
+  const afrSp = colOf(log, "afr_sp");
+  if (afr && afrSp) {
+    const lean = medianOf(afr.map((v, i) => v - afrSp[i]), w);
+    if (lean !== null) {
+      fuel =
+        lean < AFR_LEAN_WARN
+          ? "; fuelling held (AFR on target)"
+          : `; AFR ${pyFixed(lean, 2, true)} leaner than target, so fuelling fell short`;
+    }
+  }
+  flag(
+    s,
+    "rail",
+    "warn",
+    `Rail pressure held ${pyFixed(level, 0)}% below target (${pyFixed(medianOf(rail, w), 0)} vs ` +
+      `${pyFixed(medianOf(sp, w), 0)} psi, ${where}) — HPFP at its limit${fuel}.`
+  );
+}
+
+/** 90th-percentile droop in the fixed RAIL_REF band: comparable log to log. */
+function railReference(log, droop, loaded) {
+  const air = colOf(log, AIR_MASS);
+  if (!air) return null;
+  const rpm = colOf(log, "rpm");
+  const band = [];
+  for (let i = 0; i < log.length; i += 1) {
+    if (
+      loaded[i] &&
+      rpm[i] >= RAIL_REF_RPM[0] &&
+      rpm[i] <= RAIL_REF_RPM[1] &&
+      air[i] >= RAIL_REF_AIR_MG &&
+      isNum(droop[i])
+    ) {
+      band.push(droop[i]);
+    }
+  }
+  if (band.length < RAIL_REF_MIN_SAMPLES) return null;
+  return [quantile(band, 0.9), band.length];
+}
+
+/**
+ * Series.quantile(q): numpy's linear method, including its lerp, which works
+ * back from the upper value once the fraction reaches 0.5.
+ */
+function quantile(values, q) {
+  const s = values.slice().sort((a, b) => a - b);
+  const at = (s.length - 1) * q;
+  const below = Math.floor(at);
+  const above = Math.min(below + 1, s.length - 1);
+  const frac = at - below;
+  const a = s[below];
+  const b = s[above];
+  const diff = b - a;
+  return frac >= 0.5 ? b - diff * (1 - frac) : a + diff * frac;
 }
 
 function checkAfr(log, s) {
@@ -1311,10 +1552,13 @@ function summarize(log) {
     ltft: null,
     boost_undershoot_psi: null,
     rail_droop_pct: null,
+    rail_ref_droop_pct: null,
+    rail_ref_samples: 0,
     hpfp_pct: null,
     clutch_slip_rpm: null,
     pulls: [],
     shifts: [],
+    knock_events: [],
     findings: [],
     checks: [],
     knock_samples: 0,
@@ -1383,16 +1627,20 @@ function clean(value) {
 
 /**
  * The hot columns tel_logs copies out of a summary, so list and trend
- * queries never have to open the JSON.
+ * queries never have to open the JSON. Charge air rise is the median over the
+ * log's pulls, as mqbtel's dashboard trends it.
  */
 function hotColumns(summary) {
   const knock = Object.values(summary.knock || {}).map(([m]) => m).filter((m) => m !== null);
+  const rises = summary.pulls.map((p) => p.cat_rise_c).filter((v) => v !== null && v !== undefined);
   return {
     worstLevel: summary.worst_level,
     catMaxC: summary.cat_range ? summary.cat_range[1] : null,
     knockMaxDeg: knock.length ? Math.max(...knock) : null,
     ltftMeanPct: summary.ltft ? summary.ltft[0] : null,
     pullCount: summary.pulls.length,
+    railRefDroopPct: summary.rail_ref_droop_pct ?? null,
+    catRiseC: rises.length ? median(rises) : null,
   };
 }
 
@@ -1413,9 +1661,14 @@ module.exports = {
   LEVEL_ORDER,
   CAT_WATCH_C,
   CAT_WARN_C,
+  CAT_RISE_S,
   KNOCK_WARN_DEG,
+  KNOCK_TIPIN_S,
+  KNOCK_CAT_LATER_S,
   LTFT_WATCH_PCT,
   LTFT_WARN_PCT,
+  RAIL_DROOP_WARN_PCT,
+  RAIL_REF_TEXT,
   WOT_PEDAL_PCT,
   FULL_LOAD,
   LogFormatError,
@@ -1425,7 +1678,6 @@ module.exports = {
   csvRecords,
   load,
   pyFixed,
-  maxRollingMedian,
   findPulls,
   summarize,
   clean,

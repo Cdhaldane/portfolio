@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deleteLog, editLog, loadLog } from "../api";
-import { CARS, CAR_BY_KEY, HEURISTICS_CAVEAT, todayLocal } from "../cars";
+import { CARS, CAR_BY_KEY, CAT_RISE_S, HEURISTICS_CAVEAT, KNOCK_CAT_LATER_S, KNOCK_TIPIN_S, todayLocal } from "../cars";
 import { DEFAULT_PRESET, MAX_LANES, presetCols, presetsFor } from "../channelPresets";
 import { fmtClock, fmtDate, fmtDuration, fmtNum } from "../format";
 import Level from "./Level";
@@ -9,12 +9,16 @@ import EngineInsights from "./EngineInsights";
 
 /*
  * One log: what it is (date, car, maps), what the analysis found, which
- * checks could run and why the others couldn't, the full-load pulls, and the
- * channels on a time axis. Opens on the health-check preset (one lane per
- * automated check); the other presets each frame one system.
+ * checks could run and why the others couldn't, the full-load pulls, each
+ * stretch of knock under boost, and the channels on a time axis. Opens on the
+ * health-check preset (one lane per automated check); the other presets each
+ * frame one system.
  */
 const FINDING_ORDER = { warn: 0, watch: 1, info: 2, ok: 3 };
 const STATUS_TEXT = { idle: "Idle", missing: "Missing" };
+const KNOCK_KIND = { "tip-in": "Tip-in", "late-pull": "Late pull" };
+
+const signedC = (v) => (v === null || v === undefined ? "–" : `${v > 0 ? "+" : ""}${fmtNum(v)} °C`);
 
 const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
   const [state, setState] = useState({ status: "loading" });
@@ -98,6 +102,11 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
   const findings = [...s.findings].sort((a, b) => FINDING_ORDER[a.level] - FINDING_ORDER[b.level]);
   const requires = Object.fromEntries((checks || []).map((c) => [c.name, c.requires]));
   const rate = log.durationS > 0 ? log.samples / log.durationS : null;
+  // A summary from before knock events existed has no list at all: say nothing
+  // rather than claim the log had none. The page offers a re-analyse for those.
+  const knockRan = s.checks.some((c) => c.name === "knock" && c.status === "ran");
+  const knockEvents = knockRan ? s.knock_events : undefined;
+  const zoomTo = (t0, t1) => request({ ...view, t0: Math.max(0, t0 - 2), t1: t1 + 2 });
 
   const saveEdit = async () => {
     setSaving(true);
@@ -329,6 +338,7 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
                   <th scope="col">Peak torque</th>
                   <th scope="col">Max knock</th>
                   <th scope="col">Charge air</th>
+                  <th scope="col">Charge air rise</th>
                   <th scope="col">
                     <span className="sr-only">Zoom</span>
                   </th>
@@ -351,12 +361,9 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
                     <td>
                       {p.cat_start_c === null ? "–" : `${fmtNum(p.cat_start_c)}→${fmtNum(p.cat_end_c)} °C`}
                     </td>
+                    <td>{signedC(p.cat_rise_c)}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="gr-link"
-                        onClick={() => request({ ...view, t0: Math.max(0, p.start_s - 2), t1: p.end_s + 2 })}
-                      >
+                      <button type="button" className="gr-link" onClick={() => zoomTo(p.start_s, p.end_s)}>
                         Zoom
                       </button>
                     </td>
@@ -365,6 +372,79 @@ const LogDetail = ({ getToken, id, changes, onBack, onChanged, onDeleted }) => {
               </tbody>
             </table>
           </div>
+          <p className="gr-caveat">
+            Charge air rise is over the first {CAT_RISE_S} s of a pull&apos;s boost: a fixed slice, so a short
+            burst and a long pull compare. It&apos;s the number a better intercooler brings down.
+          </p>
+        </section>
+      )}
+
+      {knockEvents && (
+        <section className="gr-knock" aria-labelledby="gr-knock-title">
+          <h2 id="gr-knock-title" className="gr-h3">
+            Knock under boost
+          </h2>
+          {knockEvents.length ? (
+            <div className="gr-table-wrap" data-lenis-prevent>
+              <table className="gr-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Start</th>
+                    <th scope="col">Kind</th>
+                    <th scope="col">Gear</th>
+                    <th scope="col">RPM</th>
+                    <th scope="col">Boost</th>
+                    <th scope="col">Into boost</th>
+                    <th scope="col">Retard</th>
+                    <th scope="col">Cylinders</th>
+                    <th scope="col">Charge air</th>
+                    <th scope="col">Timing</th>
+                    <th scope="col">
+                      <span className="sr-only">Zoom</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {knockEvents.map((k) => (
+                    <tr key={k.start_s} className={k.during_shift ? "is-in-shift" : undefined}>
+                      <th scope="row">
+                        {fmtClock(k.start_s)}
+                        {k.during_shift && <small> in a shift</small>}
+                      </th>
+                      <td>{KNOCK_KIND[k.kind] || k.kind}</td>
+                      <td>{k.gear ?? "–"}</td>
+                      <td>{fmtNum(k.rpm)}</td>
+                      <td>{k.boost_psi === null ? "–" : `${k.boost_psi.toFixed(1)} psi`}</td>
+                      <td>{k.into_boost_s === null ? "–" : `${k.into_boost_s.toFixed(1)} s`}</td>
+                      <td>{k.depth_deg.toFixed(2)}°</td>
+                      <td>{k.cylinders.join(", ")}</td>
+                      <td>
+                        {k.cat_onset_c === null ? "–" : fmtNum(k.cat_onset_c)}→
+                        {k.cat_later_c === null ? "–" : fmtNum(k.cat_later_c)} °C
+                      </td>
+                      <td>{k.timing_deg === null ? "–" : `${k.timing_deg.toFixed(1)}°`}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="gr-link"
+                          onClick={() => zoomTo(k.start_s, k.start_s + k.duration_s)}
+                        >
+                          Zoom
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="gr-empty-line">No knock retard under boost in this log.</p>
+          )}
+          <p className="gr-caveat">
+            Tip-in starts within {KNOCK_TIPIN_S} s of boost arriving; a late pull comes later and tracks heat.
+            Charge air is at onset and {KNOCK_CAT_LATER_S} s later, since the sensor lags a fast climb. Timing is
+            what the engine ran as it knocked.
+          </p>
         </section>
       )}
 

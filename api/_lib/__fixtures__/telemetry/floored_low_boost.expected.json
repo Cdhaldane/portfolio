@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": null,
  "rail_droop_pct": null,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [
@@ -62,6 +64,9 @@
    "airflow_pct": null,
    "torque_ceiling_pct": null,
    "torque_limited_pct": null,
+   "boost_s": 0.0,
+   "cat_rise_c": null,
+   "cat_over_iat_c": null,
    "curve": [
     {
      "rpm": 2000,
@@ -99,6 +104,7 @@
   }
  ],
  "shifts": [],
+ "knock_events": [],
  "findings": [
   {
    "level": "ok",
@@ -164,7 +170,8 @@
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": null
   },

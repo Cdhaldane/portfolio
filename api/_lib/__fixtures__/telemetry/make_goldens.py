@@ -161,6 +161,43 @@ def wot(c: dict, start: float, end: float, gear: float = 3.0) -> np.ndarray:
     return m
 
 
+def make_log(wot: bool = False, kr=None, boost=None, cols: dict | None = None, n: int = 400) -> dict:
+    """mqbtel's tests/helpers.make_log, as columns: 10 Hz, a WOT pull from 5 to 15 s.
+
+    For fixtures that mirror a test in tests/test_insights.py shape for shape. `kr`
+    sets all four cylinders, `boost` overrides boost, `cols` adds or overrides
+    columns by header (scalars broadcast).
+    """
+    full = lambda v: np.broadcast_to(np.asarray(v, dtype=float), (n,)).copy()  # noqa: E731
+    t = np.arange(n) / 10.0
+    if wot:
+        on = (t > 5) & (t < 15)
+        pedal = np.where(on, 100.0, 20.0)
+        rpm = np.where(on, np.linspace(2000, 6500, n), 1500.0)
+        boost_v = np.where(on, 25.0, 2.0)
+    else:
+        pedal, rpm, boost_v = np.full(n, 30.0), np.full(n, 2000.0), np.full(n, 5.0)
+    if boost is not None:
+        boost_v = full(boost)
+    c = {
+        "Time (sec)": t,
+        "Engine Speed (RPM)": rpm,
+        "Accel Pedal Position (%)": pedal,
+        "Boost Press. (psi)": boost_v,
+        "PUT Set Point (psi)": boost_v + 14.5,
+        "Press Upstream Throttle (psi)": boost_v + 14.5,
+        "Charge Air Temperature (C)": np.linspace(30, 50, n),
+        "Torque Actual (ft-lb)": np.where(pedal > 90, 390.0, 100.0),
+        "Current Gear (-)": np.full(n, 3.0),
+    }
+    for cyl in range(1, 5):
+        c[f"Knock Retard Cylinder {cyl} (Degrees)"] = full(0.0 if kr is None else kr)
+    c["LTFT (%)"] = np.full(n, 1.0)
+    for k, v in (cols or {}).items():
+        c[k] = full(v)
+    return c
+
+
 def emit(name: str, c: dict, **kw) -> None:
     header = list(c.keys()) + [AP_INFO]
     write_csv(HERE / f"{name}.csv", header, list(c.values()) + [None], **kw)
@@ -452,6 +489,53 @@ def fixtures() -> list[str]:
     c["Coolant Temp. (C)"] = np.linspace(82, 94, 200)
     c["IAT (C)"] = np.linspace(28, 41, 200)
     add("coolant_iat_headers", c)
+
+    # --- rail pressure, charge air per pull, knock events under boost: one fixture per
+    # test in mqbtel's tests/test_insights.py, on that file's 10 Hz make_log.
+    T = np.arange(400) / 10.0
+    WOT = (T > 5) & (T < 15)
+    CAT, IAT, AIR = "Charge Air Temperature (C)", "IAT (C)", "Air Mass IM Per Stroke (mg/stk)"
+    RAIL, RAIL_SP = "Rail Press. (psi)", "Rail Pressure Set Point (psi)"
+    AFR, AFR_SP = "AFR (AFR)", "AFR Set Point (AFR)"
+    KR = [f"Knock Retard Cylinder {i} (Degrees)" for i in range(1, 5)]
+    CAT_CLIMB = np.where(WOT, 40.0 + 10.0 * (T - 5), 30.0)  # 10 C/s through the pull
+    rail_dip = np.where((T >= 10) & (T < 11), 2465.0, 2900.0)  # 15% short for a second
+
+    # Rail 15% short, held for a second, with AFR on target: warn, fuelling held.
+    add("rail_held_afr_ok", make_log(wot=True, cols={RAIL: rail_dip, RAIL_SP: 2900.0, AFR: 11.6, AFR_SP: 11.6}))
+
+    # The same droop with AFR 0.8 lean through it: fuelling fell short.
+    afr = np.where((T >= 10) & (T < 11), 12.4, 11.6)
+    add("rail_held_afr_lean", make_log(wot=True, cols={RAIL: rail_dip, RAIL_SP: 2900.0, AFR: afr, AFR_SP: 11.6}))
+
+    # A 0.2 s rail dip: shorter than the 0.5 s window, so the check runs and says nothing.
+    rail = np.where((T >= 10) & (T < 10.2), 2400.0, 2900.0)
+    add("rail_dip_short", make_log(wot=True, cols={RAIL: rail, RAIL_SP: 2900.0}))
+
+    # A steady 5% droop at 4,500 rpm and 1,500 mg/stroke: inside the reference band.
+    add("rail_reference_load", make_log(wot=True, cols={
+        "Engine Speed (RPM)": np.where(WOT, 4500.0, 1500.0), RAIL: np.where(WOT, 2755.0, 2900.0),
+        RAIL_SP: 2900.0, AIR: np.where(WOT, 1500.0, 300.0)}))
+
+    # Charge air climbing 10 C/s through the pull over 20 C intake air.
+    add("pull_cat_rise", make_log(wot=True, cols={CAT: CAT_CLIMB, IAT: 20.0}))
+
+    # Cyls 1/2 knock 0.2 s after boost arrives (tip-in), cyls 3/4 seven seconds in (late-pull).
+    k12 = np.where((T >= 5.3) & (T < 5.8), -1.88, 0.0)
+    k34 = np.where((T >= 12.0) & (T < 12.5), -2.25, 0.0)
+    add("knock_tipin_late", make_log(wot=True, cols={KR[0]: k12, KR[1]: k12, KR[2]: k34, KR[3]: k34, CAT: CAT_CLIMB}))
+
+    # Cyls 3/4 tie at the worst value and 1/2 retard less: name both, and say it reached all four.
+    k = np.where((T >= 12.0) & (T < 12.5), -2.25, 0.0)
+    k_low = np.where((T >= 8.0) & (T < 8.3), -0.75, 0.0)
+    add("knock_tie_cyls", make_log(wot=True, cols={KR[0]: k_low, KR[1]: k_low, KR[2]: k, KR[3]: k}))
+
+    # Knock on every cylinder starting 0.2 s before the 2-3 change: during a shift.
+    kr = np.where((T >= 10.0) & (T < 10.4), -2.25, 0.0)
+    add("knock_in_shift", make_log(wot=True, kr=kr, cols={"Current Gear (-)": np.where(T < 10.2, 2.0, 3.0)}))
+
+    # Retard with no boost at all: no knock events.
+    add("knock_off_boost", make_log(kr=np.where((T >= 10) & (T < 10.5), -1.5, 0.0), boost=0.0))
 
     # mqbtel's own live-logger CSV: canonical headers, no AP Info.
     n = 120

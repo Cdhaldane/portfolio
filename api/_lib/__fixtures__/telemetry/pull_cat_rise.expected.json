@@ -1,0 +1,265 @@
+{
+ "name": "pull_cat_rise.csv",
+ "ecu_map": "EQT - Stage 2 91 v2.52 - LC TC BRBL-S.ptm",
+ "tcm_map": "COBB Aggressive v110.ptm",
+ "ap_firmware": "1.7.6.0-26745",
+ "duration_s": 39.9,
+ "samples": 400,
+ "peak": {
+  "pedal_pct": 100.0,
+  "rpm": 3680.45,
+  "boost_psi": 25.0,
+  "torque_ftlb": 390.0
+ },
+ "knock": {
+  "kr_cyl1": [
+   0.0,
+   0
+  ],
+  "kr_cyl2": [
+   0.0,
+   0
+  ],
+  "kr_cyl3": [
+   0.0,
+   0
+  ],
+  "kr_cyl4": [
+   0.0,
+   0
+  ]
+ },
+ "cat_range": [
+  30.0,
+  139.0
+ ],
+ "ltft": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "boost_undershoot_psi": 0.0,
+ "rail_droop_pct": null,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
+ "hpfp_pct": null,
+ "clutch_slip_rpm": null,
+ "pulls": [
+  {
+   "start_s": 5.1,
+   "end_s": 14.9,
+   "rpm_start": 2575.19,
+   "rpm_end": 3680.45,
+   "gear": 3,
+   "peak_boost_psi": 25.0,
+   "peak_torque_ftlb": 390.0,
+   "max_knock_deg": 0.0,
+   "cat_start_c": 41.0,
+   "cat_end_c": 139.0,
+   "cat_max_c": 139.0,
+   "timing_median_deg": null,
+   "peak_hp": 266.60123762376236,
+   "peak_hp_rpm": 3500,
+   "hpfp_max_pct": null,
+   "airflow_pct": null,
+   "torque_ceiling_pct": null,
+   "torque_limited_pct": null,
+   "boost_s": 9.8,
+   "cat_rise_c": 20.0,
+   "cat_over_iat_c": 119.0,
+   "curve": [
+    {
+     "rpm": 2500,
+     "torque_ftlb": 390.0,
+     "hp": 197.50804455445544,
+     "timing_deg": null,
+     "boost_psi": 25.0,
+     "cat_c": 48.5
+    },
+    {
+     "rpm": 2750,
+     "torque_ftlb": 390.0,
+     "hp": 213.42029702970297,
+     "timing_deg": null,
+     "boost_psi": 25.0,
+     "cat_c": 67.5
+    },
+    {
+     "rpm": 3000,
+     "torque_ftlb": 390.0,
+     "hp": 231.8450495049505,
+     "timing_deg": null,
+     "boost_psi": 25.0,
+     "cat_c": 89.5
+    },
+    {
+     "rpm": 3250,
+     "torque_ftlb": 390.0,
+     "hp": 250.26980198019803,
+     "timing_deg": null,
+     "boost_psi": 25.0,
+     "cat_c": 111.5
+    },
+    {
+     "rpm": 3500,
+     "torque_ftlb": 390.0,
+     "hp": 266.60123762376236,
+     "timing_deg": null,
+     "boost_psi": 25.0,
+     "cat_c": 131.0
+    }
+   ]
+  }
+ ],
+ "shifts": [],
+ "knock_events": [],
+ "findings": [
+  {
+   "level": "ok",
+   "message": "Zero knock retard on all cylinders.",
+   "check": "knock"
+  },
+  {
+   "level": "warn",
+   "message": "Charge air temp hit 139C — intercooler heat soak.",
+   "check": "cat"
+  },
+  {
+   "level": "ok",
+   "message": "Boost tracking set point at full load.",
+   "check": "boost"
+  }
+ ],
+ "checks": [
+  {
+   "name": "knock",
+   "label": "Knock retard",
+   "status": "ran",
+   "detail": "0 samples with retard, 0.00 deg max.",
+   "needs": [
+    "kr_cyl1",
+    "kr_cyl2",
+    "kr_cyl3",
+    "kr_cyl4"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "cat",
+   "label": "Charge air heat soak",
+   "status": "ran",
+   "detail": "Charge air 30-139 C.",
+   "needs": [
+    "cat_c"
+   ],
+   "level": "warn"
+  },
+  {
+   "name": "trims",
+   "label": "Fuel trims",
+   "status": "ran",
+   "detail": "LTFT mean +1.0% (+1 to +1).",
+   "needs": [
+    "ltft_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "boost",
+   "label": "Boost vs set point",
+   "status": "ran",
+   "detail": "61 full-load samples, worst held shortfall 0.0 psi.",
+   "needs": [
+    "put_psia",
+    "put_sp_psia",
+    "pedal_pct",
+    "rpm",
+    "time_s"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "rail",
+   "label": "Rail pressure (HPFP)",
+   "status": "missing",
+   "detail": "Log has no rail_psi, rail_sp_psi.",
+   "needs": [
+    "rail_psi",
+    "rail_sp_psi",
+    "pedal_pct",
+    "rpm",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
+   "name": "hpfp",
+   "label": "Fuel pump headroom",
+   "status": "missing",
+   "detail": "Log has no HPFP Effective Pump Vol (%).",
+   "needs": [
+    "HPFP Effective Pump Vol (%)",
+    "pedal_pct",
+    "rpm",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
+   "name": "afr",
+   "label": "AFR under boost",
+   "status": "missing",
+   "detail": "Log has no afr, afr_sp.",
+   "needs": [
+    "afr",
+    "afr_sp",
+    "boost_psi",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
+   "name": "clutch",
+   "label": "DSG clutch slip",
+   "status": "missing",
+   "detail": "Log has no (DSG)Clutch 1 Slip (RPM), speed_mph.",
+   "needs": [
+    "(DSG)Clutch 1 Slip (RPM)",
+    "gear",
+    "torque_ftlb",
+    "speed_mph",
+    "time_s"
+   ],
+   "level": null
+  },
+  {
+   "name": "pulls",
+   "label": "WOT pull detection",
+   "status": "ran",
+   "detail": "1 pull(s) found.",
+   "needs": [
+    "time_s",
+    "pedal_pct",
+    "rpm"
+   ],
+   "level": "ok"
+  },
+  {
+   "name": "shifts",
+   "label": "DSG shift timing",
+   "status": "missing",
+   "detail": "Log has no (DSG)Target Gear (Gear).",
+   "needs": [
+    "(DSG)Target Gear (Gear)",
+    "gear",
+    "rpm",
+    "torque_ftlb",
+    "time_s"
+   ],
+   "level": null
+  }
+ ],
+ "knock_samples": 0,
+ "worst_level": "warn"
+}

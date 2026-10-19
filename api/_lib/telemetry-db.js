@@ -7,8 +7,9 @@
 // (analyzer_version says which rows are stale). raw_sha256 is of the
 // uncompressed CSV: the Accessport names files datalog1.csv, datalog2.csv...
 // so names collide across sessions, but content never does. The hot columns
-// (worst_level ... pull_count) are copies out of `summary` so list and trend
-// queries stay cheap; list queries never select raw_gz.
+// (worst_level ... pull_count, rail_ref_droop_pct, cat_rise_c) are copies out
+// of `summary` so list and trend queries stay cheap; list queries never select
+// raw_gz.
 //
 // tel_events: the work log. Services, repairs, mods, inspections and bare
 // odometer readings, each dated and optionally with km, cost and parts.
@@ -56,6 +57,13 @@ async function ensureTelTables(sql) {
       )
     `,
     sql`CREATE INDEX IF NOT EXISTS tel_logs_car_date ON tel_logs (car, recorded_on)`,
+    // Trend hot columns added with mqbtel@8b36739. Rows analysed before then
+    // read NULL until a re-analyse fills them.
+    sql`
+      ALTER TABLE tel_logs
+        ADD COLUMN IF NOT EXISTS rail_ref_droop_pct REAL,
+        ADD COLUMN IF NOT EXISTS cat_rise_c         REAL
+    `,
     sql`
       CREATE TABLE IF NOT EXISTS tel_events (
         id           SERIAL PRIMARY KEY,
@@ -102,6 +110,8 @@ function logToApi(row) {
     knockMaxDeg: num(row.knock_max_deg),
     ltftMeanPct: num(row.ltft_mean_pct),
     pullCount: row.pull_count,
+    railRefDroopPct: num(row.rail_ref_droop_pct),
+    catRiseC: num(row.cat_rise_c),
     analyzerVersion: row.analyzer_version,
     note: row.note,
     ...(row.summary !== undefined ? { summary: row.summary } : {}),
@@ -127,7 +137,7 @@ function eventToApi(row) {
 const LOG_COLUMNS = `
   id, car, recorded_on, filename, source, raw_bytes, samples, duration_s,
   ecu_map, tcm_map, ap_firmware, worst_level, cat_max_c, knock_max_deg,
-  ltft_mean_pct, pull_count, analyzer_version, note`;
+  ltft_mean_pct, pull_count, rail_ref_droop_pct, cat_rise_c, analyzer_version, note`;
 
 async function listLogs(sql) {
   const rows = await sql.query(
@@ -163,10 +173,12 @@ async function insertLog(sql, userId, r) {
     `INSERT INTO tel_logs
             (car, recorded_on, filename, source, raw_sha256, raw_gz, raw_bytes, samples,
              duration_s, ecu_map, tcm_map, ap_firmware, worst_level, cat_max_c,
-             knock_max_deg, ltft_mean_pct, pull_count, summary, analyzer_version, note, created_by)
+             knock_max_deg, ltft_mean_pct, pull_count, summary, analyzer_version, note, created_by,
+             rail_ref_droop_pct, cat_rise_c)
      VALUES ($1, $2, $3, $4, $5, decode($6, 'base64'), $7, $8,
              $9, $10, $11, $12, $13, $14,
-             $15, $16, $17, $18::jsonb, $19, $20, $21)
+             $15, $16, $17, $18::jsonb, $19, $20, $21,
+             $22, $23)
      ON CONFLICT (raw_sha256) DO NOTHING
      RETURNING ${LOG_COLUMNS}`,
     [
@@ -174,6 +186,7 @@ async function insertLog(sql, userId, r) {
       r.durationS, r.ecuMap, r.tcmMap, r.apFirmware, r.hot.worstLevel, r.hot.catMaxC,
       r.hot.knockMaxDeg, r.hot.ltftMeanPct, r.hot.pullCount, JSON.stringify(r.summary),
       r.analyzerVersion, r.note, userId,
+      r.hot.railRefDroopPct, r.hot.catRiseC,
     ]
   );
   return rows[0] ? logToApi(rows[0]) : null;
@@ -228,12 +241,14 @@ async function updateAnalysis(sql, id, a) {
     `UPDATE tel_logs
         SET samples = $2, duration_s = $3, ecu_map = $4, tcm_map = $5, ap_firmware = $6,
             worst_level = $7, cat_max_c = $8, knock_max_deg = $9, ltft_mean_pct = $10,
-            pull_count = $11, summary = $12::jsonb, analyzer_version = $13, updated_at = now()
+            pull_count = $11, summary = $12::jsonb, analyzer_version = $13,
+            rail_ref_droop_pct = $14, cat_rise_c = $15, updated_at = now()
       WHERE id = $1`,
     [
       id, a.samples, a.durationS, a.ecuMap, a.tcmMap, a.apFirmware,
       a.hot.worstLevel, a.hot.catMaxC, a.hot.knockMaxDeg, a.hot.ltftMeanPct,
       a.hot.pullCount, JSON.stringify(a.summary), a.analyzerVersion,
+      a.hot.railRefDroopPct, a.hot.catRiseC,
     ]
   );
 }

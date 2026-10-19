@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 0.6896551724137931,
+ "rail_ref_droop_pct": 0.6896551724137931,
+ "rail_ref_samples": 29,
  "hpfp_pct": 100.0,
  "clutch_slip_rpm": 12.0,
  "pulls": [
@@ -55,13 +57,16 @@
    "cat_start_c": 68.0,
    "cat_end_c": 141.0,
    "cat_max_c": 141.0,
-   "timing_median_deg": 4.38235,
+   "timing_median_deg": 4.5,
    "peak_hp": 419.53028207254386,
    "peak_hp_rpm": 6000,
    "hpfp_max_pct": 100.0,
    "airflow_pct": 83.33333333333334,
    "torque_ceiling_pct": 93.32403628117915,
    "torque_limited_pct": 12.0,
+   "boost_s": 10.0,
+   "cat_rise_c": 14.599999999999994,
+   "cat_over_iat_c": null,
    "curve": [
     {
      "rpm": 4000,
@@ -156,6 +161,7 @@
    "handover_s": 0.8000000000000007
   }
  ],
+ "knock_events": [],
  "findings": [
   {
    "level": "ok",
@@ -236,12 +242,13 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "51 full-load samples, worst droop 1%.",
+   "detail": "51 full-load samples, worst held droop 1%. At the reference load (4000-5500 rpm, 1450+ mg/stroke), 90% of 29 samples were within 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "ok"
   },

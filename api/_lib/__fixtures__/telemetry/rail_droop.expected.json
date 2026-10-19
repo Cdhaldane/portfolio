@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 15.517241379310345,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [
@@ -62,6 +64,9 @@
    "airflow_pct": null,
    "torque_ceiling_pct": null,
    "torque_limited_pct": null,
+   "boost_s": 10.0,
+   "cat_rise_c": 1.0050000000000026,
+   "cat_over_iat_c": null,
    "curve": [
     {
      "rpm": 2750,
@@ -187,6 +192,7 @@
   }
  ],
  "shifts": [],
+ "knock_events": [],
  "findings": [
   {
    "level": "ok",
@@ -200,7 +206,7 @@
   },
   {
    "level": "warn",
-   "message": "Rail pressure dropping 16% below target — HPFP may be at its limit.",
+   "message": "Rail pressure held 16% below target (2450 vs 2900 psi, gear 3 at 3220 rpm) — HPFP at its limit; fuelling held (AFR on target).",
    "check": "rail"
   }
  ],
@@ -257,12 +263,13 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "44 full-load samples, worst droop 16%.",
+   "detail": "44 full-load samples, worst held droop 16%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "warn"
   },

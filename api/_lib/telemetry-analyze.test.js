@@ -121,5 +121,18 @@ test("hotColumns copies the list/trend fields out of a summary", () => {
     knockMaxDeg: 4.5,
     ltftMeanPct: 1,
     pullCount: 1,
+    railRefDroopPct: null,
+    catRiseC: summary.pulls[0].cat_rise_c,
   });
+});
+
+test("hotColumns trends rail droop at the reference load and the median charge air rise", () => {
+  const hot = (name) => hotColumns(analyzeCsv(fs.readFileSync(path.join(FIXTURES, `${name}.csv`), "utf8")).summary);
+  assert.ok(Math.abs(hot("rail_reference_load").railRefDroopPct - 5) < 1e-9);
+  assert.equal(hot("pull_cat_rise").catRiseC, 20);
+  // Two pulls: the median of an even count is the mean of the middle pair.
+  const { summary } = analyzeCsv(fs.readFileSync(path.join(FIXTURES, "two_pulls.csv"), "utf8"));
+  const [a, b] = summary.pulls.map((p) => p.cat_rise_c);
+  assert.equal(hot("two_pulls").catRiseC, (a + b) / 2);
+  assert.equal(hot("cruise_no_wot").catRiseC, null);
 });

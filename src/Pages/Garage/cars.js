@@ -79,12 +79,21 @@ export const LEVELS = {
 export const LEVEL_RANK = { info: 0, ok: 1, watch: 2, warn: 3 };
 
 // Mirrors the analysis thresholds (api/_lib/telemetry-analyze.js), for
-// colouring list cells and drawing bands on the trend charts.
+// colouring list cells and drawing bands on the trend charts. Rail droop has a
+// warn line only, like the check.
 export const THRESHOLDS = {
   catMaxC: { watch: 70, warn: 90 },
   knockMaxDeg: { watch: 0, warn: 3 },
   ltftMeanPct: { watch: 5, warn: 10 },
+  railRefDroopPct: { warn: 10 },
 };
+
+// The analysis windows the page names in labels; logs.test.js holds them to
+// the analysis module's values.
+export const CAT_RISE_S = 2; // charge air rise is over this much of a pull's boost
+export const RAIL_REF_TEXT = "4000-5500 rpm, 1450+ mg/stroke"; // rail droop's reference load
+export const KNOCK_TIPIN_S = 1; // knock starting this soon after boost arrives is tip-in
+export const KNOCK_CAT_LATER_S = 1; // knock events give charge air at onset and this much later
 
 export const HEURISTICS_CAVEAT =
   "Heuristics tuned for a Stage 2 IS20 on pump fuel. Prompts to look closer, not a diagnosis.";

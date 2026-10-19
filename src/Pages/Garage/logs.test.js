@@ -1,3 +1,4 @@
+import { CAT_RISE_S, KNOCK_CAT_LATER_S, KNOCK_TIPIN_S, RAIL_REF_TEXT, THRESHOLDS } from "./cars";
 import { beforeAfter, configChanges, formatMetric, markers, metricLevel, trendPoints } from "./logs";
 
 const L = (id, recordedOn, over = {}) => ({
@@ -70,4 +71,26 @@ test("metricLevel follows the check thresholds", () => {
   expect(metricLevel("ltftMeanPct", null)).toBe(null);
   expect(formatMetric("ltftMeanPct", 2.25)).toBe("+2.3%");
   expect(formatMetric("catMaxC", 86.2)).toBe("86°C");
+});
+
+test("rail droop only warns, like the check; charge air rise has no verdict", () => {
+  expect(metricLevel("railRefDroopPct", 9.9)).toBe("ok");
+  expect(metricLevel("railRefDroopPct", 10)).toBe("warn");
+  expect(metricLevel("catRiseC", 40)).toBe(null);
+  expect(formatMetric("catRiseC", 18.4)).toBe("+18°C");
+  expect(formatMetric("railRefDroopPct", 14.21)).toBe("14.2%");
+  expect(trendPoints([L(1, "2026-10-01", { catRiseC: 12 })], "catRiseC")[0].level).toBe(null);
+});
+
+test("the page's copies of analysis thresholds and windows match the analysis", () => {
+  // CommonJS from outside src/, the module the API stores summaries with.
+  const analysis = require("../../../api/_lib/telemetry-analyze");
+  expect(THRESHOLDS.catMaxC).toEqual({ watch: analysis.CAT_WATCH_C, warn: analysis.CAT_WARN_C });
+  expect(THRESHOLDS.knockMaxDeg.warn).toBe(analysis.KNOCK_WARN_DEG);
+  expect(THRESHOLDS.ltftMeanPct).toEqual({ watch: analysis.LTFT_WATCH_PCT, warn: analysis.LTFT_WARN_PCT });
+  expect(THRESHOLDS.railRefDroopPct).toEqual({ warn: analysis.RAIL_DROOP_WARN_PCT });
+  expect(CAT_RISE_S).toBe(analysis.CAT_RISE_S);
+  expect(RAIL_REF_TEXT).toBe(analysis.RAIL_REF_TEXT);
+  expect(KNOCK_TIPIN_S).toBe(analysis.KNOCK_TIPIN_S);
+  expect(KNOCK_CAT_LATER_S).toBe(analysis.KNOCK_CAT_LATER_S);
 });

@@ -40,10 +40,13 @@
  ],
  "boost_undershoot_psi": null,
  "rail_droop_pct": 0.6896551724137931,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [],
  "shifts": [],
+ "knock_events": [],
  "findings": [
   {
    "level": "ok",
@@ -109,12 +112,13 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "6 full-load samples, worst droop 1%.",
+   "detail": "6 full-load samples, worst held droop 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "ok"
   },

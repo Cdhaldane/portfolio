@@ -735,13 +735,23 @@
   background: color-mix(in srgb, var(--gr-car) 14%, transparent);
   color: var(--gr-ink);
 }
+/* Five trend metrics or a log's many pulls outgrow a phone: scroll inside the
+   pill rather than lose buttons to the page's overflow clip. */
 .gr-seg {
   display: inline-flex;
+  max-width: 100%;
   padding: 3px;
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px var(--gr-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.gr-seg::-webkit-scrollbar {
+  display: none;
 }
 .gr-seg-btn {
+  flex: none;
+  white-space: nowrap;
   padding: 6px 12px;
   border: 0;
   border-radius: 999px;
@@ -1393,6 +1403,21 @@
 }
 .gr-table small {
   color: var(--gr-ink-faint);
+}
+.gr-pulls .gr-caveat,
+.gr-knock .gr-caveat {
+  margin-top: 10px;
+}
+.gr-knock .gr-empty-line {
+  margin-top: 12px;
+}
+/* Knock that began in a gear change: the same tint the shift table gives a shift in the pull. */
+.gr-knock .is-in-shift > * {
+  background: color-mix(in srgb, var(--gr-car) 7%, transparent);
+}
+.gr-knock .is-in-shift small {
+  margin-left: 6px;
+  color: var(--gr-car);
 }
 
 /* ---- channel chart ---- */
@@ -2116,6 +2141,20 @@
 }
 .gr-band--warn {
   fill: var(--gr-warn-bg);
+}
+.gr-threshold line {
+  stroke-width: 1.25;
+  stroke-dasharray: 5 4;
+}
+.gr-threshold text {
+  font-family: var(--gr-mono);
+  font-size: 10px;
+}
+.gr-threshold--warn line {
+  stroke: var(--gr-warn);
+}
+.gr-threshold--warn text {
+  fill: var(--gr-warn);
 }
 .gr-grid {
   stroke: var(--gr-grid);

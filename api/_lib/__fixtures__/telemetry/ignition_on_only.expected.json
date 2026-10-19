@@ -16,10 +16,13 @@
  "ltft": null,
  "boost_undershoot_psi": null,
  "rail_droop_pct": null,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [],
  "shifts": [],
+ "knock_events": [],
  "findings": [
   {
    "level": "info",
@@ -85,7 +88,8 @@
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": null
   },

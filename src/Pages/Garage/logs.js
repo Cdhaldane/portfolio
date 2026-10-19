@@ -1,7 +1,8 @@
 // Pure helpers over the API's log list (and the work log, for trend markers).
 // Logs arrive newest first: [{ id, car, recordedOn, ecuMap, tcmMap, apFirmware,
-// worstLevel, catMaxC, knockMaxDeg, ltftMeanPct, pullCount, ... }]
-import { THRESHOLDS } from "./cars";
+// worstLevel, catMaxC, knockMaxDeg, ltftMeanPct, pullCount, railRefDroopPct,
+// catRiseC, ... }]
+import { CAT_RISE_S, RAIL_REF_TEXT, THRESHOLDS } from "./cars";
 
 const chronological = (a, b) =>
   a.recordedOn === b.recordedOn ? a.id - b.id : a.recordedOn < b.recordedOn ? -1 : 1;
@@ -34,6 +35,8 @@ export function configChanges(logs) {
   return out;
 }
 
+// `about` explains the number under its chart; `lines` are labelled threshold
+// lines drawn over the bands; `empty` says why a car has no trend for it yet.
 export const METRICS = [
   {
     key: "catMaxC",
@@ -42,6 +45,19 @@ export const METRICS = [
     unit: "°C",
     digits: 0,
     thresholds: THRESHOLDS.catMaxC,
+    about: "Peak charge air follows the weather as much as the car. Compare logs from similar days.",
+  },
+  {
+    key: "catRiseC",
+    label: `Charge air rise, first ${CAT_RISE_S} s of boost`,
+    short: "CAT rise",
+    unit: "°C",
+    digits: 0,
+    signed: true,
+    thresholds: null,
+    about:
+      "Median over the log's pulls. The intercooler's before/after number: a better one brings this down.",
+    empty: `Needs two logs with a pull that keeps going ${CAT_RISE_S} s or more after boost reaches 20 psi.`,
   },
   {
     key: "knockMaxDeg",
@@ -60,17 +76,33 @@ export const METRICS = [
     signed: true,
     thresholds: THRESHOLDS.ltftMeanPct,
   },
+  {
+    key: "railRefDroopPct",
+    label: "Rail pressure drop at reference load",
+    short: "Rail droop",
+    unit: "%",
+    digits: 1,
+    thresholds: THRESHOLDS.railRefDroopPct,
+    lines: [{ value: THRESHOLDS.railRefDroopPct.warn, level: "warn", label: `warn ${THRESHOLDS.railRefDroopPct.warn}%` }],
+    about:
+      `90th percentile at full load, ${RAIL_REF_TEXT}. The same load in every log, so a rising ` +
+      "trend means the fuel pump is falling behind.",
+    empty:
+      `Needs two logs with 10+ full-load samples at ${RAIL_REF_TEXT}, ` +
+      "with air mass per stroke logged.",
+  },
 ];
 
 export const METRIC_BY_KEY = Object.fromEntries(METRICS.map((m) => [m.key, m]));
 
-/** Watch/warn level of one list value, matching the checks' rules. */
+/** Watch/warn level of one list value, matching the checks' rules. Null for a metric with no verdict. */
 export function metricLevel(key, value) {
   if (value === null || value === undefined) return null;
   const th = THRESHOLDS[key];
+  if (!th) return null;
   if (key === "knockMaxDeg") return value > th.warn ? "warn" : value > th.watch ? "watch" : "ok";
   const v = key === "ltftMeanPct" ? Math.abs(value) : value;
-  return v >= th.warn ? "warn" : v >= th.watch ? "watch" : "ok";
+  return v >= th.warn ? "warn" : th.watch !== undefined && v >= th.watch ? "watch" : "ok";
 }
 
 export function formatMetric(key, value) {

@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": 0.0,
  "rail_droop_pct": 0.6896551724137931,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
  "pulls": [
@@ -62,6 +64,9 @@
    "airflow_pct": null,
    "torque_ceiling_pct": null,
    "torque_limited_pct": null,
+   "boost_s": 10.0,
+   "cat_rise_c": 1.0050000000000026,
+   "cat_over_iat_c": null,
    "curve": [
     {
      "rpm": 2750,
@@ -187,6 +192,25 @@
   }
  ],
  "shifts": [],
+ "knock_events": [
+  {
+   "start_s": 11.0,
+   "duration_s": 2.8000000000000007,
+   "kind": "late-pull",
+   "gear": 3,
+   "rpm": 4900.0,
+   "boost_psi": 24.0,
+   "into_boost_s": 6.0,
+   "depth_deg": 4.5,
+   "cylinders": [
+    2
+   ],
+   "cat_onset_c": 35.5276,
+   "cat_later_c": 36.0302,
+   "timing_deg": 8.0,
+   "during_shift": false
+  }
+ ],
  "findings": [
   {
    "level": "warn",
@@ -196,6 +220,11 @@
   {
    "level": "watch",
    "message": "Cyl 2 accounts for 15/15 knock events — check plug/coil on that cylinder.",
+   "check": "knock"
+  },
+  {
+   "level": "info",
+   "message": "Knock under boost: 1 late in a pull, up to 4.50 deg, charge air 36 C.",
    "check": "knock"
   },
   {
@@ -257,12 +286,13 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "44 full-load samples, worst droop 1%.",
+   "detail": "44 full-load samples, worst held droop 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "ok"
   },

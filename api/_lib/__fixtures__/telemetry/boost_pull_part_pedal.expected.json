@@ -40,6 +40,8 @@
  ],
  "boost_undershoot_psi": 0.20000000000000284,
  "rail_droop_pct": 0.6896551724137931,
+ "rail_ref_droop_pct": null,
+ "rail_ref_samples": 0,
  "hpfp_pct": 80.0,
  "clutch_slip_rpm": null,
  "pulls": [
@@ -62,6 +64,9 @@
    "airflow_pct": null,
    "torque_ceiling_pct": null,
    "torque_limited_pct": null,
+   "boost_s": 10.0,
+   "cat_rise_c": 1.0050999999999988,
+   "cat_over_iat_c": null,
    "curve": [
     {
      "rpm": 3500,
@@ -147,6 +152,7 @@
   }
  ],
  "shifts": [],
+ "knock_events": [],
  "findings": [
   {
    "level": "ok",
@@ -217,12 +223,13 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "ran",
-   "detail": "51 full-load samples, worst droop 1%.",
+   "detail": "51 full-load samples, worst held droop 1%.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",
     "pedal_pct",
-    "rpm"
+    "rpm",
+    "time_s"
    ],
    "level": "ok"
   },
