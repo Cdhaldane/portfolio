@@ -81,6 +81,7 @@ const BowlerGate = () => {
   const identity = (
     <AppIdentity
       title="Bowler"
+      scope="/bowler"
       manifest="/bowler.webmanifest"
       icon="/bowler-icon-180.png"
       {...CHROME[theme]}

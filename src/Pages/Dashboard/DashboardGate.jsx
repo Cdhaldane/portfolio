@@ -21,6 +21,7 @@ const accessStore = () => (isStandalone() ? localStorage : sessionStorage);
 const identity = (
   <AppIdentity
     title="Ops Console"
+    scope="/dashboard"
     manifest="/dashboard.webmanifest"
     icon="/dashboard-icon-180.png"
     themeColor="#05070d"
