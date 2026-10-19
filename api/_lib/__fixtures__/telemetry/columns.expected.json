@@ -1,0 +1,28 @@
+{
+ "coolant_iat_headers": [
+  "time_s",
+  "rpm",
+  "pedal_pct",
+  "boost_psi",
+  "put_sp_psia",
+  "put_psia",
+  "cat_c",
+  "torque_ftlb",
+  "gear",
+  "kr_cyl1",
+  "kr_cyl2",
+  "kr_cyl3",
+  "kr_cyl4",
+  "ltft_pct",
+  "stft_pct",
+  "afr",
+  "afr_sp",
+  "rail_psi",
+  "rail_sp_psi",
+  "timing_deg",
+  "speed_mph",
+  "Exhaust Cam Position (Degrees)",
+  "coolant_c",
+  "iat_c"
+ ]
+}

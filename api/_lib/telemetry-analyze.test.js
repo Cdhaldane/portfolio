@@ -9,6 +9,7 @@ const {
   describe,
   dedupNames,
   hotColumns,
+  load,
   parseApInfo,
   pyFixed,
 } = require("./telemetry-analyze");
@@ -85,6 +86,17 @@ test("pyFixed rounds exact ties half-to-even, like Python", () => {
   assert.equal(pyFixed(-0.4, 0, true), "-0");
   assert.equal(pyFixed(0, 1, true), "+0.0");
   assert.equal(pyFixed(NaN, 1), "nan");
+});
+
+test("load() maps headers to the same column names as mqbtel's parser", () => {
+  for (const [name, columns] of Object.entries(readJson("columns.expected.json"))) {
+    const log = load(fs.readFileSync(path.join(FIXTURES, `${name}.csv`), "utf8"), `${name}.csv`);
+    assert.deepEqual(log.columns, columns, name);
+  }
+  // Charlie's logs carry these from datalog18 on; the presets' iat_c / coolant_c lanes need them mapped.
+  const { columns } = load(fs.readFileSync(path.join(FIXTURES, "coolant_iat_headers.csv"), "utf8"));
+  assert.ok(columns.includes("coolant_c") && columns.includes("iat_c"));
+  assert.ok(!columns.includes("Coolant Temp. (C)") && !columns.includes("IAT (C)"));
 });
 
 test("dedupNames copies pandas' duplicate-header renaming", () => {

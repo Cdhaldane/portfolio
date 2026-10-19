@@ -100,7 +100,7 @@
    "name": "boost",
    "label": "Boost vs set point",
    "status": "idle",
-   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm); needs 5. Log a WOT pull.",
+   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm, or boost 20+ psi at 3000+ rpm); needs 5. Log a WOT pull.",
    "needs": [
     "put_psia",
     "put_sp_psia",
@@ -114,7 +114,7 @@
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "idle",
-   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm); needs 5. Log a WOT pull.",
+   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm, or boost 20+ psi at 3000+ rpm); needs 5. Log a WOT pull.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",

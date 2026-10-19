@@ -38,7 +38,7 @@
   1.0,
   1.0
  ],
- "boost_undershoot_psi": null,
+ "boost_undershoot_psi": 0.10000000000000142,
  "rail_droop_pct": null,
  "hpfp_pct": null,
  "clutch_slip_rpm": null,
@@ -104,6 +104,11 @@
    "level": "ok",
    "message": "Zero knock retard on all cylinders.",
    "check": "knock"
+  },
+  {
+   "level": "ok",
+   "message": "Boost tracking set point at full load.",
+   "check": "boost"
   }
  ],
  "checks": [
@@ -144,8 +149,8 @@
   {
    "name": "boost",
    "label": "Boost vs set point",
-   "status": "idle",
-   "detail": "7 full-load samples, but boost never settled for 0.5 s (still spooling or shifting). Log a longer pull.",
+   "status": "ran",
+   "detail": "16 full-load samples, worst held shortfall 0.1 psi.",
    "needs": [
     "put_psia",
     "put_sp_psia",
@@ -153,13 +158,13 @@
     "rpm",
     "time_s"
    ],
-   "level": null
+   "level": "ok"
   },
   {
    "name": "rail",
    "label": "Rail pressure (HPFP)",
    "status": "idle",
-   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm); needs 5. Log a WOT pull.",
+   "detail": "Only 0 full-load samples (pedal 80%+ at 3000+ rpm, or boost 20+ psi at 3000+ rpm); needs 5. Log a WOT pull.",
    "needs": [
     "rail_psi",
     "rail_sp_psi",

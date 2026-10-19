@@ -21,7 +21,7 @@
 // Bump the +jsN suffix for a port-only change, and the mqbtel part whenever
 // the goldens are regenerated from a new mqbtel revision. Stored rows with an
 // older value are re-run by POST { action: "reanalyze" }.
-const ANALYZER_VERSION = "mqbtel@7ff2d73+js1";
+const ANALYZER_VERSION = "mqbtel@c5e540b+js1";
 
 // --- columns.py ---------------------------------------------------------------
 
@@ -36,6 +36,8 @@ const COBB_TO_CANON = Object.freeze({
   "Press Upstream Throttle (psi)": "put_psia",
   "Charge Air Temperature (C)": "cat_c",
   "Engine Oil Temp. (C)": "oil_c",
+  "Coolant Temp. (C)": "coolant_c",
+  "IAT (C)": "iat_c",
   "Ignition Timing Final (Degrees)": "timing_deg",
   "Knock Retard Cylinder 1 (Degrees)": "kr_cyl1",
   "Knock Retard Cylinder 2 (Degrees)": "kr_cyl2",
@@ -415,7 +417,13 @@ const CURVE_RPM_STEP = 250; // power curve bin width
 const CURVE_MIN_SAMPLES = 2; // a bin needs this many settled samples
 const HP_RPM_PER_FTLB = 5252.0; // hp = torque (ft-lb) x rpm / 5252
 
+// Full load for the boost, rail and fuel pump checks: pedal at FULL_LOAD, or
+// boost at PULL_BOOST_PSI, the same way a pull counts. The tune makes 25+ psi
+// at 70-80% pedal, so a pedal-only gate skipped most of the owner's real pulls.
 const FULL_LOAD = Object.freeze({ pedal: 80.0, rpm: 3000 });
+const FULL_LOAD_TEXT =
+  `pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ at ${FULL_LOAD.rpm}+ rpm, or boost ` +
+  `${pyFixed(PULL_BOOST_PSI, 0)}+ psi at ${PULL_BOOST_MIN_RPM}+ rpm`;
 
 const LEVEL_ORDER = Object.freeze({ info: 0, ok: 1, watch: 2, warn: 3 });
 
@@ -437,15 +445,14 @@ const CHECK_REQUIRES = Object.freeze({
   cat: "A charge air temperature channel.",
   trims: "Long-term fuel trim with the engine running.",
   boost:
-    `PUT actual and set point, with 5+ full-load samples (pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ ` +
-    `at ${FULL_LOAD.rpm}+ rpm) and boost settled for ${BOOST_UNDERSHOOT_MIN_S}+ s ` +
-    "once spooled. Log a WOT pull.",
+    `PUT actual and set point, with 5+ full-load samples (${FULL_LOAD_TEXT}) and ` +
+    `boost settled for ${BOOST_UNDERSHOOT_MIN_S}+ s once spooled. Log a WOT pull.`,
   rail:
     "Rail pressure actual and set point, with 5+ full-load samples asking for " +
     `${pyFixed(RAIL_MIN_SP_PSI, 0)}+ psi. Log a WOT pull.`,
   hpfp:
-    `HPFP effective pump volume, with 5+ full-load samples (pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ ` +
-    `at ${FULL_LOAD.rpm}+ rpm) held for ${HPFP_MIN_S}+ s. Log a WOT pull.`,
+    `HPFP effective pump volume, with 5+ full-load samples (${FULL_LOAD_TEXT}) held ` +
+    `for ${HPFP_MIN_S}+ s. Log a WOT pull.`,
   afr:
     `AFR actual and set point, with 5+ samples above ${pyFixed(AFR_BOOSTED_PSI, 0)} psi boost, ` +
     `${AFR_LEAN_MIN_S}+ s of it settled (not spooling or shifting).`,
@@ -897,10 +904,7 @@ function checkTrims(log, s) {
 }
 
 function noFullLoad(n) {
-  return (
-    `Only ${n} full-load samples (pedal ${pyFixed(FULL_LOAD.pedal, 0)}%+ at ` +
-    `${FULL_LOAD.rpm}+ rpm); needs 5. Log a WOT pull.`
-  );
+  return `Only ${n} full-load samples (${FULL_LOAD_TEXT}); needs 5. Log a WOT pull.`;
 }
 
 /** Rows where `test(row)` holds, as a 0/1 mask. */
@@ -912,11 +916,21 @@ function maskWhere(n, test) {
 
 const countOf = (mask) => mask.reduce((a, m) => a + m, 0);
 
+/**
+ * Pedal at FULL_LOAD, or boost at PULL_BOOST_PSI: see FULL_LOAD_TEXT. Each
+ * half counts only if its column exists; no rpm means no full load at all.
+ */
 function fullLoadMask(log) {
   const pedal = colOf(log, "pedal_pct");
+  const boost = colOf(log, "boost_psi");
   const rpm = colOf(log, "rpm");
-  if (!pedal || !rpm) return new Uint8Array(log.length);
-  return maskWhere(log.length, (i) => pedal[i] >= FULL_LOAD.pedal && rpm[i] >= FULL_LOAD.rpm);
+  if (!rpm) return new Uint8Array(log.length);
+  return maskWhere(
+    log.length,
+    (i) =>
+      (pedal !== undefined && pedal[i] >= FULL_LOAD.pedal && rpm[i] >= FULL_LOAD.rpm) ||
+      (boost !== undefined && boost[i] >= PULL_BOOST_PSI && rpm[i] >= PULL_BOOST_MIN_RPM)
+  );
 }
 
 function fullLoadRows(log) {

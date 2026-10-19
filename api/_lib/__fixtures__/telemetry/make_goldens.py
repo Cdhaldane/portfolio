@@ -9,7 +9,7 @@ Writes, next to this script:
                           this repo is public, and real logs carry where the
                           car was driven)
   * <name>.expected.json  mqbtel's summary of each, as the JS port must produce it
-  * describe.expected.json, ap_info.expected.json
+  * describe.expected.json, ap_info.expected.json, columns.expected.json
   * VERSION               the mqbtel revision the goldens came from
 
 Then `npm run test:api` deep-compares the port against them. When mqbtel
@@ -438,6 +438,21 @@ def fixtures() -> list[str]:
     c[HPFP][np.flatnonzero(m)[30]] = 100.0
     add("clutch_watch_hpfp_ok", c)
 
+    # 25 psi at 75% pedal through 3,400-5,900 rpm: short of full pedal, but boost alone
+    # makes it full load, so boost, rail and the fuel pump all run.
+    c = base()
+    on = burst(c, 10.0, 20.0, pedal=75.0, boost=25.0, put=38.3)
+    c["Rail Pressure Set Point (psi)"][on] = 2900.0
+    c["Rail Press. (psi)"][on] = 2880.0
+    c[HPFP] = np.where(on, 80.0, 40.0)
+    add("boost_pull_part_pedal", c)
+
+    # Coolant and intake air temperature, as Charlie's logs carry them from datalog18 on.
+    c = base()
+    c["Coolant Temp. (C)"] = np.linspace(82, 94, 200)
+    c["IAT (C)"] = np.linspace(28, 41, 200)
+    add("coolant_iat_headers", c)
+
     # mqbtel's own live-logger CSV: canonical headers, no AP Info.
     n = 120
     t = np.arange(n) / 5.0
@@ -481,6 +496,10 @@ AP_INFO_CASES = [
 ]
 
 
+# Fixtures whose parsed column names (header -> canonical key) are checked as well.
+COLUMN_CASES = ["coolant_iat_headers"]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--logs", type=Path, help="real logs to summarise (local parity check)")
@@ -508,6 +527,10 @@ def main() -> None:
     )
     (HERE / "ap_info.expected.json").write_text(
         json.dumps({s: parser.parse_ap_info(s) for s in AP_INFO_CASES}, indent=1) + "\n",
+        encoding="utf-8",
+    )
+    (HERE / "columns.expected.json").write_text(
+        json.dumps({n: list(parser.load(HERE / f"{n}.csv").df.columns) for n in COLUMN_CASES}, indent=1) + "\n",
         encoding="utf-8",
     )
     v = version()
