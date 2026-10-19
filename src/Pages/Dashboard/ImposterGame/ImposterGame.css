@@ -179,10 +179,6 @@
   border-radius: 10px;
   padding: 16px;
 }
-.imp-panel--row {
-  display: flex;
-  align-items: center;
-}
 .imp-panel-head {
   display: flex;
   align-items: center;
@@ -231,6 +227,10 @@
 .imp-input:focus {
   border-color: var(--cyan);
   box-shadow: 0 0 0 1px var(--cyan), 0 0 16px rgba(34, 240, 255, 0.25);
+}
+.imp-input.is-dupe {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
 }
 .imp-icon-btn {
   display: grid;
@@ -291,6 +291,46 @@
   background: rgba(34, 240, 255, 0.14);
   box-shadow: 0 0 12px rgba(34, 240, 255, 0.35);
 }
+.imp-selectall.is-armed {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(255, 59, 92, 0.1);
+  box-shadow: 0 0 12px rgba(255, 59, 92, 0.35);
+}
+
+/* one shelf of datasets */
+.imp-group + .imp-group { margin-top: 16px; }
+.imp-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.imp-group-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--panel-line);
+  order: 1;
+}
+.imp-group-toggle {
+  order: 2;
+  background: transparent;
+  border: 0;
+  padding: 2px 0;
+  color: var(--cyan);
+  font: inherit;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.18s ease;
+}
+.imp-group-toggle:hover { opacity: 1; }
 
 .imp-cat {
   position: relative;
@@ -345,6 +385,57 @@
   opacity: 1;
   transform: scale(1);
 }
+/* word count, tucked into the corner opposite the check */
+.imp-cat-n {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+}
+
+/* ---- rules ---- */
+.imp-rules-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.imp-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.imp-seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--panel-line);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+.imp-seg-btn {
+  width: 38px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+.imp-seg-btn:hover:not(:disabled) { color: var(--text); }
+.imp-seg-btn.is-on {
+  background: rgba(255, 43, 214, 0.18);
+  color: var(--magenta);
+  box-shadow: inset 0 0 0 1px var(--magenta), 0 0 12px rgba(255, 43, 214, 0.35);
+}
+.imp-seg-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
 /* ---- toggle ---- */
 .imp-toggle {
@@ -479,7 +570,6 @@
   perspective: 1400px;
   font-family: inherit;
 }
-.imp-card.is-open { cursor: default; }
 .imp-card-face {
   position: absolute;
   inset: 0;
@@ -622,6 +712,85 @@
   align-items: center;
   gap: 8px;
 }
+/* speaking order, starting from the opener */
+.imp-order {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+.imp-order li { display: inline-flex; align-items: baseline; gap: 6px; }
+.imp-order li span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.58rem;
+  color: var(--cyan);
+  opacity: 0.7;
+}
+.imp-order li.is-first { color: var(--text); }
+
+/* re-check a role mid-round */
+.imp-peek {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.imp-peek-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+}
+.imp-peek-names {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.imp-chip {
+  padding: 7px 12px;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.imp-chip:hover { border-color: var(--cyan); box-shadow: 0 0 12px rgba(34, 240, 255, 0.3); }
+
+.imp-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 5, 10, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: imp-sheet-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.imp-sheet-inner {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@keyframes imp-sheet-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
 .imp-rules {
   display: flex;
   flex-direction: column;
@@ -661,6 +830,13 @@
   letter-spacing: 0.12em;
 }
 .imp-final-word strong { color: var(--cyan); }
+.imp-final .imp-final-hint {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+}
 
 .imp-actions { display: flex; gap: 10px; }
 .imp-actions .imp-deploy { flex: 1; }
@@ -722,10 +898,13 @@
   .imp-shell { padding: 16px; }
   .imp-actions { flex-direction: column; }
   .imp-card { min-height: 320px; }
+  .imp-cats { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .imp-panel-head { flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .imp-led,
+  .imp-sheet,
   .imp-glitch::before,
   .imp-glitch::after { animation: none; }
   .imp-glitch::before, .imp-glitch::after { display: none; }
