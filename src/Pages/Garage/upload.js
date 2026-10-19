@@ -17,7 +17,7 @@ function toBase64(bytes) {
   return btoa(s);
 }
 
-/** Gzip a File. Resolves { b64, bytes } (bytes = compressed size). */
+/** Gzip a File or Blob. Resolves { b64, bytes } (bytes = compressed size). */
 export async function gzipFile(file) {
   const stream = file.stream().pipeThrough(new CompressionStream("gzip"));
   const bytes = new Uint8Array(await new Response(stream).arrayBuffer());

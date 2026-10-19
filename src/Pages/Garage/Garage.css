@@ -1054,6 +1054,7 @@
 }
 .gr-staged-status,
 .gr-staged-dup,
+.gr-staged-split,
 .gr-staged-error,
 .gr-staged-finding {
   font-family: var(--gr-body);
@@ -1066,6 +1067,11 @@
 }
 .gr-staged-finding .gr-level {
   margin-right: 6px;
+}
+.gr-staged-split .fa-scissors {
+  margin-right: 6px;
+  font-size: 0.78em;
+  opacity: 0.7;
 }
 .gr-staged-date input {
   min-height: 38px;

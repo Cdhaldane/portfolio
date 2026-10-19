@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { uploadLog } from "../api";
 import { CARS, CAR_BY_KEY, LEVEL_RANK } from "../cars";
-import { fmtDate, fmtDuration, fmtNum } from "../format";
+import { fmtClock, fmtDate, fmtDuration, fmtNum } from "../format";
+import { partName, splitToFit } from "../split";
 import { MAX_GZ_BYTES, canCompress, fileDay, gzipFile, naturalCompare } from "../upload";
 import Level from "./Level";
 
@@ -11,12 +12,15 @@ import Level from "./Level";
  * without saving, so the preview shows what the save will store, flags a
  * file that's already in, and lets you fix the date. Accessport CSVs hold
  * elapsed seconds only, so the date starts as the file's modified day.
+ * A file too big to send whole is split at quiet moments (split.js) and
+ * staged as parts, each checked like any other file.
  * One button saves the batch; commit is never implied.
  */
 let seq = 0;
 
 const STATUS_TEXT = {
   packing: "Compressing…",
+  splitting: "Too big to send whole. Splitting at quiet moments…",
   checking: "Checking…",
   saving: "Saving…",
 };
@@ -33,6 +37,8 @@ const Uploader = ({ getToken, car, onSaved }) => {
   const queue = useRef(Promise.resolve());
   const targetRef = useRef(target);
   targetRef.current = target;
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   // Follow the car switcher while nothing is staged.
   useEffect(() => {
@@ -44,34 +50,69 @@ const Uploader = ({ getToken, car, onSaved }) => {
     []
   );
 
+  const dryRun = useCallback(
+    async (item) => {
+      const r = await uploadLog(getToken, {
+        car: targetRef.current,
+        filename: item.name,
+        recordedOn: item.recordedOn,
+        csvGz: item.gz,
+        commit: false,
+      });
+      if (!r.ok) patch(item.key, { status: "error", error: r.error });
+      else
+        patch(item.key, {
+          status: r.duplicateOf ? "duplicate" : "ready",
+          preview: r.preview,
+          duplicateOf: r.duplicateOf,
+        });
+    },
+    [getToken, patch]
+  );
+
   const check = useCallback(
     async (item) => {
       try {
         const gz = await gzipFile(item.file);
-        if (gz.bytes > MAX_GZ_BYTES) {
-          patch(item.key, { status: "error", error: "Too big even compressed. Split the session into shorter logs." });
+        if (gz.bytes <= MAX_GZ_BYTES) {
+          patch(item.key, { gz: gz.b64, status: "checking" });
+          await dryRun({ ...item, gz: gz.b64 });
           return;
         }
-        patch(item.key, { gz: gz.b64, status: "checking" });
-        const r = await uploadLog(getToken, {
-          car: targetRef.current,
-          filename: item.name,
-          recordedOn: item.recordedOn,
-          csvGz: gz.b64,
-          commit: false,
-        });
-        if (!r.ok) patch(item.key, { status: "error", error: r.error });
-        else
+
+        patch(item.key, { status: "splitting" });
+        const parts = await splitToFit(
+          await item.file.text(),
+          gz.bytes,
+          (text) => gzipFile(new Blob([text])),
+          MAX_GZ_BYTES
+        );
+        if (!parts) {
           patch(item.key, {
-            status: r.duplicateOf ? "duplicate" : "ready",
-            preview: r.preview,
-            duplicateOf: r.duplicateOf,
+            status: "error",
+            error: "Too big even compressed, and it couldn't be split. Split the session into shorter logs.",
           });
+          return;
+        }
+        // Removed while it was splitting: nothing to stage.
+        const current = itemsRef.current.find((it) => it.key === item.key);
+        if (!current) return;
+        const staged = parts.map((p, i) => ({
+          key: ++seq,
+          file: item.file,
+          name: partName(item.name, i + 1, parts.length),
+          recordedOn: current.recordedOn,
+          gz: p.gz.b64,
+          status: "checking",
+          split: { of: item.name, part: i + 1, parts: parts.length, startS: p.startS, endS: p.endS, endCut: p.endCut },
+        }));
+        setItems((list) => list.flatMap((it) => (it.key === item.key ? staged : [it])));
+        for (const part of staged) await dryRun(part);
       } catch {
         patch(item.key, { status: "error", error: "Couldn't read that file." });
       }
     },
-    [getToken, patch]
+    [dryRun, patch]
   );
 
   const addFiles = (fileList) => {
@@ -132,7 +173,7 @@ const Uploader = ({ getToken, car, onSaved }) => {
   };
 
   const ready = items.filter((i) => i.status === "ready").length;
-  const busy = items.some((i) => i.status === "packing" || i.status === "checking");
+  const busy = items.some((i) => ["packing", "splitting", "checking"].includes(i.status));
   const cobbOnCayenne = target === "cayenne" && items.some((i) => i.preview && i.preview.source === "cobb");
 
   // The Cayenne logs through AndrOBD, which can't be read yet (the empty list
@@ -226,6 +267,16 @@ const Uploader = ({ getToken, car, onSaved }) => {
                         </small>
                       )}
                     </p>
+                    {it.split && (
+                      <p className="gr-staged-split">
+                        <i className="fa-solid fa-scissors" aria-hidden="true" />
+                        Part {it.split.part} of {it.split.parts} of {it.split.of}
+                        {it.split.startS !== null && it.split.endS !== null
+                          ? ` · ${fmtClock(it.split.startS)}–${fmtClock(it.split.endS)}`
+                          : ""}
+                        {it.split.endCut ? `, cut ${it.split.endCut === "mid-drive" ? "mid-drive" : `while ${it.split.endCut}`}` : ""}
+                      </p>
+                    )}
                     {STATUS_TEXT[it.status] && (
                       <p className="gr-staged-status">
                         <span className="gr-spinner" aria-hidden="true" /> {STATUS_TEXT[it.status]}
