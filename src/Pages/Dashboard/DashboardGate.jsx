@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
+import AppIdentity, { isStandalone } from "../../Components/AppIdentity/AppIdentity";
 import "./DashboardGate.css";
 
 /*
@@ -7,16 +8,28 @@ import "./DashboardGate.css";
  *
  *  - On mount it asks /api/dashboard-access whether this visitor's IP is on the
  *    allowlist. If so, access is granted with no password (the "we're at my IP"
- *    case) and remembered for the tab via sessionStorage.
+ *    case) and remembered for the tab via sessionStorage. The installed
+ *    home-screen app has no tab (iOS drops session storage every time it's
+ *    closed), so there it's remembered on the device instead.
  *  - Otherwise it shows a cyberpunk lock screen; the typed password is POSTed to
  *    the same endpoint and checked server-side (default "cat"), so the secret
  *    never ships in the client bundle.
  */
 const STORAGE_KEY = "dash-access-granted";
+const accessStore = () => (isStandalone() ? localStorage : sessionStorage);
+
+const identity = (
+  <AppIdentity
+    title="Ops Console"
+    manifest="/dashboard.webmanifest"
+    icon="/dashboard-icon-180.png"
+    themeColor="#05070d"
+  />
+);
 
 const DashboardGate = () => {
   const [status, setStatus] = useState(() =>
-    sessionStorage.getItem(STORAGE_KEY) === "1" ? "granted" : "checking"
+    accessStore().getItem(STORAGE_KEY) === "1" ? "granted" : "checking"
   );
   const [password, setPassword] = useState("");
   const [detectedIp, setDetectedIp] = useState("");
@@ -35,7 +48,7 @@ const DashboardGate = () => {
         if (cancelled) return;
         if (data.ip) setDetectedIp(data.ip);
         if (data.granted) {
-          sessionStorage.setItem(STORAGE_KEY, "1");
+          accessStore().setItem(STORAGE_KEY, "1");
           setStatus("granted");
         } else {
           setStatus("locked");
@@ -74,7 +87,7 @@ const DashboardGate = () => {
         // because the API isn't running) — not a wrong-password case.
       }
       if (res.ok && data && data.granted) {
-        sessionStorage.setItem(STORAGE_KEY, "1");
+        accessStore().setItem(STORAGE_KEY, "1");
         setStatus("granted");
       } else if (res.status === 401) {
         setError("ACCESS DENIED — incorrect passcode.");
@@ -90,77 +103,87 @@ const DashboardGate = () => {
     }
   };
 
-  if (status === "granted") return <Outlet />;
+  if (status === "granted") {
+    return (
+      <>
+        {identity}
+        <Outlet />
+      </>
+    );
+  }
 
   return (
-    <div className="gate">
-      <div className="gate-scan" aria-hidden="true" />
-      <div className="gate-grid-bg" aria-hidden="true" />
+    <>
+      {identity}
+      <div className="gate">
+        <div className="gate-scan" aria-hidden="true" />
+        <div className="gate-grid-bg" aria-hidden="true" />
 
-      <div className="gate-box">
-        <span className="gate-corner gate-corner--tl" aria-hidden="true" />
-        <span className="gate-corner gate-corner--tr" aria-hidden="true" />
-        <span className="gate-corner gate-corner--bl" aria-hidden="true" />
-        <span className="gate-corner gate-corner--br" aria-hidden="true" />
+        <div className="gate-box">
+          <span className="gate-corner gate-corner--tl" aria-hidden="true" />
+          <span className="gate-corner gate-corner--tr" aria-hidden="true" />
+          <span className="gate-corner gate-corner--bl" aria-hidden="true" />
+          <span className="gate-corner gate-corner--br" aria-hidden="true" />
 
-        <div className="gate-lockicon">
-          <i className="fa-solid fa-lock" />
-        </div>
+          <div className="gate-lockicon">
+            <i className="fa-solid fa-lock" />
+          </div>
 
-        <span className="gate-kicker">
-          <span className="gate-led" /> RESTRICTED NODE
-        </span>
-        <h1 className="gate-title">OPS//CONSOLE</h1>
+          <span className="gate-kicker">
+            <span className="gate-led" /> RESTRICTED NODE
+          </span>
+          <h1 className="gate-title">OPS//CONSOLE</h1>
 
-        {status === "checking" ? (
-          <p className="gate-checking">
-            <i className="fa-solid fa-circle-notch fa-spin" /> VERIFYING CLEARANCE…
-          </p>
-        ) : (
-          <form className="gate-form" onSubmit={submit}>
-            <label className="gate-label" htmlFor="gate-pass">
-              ENTER PASSCODE
-            </label>
-            <input
-              id="gate-pass"
-              ref={inputRef}
-              type="password"
-              className="gate-input"
-              value={password}
-              autoComplete="off"
-              placeholder="••••••"
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError("");
-              }}
-            />
-            <button className="gate-submit" type="submit" disabled={submitting}>
-              {submitting ? (
-                <i className="fa-solid fa-circle-notch fa-spin" />
-              ) : (
-                <>
-                  <span>AUTHENTICATE</span>
-                  <i className="fa-solid fa-angles-right" />
-                </>
+          {status === "checking" ? (
+            <p className="gate-checking">
+              <i className="fa-solid fa-circle-notch fa-spin" /> VERIFYING CLEARANCE…
+            </p>
+          ) : (
+            <form className="gate-form" onSubmit={submit}>
+              <label className="gate-label" htmlFor="gate-pass">
+                ENTER PASSCODE
+              </label>
+              <input
+                id="gate-pass"
+                ref={inputRef}
+                type="password"
+                className="gate-input"
+                value={password}
+                autoComplete="off"
+                placeholder="••••••"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError("");
+                }}
+              />
+              <button className="gate-submit" type="submit" disabled={submitting}>
+                {submitting ? (
+                  <i className="fa-solid fa-circle-notch fa-spin" />
+                ) : (
+                  <>
+                    <span>AUTHENTICATE</span>
+                    <i className="fa-solid fa-angles-right" />
+                  </>
+                )}
+              </button>
+
+              {error && <p className="gate-error">{error}</p>}
+
+              {detectedIp && (
+                <p className="gate-ip">
+                  YOUR IP&nbsp;·&nbsp;<strong>{detectedIp}</strong>
+                  <span>add it to DASHBOARD_ALLOWED_IPS to skip this</span>
+                </p>
               )}
-            </button>
+            </form>
+          )}
 
-            {error && <p className="gate-error">{error}</p>}
-
-            {detectedIp && (
-              <p className="gate-ip">
-                YOUR IP&nbsp;·&nbsp;<strong>{detectedIp}</strong>
-                <span>add it to DASHBOARD_ALLOWED_IPS to skip this</span>
-              </p>
-            )}
-          </form>
-        )}
-
-        <Link to="/" className="gate-back">
-          <i className="fa-solid fa-chevron-left" /> RETURN TO SITE
-        </Link>
+          <Link to="/" className="gate-back">
+            <i className="fa-solid fa-chevron-left" /> RETURN TO SITE
+          </Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

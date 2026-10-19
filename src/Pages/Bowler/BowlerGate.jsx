@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Outlet } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
+import AppIdentity from "../../Components/AppIdentity/AppIdentity";
 import "./BowlerGate.css";
 
 /*
  * Auth gate for /bowler. Same Clerk app and fail-closed allowlist as
  * Budgetter; the API (/api/bowler) re-verifies every call, so this is only
  * the front door. No publishable key → a setup notice instead of a crash.
+ * It also carries Bowler's home-screen identity, so installing from here
+ * (signed in or not) gives an app that opens straight to /bowler.
  */
 const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
@@ -51,6 +54,12 @@ const useSiteTheme = () => {
   return theme;
 };
 
+// Surface colours from Bowler.css, so the status bar matches the page.
+const CHROME = {
+  light: { themeColor: "#f7eedb", statusBar: "default" },
+  dark: { themeColor: "#1a1522", statusBar: "black" },
+};
+
 const Shell = ({ children }) => (
   <div className="bwg">
     <Helmet>
@@ -69,39 +78,53 @@ const Shell = ({ children }) => (
 
 const BowlerGate = () => {
   const theme = useSiteTheme();
+  const identity = (
+    <AppIdentity
+      title="Bowler"
+      manifest="/bowler.webmanifest"
+      icon="/bowler-icon-180.png"
+      {...CHROME[theme]}
+    />
+  );
 
   if (!PUBLISHABLE_KEY) {
     return (
-      <Shell>
-        <p className="bwg-card">
-          Sign-in isn't configured on this build. Set{" "}
-          <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> and restart the dev server.
-        </p>
-      </Shell>
+      <>
+        {identity}
+        <Shell>
+          <p className="bwg-card">
+            Sign-in isn't configured on this build. Set{" "}
+            <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> and restart the dev server.
+          </p>
+        </Shell>
+      </>
     );
   }
 
   return (
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY}
-      afterSignOutUrl="/"
-      appearance={APPEARANCE[theme]}
-    >
-      <SignedIn>
-        <Helmet>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
-        <Outlet />
-      </SignedIn>
-      <SignedOut>
-        <Shell>
-          <p className="bwg-sub">League night scores for two. Members only.</p>
-          <div className="bwg-clerk">
-            <SignIn routing="hash" forceRedirectUrl="/bowler" />
-          </div>
-        </Shell>
-      </SignedOut>
-    </ClerkProvider>
+    <>
+      {identity}
+      <ClerkProvider
+        publishableKey={PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        appearance={APPEARANCE[theme]}
+      >
+        <SignedIn>
+          <Helmet>
+            <meta name="robots" content="noindex, nofollow" />
+          </Helmet>
+          <Outlet />
+        </SignedIn>
+        <SignedOut>
+          <Shell>
+            <p className="bwg-sub">League night scores for two. Members only.</p>
+            <div className="bwg-clerk">
+              <SignIn routing="hash" forceRedirectUrl="/bowler" />
+            </div>
+          </Shell>
+        </SignedOut>
+      </ClerkProvider>
+    </>
   );
 };
 
