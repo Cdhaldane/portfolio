@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Outlet } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
+import AppIdentity from "../../Components/AppIdentity/AppIdentity";
 import "./GarageGate.css";
 
 /*
@@ -9,7 +10,8 @@ import "./GarageGate.css";
  * and Bowler; the API (/api/telemetry) re-verifies every call, so this is only
  * the front door. Datalogs can carry where the car was driven, so nothing past
  * this door renders for a signed-out visitor. No publishable key → a setup
- * notice instead of a crash.
+ * notice instead of a crash. It also carries Garage's home-screen identity, so
+ * installing from here (signed in or not) gives an app that opens to /garage.
  */
 const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
@@ -53,6 +55,12 @@ const useSiteTheme = () => {
   return theme;
 };
 
+// Page backgrounds from Garage.css, so the status bar matches the page.
+const CHROME = {
+  light: { themeColor: "#eceee8", statusBar: "default" },
+  dark: { themeColor: "#0e1013", statusBar: "black" },
+};
+
 const Shell = ({ children }) => (
   <div className="grg">
     <Helmet>
@@ -72,40 +80,55 @@ const Shell = ({ children }) => (
 
 const GarageGate = () => {
   const theme = useSiteTheme();
+  const identity = (
+    <AppIdentity
+      title="Garage"
+      scope="/garage"
+      manifest="/garage.webmanifest"
+      icon="/garage-icon-180.png"
+      {...CHROME[theme]}
+    />
+  );
 
   if (!PUBLISHABLE_KEY) {
     return (
-      <Shell>
-        <p className="grg-card">
-          Sign-in isn't configured on this build. Set{" "}
-          <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> and restart the dev server.
-        </p>
-      </Shell>
+      <>
+        {identity}
+        <Shell>
+          <p className="grg-card">
+            Sign-in isn't configured on this build. Set{" "}
+            <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> and restart the dev server.
+          </p>
+        </Shell>
+      </>
     );
   }
 
   return (
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY}
-      afterSignOutUrl="/"
-      appearance={APPEARANCE[theme]}
-    >
-      <SignedIn>
-        <Helmet>
-          <title>Garage | Charlie Haldane</title>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
-        <Outlet />
-      </SignedIn>
-      <SignedOut>
-        <Shell>
-          <p className="grg-sub">Datalogs, service history and trends. Members only.</p>
-          <div className="grg-clerk">
-            <SignIn routing="hash" forceRedirectUrl="/garage" />
-          </div>
-        </Shell>
-      </SignedOut>
-    </ClerkProvider>
+    <>
+      {identity}
+      <ClerkProvider
+        publishableKey={PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        appearance={APPEARANCE[theme]}
+      >
+        <SignedIn>
+          <Helmet>
+            <title>Garage | Charlie Haldane</title>
+            <meta name="robots" content="noindex, nofollow" />
+          </Helmet>
+          <Outlet />
+        </SignedIn>
+        <SignedOut>
+          <Shell>
+            <p className="grg-sub">Datalogs, service history and trends. Members only.</p>
+            <div className="grg-clerk">
+              <SignIn routing="hash" forceRedirectUrl="/garage" />
+            </div>
+          </Shell>
+        </SignedOut>
+      </ClerkProvider>
+    </>
   );
 };
 

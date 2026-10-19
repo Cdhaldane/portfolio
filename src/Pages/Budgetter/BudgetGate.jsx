@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Outlet } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
+import AppIdentity from "../../Components/AppIdentity/AppIdentity";
 import BudBackground from "./BudBackground";
 import "./BudgetGate.css";
 
@@ -16,6 +17,9 @@ import "./BudgetGate.css";
  * Sign-ups are disabled in the Clerk dashboard; the ~5 accounts are created
  * by hand there. No key configured → a setup notice instead of a crash, so
  * the rest of the site never depends on Clerk being wired up.
+ *
+ * It also carries Budgetter's home-screen identity, so installing from here
+ * (signed in or not) gives an app that opens straight to /budgetter.
  */
 const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
@@ -61,6 +65,12 @@ const useSiteTheme = () => {
   return theme;
 };
 
+// Page surfaces from Budgetter.css, so the status bar matches the page.
+const CHROME = {
+  light: { themeColor: "#eef2e9", statusBar: "default" },
+  dark: { themeColor: "#121310", statusBar: "black" },
+};
+
 const GateShell = ({ children }) => (
   <div className="bud-gate">
     <BudBackground />
@@ -82,47 +92,62 @@ const GateShell = ({ children }) => (
 
 const BudgetGate = () => {
   const theme = useSiteTheme();
+  const identity = (
+    <AppIdentity
+      title="Budgetter"
+      scope="/budgetter"
+      manifest="/budgetter.webmanifest"
+      icon="/budgetter-icon-180.png"
+      {...CHROME[theme]}
+    />
+  );
 
   if (!PUBLISHABLE_KEY) {
     return (
-      <GateShell>
-        <div className="bud-gate-card bud-gate-setup">
-          <p className="bud-gate-mono">SETUP REQUIRED</p>
-          <p>
-            Auth isn't configured yet. Create a Clerk app (sign-ups disabled),
-            then set <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> in{" "}
-            <code>.env.local</code> and restart the dev server.
-          </p>
-        </div>
-      </GateShell>
+      <>
+        {identity}
+        <GateShell>
+          <div className="bud-gate-card bud-gate-setup">
+            <p className="bud-gate-mono">SETUP REQUIRED</p>
+            <p>
+              Auth isn't configured yet. Create a Clerk app (sign-ups disabled),
+              then set <code>REACT_APP_CLERK_PUBLISHABLE_KEY</code> in{" "}
+              <code>.env.local</code> and restart the dev server.
+            </p>
+          </div>
+        </GateShell>
+      </>
     );
   }
 
   return (
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY}
-      afterSignOutUrl="/"
-      appearance={CLERK_APPEARANCE[theme]}
-    >
-      <SignedIn>
-        <Helmet>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
-        <Outlet />
-      </SignedIn>
-      <SignedOut>
-        <GateShell>
-          <p className="bud-gate-sub">
-            A private spending tracker. Accounts are invite-only — if you're
-            not one of the five, this is as far as the tour goes.
-          </p>
-          <div className="bud-gate-clerk">
-            {/* Without forceRedirectUrl, Clerk's post-sign-in default is "/". */}
-            <SignIn routing="hash" forceRedirectUrl="/budgetter" />
-          </div>
-        </GateShell>
-      </SignedOut>
-    </ClerkProvider>
+    <>
+      {identity}
+      <ClerkProvider
+        publishableKey={PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        appearance={CLERK_APPEARANCE[theme]}
+      >
+        <SignedIn>
+          <Helmet>
+            <meta name="robots" content="noindex, nofollow" />
+          </Helmet>
+          <Outlet />
+        </SignedIn>
+        <SignedOut>
+          <GateShell>
+            <p className="bud-gate-sub">
+              A private spending tracker. Accounts are invite-only — if you're
+              not one of the five, this is as far as the tour goes.
+            </p>
+            <div className="bud-gate-clerk">
+              {/* Without forceRedirectUrl, Clerk's post-sign-in default is "/". */}
+              <SignIn routing="hash" forceRedirectUrl="/budgetter" />
+            </div>
+          </GateShell>
+        </SignedOut>
+      </ClerkProvider>
+    </>
   );
 };
 
