@@ -54,6 +54,15 @@ const NODES = [
     status: "online",
   },
   {
+    id: "jeopardrink",
+    name: "Jeopardrink!",
+    tag: "PARTY · PHONES",
+    icon: "fa-champagne-glasses",
+    desc: "Jeopardy, but every wrong answer costs a sip. You host and read the clues; friends buzz in from their phones.",
+    to: "/dashboard/jeopardrink",
+    status: "online",
+  },
+  {
     id: "top5",
     name: "Top 5 Things",
     tag: "PERSONAL · CARD SET",

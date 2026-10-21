@@ -1,0 +1,376 @@
+// Clue data for JEOPARDRINK! — a Jeopardy spoof for a room full of friends
+// and a few drinks. 30 categories x 5 clues, written Jeopardy-style (the clue
+// is the answer; players respond with the question). Clues run easy -> hard
+// top to bottom; dollar values come from the round, not from here, so the
+// same category plays in round 1 ($200-$1000) or round 2 ($400-$2000).
+//
+// `hint` is the host's read-aloud explainer for wordplay categories.
+
+export const CATEGORIES = [
+  {
+    id: "potent-potables",
+    name: "Potent Potables",
+    clues: [
+      { q: "Mexico's most famous spirit, it's distilled from the blue agave plant", a: "Tequila" },
+      { q: "A Moscow Mule is traditionally served in a mug made of this metal", a: "Copper" },
+      { q: "Gin gets its piney, Christmas-tree flavour from these berries", a: "Juniper berries" },
+      { q: "Canada's national cocktail, the Caesar, gets its briny kick from this tomato-and-clam juice", a: "Clamato" },
+      { q: "This anise-flavoured Greek spirit turns cloudy white the second you add water", a: "Ouzo" },
+    ],
+  },
+  {
+    id: "before-after",
+    name: "Before & After",
+    hint: "Two things that share a word. Mash 'em together.",
+    clues: [
+      { q: "1985 John Hughes detention movie + a triple-decker toasted sandwich", a: "The Breakfast Club Sandwich" },
+      { q: "'Fight Club' star + the rapper who calls himself Mr. Worldwide", a: "Brad Pitt Bull" },
+      { q: "Rapper who now goes by Ye + the state that's 'Almost heaven' in a John Denver song", a: "Kanye West Virginia" },
+      { q: "'Dark Side of the Moon' band + the boxer who retired 50-0", a: "Pink Floyd Mayweather" },
+      { q: "Eras Tour headliner + a city in southwest Saskatchewan", a: "Taylor Swift Current" },
+    ],
+  },
+  {
+    id: "rhyme-time",
+    name: "Rhyme Time",
+    hint: "Every answer is two words that rhyme.",
+    clues: [
+      { q: "An overweight house pet who thinks he runs the place", a: "Fat cat" },
+      { q: "A hilarious rabbit", a: "Funny bunny" },
+      { q: "A taxi driven by a crustacean", a: "Crab cab" },
+      { q: "A friar who's had a few too many", a: "Drunk monk" },
+      { q: "An evil member of the clergy", a: "Sinister minister" },
+    ],
+  },
+  {
+    id: "sorry-not-sorry",
+    name: "Sorry, Not Sorry",
+    hint: "Canada, eh.",
+    clues: [
+      { q: "Poutine is fries and gravy topped with these squeaky dairy nuggets", a: "Cheese curds" },
+      { q: "Canada's $1 coin is nicknamed for this bird on its back", a: "The loon (the loonie)" },
+      { q: "This Toronto landmark was the world's tallest freestanding structure for over 30 years", a: "The CN Tower" },
+      { q: "The Nanaimo bar is named for a city in this province", a: "British Columbia" },
+      { q: "Canada's newest territory, carved out of the Northwest Territories in 1999", a: "Nunavut" },
+    ],
+  },
+  {
+    id: "free-refills",
+    name: "Land of the Free Refills",
+    hint: "U-S-A! U-S-A!",
+    clues: [
+      { q: "The number of stripes on the U.S. flag", a: "13" },
+      { q: "The Statue of Liberty was a gift to the United States from this country", a: "France" },
+      { q: "Washington, Jefferson, Lincoln and this man make up Mount Rushmore", a: "Theodore Roosevelt" },
+      { q: "The U.S. bought Alaska in 1867 from this country", a: "Russia" },
+      { q: "It's the only U.S. state whose name has just one syllable", a: "Maine" },
+    ],
+  },
+  {
+    id: "sobriety-test",
+    name: "Field Sobriety Test",
+    hint: "Don't answer — perform. Host judges. No do-overs.",
+    clues: [
+      { q: "Recite the alphabet backwards, starting from G", a: "G, F, E, D, C, B, A" },
+      { q: "Say 'unique New York' three times fast", a: "Three clean 'unique New York's" },
+      { q: "Count backwards from 50 by sevens until you can't anymore", a: "50, 43, 36, 29, 22, 15, 8, 1" },
+      { q: "Spell 'BOURBON' backwards", a: "N-O-B-R-U-O-B" },
+      { q: "Name all five Great Lakes", a: "Huron, Ontario, Michigan, Erie, Superior" },
+    ],
+  },
+  {
+    id: "single-mingle",
+    name: "Single & Ready to Mingle",
+    hint: "Pop music.",
+    clues: [
+      { q: "This singer names her albums after her age, like '21' and '25'", a: "Adele" },
+      { q: "This Barbadian superstar had an 'Umbrella' (ella, ella, eh, eh, eh)", a: "Rihanna" },
+      { q: "He rode 'Old Town Road' to No. 1 with a remix featuring Billy Ray Cyrus", a: "Lil Nas X" },
+      { q: "The Weeknd, who headlined the 2021 Super Bowl halftime show, hails from this city", a: "Toronto" },
+      { q: "'Bohemian Rhapsody' first appeared on this 1975 Queen album named after a Marx Brothers movie", a: "A Night at the Opera" },
+    ],
+  },
+  {
+    id: "quote-unquote",
+    name: "Quote, Unquote",
+    hint: "Name the movie.",
+    clues: [
+      { q: "\"You're gonna need a bigger boat.\"", a: "Jaws" },
+      { q: "\"Show me the money!\"", a: "Jerry Maguire" },
+      { q: "\"Here's Johnny!\"", a: "The Shining" },
+      { q: "\"Nobody puts Baby in a corner.\"", a: "Dirty Dancing" },
+      { q: "\"I'll have what she's having.\"", a: "When Harry Met Sally..." },
+    ],
+  },
+  {
+    id: "animal-house",
+    name: "Animal House",
+    clues: [
+      { q: "A group of these black birds is ominously called a 'murder'", a: "Crows" },
+      { q: "It's the name for a baby kangaroo", a: "A joey" },
+      { q: "An octopus has this many hearts", a: "Three" },
+      { q: "This chunky Australian marsupial is famous for its cube-shaped poop", a: "The wombat" },
+      { q: "Flamingos get their pink colour from pigments in algae and these tiny crustaceans", a: "Brine shrimp" },
+    ],
+  },
+  {
+    id: "wurst-category",
+    name: "The Wurst Category",
+    hint: "Food. It's the best.",
+    clues: [
+      { q: "The main ingredient in guacamole", a: "Avocado" },
+      { q: "This soft Italian cheese is the classic topping on a Margherita pizza", a: "Mozzarella" },
+      { q: "Hummus is made mostly from this legume", a: "Chickpeas" },
+      { q: "The world's priciest spice by weight, it's hand-picked from crocus flowers", a: "Saffron" },
+      { q: "Most 'wasabi' at North American sushi spots is actually this root, dyed green", a: "Horseradish" },
+    ],
+  },
+  {
+    id: "couch-potatoes",
+    name: "Couch Potatoes",
+    hint: "TV.",
+    clues: [
+      { q: "Central Perk is the coffee shop where this sitcom's gang hangs out", a: "Friends" },
+      { q: "The Simpsons live in this town, a name shared by dozens of real U.S. towns", a: "Springfield" },
+      { q: "This Dunder Mifflin boss owns a 'World's Best Boss' mug (he bought it himself)", a: "Michael Scott" },
+      { q: "Walter White's street name in 'Breaking Bad'", a: "Heisenberg" },
+      { q: "In 'Schitt's Creek', Johnny Rose made his fortune with this chain of video stores", a: "Rose Video" },
+    ],
+  },
+  {
+    id: "sports-bar",
+    name: "Sports Bar",
+    clues: [
+      { q: "The Stanley Cup is the championship trophy of this league", a: "The NHL" },
+      { q: "In hockey, a 'hat trick' means scoring this many goals in one game", a: "Three" },
+      { q: "Michael Jordan won all six of his NBA titles with this team", a: "The Chicago Bulls" },
+      { q: "This team won back-to-back World Series titles in 1992 and 1993", a: "The Toronto Blue Jays" },
+      { q: "In golf, scoring three under par on a single hole has this bird name", a: "An albatross (a double eagle)" },
+    ],
+  },
+  {
+    id: "where-drinking",
+    name: "Where in the World Am I Drinking?",
+    hint: "Name the city or country.",
+    clues: [
+      { q: "Oktoberfest is held every year in this German city", a: "Munich" },
+      { q: "Sake is the national drink of this country", a: "Japan" },
+      { q: "Guinness has been brewed at St. James's Gate in this capital since 1759", a: "Dublin" },
+      { q: "The mojito was born in this Caribbean country", a: "Cuba" },
+      { q: "Pisco is the national spirit of both Chile and this neighbour, which won't shut up about it", a: "Peru" },
+    ],
+  },
+  {
+    id: "weird-science",
+    name: "Weird Science",
+    clues: [
+      { q: "The 'Red Planet'", a: "Mars" },
+      { q: "The hardest natural substance on Earth", a: "Diamond" },
+      { q: "The number of bones in the adult human body", a: "206" },
+      { q: "This gas makes up about 78% of the air you're breathing", a: "Nitrogen" },
+      { q: "Absolute zero is 0 degrees on this temperature scale", a: "Kelvin" },
+    ],
+  },
+  {
+    id: "worst-ideas",
+    name: "History's Worst Ideas",
+    clues: [
+      { q: "This 'unsinkable' ship sank on its maiden voyage in 1912", a: "The Titanic" },
+      { q: "The 1920–1933 era when the U.S. banned booze (it went great)", a: "Prohibition" },
+      { q: "The Greeks hid soldiers inside a wooden horse to sneak into this city", a: "Troy" },
+      { q: "Napoleon met his Waterloo in this present-day country", a: "Belgium" },
+      { q: "In 1919 a giant wave of this sticky syrup flooded Boston's North End", a: "Molasses" },
+    ],
+  },
+  {
+    id: "four-letter-words",
+    name: "Four-Letter Words",
+    hint: "Every answer has exactly four letters. Keep it clean.",
+    clues: [
+      { q: "A cold one, from the tap", a: "Beer" },
+      { q: "The Eternal City, capital of Italy", a: "Rome" },
+      { q: "This Norse god of thunder swings the hammer Mjölnir", a: "Thor" },
+      { q: "A Hawaiian party, roast pig included", a: "Luau" },
+      { q: "The capital of Peru", a: "Lima" },
+    ],
+  },
+  {
+    id: "mom-pop-stars",
+    name: "Mom & Pop Stars",
+    hint: "Famous parents.",
+    clues: [
+      { q: "Blue Ivy's superstar mom", a: "Beyoncé" },
+      { q: "Kim, Khloé and Kourtney's 'momager'", a: "Kris Jenner" },
+      { q: "Miley's dad, who gave the world 'Achy Breaky Heart'", a: "Billy Ray Cyrus" },
+      { q: "The Coldplay frontman who's dad to a kid named Apple", a: "Chris Martin" },
+      { q: "Kate Hudson's Oscar-winning mom", a: "Goldie Hawn" },
+    ],
+  },
+  {
+    id: "insert-coin",
+    name: "Insert Coin",
+    hint: "Video games.",
+    clues: [
+      { q: "Mario's taller brother, the one in green", a: "Luigi" },
+      { q: "In Minecraft, these green mobs hiss right before they blow up your house", a: "Creepers" },
+      { q: "Sonic the Hedgehog collects these golden items", a: "Rings" },
+      { q: "The bounty hunter in the power suit who stars in Metroid", a: "Samus Aran" },
+      { q: "Pac-Man's ghosts are Blinky, Pinky, Inky and this one", a: "Clyde" },
+    ],
+  },
+  {
+    id: "brand-on-the-run",
+    name: "Brand on the Run",
+    clues: [
+      { q: "This fast-food chain's mascot is a clown named Ronald", a: "McDonald's" },
+      { q: "The 'swoosh' belongs to this company", a: "Nike" },
+      { q: "Four interlocking rings are the logo of this German car maker", a: "Audi" },
+      { q: "The two-tailed creature in the Starbucks logo is this mythological figure", a: "A siren" },
+      { q: "This beer's red triangle was the first trademark ever registered in the U.K.", a: "Bass" },
+    ],
+  },
+  {
+    id: "shaken-stirred",
+    name: "Shaken & Stirred",
+    hint: "Unscramble the booze. Host: spell the letters out loud.",
+    clues: [
+      { q: "R - E - B - E", a: "Beer" },
+      { q: "N - I - W - E", a: "Wine" },
+      { q: "K - A - V - O - D", a: "Vodka" },
+      { q: "L - U - Q - I - T - E - A", a: "Tequila" },
+      { q: "P - E - G - N - A - M - C - H - A", a: "Champagne" },
+    ],
+  },
+  {
+    id: "mind-your-qs",
+    name: "Mind Your Q's",
+    hint: "Every answer starts with Q.",
+    clues: [
+      { q: "The band behind 'Bohemian Rhapsody' and 'We Will Rock You'", a: "Queen" },
+      { q: "Canada's largest province, where the official language is French", a: "Quebec" },
+      { q: "A bed cover sewn together from patches", a: "Quilt" },
+      { q: "The capital of Ecuador", a: "Quito" },
+      { q: "The 2008 James Bond movie that followed 'Casino Royale'", a: "Quantum of Solace" },
+    ],
+  },
+  {
+    id: "whats-your-sign",
+    name: "What's Your Sign?",
+    hint: "The zodiac. Smooth.",
+    clues: [
+      { q: "The zodiac sign of the lion", a: "Leo" },
+      { q: "The sign represented by twins", a: "Gemini" },
+      { q: "The sign of the two fish", a: "Pisces" },
+      { q: "The 'water-bearer' sign", a: "Aquarius" },
+      { q: "Sagittarius is drawn as an archer who's this half-human, half-horse creature", a: "A centaur" },
+    ],
+  },
+  {
+    id: "saturday-morning",
+    name: "Saturday Morning Hangover",
+    hint: "Cartoons.",
+    clues: [
+      { q: "SpongeBob's starfish best friend", a: "Patrick Star" },
+      { q: "Scooby-Doo and the gang solve mysteries in this van", a: "The Mystery Machine" },
+      { q: "The Teenage Mutant Ninja Turtles are named after artists from this era", a: "The Renaissance" },
+      { q: "In 'Rugrats', she's Tommy Pickles' bossy older cousin", a: "Angelica" },
+      { q: "On 'Hey Arnold!', this unibrowed girl secretly worships Arnold", a: "Helga (Pataki)" },
+    ],
+  },
+  {
+    id: "drunk-food",
+    name: "3 A.M. Drunk Food",
+    clues: [
+      { q: "Burger King's flame-grilled signature burger", a: "The Whopper" },
+      { q: "Taco Bell wants you to 'Live' this", a: "Más" },
+      { q: "Tim Hortons' bite-sized doughnut holes", a: "Timbits" },
+      { q: "White Castle's tiny square burgers go by this name", a: "Sliders" },
+      { q: "At In-N-Out, ordering it this way piles on extra spread, cheese and grilled onions", a: "Animal Style" },
+    ],
+  },
+  {
+    id: "paint-town-red",
+    name: "Paint the Town Red",
+    hint: "Every answer is a colour.",
+    clues: [
+      { q: "Kermit says it's not easy being this", a: "Green" },
+      { q: "Eiffel 65 went 'da ba dee, da ba daa' about this colour", a: "Blue" },
+      { q: "The colour of the 8-ball in pool", a: "Black" },
+      { q: "'Agent' this was the infamous herbicide sprayed in the Vietnam War", a: "Orange" },
+      { q: "The colour of the jersey worn by the Tour de France leader", a: "Yellow" },
+    ],
+  },
+  {
+    id: "holy-hangover",
+    name: "Holy Hangover, Batman!",
+    hint: "Superheroes.",
+    clues: [
+      { q: "Bruce Wayne's crime-fighting alter ego", a: "Batman" },
+      { q: "Superman's home planet", a: "Krypton" },
+      { q: "This superhero is king of Wakanda", a: "Black Panther" },
+      { q: "Peter Parker was raised by this relative after Uncle Ben died", a: "Aunt May" },
+      { q: "Wolverine's skeleton and claws are coated in this fictional metal", a: "Adamantium" },
+    ],
+  },
+  {
+    id: "drunk-math",
+    name: "Drunk Math",
+    hint: "No calculators. No fingers either.",
+    clues: [
+      { q: "Four six-packs make a case of this many", a: "24" },
+      { q: "A 'baker's dozen'", a: "13" },
+      { q: "The sides on a hexagon plus the legs on a spider", a: "14 (6 + 8)" },
+      { q: "A 'fifth' of liquor is one fifth of this unit", a: "A gallon" },
+      { q: "This year, 2026, in Roman numerals", a: "MMXXVI" },
+    ],
+  },
+  {
+    id: "off-and-on",
+    name: "Turn It Off and On Again",
+    hint: "Tech.",
+    clues: [
+      { q: "Apple's voice assistant", a: "Siri" },
+      { q: "Before Elon renamed it 'X', it was this", a: "Twitter" },
+      { q: "The 'G' in GIF stands for this word", a: "Graphics" },
+      { q: "Bill Gates co-founded Microsoft with this childhood friend", a: "Paul Allen" },
+      { q: "The first-ever YouTube video, 'Me at the zoo', stars a guy standing in front of these animals", a: "Elephants" },
+    ],
+  },
+  {
+    id: "bar-talk",
+    name: "Bar Talk",
+    clues: [
+      { q: "Order a whisky 'neat' and it comes without this", a: "Ice (or any mixer)" },
+      { q: "A Shirley Temple is a cocktail that's missing this", a: "Alcohol" },
+      { q: "A bar's house liquor, kept within arm's reach of the bartender, is called this", a: "The well (well drinks)" },
+      { q: "A 'dirty' martini gets a splash of this", a: "Olive brine (olive juice)" },
+      { q: "In the U.K., a pint of beer topped up with lemonade is called this", a: "A shandy" },
+    ],
+  },
+  {
+    id: "love-drunk",
+    name: "Love Drunk",
+    clues: [
+      { q: "Valentine's Day falls on this date", a: "February 14" },
+      { q: "Cupid is the Roman god of love; this is his Greek counterpart", a: "Eros" },
+      { q: "'Romeo and Juliet' is set in this Italian city", a: "Verona" },
+      { q: "This 2004 tearjerker stars Ryan Gosling and Rachel McAdams", a: "The Notebook" },
+      { q: "The traditional gift for a 50th wedding anniversary", a: "Gold" },
+    ],
+  },
+];
+
+// LAST CALL (Final Jeopardy): one is drawn per game. Harder on purpose.
+export const LAST_CALLS = [
+  { cat: "Cocktail Hour", q: "Created at Singapore's Raffles Hotel, this pink gin cocktail is named for the city", a: "The Singapore Sling" },
+  { cat: "World Capitals", q: "It's the only national capital that borders two other countries", a: "Bratislava (Slovakia)" },
+  { cat: "The Beatles", q: "He's the Beatle who sang lead on 'Yellow Submarine'", a: "Ringo Starr" },
+  { cat: "Oh, Canada", q: "This controversial pizza topping was first put on a pie in Chatham, Ontario, in 1962", a: "Pineapple (Hawaiian pizza)" },
+  { cat: "Your Body Tonight", q: "It's the largest internal organ in the human body (be nice to it)", a: "The liver" },
+  { cat: "Flags", q: "It's the only country whose national flag isn't a rectangle or a square", a: "Nepal" },
+  { cat: "Spelling Bee", q: "It's the only number whose letters, spelled out in English, are in alphabetical order", a: "Forty" },
+  { cat: "Space", q: "Of the eight planets, it's the only one not named after a god", a: "Earth" },
+  { cat: "Salad Days", q: "The Caesar salad was invented in the 1920s in this Mexican border city", a: "Tijuana" },
+  { cat: "Hip-Hop", q: "This Atlanta duo gave us 'Hey Ya!' and 'Ms. Jackson'", a: "OutKast" },
+  { cat: "High Tide", q: "This province shares the Bay of Fundy, home of the world's highest tides, with Nova Scotia", a: "New Brunswick" },
+];

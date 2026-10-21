@@ -32,6 +32,12 @@ const DeadReckoning = lazy(() =>
   import("./Pages/Dashboard/DeadReckoning/DeadReckoning")
 );
 const TopFive = lazy(() => import("./Pages/Dashboard/TopFive/TopFive"));
+const Jeopardrink = lazy(() => import("./Pages/Dashboard/Jeopardrink/Jeopardrink"));
+// The players' buzzer is public (outside the dashboard gate) so friends can
+// join from their phones with just the host's room code.
+const JeopardrinkBuzzer = lazy(() =>
+  import("./Pages/Dashboard/Jeopardrink/buzzer/Buzzer")
+);
 const Services = lazy(() => import("./Pages/Services/Services"));
 const Edusim = lazy(() => import("./Pages/Work/Edusim"));
 const Vxnessa = lazy(() => import("./Pages/Work/Vxnessa"));
@@ -102,7 +108,10 @@ const App = () => {
               <Route path="fishbowl" element={<Fishbowl />} />
               <Route path="reckoning" element={<DeadReckoning />} />
               <Route path="top5" element={<TopFive />} />
+              <Route path="jeopardrink" element={<Jeopardrink />} />
             </Route>
+            <Route path="/buzz" element={<JeopardrinkBuzzer />} />
+            <Route path="/buzz/:code" element={<JeopardrinkBuzzer />} />
             <Route path="/gallows-hymn" element={<GallowsHymn />} />
             <Route path="/budgetter" element={<BudgetGate />}>
               <Route index element={<Budgetter />} />
