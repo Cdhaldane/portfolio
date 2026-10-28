@@ -157,6 +157,199 @@ button.bw-sheet10-cell:hover {
   font-weight: 700;
 }
 
+/* ---- "Frame by frame" stats section ---- */
+.bw-fs {
+  max-width: 1180px;
+  margin: 0 auto clamp(48px, 7vw, 88px);
+  padding: clamp(20px, 3vw, 36px);
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line), var(--bw-shadow);
+}
+.bw-fs--empty p {
+  max-width: 56ch;
+  margin: 0 0 20px;
+  font-family: "Inter", system-ui, sans-serif;
+  line-height: 1.6;
+  color: var(--bw-ink-soft);
+}
+.bw-fs .bw-btn {
+  text-decoration: none;
+}
+.bw-fs-cover {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: -8px 0 20px;
+  font-size: 0.88rem;
+  color: var(--bw-ink-soft);
+}
+.bw-fs-cover > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bw-fs-scroll {
+  overflow-x: auto;
+}
+.bw-fs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.bw-fs-table thead th {
+  padding: 0 12px 10px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+.bw-fs-table tbody th {
+  width: 34%;
+  padding: 10px 12px 10px 0;
+  font-weight: 600;
+  text-align: left;
+  vertical-align: top;
+}
+.bw-fs-table tbody th small {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--bw-ink-soft);
+}
+.bw-fs-table tbody tr + tr > * {
+  border-top: 1px solid var(--bw-line);
+}
+.bw-fs-cell {
+  padding: 10px 12px;
+  vertical-align: top;
+}
+.bw-fs-cell--cha {
+  --bar: var(--bw-cha);
+}
+.bw-fs-cell--van {
+  --bar: var(--bw-van);
+}
+.bw-fs-val {
+  font: 500 1.15rem "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.bw-fs-val.is-lead {
+  font-weight: 700;
+}
+.bw-fs-sub {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  color: var(--bw-ink-soft);
+}
+/* Static (never animated), so width is fine here. */
+.bw-fs-bar {
+  display: block;
+  width: calc(var(--w) * 100%);
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 0 4px 4px 0;
+  background: var(--bar);
+}
+
+.bw-fs-leaves {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 28px;
+}
+.bw-fs-leaves-col h3 {
+  margin: 0 0 10px;
+  font: 700 0.95rem "Space Grotesk", sans-serif;
+}
+.bw-fs-leaves ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-fs-leaves li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bw-surface);
+}
+.bw-fs-leave-key {
+  font: 700 0.95rem "IBM Plex Mono", monospace;
+}
+.bw-fs-leave-key small {
+  margin-left: 8px;
+  font: 600 0.68rem "Space Grotesk", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bw-ink-soft);
+}
+.bw-fs-leave-seen {
+  font: 500 0.85rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+.bw-fs-leave-rate {
+  font: 700 0.95rem "IBM Plex Mono", monospace;
+}
+.bw-fs-leave-rate small {
+  font-weight: 500;
+  color: var(--bw-ink-soft);
+}
+
+/* ---- a night's frames on its score sheet ---- */
+.bw-night.is-open {
+  grid-column: 1 / -1;
+}
+.bw-night.is-open:hover {
+  transform: none;
+}
+.bw-night-frames {
+  display: grid;
+  gap: 16px;
+  margin-top: 12px;
+}
+.bw-night-bowler {
+  display: grid;
+  gap: 8px;
+}
+.bw-night-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0;
+  font-weight: 700;
+}
+.bw-night-line span {
+  font: 500 0.82rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+.bw-night-game {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.bw-night-game > span {
+  font: 700 0.8rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+@media (max-width: 768px) {
+  .bw-fs-leaves {
+    grid-template-columns: 1fr;
+  }
+  .bw-fs-table tbody th {
+    width: auto;
+  }
+  .bw-fs-sub {
+    display: block;
+    margin-left: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bw-deck-pin {
     transition: none;

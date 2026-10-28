@@ -4,6 +4,7 @@ import { useAuth, UserButton } from "@clerk/clerk-react";
 import { loadSeries } from "./api";
 import { BOWLERS } from "./bowlers";
 import { badges, bowlerStats, headToHead, nights, trendPoints } from "./stats";
+import { frameStats } from "./frameStats";
 import { celebrationFor, milestones, tonightsLine, totals } from "./insights";
 import { ALL_TIME, inSeason, seasonList, seasonSummary } from "./seasons";
 import {
@@ -28,6 +29,7 @@ import RecapScreen from "./parts/RecapScreen";
 import EntryPanel from "./parts/EntryPanel";
 import BowlerCards from "./parts/BowlerCards";
 import HeadToHead from "./parts/HeadToHead";
+import FrameStats from "./parts/FrameStats";
 import TrendChart from "./parts/TrendChart";
 import TrophyShelf from "./parts/TrophyShelf";
 import History from "./parts/History";
@@ -129,6 +131,7 @@ const Bowler = () => {
   const derived = useMemo(
     () => ({
       stats: Object.fromEntries(BOWLERS.map((b) => [b.key, bowlerStats(scoped, b.key)])),
+      frames: Object.fromEntries(BOWLERS.map((b) => [b.key, frameStats(scoped, b.key)])),
       trophies: Object.fromEntries(BOWLERS.map((b) => [b.key, badges(all, b.key)])),
       h2h: headToHead(scoped),
       trend: trendPoints(scoped),
@@ -316,6 +319,7 @@ const Bowler = () => {
             </div>
           )}
           <HeadToHead loading={loading} h2h={derived.h2h} stats={derived.stats} />
+          {!loading && <FrameStats frames={derived.frames} stats={derived.stats} />}
           <TrendChart loading={loading} points={derived.trend} />
           {!loading && <Heatmap series={scoped} />}
           {!loading && (
