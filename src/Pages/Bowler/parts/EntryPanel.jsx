@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { saveNight } from "../api";
 import { BOWLERS, GAMES, MAX_GAME, formatNight, todayLocal } from "../bowlers";
 import { ballsOf } from "../balls";
@@ -14,6 +15,10 @@ import "./EntryPanel.css";
  * Each row also carries which ball was thrown per game (select values, ""
  * = not tracked). New nights start on the ball each bowler finished with
  * last time, since most weeks it's the same one.
+ *
+ * Games scored frame by frame are locked when editing: their score comes
+ * from the frames (the server keeps those, since this form never sends
+ * them), so they're changed on the lane screen instead.
  */
 const ballsFrom = (id) => Array(GAMES).fill(id ? String(id) : "");
 
@@ -22,6 +27,7 @@ const blankRow = (lastBall) => ({
   games: Array(GAMES).fill(""),
   balls: ballsFrom(lastBall),
   split: false,
+  locked: Array(GAMES).fill(false),
 });
 
 const blankForm = (lastBalls = {}) => ({
@@ -40,9 +46,16 @@ const formFromNight = (night) => ({
       const row = night.rows[key];
       if (!row) return [key, { ...blankRow(), include: false }];
       const balls = ballsOf(row).map((id) => (id === null ? "" : String(id)));
+      const frames = row.frames || Array(GAMES).fill(null);
       return [
         key,
-        { include: true, games: row.games.map(String), balls, split: new Set(balls).size > 1 },
+        {
+          include: true,
+          games: row.games.map(String),
+          balls,
+          split: new Set(balls).size > 1,
+          locked: frames.map(Boolean),
+        },
       ];
     })
   ),
@@ -260,6 +273,8 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved, balls, lastBalls
                         placeholder="0"
                         value={g}
                         disabled={!row.include}
+                        readOnly={row.locked[i]}
+                        title={row.locked[i] ? "Scored frame by frame" : undefined}
                         aria-invalid={row.include && g !== "" && !validGame(parseGame(g))}
                         onChange={(e) => setGame(key, i, e.target.value)}
                       />
@@ -270,6 +285,15 @@ const EntryPanel = ({ getToken, editing, onCancelEdit, onSaved, balls, lastBalls
                     <output>{row.include && total !== null ? total : "-"}</output>
                   </div>
                 </div>
+                {row.include && row.locked.some(Boolean) && (
+                  <p className="bw-sheet-locked">
+                    <i className="fa-solid fa-lock" aria-hidden="true" /> Games scored frame by
+                    frame are fixed here.{" "}
+                    <Link to={`/bowler/lane?night=${form.bowledOn}`} className="bw-link">
+                      Edit the frames
+                    </Link>
+                  </p>
+                )}
                 <BallPicker
                   bowler={key}
                   balls={balls}
