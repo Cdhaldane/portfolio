@@ -1,32 +1,22 @@
 // Installable-app plumbing for /acta: the service worker (offline lessons,
-// push), the install prompt, and daily-reminder subscriptions. Everything
-// degrades to "not available" rather than throwing.
+// push) and daily-reminder subscriptions. The install prompt itself is the
+// site-wide one in Components/AppIdentity/install.js, re-exported here.
+// Everything degrades to "not available" rather than throwing.
 import { dropPush, fetchPushKey, savePush } from "./api";
+import { isIOS, isStandalone } from "../../Components/AppIdentity/install";
+
+export {
+  canPromptInstall,
+  isIOS,
+  isStandalone,
+  onInstallChange as onPwaChange,
+  promptInstall,
+} from "../../Components/AppIdentity/install";
 
 const SW_URL = "/acta-sw.js";
 const SCOPE = "/acta";
 
 let registration = null;
-let deferredPrompt = null;
-const listeners = new Set();
-const notify = () => listeners.forEach((l) => l());
-
-export function onPwaChange(fn) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
-
-if (typeof window !== "undefined") {
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    notify();
-  });
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    notify();
-  });
-}
 
 /** Register the Acta service worker (production builds only). */
 export async function registerServiceWorker() {
@@ -44,24 +34,6 @@ export async function registerServiceWorker() {
 export function precacheImages(urls) {
   const sw = typeof navigator !== "undefined" && navigator.serviceWorker && navigator.serviceWorker.controller;
   if (sw && urls.length) sw.postMessage({ type: "precache", urls });
-}
-
-export const isStandalone = () =>
-  typeof window !== "undefined" &&
-  ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true);
-
-export const isIOS = () =>
-  typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
-export const canPromptInstall = () => Boolean(deferredPrompt);
-
-export async function promptInstall() {
-  if (!deferredPrompt) return false;
-  deferredPrompt.prompt();
-  const choice = await deferredPrompt.userChoice.catch(() => null);
-  deferredPrompt = null;
-  notify();
-  return Boolean(choice && choice.outcome === "accepted");
 }
 
 // ---------------------------------------------------------------------------

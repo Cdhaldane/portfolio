@@ -15,13 +15,14 @@ import { Helmet } from "react-helmet-async";
  *
  * Mount it in a route's gate, not the page, so the sign-in screen installs the
  * right app too and the swap holds steady across the surface's sub-routes.
+ *
+ * In production each surface is also served its own HTML shell with these
+ * already in place (scripts/app-shells.mjs), so Chrome sees the right
+ * manifest from the first byte; this swap covers in-app navigation and dev.
  */
 
-/** True when running as an installed home-screen app. */
-export const isStandalone = () =>
-  typeof window !== "undefined" &&
-  ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-    window.navigator.standalone === true);
+// Re-exported for the gates that already import it from here.
+export { isStandalone } from "./install";
 
 const SW_URL = "/app-sw.js";
 

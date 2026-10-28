@@ -11,6 +11,8 @@
   },
   "rewrites": [
     { "source": "/hymn", "destination": "/hymn/index.html" },
+    { "source": "/(bowler|dashboard|acta|budgetter|garage)", "destination": "/$1.html" },
+    { "source": "/(bowler|dashboard|acta|budgetter|garage)/(.*)", "destination": "/$1.html" },
     { "source": "/((?!api/|hymn|.*\\.).*)", "destination": "/index.html" }
   ],
   "headers": [

@@ -10,6 +10,15 @@
   "background_color": "#1a1522",
   "theme_color": "#1a1522",
   "categories": ["sports", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Score live",
+      "short_name": "Score live",
+      "description": "Score tonight ball by ball",
+      "url": "/bowler/lane",
+      "icons": [{ "src": "/bowler-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     { "src": "/bowler-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/bowler-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

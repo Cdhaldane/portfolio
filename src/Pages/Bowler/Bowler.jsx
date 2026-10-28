@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth, UserButton } from "@clerk/clerk-react";
+import InstallButton from "../../Components/AppIdentity/InstallButton";
 import { loadSeries } from "./api";
 import { BOWLERS } from "./bowlers";
 import { badges, bowlerStats, headToHead, nights, trendPoints } from "./stats";
@@ -220,6 +221,9 @@ const Bowler = () => {
           <i className="fa-solid fa-arrow-left" aria-hidden="true" /> Site
         </Link>
         <div className="bw-top-actions">
+          <InstallButton name="Bowler" className="bw-install" tipClassName="bw-install-tip">
+            <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" /> Add to phone
+          </InstallButton>
           <button
             type="button"
             className="bw-icon-btn"

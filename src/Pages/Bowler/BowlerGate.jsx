@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link, Outlet } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
 import AppIdentity from "../../Components/AppIdentity/AppIdentity";
+import InstallButton from "../../Components/AppIdentity/InstallButton";
 import "./BowlerGate.css";
 
 /*
@@ -119,6 +120,10 @@ const BowlerGate = () => {
         <SignedOut>
           <Shell>
             <p className="bwg-sub">League night scores for two. Members only.</p>
+            <InstallButton name="Bowler" className="bwg-install" tipClassName="bwg-card">
+              <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" /> Add Bowler to
+              your phone
+            </InstallButton>
             <div className="bwg-clerk">
               <SignIn routing="hash" forceRedirectUrl="/bowler" />
             </div>
