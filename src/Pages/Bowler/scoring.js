@@ -54,7 +54,8 @@ function playFrame(frame, index) {
     let left = { count: rack.count - down, pins: null };
     if (standing) {
       const after = standing[k];
-      if (!after.every((p) => rack.pins.indexOf(p) !== -1)) {
+      const before = rack.pins;
+      if (!after.every((p) => before.indexOf(p) !== -1)) {
         return {
           shots,
           next: rack,

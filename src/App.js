@@ -58,6 +58,7 @@ const GallowsHymn = lazy(() =>
 // Same lazy-Clerk pattern for the private /bowler league tracker.
 const BowlerGate = lazy(() => import("./Pages/Bowler/BowlerGate"));
 const Bowler = lazy(() => import("./Pages/Bowler/Bowler"));
+const BowlerLane = lazy(() => import("./Pages/Bowler/LaneMode"));
 // ...and for the private /garage car log (datalogs, work log, service).
 const GarageGate = lazy(() => import("./Pages/Garage/GarageGate"));
 const Garage = lazy(() => import("./Pages/Garage/Garage"));
@@ -118,6 +119,7 @@ const App = () => {
             </Route>
             <Route path="/bowler" element={<BowlerGate />}>
               <Route index element={<Bowler />} />
+              <Route path="lane" element={<BowlerLane />} />
             </Route>
             <Route path="/garage" element={<GarageGate />}>
               <Route index element={<Garage />} />

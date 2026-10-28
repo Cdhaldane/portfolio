@@ -145,4 +145,7 @@ const BallPicker = ({ bowler, balls, value, split, disabled, onChange, onAddBall
   );
 };
 
+// The grouped <select> on its own, for the lane screen's per-game pick.
+export { Select as BallSelect };
+
 export default BallPicker;

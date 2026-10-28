@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth, UserButton } from "@clerk/clerk-react";
 import { loadSeries } from "./api";
 import { BOWLERS } from "./bowlers";
@@ -164,17 +164,38 @@ const Bowler = () => {
     bagRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const onSaved = useCallback(
-    async ({ bowledOn, entries }) => {
+  const celebrate = useCallback(
+    (entries) => {
       const variant = celebrationFor(entries);
-      setEditing(null);
       setCelebration((c) => ({ id: c.id + 1, variant }));
       if (soundOn) playSound(variant);
+    },
+    [soundOn]
+  );
+
+  const onSaved = useCallback(
+    async ({ bowledOn, entries }) => {
+      setEditing(null);
+      celebrate(entries);
       await refresh();
       setWrapDate(bowledOn);
     },
-    [refresh, soundOn]
+    [refresh, celebrate]
   );
+
+  // Back from the lane screen with a fresh save: the same celebration and
+  // wrap card, once the new night has loaded.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const arrived = useRef(location.state && location.state.saved);
+  useEffect(() => {
+    if (!arrived.current || series === null) return;
+    const { bowledOn, entries } = arrived.current;
+    arrived.current = null;
+    navigate(location.pathname, { replace: true, state: null });
+    celebrate(entries);
+    setWrapDate(bowledOn);
+  }, [series, celebrate, navigate, location.pathname]);
 
   const onEdit = useCallback(
     (night) => {
@@ -214,12 +235,17 @@ const Bowler = () => {
         <div className="bw-hero-copy">
           <NeonSign onBreak={() => unlock("sign")} />
           <p className="bw-hero-sub">
-            Every league night, on the record. Snap the recap screen or type in
-            three games.
+            Every league night, on the record. Score it ball by ball at the lane,
+            snap the recap screen, or type in three games.
           </p>
-          <button type="button" className="bw-btn bw-btn--primary" onClick={goToEntry}>
-            <i className="fa-solid fa-plus" aria-hidden="true" /> Add a night
-          </button>
+          <div className="bw-hero-actions">
+            <Link to="/bowler/lane" className="bw-btn bw-btn--primary">
+              <i className="fa-solid fa-bowling-ball" aria-hidden="true" /> Score live
+            </Link>
+            <button type="button" className="bw-btn bw-btn--ghost" onClick={goToEntry}>
+              <i className="fa-solid fa-plus" aria-hidden="true" /> Add a night
+            </button>
+          </div>
         </div>
         <RecapScreen
           loading={loading}

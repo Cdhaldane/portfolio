@@ -1,0 +1,466 @@
+/* /bowler/lane: the at-the-alley scoring screen. One column, thumb-sized
+   targets, and everything for the next ball above the fold on a phone. */
+.bw.bw-lm {
+  padding: 0 16px calc(40px + env(safe-area-inset-bottom));
+}
+.bw-lm > * {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bw-lm-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.bw-lm-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 4px 0 14px;
+  border-radius: 999px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  color: var(--bw-ink-soft);
+}
+.bw-lm-date input {
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--bw-ink);
+  font: 600 0.95rem "Space Grotesk", sans-serif;
+  color-scheme: light;
+}
+[data-theme="dark"] .bw-lm input,
+[data-theme="dark"] .bw-lm select {
+  color-scheme: dark;
+}
+
+.bw-lm-offer,
+.bw-lm-note {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-lm-offer {
+  box-shadow: inset 0 0 0 2px var(--bw-accent);
+}
+.bw-lm-offer p {
+  margin: 0;
+  font-weight: 600;
+}
+.bw-lm-offer div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+.bw-lm-note {
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--bw-ink-soft);
+}
+
+/* ---- who and which game ---- */
+.bw-lm-who {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bw-lm-who-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  color: var(--bw-ink);
+  font: 700 1.05rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+  transition: box-shadow 160ms var(--bw-ease);
+}
+.bw-lm-who-tab--cha {
+  --who: var(--bw-cha);
+}
+.bw-lm-who-tab--van {
+  --who: var(--bw-van);
+}
+.bw-lm-who-tab.is-on {
+  box-shadow: inset 0 0 0 3px var(--who);
+}
+.bw-lm-who-tab small {
+  margin-left: auto;
+  font: 700 0.95rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+.bw-lm-games {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bw-surface-2);
+}
+.bw-lm-game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bw-ink-soft);
+  font: 600 0.88rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+  transition: background 200ms var(--bw-ease), color 200ms;
+}
+.bw-lm-game b {
+  color: var(--bw-ink);
+  font-family: "IBM Plex Mono", monospace;
+}
+.bw-lm-game.is-on {
+  background: var(--bw-ink);
+  color: var(--bw-card);
+}
+.bw-lm-game.is-on b {
+  color: inherit;
+}
+.bw-lm-game .fa-check {
+  margin-left: 4px;
+  font-size: 0.75em;
+}
+
+/* ---- the next ball ---- */
+.bw-lm-play {
+  display: grid;
+  gap: 12px;
+}
+.bw-lm-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bw-lm-where {
+  margin: 0;
+  font-weight: 700;
+}
+.bw-lm-score {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+.bw-lm-score span {
+  font: 400 2rem "Bungee", sans-serif;
+  line-height: 1;
+}
+.bw-lm-score small {
+  font: 500 0.8rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+.bw-lm-deck {
+  position: relative;
+  padding: 18px 10px 14px;
+  border-radius: 18px;
+  background:
+    repeating-linear-gradient(90deg, var(--bw-board-a) 0 22px, var(--bw-board-b) 22px 24px),
+    var(--bw-surface-2);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-lm-flash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font: 400 clamp(2.2rem, 11vw, 3.4rem) "Bungee", sans-serif;
+  color: var(--bw-accent);
+  text-shadow:
+    0 3px 0 #b57c1f,
+    0 0 26px rgba(242, 184, 75, 0.6);
+  animation: bw-lm-flash 900ms var(--bw-ease) both;
+}
+
+.bw-lm-leave {
+  min-height: 1.5em;
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-lm-split {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bw-bad);
+  color: var(--bw-card);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bw-lm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 8px;
+}
+.bw-lm-act {
+  height: 64px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 2px var(--bw-line);
+  color: var(--bw-ink);
+  font: 700 1.05rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms var(--bw-ease), opacity 160ms;
+}
+.bw-lm-act:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.bw-lm-act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.bw-lm-act--enter {
+  background: var(--bw-ink);
+  box-shadow: none;
+  color: var(--bw-card);
+}
+.bw-lm-act--mark {
+  background: var(--bw-accent);
+  box-shadow: 0 4px 0 #b57c1f;
+  color: var(--bw-accent-ink);
+  font-family: "Bungee", sans-serif;
+  font-weight: 400;
+}
+
+.bw-lm-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.bw-lm .bw-link:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bw-lm-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+}
+.bw-lm-pocket {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+}
+.bw-lm-pocket span {
+  margin-right: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-lm-pocket button {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bw-surface-2);
+  color: var(--bw-ink);
+  font: 600 0.9rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+}
+.bw-lm-pocket button[aria-pressed="true"] {
+  background: var(--bw-ink);
+  color: var(--bw-card);
+}
+.bw-lm-board label,
+.bw-lm-field label,
+.bw-lm-typed label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-lm-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bw-surface);
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+}
+.bw-lm-stepper button {
+  border: 0;
+  background: none;
+  color: var(--bw-ink);
+  cursor: pointer;
+}
+.bw-lm-stepper input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--bw-ink);
+  font: 700 1.1rem "IBM Plex Mono", monospace;
+  text-align: center;
+}
+
+/* ---- game over / score-only ---- */
+.bw-lm-over,
+.bw-lm-typed {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 16px;
+  border-radius: 18px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  text-align: center;
+}
+.bw-lm-over p {
+  margin: 0;
+}
+.bw-lm-over-score {
+  display: block;
+  font: 400 3.4rem "Bungee", sans-serif;
+  line-height: 1.1;
+  color: var(--bw-ink);
+}
+
+.bw-lm-field input,
+.bw-lm-typed input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bw-surface);
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+  color: var(--bw-ink);
+  font: 500 1rem "Space Grotesk", sans-serif;
+  color-scheme: light;
+}
+.bw-lm-typed input {
+  width: 150px;
+  height: 64px;
+  font: 700 2rem "IBM Plex Mono", monospace;
+  text-align: center;
+}
+.bw-lm input:focus,
+.bw-lm select:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--bw-accent);
+}
+
+/* ---- per game: lanes and ball ---- */
+.bw-lm-meta {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+.bw-lm-lanes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bw-lm-lanes input {
+  width: 62px;
+  padding: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 700;
+  text-align: center;
+}
+.bw-lm-lanes span {
+  font: 700 1rem "IBM Plex Mono", monospace;
+  color: var(--bw-ink-soft);
+}
+
+/* ---- save ---- */
+.bw-lm-save {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--bw-line);
+}
+.bw-lm-ready {
+  margin: 0;
+  font-weight: 600;
+  color: var(--bw-ink-soft);
+}
+.bw-lm-ready.is-ok {
+  color: var(--bw-good);
+}
+.bw-lm-savebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+@keyframes bw-lm-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-6deg);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.08) rotate(-3deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04) rotate(-3deg);
+  }
+}
+
+@media (min-width: 769px) {
+  .bw.bw-lm {
+    padding-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-lm-flash {
+    display: none;
+  }
+  .bw-lm-act,
+  .bw-lm-who-tab,
+  .bw-lm-game {
+    transition: none;
+  }
+}

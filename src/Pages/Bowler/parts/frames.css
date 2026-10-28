@@ -1,0 +1,164 @@
+/* Pins and ten-frame sheets: the lane screen's tappable deck, the small
+   leave racks in the stats, and the score sheet (lane screen + history).
+   Pins are seen from above: a white crown with the red neck ring. */
+
+/* ---- tappable deck ---- */
+.bw-deck {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px 2px;
+  width: min(100%, 380px);
+  margin: 0 auto;
+}
+.bw-deck-pin {
+  --pin-red: #c8282e;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 88%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 2px var(--bw-line);
+  color: var(--bw-ink-soft);
+  font: 700 1.05rem "IBM Plex Mono", monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 180ms var(--bw-ease),
+    background 140ms,
+    box-shadow 140ms,
+    opacity 180ms;
+}
+/* Still in the rack but not marked: these are the ones about to fall. */
+.bw-deck-pin.is-falling {
+  opacity: 0.7;
+}
+.bw-deck-pin.is-up {
+  background: radial-gradient(circle at 38% 32%, #fff 0 40%, #efe6d6 75%);
+  box-shadow:
+    inset 0 0 0 6px #fff,
+    inset 0 0 0 10px var(--pin-red),
+    0 8px 16px -8px rgba(43, 29, 22, 0.6);
+  color: #2b1d16;
+  transform: translateY(-2px);
+}
+.bw-deck-pin.is-down {
+  background: var(--bw-ink-soft);
+  box-shadow: none;
+  color: transparent;
+  opacity: 0.3;
+  transform: scale(0.3);
+  cursor: default;
+}
+.bw-deck-pin:active:not(:disabled) {
+  transform: scale(0.92);
+}
+[data-theme="dark"] .bw-deck-pin.is-up {
+  box-shadow:
+    inset 0 0 0 6px #fff,
+    inset 0 0 0 10px var(--pin-red),
+    0 0 18px rgba(200, 170, 255, 0.5);
+}
+
+/* ---- small static rack (a leave) ---- */
+.bw-rack {
+  display: inline-grid;
+  flex: none;
+  grid-template-columns: repeat(8, 5px);
+  grid-auto-rows: 9px;
+  vertical-align: middle;
+}
+.bw-rack > span {
+  justify-self: center;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+}
+.bw-rack > span.is-up {
+  background: var(--bw-ink);
+  box-shadow: none;
+}
+
+/* ---- ten-frame sheet ---- */
+.bw-sheet10 {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr)) minmax(0, 1.45fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bw-card);
+  box-shadow: inset 0 0 0 1.5px var(--bw-line);
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.bw-sheet10-frame + .bw-sheet10-frame {
+  border-left: 1px solid var(--bw-line);
+}
+.bw-sheet10-frame.is-now {
+  background: var(--bw-surface-2);
+  box-shadow: inset 0 -3px 0 var(--bw-accent);
+}
+.bw-sheet10-cell {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  width: 100%;
+  height: 100%;
+  min-height: 58px;
+  padding: 2px 0 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+}
+button.bw-sheet10-cell {
+  cursor: pointer;
+}
+button.bw-sheet10-cell:hover {
+  background: var(--bw-surface-2);
+}
+.bw-sheet10-no {
+  font-size: 0.6rem;
+  line-height: 1.3;
+  color: var(--bw-ink-soft);
+}
+.bw-sheet10-marks {
+  display: flex;
+  justify-content: flex-end;
+}
+.bw-sheet10-box {
+  display: grid;
+  flex: 1 1 0;
+  place-items: center;
+  max-width: 20px;
+  height: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.bw-sheet10-box + .bw-sheet10-box {
+  box-shadow: inset 1px -1px 0 var(--bw-line);
+}
+.bw-sheet10-box.is-split {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--bw-bad);
+}
+.bw-sheet10-total {
+  align-self: end;
+  padding-top: 3px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-deck-pin {
+    transition: none;
+  }
+}
