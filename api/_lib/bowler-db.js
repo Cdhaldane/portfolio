@@ -11,7 +11,14 @@
 // the ball it was thrown with (ball1..ball3, nullable: untagged games and
 // every night from before balls existed just have none). Deleting a ball
 // unlinks its games instead of deleting them.
+//
+// `detail` (JSONB, null for a scores-only night) holds what was tracked
+// beyond the score, one slot per game:
+//   { frames: [Frame[] | null x3], lanes: [number | null x3] }
+// When a game has frames they're the source of truth: g1..g3 are rewritten
+// from them on every save and recomputed from them on every read.
 const { getSql } = require("./budget-db");
+const { detailOf, readDetail } = require("./bowler-normalize");
 
 let ensured = false;
 
@@ -55,11 +62,13 @@ async function ensureBowlTables(sql) {
         ADD COLUMN IF NOT EXISTS ball2 INTEGER REFERENCES bowl_balls(id) ON DELETE SET NULL,
         ADD COLUMN IF NOT EXISTS ball3 INTEGER REFERENCES bowl_balls(id) ON DELETE SET NULL
     `,
+    sql`ALTER TABLE bowl_series ADD COLUMN IF NOT EXISTS detail JSONB`,
   ]);
   ensured = true;
 }
 
 function toApi(row) {
+  const { games, frames, lanes } = readDetail(row.detail, [row.g1, row.g2, row.g3]);
   return {
     id: row.id,
     bowler: row.bowler,
@@ -68,8 +77,10 @@ function toApi(row) {
       row.bowled_on instanceof Date
         ? row.bowled_on.toISOString().slice(0, 10)
         : String(row.bowled_on).slice(0, 10),
-    games: [row.g1, row.g2, row.g3],
+    games,
     balls: [row.ball1 ?? null, row.ball2 ?? null, row.ball3 ?? null],
+    lanes,
+    frames,
     source: row.source,
     note: row.note,
   };
@@ -88,29 +99,44 @@ function ballToApi(row) {
 
 async function listSeries(sql) {
   const rows = await sql`
-    SELECT id, bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, source, note
+    SELECT id, bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, detail, source, note
       FROM bowl_series
      ORDER BY bowled_on ASC, bowler ASC
   `;
   return rows.map(toApi);
 }
 
-/** Upsert every entry for one night atomically. */
+/** Each bowler's stored detail for one night, for saves that leave it out. */
+async function savedDetail(sql, bowledOn) {
+  const rows = await sql`
+    SELECT bowler, detail FROM bowl_series WHERE bowled_on = ${bowledOn}
+  `;
+  return new Map(rows.map((r) => [r.bowler, r.detail]));
+}
+
+/**
+ * Upsert every entry for one night atomically. Entries arrive complete
+ * (withSavedDetail has already merged in anything the save left out).
+ */
 async function saveNight(sql, userId, { bowledOn, entries, source, note }) {
   const results = await sql.transaction(
-    entries.map(
-      (e) => sql`
+    entries.map((e) => {
+      const detail = detailOf(e);
+      const json = detail === null ? null : JSON.stringify(detail);
+      return sql`
         INSERT INTO bowl_series
-               (bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, source, note, created_by)
+               (bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, detail, source, note, created_by)
         VALUES (${e.bowler}, ${bowledOn}, ${e.games[0]}, ${e.games[1]}, ${e.games[2]},
-                ${e.balls[0]}, ${e.balls[1]}, ${e.balls[2]}, ${source}, ${note}, ${userId})
+                ${e.balls[0]}, ${e.balls[1]}, ${e.balls[2]}, ${json}::jsonb,
+                ${source}, ${note}, ${userId})
         ON CONFLICT (bowler, bowled_on) DO UPDATE
            SET g1 = EXCLUDED.g1, g2 = EXCLUDED.g2, g3 = EXCLUDED.g3,
                ball1 = EXCLUDED.ball1, ball2 = EXCLUDED.ball2, ball3 = EXCLUDED.ball3,
+               detail = EXCLUDED.detail,
                source = EXCLUDED.source, note = EXCLUDED.note, updated_at = now()
-        RETURNING id, bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, source, note
-      `
-    )
+        RETURNING id, bowler, bowled_on, g1, g2, g3, ball1, ball2, ball3, detail, source, note
+      `;
+    })
   );
   return results.flat().map(toApi);
 }
@@ -156,6 +182,7 @@ module.exports = {
   getSql,
   ensureBowlTables,
   listSeries,
+  savedDetail,
   saveNight,
   deleteSeries,
   listBalls,

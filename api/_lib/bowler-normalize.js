@@ -5,6 +5,11 @@
 // Everything that arrives from the browser OR from the vision model passes
 // through here before it reaches the database: the model's read of a photo
 // is just as untrusted as a hand-typed score.
+//
+// Frame-by-frame games are checked and scored by the page's own engine
+// (src/Pages/Bowler/scoring.js, CommonJS so it can be required here), so a
+// score can never mean one thing on the page and another in the database.
+const { checkGame, scoreGame } = require("../../src/Pages/Bowler/scoring");
 
 // The two tracked bowlers. Keys are the stored ids (and the URL-ish short
 // names used on the page); values are the display names on the recap screen.
@@ -14,7 +19,9 @@ const BOWLER_KEYS = Object.freeze(Object.keys(BOWLERS));
 const GAMES_PER_SERIES = 3;
 const MAX_GAME = 300;
 const MAX_NOTE = 200;
-const SOURCES = Object.freeze(["manual", "photo"]);
+const SOURCES = Object.freeze(["manual", "photo", "lane"]);
+// The left lane of the pair (13 means 13-14).
+const MAX_LANE = 99;
 
 const IMAGE_TYPES = Object.freeze(["image/jpeg", "image/png", "image/webp"]);
 // Base64 inflates by 4/3; the browser downsizes to ~1600px JPEG (~300-600KB)
@@ -54,6 +61,13 @@ function isValidGame(value) {
 
 const isPositiveId = (n) => Number.isInteger(n) && n > 0;
 
+/** A lane number, null for "not noted", or undefined when it's garbage. */
+function cleanLane(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= MAX_LANE ? n : undefined;
+}
+
 /** A ball id, null for "not tracked", or undefined when it's garbage. */
 function cleanBallId(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -62,8 +76,12 @@ function cleanBallId(value) {
 }
 
 /**
- * Validate one bowler's series from a save request. `balls` is optional
- * (one id or null per game); leaving it out means no ball was tracked.
+ * Validate one bowler's series from a save request. `balls`, `lanes` and
+ * `frames` are optional, one per game (null = not tracked / score only).
+ * A game with frames is scored from them and any score sent with it is
+ * ignored. Leaving `frames` or `lanes` out entirely (the photo and type-it
+ * paths) means "don't touch them": withSavedDetail fills them in from the
+ * night already saved.
  * @returns {{ ok: true, value: object } | { ok: false, error: string }}
  */
 function validateEntry(entry) {
@@ -73,21 +91,104 @@ function validateEntry(entry) {
   if (!BOWLER_KEYS.includes(entry.bowler)) {
     return { ok: false, error: "Unknown bowler." };
   }
-  const games = Array.isArray(entry.games) ? entry.games.map(Number) : [];
-  if (games.length !== GAMES_PER_SERIES || !games.every(isValidGame)) {
+  const who = BOWLERS[entry.bowler];
+
+  let frames;
+  if (entry.frames !== undefined && entry.frames !== null) {
+    if (!Array.isArray(entry.frames) || entry.frames.length > GAMES_PER_SERIES) {
+      return { ok: false, error: `${who}'s frames didn't come through. Try saving again.` };
+    }
+    frames = [];
+    for (let i = 0; i < GAMES_PER_SERIES; i += 1) {
+      const raw = entry.frames[i];
+      if (raw === undefined || raw === null) {
+        frames.push(null);
+        continue;
+      }
+      const game = checkGame(raw);
+      if (!game.ok) return { ok: false, error: `${who}, game ${i + 1}: ${game.error}` };
+      frames.push(game.value);
+    }
+  }
+
+  const rawGames = Array.isArray(entry.games) ? entry.games : [];
+  const games = Array.from({ length: GAMES_PER_SERIES }, (_, i) => {
+    if (frames && frames[i]) return scoreGame(frames[i]).total;
+    const raw = rawGames[i];
+    return raw === null || raw === undefined || raw === "" ? NaN : Number(raw);
+  });
+  if (rawGames.length > GAMES_PER_SERIES || !games.every(isValidGame)) {
     return {
       ok: false,
-      error: `${BOWLERS[entry.bowler]} needs ${GAMES_PER_SERIES} games, each a whole number from 0 to ${MAX_GAME}.`,
+      error: `${who} needs ${GAMES_PER_SERIES} games, each a whole number from 0 to ${MAX_GAME}.`,
     };
   }
+
   const rawBalls = entry.balls === undefined || entry.balls === null ? [] : entry.balls;
   const balls = Array.isArray(rawBalls)
     ? Array.from({ length: GAMES_PER_SERIES }, (_, i) => cleanBallId(rawBalls[i]))
     : [undefined];
   if (rawBalls.length > GAMES_PER_SERIES || balls.includes(undefined)) {
-    return { ok: false, error: `${BOWLERS[entry.bowler]}'s ball pick didn't come through. Pick it again.` };
+    return { ok: false, error: `${who}'s ball pick didn't come through. Pick it again.` };
   }
-  return { ok: true, value: { bowler: entry.bowler, games, balls } };
+
+  let lanes;
+  if (entry.lanes !== undefined && entry.lanes !== null) {
+    lanes =
+      Array.isArray(entry.lanes) && entry.lanes.length <= GAMES_PER_SERIES
+        ? Array.from({ length: GAMES_PER_SERIES }, (_, i) => cleanLane(entry.lanes[i]))
+        : [undefined];
+    if (lanes.includes(undefined)) {
+      return { ok: false, error: `Lanes are numbers from 1 to ${MAX_LANE}.` };
+    }
+  }
+
+  return { ok: true, value: { bowler: entry.bowler, games, balls, lanes, frames } };
+}
+
+const perGame = (list) =>
+  Array.from({ length: GAMES_PER_SERIES }, (_, i) =>
+    Array.isArray(list) && list[i] !== undefined && list[i] !== null ? list[i] : null
+  );
+
+/**
+ * Fill in the lanes / frames a save left out from that bowler's night as
+ * already saved (`saved` is its detail column, or null), then let frames
+ * decide the scores. So typing a score over a framed game can't drift it.
+ */
+function withSavedDetail(entry, saved) {
+  const frames = entry.frames || perGame(saved && saved.frames);
+  const lanes = entry.lanes || perGame(saved && saved.lanes);
+  return {
+    ...entry,
+    frames,
+    lanes,
+    games: entry.games.map((g, i) => (frames[i] ? scoreGame(frames[i]).total : g)),
+  };
+}
+
+/** What the detail column stores: null when a night is scores only. */
+function detailOf({ frames, lanes }) {
+  if (frames.every((f) => f === null) && lanes.every((l) => l === null)) return null;
+  return { frames, lanes };
+}
+
+/**
+ * A stored row's detail read back for the page. Frames are the source of
+ * truth: a framed game's score is recomputed, the stored g1..g3 only
+ * standing in for games without frames.
+ */
+function readDetail(detail, games) {
+  const frames = perGame(detail && detail.frames);
+  return {
+    frames,
+    lanes: perGame(detail && detail.lanes),
+    games: games.map((g, i) => {
+      if (!frames[i]) return g;
+      const scored = scoreGame(frames[i]);
+      return scored.complete ? scored.total : g;
+    }),
+  };
 }
 
 /** Every distinct ball id a validated save refers to. */
@@ -243,8 +344,12 @@ module.exports = {
   BOWLER_KEYS,
   GAMES_PER_SERIES,
   MAX_GAME,
+  MAX_LANE,
   isValidDate,
   validateEntry,
+  withSavedDetail,
+  detailOf,
+  readDetail,
   referencedBalls,
   validateBall,
   validateSave,

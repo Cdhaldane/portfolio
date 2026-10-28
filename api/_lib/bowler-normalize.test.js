@@ -6,6 +6,9 @@ const {
   validateImage,
   matchBowler,
   sanitizeParse,
+  withSavedDetail,
+  detailOf,
+  readDetail,
 } = require("./bowler-normalize");
 
 const NOW = new Date("2026-09-23T20:00:00Z");
@@ -134,4 +137,104 @@ test("sanitizeParse nulls impossible games and survives garbage", () => {
   assert.equal(out.bowlers[0].mismatch, false);
   assert.deepEqual(sanitizeParse(null), { team: null, bowlers: [], readable: false });
   assert.deepEqual(sanitizeParse({ bowlers: "nope" }).bowlers, []);
+});
+
+// ---- frame-by-frame saves ----
+
+const strikes = (n) => Array.from({ length: n }, () => ({ rolls: [10], standing: [[]] }));
+const PERFECT = [...strikes(9), { rolls: [10, 10, 10], standing: [[], [], []] }];
+const NINES = Array.from({ length: 10 }, () => ({ rolls: [9, 0], standing: [[10], [10]] }));
+
+test("validateSave scores framed games itself and ignores the score sent", () => {
+  const r = validateSave(
+    {
+      bowledOn: "2026-09-22",
+      source: "lane",
+      entries: [
+        { bowler: "cha", games: [12, null, 150], frames: [PERFECT, NINES, null], lanes: [13, "13", null] },
+      ],
+    },
+    NOW
+  );
+  assert.equal(r.ok, true, r.error);
+  assert.equal(r.value.source, "lane");
+  const e = r.value.entries[0];
+  assert.deepEqual(e.games, [300, 90, 150]);
+  assert.deepEqual(e.lanes, [13, 13, null]);
+  assert.equal(e.frames[2], null);
+  assert.deepEqual(e.frames[1][0], { rolls: [9, 0], standing: [[10], [10]] });
+});
+
+test("validateSave names the bowler and game when frames break the rules", () => {
+  const bad = [...NINES.slice(0, 9), { rolls: [7, 5], standing: null }];
+  const r = validateSave(
+    { bowledOn: "2026-09-22", entries: [{ bowler: "van", games: [null, 100, 100], frames: [bad] }] },
+    NOW
+  );
+  assert.equal(r.ok, false);
+  assert.match(r.error, /^Vanessa, game 1: Frame 10/);
+
+  const short = validateSave(
+    { bowledOn: "2026-09-22", entries: [{ bowler: "van", games: [0, 0, 0], frames: [NINES.slice(0, 9)] }] },
+    NOW
+  );
+  assert.equal(short.ok, false);
+});
+
+test("validateSave rejects a missing score for a game without frames", () => {
+  const r = validateSave(
+    { bowledOn: "2026-09-22", entries: [{ bowler: "cha", games: [null, 100, 100], frames: [null, NINES, null] }] },
+    NOW
+  );
+  assert.equal(r.ok, false);
+});
+
+test("validateSave checks lanes", () => {
+  const save = (lanes) =>
+    validateSave({ bowledOn: "2026-09-22", entries: [{ bowler: "cha", games: [1, 2, 3], lanes }] }, NOW);
+  assert.equal(save([1, 99, null]).ok, true);
+  assert.equal(save([0]).ok, false);
+  assert.equal(save([100]).ok, false);
+  assert.equal(save([1, 2, 3, 4]).ok, false);
+  assert.equal(save("13").ok, false);
+});
+
+test("a save that leaves frames out keeps the night's saved frames", () => {
+  const typed = validateSave(
+    { bowledOn: "2026-09-22", entries: [{ bowler: "cha", games: [100, 100, 100] }] },
+    NOW
+  ).value.entries[0];
+  assert.equal(typed.frames, undefined);
+  assert.equal(typed.lanes, undefined);
+
+  const merged = withSavedDetail(typed, { frames: [null, PERFECT, null], lanes: [7, 7, 9] });
+  assert.deepEqual(merged.games, [100, 300, 100]);
+  assert.deepEqual(merged.lanes, [7, 7, 9]);
+  assert.equal(merged.frames[1], PERFECT);
+
+  const fresh = withSavedDetail(typed, null);
+  assert.deepEqual(fresh.frames, [null, null, null]);
+  assert.equal(detailOf(fresh), null);
+});
+
+test("a save that sends frames replaces the saved ones", () => {
+  const sent = validateSave(
+    { bowledOn: "2026-09-22", entries: [{ bowler: "cha", games: [100, 0, 0], frames: [null, NINES, null] }] },
+    NOW
+  ).value.entries[0];
+  const merged = withSavedDetail(sent, { frames: [PERFECT, PERFECT, null], lanes: null });
+  assert.deepEqual(merged.games, [100, 90, 0]);
+  assert.equal(merged.frames[0], null);
+  assert.deepEqual(detailOf(merged), { frames: [null, NINES, null], lanes: [null, null, null] });
+});
+
+test("readDetail recomputes framed scores and leaves the rest alone", () => {
+  assert.deepEqual(readDetail(null, [150, 160, 170]), {
+    games: [150, 160, 170],
+    frames: [null, null, null],
+    lanes: [null, null, null],
+  });
+  const read = readDetail({ frames: [PERFECT, null, null], lanes: [5, null, null] }, [299, 160, 170]);
+  assert.deepEqual(read.games, [300, 160, 170]);
+  assert.deepEqual(read.lanes, [5, null, null]);
 });

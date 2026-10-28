@@ -3,8 +3,10 @@
 //   GET                           → every saved series (oldest first) + the ball bag
 //   POST { action: "parse", image, mediaType }
 //                                 → Claude's read of a recap-screen photo (NOT saved)
-//   POST { action: "save", bowledOn, entries: [{ bowler, games, balls }], source, note }
-//                                 → upsert one night for one or both bowlers
+//   POST { action: "save", bowledOn, entries: [{ bowler, games, balls, lanes?, frames? }],
+//          source, note }        → upsert one night for one or both bowlers. A game
+//                                   with frames is scored from them; leaving `frames`
+//                                   out keeps whatever frames that night already has
 //   POST { action: "ball", ball: { id?, owner, name, weight, color, retired } }
 //                                 → add a ball to the bag, or edit one
 //   DELETE ?id=123                → remove one series
@@ -19,6 +21,7 @@ const {
   getSql,
   ensureBowlTables,
   listSeries,
+  savedDetail,
   saveNight,
   deleteSeries,
   listBalls,
@@ -31,6 +34,7 @@ const {
   validateImage,
   sanitizeParse,
   referencedBalls,
+  withSavedDetail,
 } = require("./_lib/bowler-normalize");
 const { readScoreboard } = require("./_lib/bowler-vision");
 
@@ -77,7 +81,13 @@ async function handleSave(res, sql, userId, body) {
         .json({ error: "One of those balls was just taken out of the bag. Pick again." });
     }
   }
-  const saved = await saveNight(sql, userId, parsed.value);
+  // The photo and type-it paths don't send frames; keep the ones already
+  // saved for that night (one cheap read, only when something was left out).
+  const { bowledOn, entries } = parsed.value;
+  const partial = entries.some((e) => e.frames === undefined || e.lanes === undefined);
+  const stored = partial ? await savedDetail(sql, bowledOn) : new Map();
+  const merged = entries.map((e) => withSavedDetail(e, stored.get(e.bowler) || null));
+  const saved = await saveNight(sql, userId, { ...parsed.value, entries: merged });
   return res.status(200).json({ ok: true, saved });
 }
 
