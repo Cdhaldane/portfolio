@@ -6,12 +6,13 @@
  * Every control point follows its own profile along the length, so the hood,
  * windshield, roof and hatch all fall out of one surface, S(x, t): x is metres
  * along the car and t runs 0..9 from the bottom centre to the top centre on
- * the left side. Panels, glass and decals are patches cut from that surface,
+ * the +z side. Panels, glass and decals are patches cut from that surface,
  * so they meet without seams.
  *
- * Frame: metres, x forward, y up, z to the car's left (the driver's side),
- * origin on the ground at the middle of the wheelbase. Numbers are a 2017
- * Golf R (Mk7): 4276 long, 1790 wide, 1436 high, 2631 wheelbase.
+ * Frame: metres, x forward, y up, z to the car's right (the passenger side;
+ * the driver sits at -z), origin on the ground at the middle of the
+ * wheelbase. Numbers are a 2017 Golf R (Mk7): 4276 long, 1790 wide, 1436
+ * high, 2631 wheelbase.
  */
 
 export const DIM = {
@@ -149,7 +150,7 @@ export function archTop(x) {
 }
 
 /*
- * The ten [z, y] control points of the left half-section at x:
+ * The ten [z, y] control points of the +z half-section at x:
  *   0 bottom centre · 1 floor edge · 2 top of the wheel well's inner wall ·
  *   3 the arch lip · 4 rocker · 5 shoulder · 6 beltline · 7 roof edge ·
  *   8 roof crown · 9 top centre.
@@ -245,24 +246,24 @@ export function sectionPoint(ctrl, t) {
   ];
 }
 
-/** S(x, t) on the left side: [x, y, z]. */
+/** S(x, t) on the +z side: [x, y, z]. */
 export function bodyPoint(x, t) {
   const [z, y] = sectionPoint(cachedControls(x), t);
   return [x, y, z];
 }
 
 /*
- * The stations the body is sampled at: 2 cm apart, 4 mm in the last 12 cm of
- * each end where the nose and tail turn in, 1 cm inside the arches, and a pair
+ * The stations the body is sampled at: 3 cm apart, 4 mm in the last 12 cm of
+ * each end where the nose and tail turn in, 1.2 cm inside the arches, and a pair
  * either side of each arch's vertical edge so the opening stays crisp.
  */
 export function stations(extra = []) {
   const xs = [];
-  for (let x = DIM.rear; x < DIM.front; x += 0.02) xs.push(x);
+  for (let x = DIM.rear; x < DIM.front; x += 0.03) xs.push(x);
   for (let x = DIM.front - 0.12; x < DIM.front; x += 0.004) xs.push(x);
   for (let x = DIM.rear; x < DIM.rear + 0.12; x += 0.004) xs.push(x);
   for (const ax of [DIM.axle, -DIM.axle]) {
-    for (let dx = -DIM.archR; dx <= DIM.archR; dx += 0.01) xs.push(ax + dx);
+    for (let dx = -DIM.archR; dx <= DIM.archR; dx += 0.012) xs.push(ax + dx);
     for (const side of [-1, 1]) {
       xs.push(ax + side * (DIM.archR - 0.0004), ax + side * (DIM.archR + 0.0004));
     }
@@ -272,7 +273,7 @@ export function stations(extra = []) {
   return xs.filter((x, i) => i === 0 || x - xs[i - 1] > 1e-4);
 }
 
-/** Outermost z of the left side at height y on station x, or null if the section doesn't reach y. */
+/** Outermost z of the +z side at height y on station x, or null if the section doesn't reach y. */
 export function sideZ(x, y, t0 = T.lip, t1 = T.roofEdge) {
   const ctrl = cachedControls(x);
   let best = null;

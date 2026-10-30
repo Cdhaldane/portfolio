@@ -4,8 +4,8 @@
  * Renders the model to PNGs with a small software rasteriser, so a change to
  * the shape can be looked at without opening a browser (CLAUDE.md §0). It is
  * not the real renderer: studio shading and flat colours per material key, no
- * textures. Every mesh is there at its real size, though, which is what a
- * shape check needs.
+ * textures, so stickers are left out and plates are blank. Every mesh is
+ * there at its real size, though, which is what a shape check needs.
  *
  *   node scripts/car-preview.mjs [outDir] [--views a,b] [--size 960x560] [--reveal hood|xray|cabin]
  *
@@ -37,13 +37,22 @@ const VIEWS = {
   top: { yaw: 90, pitch: 89, dist: 7.5, target: [0, 0.6, 0] },
   low: { yaw: 50, pitch: -1, dist: 5.2, target: [0, 0.55, 0] },
 };
-for (const m of MODS) VIEWS[m.id] = { ...m.view, reveal: m.reveal, parts: m.parts };
+for (const m of MODS) VIEWS[m.id] = { ...m.view, reveal: m.reveal, parts: m.parts, hide: m.hide };
 
 const names = flag("views", "three,side,front,rear,rear3,top").split(",");
 
 // Base colour (linear-ish 0..1), gloss (0..1), alpha.
 const LOOK = {
-  paint: [[0.42, 0.72, 0.93], 0.35, 1],
+  paint: [[0.2, 0.74, 0.86], 0.35, 1],
+  tint: [[0.02, 0.03, 0.035], 0.6, 0.86],
+  visor: [[0.03, 0.035, 0.04], 0.4, 0.9],
+  forgedFlake: [[0.16, 0.17, 0.18], 0.5, 1],
+  tip: [[0.06, 0.06, 0.07], 0.6, 1],
+  machined: [[0.85, 0.86, 0.88], 0.5, 1],
+  lug: [[0.75, 0.6, 0.28], 0.6, 1],
+  sensor: [[0.32, 0.35, 0.38], 0.2, 1],
+  cover: [[0.07, 0.07, 0.08], 0.2, 1],
+  reservoir: [[0.86, 0.85, 0.8], 0.1, 1],
   under: [[0.07, 0.07, 0.08], 0, 1],
   trim: [[0.06, 0.06, 0.07], 0.15, 1],
   gloss: [[0.03, 0.03, 0.035], 0.5, 1],
@@ -70,7 +79,8 @@ const LOOK = {
   lamp: [[0.08, 0.09, 0.1], 0.5, 1],
   mirror: [[0.5, 0.55, 0.6], 0.9, 1],
   tailLed: [[1, 0.25, 0.2], 0, 1],
-  inlet: [[0.6, 0.62, 0.66], 0.6, 1],
+  inlet: [[0.08, 0.08, 0.09], 0.5, 1],
+  blue: [[0.12, 0.35, 0.85], 0.3, 1],
   ecu: [[0.25, 0.27, 0.3], 0.3, 1],
 };
 const FALLBACK = [[1, 0, 1], 0, 1];
@@ -113,9 +123,16 @@ function render(view, reveal) {
   car.traverse((o) => {
     if (!o.isMesh || !o.visible) return;
     let look = LOOK[o.userData.mat] || FALLBACK;
+    if (o.userData.mat === "sticker") {
+      // No canvas here: a plate shows as its background, text stickers not at all.
+      const bg = o.userData.sticker.bg;
+      if (!bg) return;
+      look = [[1, 2, 3].map((i) => (parseInt(bg.slice(i * 2 - 1, i * 2 + 1), 16) / 255) ** 2.2), 0.1, 1];
+    }
+    if (o.userData.mat === "cover" && view.hide?.includes("cover")) look = [look[0], look[1], 0.1];
     const lit = view.parts?.includes(o.userData.part);
     if (xray && SHELL.has(o.userData.mat) && !lit) look = [look[0], look[1], 0.12];
-    if (cabin && o.userData.mat === "glass") look = [look[0], look[1], 0.12];
+    if (cabin && (o.userData.mat === "glass" || o.userData.mat === "tint")) look = [look[0], look[1], 0.12];
     const g = o.geometry;
     const p = g.attributes.position;
     const n = g.attributes.normal;

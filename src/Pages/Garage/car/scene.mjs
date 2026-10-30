@@ -84,8 +84,23 @@ const twill = () =>
     }
   });
 
-/** Forged carbon: chopped fibre, random angular flakes in greys on near-black. */
-const forged = () =>
+/** Draw a shape at a tile's wrap positions too, so the texture tiles seamlessly. */
+function wrapped(g, size, cx, cy, draw) {
+  for (const ox of [-size, 0, size]) {
+    for (const oy of [-size, 0, size]) {
+      g.save();
+      g.translate(cx + ox, cy + oy);
+      draw();
+      g.restore();
+    }
+  }
+}
+
+/*
+ * Forged carbon: chopped fibre, random angular flakes in greys on near-black.
+ * `flake` scatters the hood's sky blue chips through it.
+ */
+const forged = (flake = false) =>
   texture((g, size) => {
     const r = rng(7);
     g.fillStyle = "#0c0c0d";
@@ -97,27 +112,94 @@ const forged = () =>
       const wid = 3 + r() * 14;
       const a = r() * Math.PI;
       const v = Math.floor(18 + r() ** 1.6 * 80);
+      const j = [r(), r(), r(), r()];
       g.fillStyle = `rgb(${v},${v},${v + 3})`;
       g.globalAlpha = 0.55 + r() * 0.45;
-      // Draw each flake at the tile's wrap positions too, so it tiles seamlessly.
-      for (const ox of [-size, 0, size]) {
-        for (const oy of [-size, 0, size]) {
-          g.save();
-          g.translate(cx + ox, cy + oy);
-          g.rotate(a);
-          g.beginPath();
-          g.moveTo(-len / 2, -wid / 2);
-          g.lineTo(len / 2, -wid * (0.2 + r() * 0.3));
-          g.lineTo(len / 2 - r() * 6, wid / 2);
-          g.lineTo(-len / 2 + r() * 6, wid * (0.2 + r() * 0.3));
-          g.closePath();
-          g.fill();
-          g.restore();
-        }
-      }
+      wrapped(g, size, cx, cy, () => {
+        g.rotate(a);
+        g.beginPath();
+        g.moveTo(-len / 2, -wid / 2);
+        g.lineTo(len / 2, -wid * (0.2 + j[0] * 0.3));
+        g.lineTo(len / 2 - j[1] * 6, wid / 2);
+        g.lineTo(-len / 2 + j[2] * 6, wid * (0.2 + j[3] * 0.3));
+        g.closePath();
+        g.fill();
+      });
     }
     g.globalAlpha = 1;
+    if (!flake) return;
+    const s = rng(11);
+    for (let k = 0; k < 9; k++) {
+      const cx = s() * size;
+      const cy = s() * size;
+      const rad = 10 + s() * 18;
+      const n = 7 + Math.floor(s() * 4);
+      const pts = Array.from({ length: n }, (_, i) => {
+        const t = (i / n) * Math.PI * 2;
+        const rr = rad * (0.45 + s() * 0.75);
+        return [Math.cos(t) * rr, Math.sin(t) * rr * (0.5 + s() * 0.6)];
+      });
+      g.fillStyle = s() < 0.5 ? "#3cc4e0" : "#52d0ea";
+      wrapped(g, size, cx, cy, () => {
+        g.beginPath();
+        pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+        g.closePath();
+        g.fill();
+      });
+    }
   });
+
+/* --------------------------------------------------------------- stickers -- */
+
+const FONTS = {
+  display: "'Arial Black', 'Segoe UI Black', Impact, sans-serif",
+  sans: "'Segoe UI', Arial, Helvetica, sans-serif",
+  serif: "Georgia, 'Times New Roman', serif",
+  script: "'Segoe Script', 'Brush Script MT', 'Snell Roundhand', cursive",
+};
+
+/** Paint a sticker's text layout (model.mjs STICKER) onto a canvas. */
+function stickerTexture(spec, aniso) {
+  const { w, h } = spec;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const g = c.getContext("2d");
+  if (spec.bg) {
+    g.fillStyle = spec.bg;
+    g.fillRect(0, 0, w, h);
+  }
+  for (const b of spec.bands || []) {
+    g.fillStyle = b.color;
+    g.fillRect(0, b.y0 * h, w, (b.y1 - b.y0) * h);
+  }
+  if (spec.border) {
+    g.strokeStyle = spec.border;
+    g.lineWidth = h * 0.035;
+    g.strokeRect(g.lineWidth / 2, g.lineWidth / 2, w - g.lineWidth, h - g.lineWidth);
+  }
+  for (const r of spec.rects || []) {
+    g.fillStyle = r.color || "#ffffff";
+    g.fillRect(r.x * w, r.y * h, r.w * w, r.h * h);
+  }
+  for (const l of spec.lines || []) {
+    g.fillStyle = l.color || "#ffffff";
+    g.font = `${l.style || "900"} ${Math.round(l.size * h)}px ${FONTS[l.font || "display"]}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    const max = (l.max ?? 0.92) * w;
+    const tw = g.measureText(l.text).width;
+    g.save();
+    g.translate((l.x ?? 0.5) * w, l.y * h);
+    if (tw > max) g.scale(max / tw, 1);
+    g.fillText(l.text, 0, 0);
+    g.restore();
+  }
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = aniso;
+  return t;
+}
 
 /** Soft contact shadow under the car. */
 const blob = () => {
@@ -139,30 +221,40 @@ function materials(renderer) {
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const tw = twill();
   const fg = forged();
-  tw.anisotropy = aniso;
-  fg.anisotropy = aniso;
+  const ff = forged(true);
+  for (const t of [tw, fg, ff]) t.anisotropy = aniso;
   const std = (color, roughness, metalness = 0, extra = {}) =>
     new MeshStandardMaterial({ color, roughness, metalness, side: DoubleSide, ...extra });
   const phys = (color, roughness, extra = {}) =>
     new MeshPhysicalMaterial({ color, roughness, metalness: 0, side: DoubleSide, ...extra });
   return {
-    // Avery gloss wrap, sky blue: no flake, a deep clear top layer.
-    paint: phys("#5fb6ea", 0.26, { clearcoat: 1, clearcoatRoughness: 0.03 }),
+    // Avery gloss wrap, sky blue leaning turquoise: no flake, a deep clear top layer.
+    paint: phys("#3cc2de", 0.24, { clearcoat: 1, clearcoatRoughness: 0.03 }),
     under: std("#0c0d0f", 0.9),
     trim: std("#0b0b0c", 0.55),
     gloss: phys("#060607", 0.18, { clearcoat: 1, clearcoatRoughness: 0.05 }),
     glass: phys("#0d1317", 0.03, { transparent: true, opacity: 0.55, depthWrite: false, envMapIntensity: 1.6 }),
+    tint: phys("#05080a", 0.03, { transparent: true, opacity: 0.84, depthWrite: false, envMapIntensity: 1.6 }),
+    visor: phys("#0a0c0e", 0.12, { transparent: true, opacity: 0.88, clearcoat: 1 }),
     lens: phys("#ffffff", 0.02, { transparent: true, opacity: 0.16, depthWrite: false }),
     lamp: std("#15171a", 0.25, 0.7),
     chrome: std("#ffffff", 0.06, 1),
     steel: std("#c5c9ce", 0.26, 1),
-    inlet: std("#b4bac2", 0.3, 0.9),
+    tip: std("#141518", 0.22, 0.9),
+    machined: std("#e4e7ea", 0.3, 0.9),
+    lug: std("#c9a14a", 0.3, 1),
+    sensor: std("#5b646b", 0.4, 0.2),
+    cover: std("#141517", 0.55, 0, { transparent: true }),
+    reservoir: std("#e9e7df", 0.5, 0, { transparent: true, opacity: 0.92 }),
+    blue: std("#2a6fe0", 0.4),
+    inlet: std("#1a1b1e", 0.35, 0.3),
     tire: std("#131313", 0.88),
     wheel: phys("#070708", 0.2, { clearcoat: 0.8, clearcoatRoughness: 0.08 }),
     disc: std("#8b8d91", 0.45, 0.9),
     caliper: std("#141518", 0.5, 0.2),
     carbon: phys("#ffffff", 0.38, { map: tw, clearcoat: 1, clearcoatRoughness: 0.04, metalness: 0.2 }),
     forged: phys("#ffffff", 0.34, { map: fg, clearcoat: 1, clearcoatRoughness: 0.04, metalness: 0.15 }),
+    forgedFlake: phys("#ffffff", 0.32, { map: ff, clearcoat: 1, clearcoatRoughness: 0.03, metalness: 0.15 }),
     tail: phys("#7d0b10", 0.12, { emissive: "#ff1f1f", emissiveIntensity: 0.18, clearcoat: 1 }),
     tailLed: std("#ff3b30", 0.4, 0, { emissive: "#ff3b30", emissiveIntensity: 2 }),
     drl: std("#ffffff", 0.3, 0, { emissive: "#eaf4ff", emissiveIntensity: 1.8 }),
@@ -234,11 +326,27 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
   const byPart = new Map();
   const clones = new Map();
   const shells = new Set();
+  const fadable = new Set();
+  const hideable = new Set(MODS.flatMap((mod) => mod.hide || []));
+  const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const see = new Set(["glass", "tint", "lens", "sticker"]);
   car.traverse((o) => {
     if (!o.isMesh) return;
     const k = o.userData.mat;
     const part = o.userData.part;
     let m = base[k] || base.trim;
+    if (k === "sticker") {
+      // Each sticker and plate paints its own canvas.
+      const spec = o.userData.sticker;
+      m = new MeshStandardMaterial({
+        map: stickerTexture(spec, aniso),
+        transparent: !spec.bg,
+        depthWrite: Boolean(spec.bg),
+        alphaTest: 0.02,
+        roughness: spec.bg ? 0.35 : 0.6,
+        side: DoubleSide,
+      });
+    }
     if (part) {
       const id = `${k}:${part}`;
       if (!clones.has(id)) clones.set(id, m.clone());
@@ -247,11 +355,13 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
       byPart.get(part).add(m);
     }
     o.material = m;
+    m.userData.key = k;
     if (SHELL.has(k)) shells.add(m);
-    if (k !== "glass" && k !== "lens") o.castShadow = true;
-    if (k === "glass" || k === "lens") o.renderOrder = 2;
+    if (SHELL.has(k) || hideable.has(k)) fadable.add(m);
+    if (!see.has(k)) o.castShadow = true;
+    if (see.has(k)) o.renderOrder = k === "sticker" ? 3 : 2;
   });
-  for (const m of shells) {
+  for (const m of fadable) {
     m.userData.opacity = m.opacity;
     m.userData.transparent = m.transparent;
     m.userData.depthWrite = m.depthWrite;
@@ -265,8 +375,9 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
   const intro = reducedMotion ? OVERVIEW : { ...OVERVIEW, yaw: OVERVIEW.yaw - 70, dist: OVERVIEW.dist + 3.5, pitch: 4 };
   const cur = { ...intro, target: new Vector3(...OVERVIEW.target) };
   const goal = { ...OVERVIEW, target: new Vector3(...OVERVIEW.target) };
-  const reveal = { hood: 0, xray: 0, cabin: 0 };
-  const revealGoal = { hood: 0, xray: 0, cabin: 0 };
+  const reveal = { hood: 0, xray: 0, cabin: 0, hide: 0 };
+  const revealGoal = { hood: 0, xray: 0, cabin: 0, hide: 0 };
+  let hideKeys = new Set();
   let selected = null;
   let hovered = null;
   let spin = !reducedMotion;
@@ -310,11 +421,13 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
   const applyReveals = () => {
     car.userData.openHood(easeInOut(reveal.hood));
     const lit = new Set(selected ? MOD_BY_ID[selected].parts.flatMap((p) => [...(byPart.get(p) || [])]) : []);
-    for (const m of shells) {
+    for (const m of fadable) {
       if (lit.has(m)) continue;
+      const k = m.userData.key;
       let o = m.userData.opacity;
-      if (reveal.xray > 0) o *= 1 - 0.88 * reveal.xray;
-      if (reveal.cabin > 0 && m === base.glass) o *= 1 - 0.85 * reveal.cabin;
+      if (reveal.xray > 0 && shells.has(m)) o *= 1 - 0.88 * reveal.xray;
+      if (reveal.cabin > 0 && (k === "glass" || k === "tint")) o *= 1 - 0.88 * reveal.cabin;
+      if (reveal.hide > 0 && hideKeys.has(k)) o *= 1 - 0.92 * reveal.hide;
       const fading = o < m.userData.opacity - 1e-3;
       const transparent = m.userData.transparent || fading;
       if (m.transparent !== transparent) {
@@ -408,7 +521,7 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
     for (const hit of ray.intersectObject(car, true)) {
       const m = hit.object;
       // Clicks go through glass and through anything the x-ray has faded.
-      if (m.userData.mat === "glass" || m.userData.mat === "lens" || m.material.opacity < 0.3) continue;
+      if (see.has(m.userData.mat) || m.material.opacity < 0.3) continue;
       return m.userData.part ? partToMod.get(m.userData.part) || null : null;
     }
     return null;
@@ -486,6 +599,10 @@ export function createShowroom(canvas, { onPick, onHover, reducedMotion = false 
       revealGoal.hood = mod?.reveal === "hood" ? 1 : 0;
       revealGoal.xray = mod?.reveal === "xray" ? 1 : 0;
       revealGoal.cabin = mod?.reveal === "cabin" ? 1 : 0;
+      // Parts that hide this mod (the engine cover over the coils) fade out;
+      // the last set is kept while it fades back in.
+      revealGoal.hide = mod?.hide ? 1 : 0;
+      if (mod?.hide) hideKeys = new Set(mod.hide);
       setView(mod ? mod.view : { ...OVERVIEW, yaw: cur.yaw }, false);
     },
     /** Light a mod's parts without moving the camera (the list's hover). */
