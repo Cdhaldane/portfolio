@@ -2287,6 +2287,347 @@
   font-weight: 600;
 }
 
+/* ---- build: the car in 3D ----
+   A studio stage on the same engineering paper as the page, lit from above;
+   at night it's the garage again, with the car's colour as the only light.
+   The stage sticks while the list scrolls past it on wide screens. */
+.gr-model {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(260px, 1fr);
+  gap: clamp(16px, 2.4vw, 28px);
+  align-items: start;
+}
+.gr-model-stage {
+  position: sticky;
+  top: 16px;
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(70% 58% at 50% 36%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 72%),
+    linear-gradient(var(--gr-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, var(--gr-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(180deg, var(--gr-surface), #dde2da);
+  box-shadow: inset 0 0 0 1px var(--gr-line), var(--gr-shadow);
+}
+[data-theme="dark"] .gr-model-stage {
+  background:
+    radial-gradient(56% 48% at 50% 26%, color-mix(in srgb, var(--gr-car) 20%, transparent), transparent 72%),
+    radial-gradient(46% 24% at 50% 80%, rgba(255, 255, 255, 0.07), transparent 72%),
+    linear-gradient(var(--gr-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, var(--gr-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(180deg, #161a20, #0a0c0f);
+}
+.gr-model-view {
+  position: relative;
+  aspect-ratio: 16 / 11;
+}
+.gr-model-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  /* Vertical swipes still scroll the page on a phone; sideways ones turn the car. */
+  touch-action: pan-y;
+  opacity: 0;
+  transition: opacity 0.9s var(--gr-ease);
+}
+.gr-model-stage.is-ready .gr-model-canvas {
+  opacity: 1;
+}
+.gr-model-chrome {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.gr-model-kicker {
+  margin: 0;
+  font-family: var(--gr-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gr-ink-soft);
+}
+.gr-model-kicker span {
+  color: var(--gr-needle);
+}
+.gr-model-tools {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+.gr-model-tool {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+  color: var(--gr-ink-soft);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: color 0.25s var(--gr-ease), transform 0.25s var(--gr-ease);
+}
+.gr-model-tool:hover:not(:disabled) {
+  color: var(--gr-ink);
+}
+.gr-model-tool:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.gr-model-tool.is-on {
+  color: var(--gr-car);
+}
+.gr-model-tool:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.gr-model-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 24px;
+  font-family: var(--gr-body);
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--gr-ink-soft);
+}
+.gr-model-stage.is-loading .gr-model-status {
+  animation: gr-model-breathe 1.4s ease-in-out infinite alternate;
+}
+@keyframes gr-model-breathe {
+  from {
+    opacity: 0.45;
+  }
+}
+.gr-model-caption {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  pointer-events: none;
+}
+.gr-model-card {
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line), var(--gr-shadow);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  animation: gr-model-rise 0.5s var(--gr-ease) both;
+}
+.gr-model-card h3 {
+  margin: 2px 0 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+.gr-model-card-n {
+  margin: 0;
+  font-family: var(--gr-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gr-ink-faint);
+}
+.gr-model-card-brand {
+  margin: 2px 0 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--gr-car);
+}
+.gr-model-card-note {
+  margin: 0 0 10px;
+  font-family: var(--gr-body);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--gr-ink-soft);
+}
+.gr-model-card-maps {
+  margin: -2px 0 10px;
+  font-family: var(--gr-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--gr-ink-soft);
+}
+.gr-model-hint {
+  margin: 0;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+  backdrop-filter: blur(10px);
+  font-family: var(--gr-body);
+  font-size: 0.78rem;
+  color: var(--gr-ink-soft);
+  animation: gr-model-rise 0.6s 0.8s var(--gr-ease) both;
+}
+@keyframes gr-model-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.gr-model-list {
+  display: grid;
+  gap: 20px;
+}
+.gr-model-area {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gr-line);
+  font-family: var(--gr-mono);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gr-ink-soft);
+}
+.gr-model-area span {
+  color: var(--gr-ink-faint);
+}
+.gr-model-group ol {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gr-model-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.1em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s var(--gr-ease), box-shadow 0.25s var(--gr-ease);
+}
+/* The signature gradient, standing up, marks the mod on screen. */
+.gr-model-item::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #2f6bff, #6f9a5e, #ff5d3b);
+  transform: scaleY(0);
+  transition: transform 0.45s var(--gr-ease);
+}
+.gr-model-item:hover,
+.gr-model-item.is-hot {
+  background: var(--gr-card);
+}
+.gr-model-item.is-on {
+  background: var(--gr-card);
+  box-shadow: inset 0 0 0 1px var(--gr-line);
+}
+.gr-model-item.is-on::before {
+  transform: scaleY(1);
+}
+.gr-model-n {
+  font-family: var(--gr-mono);
+  font-size: 0.76rem;
+  color: var(--gr-ink-faint);
+}
+.gr-model-item.is-on .gr-model-n {
+  color: var(--gr-needle);
+}
+.gr-model-name {
+  display: grid;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.gr-model-name small {
+  font-family: var(--gr-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--gr-ink-soft);
+}
+.gr-model-go {
+  color: var(--gr-ink-faint);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s var(--gr-ease), transform 0.35s var(--gr-ease), color 0.25s var(--gr-ease);
+}
+.gr-model-item:hover .gr-model-go,
+.gr-model-item.is-hot .gr-model-go,
+.gr-model-item.is-on .gr-model-go {
+  opacity: 1;
+  transform: none;
+}
+.gr-model-item.is-on .gr-model-go {
+  color: var(--gr-car);
+}
+
+@media (max-width: 920px) {
+  .gr-model {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .gr-model-stage {
+    position: relative;
+    top: auto;
+  }
+  .gr-model-view {
+    aspect-ratio: 4 / 3;
+  }
+}
+/* On a phone the caption moves under the car instead of over it. */
+@media (max-width: 720px) {
+  .gr-model-view {
+    aspect-ratio: 1 / 1;
+  }
+  .gr-model-caption {
+    position: static;
+    padding: 0 12px 12px;
+  }
+  .gr-model-card {
+    max-width: none;
+    width: 100%;
+  }
+  .gr-model-hint {
+    margin: 0 auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gr-model-canvas,
+  .gr-model-item,
+  .gr-model-item::before,
+  .gr-model-go {
+    transition: none;
+  }
+  .gr-model-card,
+  .gr-model-hint,
+  .gr-model-stage.is-loading .gr-model-status {
+    animation: none;
+  }
+}
+
 /* ---- responsive ---- */
 @media (max-width: 920px) {
   .gr-hero {

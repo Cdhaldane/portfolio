@@ -12,6 +12,8 @@ import LogDetail from "./parts/LogDetail";
 import WorkLog from "./parts/WorkLog";
 import ServicePlan from "./parts/ServicePlan";
 import Trends from "./parts/Trends";
+import Build from "./parts/Build";
+import { MODS } from "./car/mods.mjs";
 import "./Garage.css";
 
 /*
@@ -20,13 +22,15 @@ import "./Garage.css";
  * Owns the one piece of server state (every log summary plus the work log)
  * and derives the rest per car with pure functions (logs.js, service.js).
  * Car, tab and the open log live in the URL, so a phone's back button closes
- * a log and a link reopens exactly what was on screen.
+ * a log and a link reopens exactly what was on screen. A tab with `cars`
+ * only shows for those cars (the Build is the Golf's; the Cayenne's stock).
  */
 const TABS = [
   { key: "logs", label: "Logs" },
   { key: "work", label: "Work log" },
   { key: "service", label: "Service" },
   { key: "trends", label: "Trends" },
+  { key: "build", label: "Build", cars: ["golf"] },
 ];
 const TOAST_MS = 3200;
 
@@ -45,7 +49,8 @@ const Garage = () => {
 
   const carKey = CAR_BY_KEY[params.get("car")] ? params.get("car") : CARS[0].key;
   const car = CAR_BY_KEY[carKey];
-  const tab = TABS.some((t) => t.key === params.get("tab")) ? params.get("tab") : "logs";
+  const tabs = TABS.filter((t) => !t.cars || t.cars.includes(carKey));
+  const tab = tabs.some((t) => t.key === params.get("tab")) ? params.get("tab") : "logs";
   const openId = Number(params.get("log")) || null;
 
   const go = useCallback(
@@ -149,11 +154,11 @@ const Garage = () => {
   );
 
   const onTabKey = (e) => {
-    const i = TABS.findIndex((t) => t.key === tab);
+    const i = tabs.findIndex((t) => t.key === tab);
     const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
     if (!step) return;
     e.preventDefault();
-    const next = TABS[(i + step + TABS.length) % TABS.length].key;
+    const next = tabs[(i + step + tabs.length) % tabs.length].key;
     go({ tab: next });
     document.getElementById(`gr-tab-${next}`)?.focus();
   };
@@ -163,6 +168,7 @@ const Garage = () => {
     work: derived.events.length,
     service: derived.statuses.filter((s) => s.status === "overdue" || s.status === "soon").length,
     trends: null,
+    build: MODS.length,
   };
 
   return (
@@ -239,7 +245,7 @@ const Garage = () => {
           drafts survive a look at one log. */}
       <main className="gr-main" hidden={Boolean(openId)}>
         <div className="gr-tabs" role="tablist" aria-label="Garage sections" onKeyDown={onTabKey}>
-          {TABS.map((t, i) => (
+          {tabs.map((t, i) => (
             <button
               key={t.key}
               id={`gr-tab-${t.key}`}
@@ -311,6 +317,7 @@ const Garage = () => {
             {tab === "trends" && (
               <Trends car={car} logs={derived.logs} events={derived.events} loading={loading} onOpen={openLog} />
             )}
+            {tab === "build" && <Build car={car} />}
           </div>
         </section>
       </main>
