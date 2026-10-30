@@ -36,6 +36,8 @@ const VIEWS = {
   rear3: { yaw: 145, pitch: 12, dist: 6.2, target: [0, 0.62, 0] },
   top: { yaw: 90, pitch: 89, dist: 7.5, target: [0, 0.6, 0] },
   low: { yaw: 50, pitch: -1, dist: 5.2, target: [0, 0.55, 0] },
+  driver: { yaw: 318, pitch: 14, dist: 6.2, target: [0, 0.62, 0] },
+  passenger3: { yaw: 148, pitch: 10, dist: 6.2, target: [0, 0.62, 0] },
 };
 for (const m of MODS) VIEWS[m.id] = { ...m.view, reveal: m.reveal, parts: m.parts, hide: m.hide };
 

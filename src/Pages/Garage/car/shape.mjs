@@ -83,43 +83,57 @@ export function profile(keys) {
 }
 
 const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = (a, b, x) => {
+  const k = clamp((x - a) / (b - a), 0, 1);
+  return k * k * (3 - 2 * k);
+};
 
-// Centreline silhouette: nose, hood, windshield, roof, hatch glass, tailgate.
+// Centreline silhouette: bumper face, grille, hood, windshield, roof, hatch
+// glass, tailgate. Both ends finish on a vertical edge (bottom() meets it), so
+// the bumper and the tailgate stand upright instead of tapering to a point.
 const top = profile([
-  [2.195, 0.5], [2.19, 0.6], [2.18, 0.67], [2.16, 0.735], [2.12, 0.785], [2.07, 0.815],
-  [2.0, 0.835], [1.7, 0.865], [1.3, 0.9], [0.95, 0.93], [0.7, 0.965], [0.62, 0.98],
+  [2.195, 0.62], [2.19, 0.634], [2.17, 0.664], [2.12, 0.735], [2.075, 0.798], [2.05, 0.817],
+  [2.0, 0.833], [1.7, 0.862], [1.3, 0.898], [0.95, 0.93], [0.7, 0.965], [0.62, 0.98],
   [0.4, 1.1], [0.15, 1.235], [-0.05, 1.33], [-0.2, 1.385], [-0.35, 1.418], [-0.6, 1.436],
   [-1.0, 1.432], [-1.4, 1.418], [-1.72, 1.395], [-1.8, 1.37], [-1.86, 1.28], [-1.93, 1.14],
-  [-1.985, 1.0], [-2.02, 0.93], [-2.05, 0.84], [-2.068, 0.74], [-2.077, 0.64], [-2.081, 0.55],
+  [-1.985, 1.0], [-2.0, 0.96], [-2.02, 0.88], [-2.035, 0.78], [-2.045, 0.7], [-2.06, 0.66],
+  [-2.075, 0.635], [-2.081, 0.62],
 ]);
 
-// Underside: splitter and diffuser rise into the nose and tail.
+// Underside: the lower bumper tucks back to the splitter, the diffuser rises
+// at the tail, and each meets top() in that vertical end edge.
 const bottom = profile([
-  [2.195, 0.48], [2.193, 0.36], [2.188, 0.27], [2.175, 0.215], [2.15, 0.19], [2.1, 0.175],
+  [2.195, 0.3], [2.193, 0.26], [2.188, 0.232], [2.175, 0.21], [2.15, 0.19], [2.1, 0.175],
   [2.0, 0.165], [1.8, 0.16], [0, 0.155], [-1.75, 0.165], [-1.9, 0.2], [-2.0, 0.245],
-  [-2.05, 0.275], [-2.07, 0.31], [-2.078, 0.4], [-2.081, 0.53],
+  [-2.05, 0.275], [-2.07, 0.305], [-2.078, 0.33], [-2.081, 0.36],
 ]);
 
-// Half width at the widest point of each section (the shoulder).
+// Half width at the widest point of each section (the shoulder). In plan the
+// nose is a broad, gently curved face with tight corners; the tail is flatter
+// still. The body is widest over the rear wheels.
 const shoulderW = profile([
-  [2.195, 0.16], [2.19, 0.48], [2.18, 0.63], [2.16, 0.72], [2.12, 0.79], [2.06, 0.835],
-  [1.98, 0.865], [1.8, 0.885], [1.3, 0.895], [0.6, 0.89], [-0.5, 0.887], [-1.3, 0.895],
-  [-1.7, 0.888], [-1.9, 0.876], [-2.0, 0.86], [-2.04, 0.835], [-2.065, 0.78], [-2.076, 0.66],
-  [-2.081, 0.3],
+  [2.195, 0.04], [2.1935, 0.32], [2.19, 0.46], [2.182, 0.58], [2.168, 0.68], [2.145, 0.76],
+  [2.11, 0.815], [2.06, 0.85], [1.98, 0.872], [1.8, 0.886], [1.3, 0.895], [0.6, 0.889],
+  [-0.5, 0.887], [-1.3, 0.897], [-1.7, 0.89], [-1.9, 0.878], [-1.98, 0.862], [-2.02, 0.84],
+  [-2.05, 0.8], [-2.066, 0.73], [-2.075, 0.63], [-2.0795, 0.48], [-2.0808, 0.3], [-2.081, 0.04],
 ]);
 
-// Height of the shoulder (the tornado line on the doors, lower at the bumpers).
+// Height of the shoulder: the tornado line, a crease running from the
+// headlight to the tail light and rising gently on the way; at each end it
+// drops to the bumper's widest line.
 const shoulderY = profile([
-  [2.195, 0.49], [2.16, 0.53], [2.08, 0.63], [1.95, 0.72], [1.6, 0.79], [1.0, 0.84],
-  [0, 0.86], [-1.0, 0.872], [-1.6, 0.878], [-1.9, 0.86], [-2.0, 0.8], [-2.05, 0.7],
-  [-2.081, 0.53],
+  [2.195, 0.47], [2.16, 0.52], [2.12, 0.62], [2.06, 0.74], [2.0, 0.79], [1.9, 0.805],
+  [1.6, 0.825], [1.0, 0.84],
+  [0, 0.855], [-1.0, 0.868], [-1.6, 0.875], [-1.95, 0.865], [-2.02, 0.8], [-2.05, 0.66],
+  [-2.07, 0.55], [-2.081, 0.5],
 ]);
 
 // Beltline: the hood's edge up front, the base of the side glass in the cabin.
 const beltY = profile([
-  [2.195, 0.5], [2.12, 0.76], [2.06, 0.8], [2.0, 0.815], [1.5, 0.86], [1.0, 0.9],
-  [0.62, 0.955], [0, 0.985], [-1.0, 1.01], [-1.6, 1.03], [-1.85, 1.03], [-1.95, 1.01],
-  [-1.985, 0.98], [-2.02, 0.91], [-2.081, 0.54],
+  [2.195, 0.6], [2.15, 0.73], [2.1, 0.775], [2.06, 0.8], [2.0, 0.815], [1.5, 0.86], [1.0, 0.895],
+  [0.62, 0.945], [0, 0.962], [-1.0, 0.99], [-1.6, 1.015], [-1.85, 1.02], [-1.95, 1.005],
+  [-1.985, 0.98], [-2.02, 0.88], [-2.06, 0.65], [-2.081, 0.6],
 ]);
 
 // How far the beltline sits inboard of the shoulder.
@@ -167,31 +181,46 @@ export function controls(x) {
   const arch = archTop(x);
   const ya = arch === null ? yb : Math.min(Math.max(yb, arch), yTop - 0.04);
   const wsh = shoulderW(x);
-  const wb = Math.max(wsh - 0.1, wsh * 0.6);
+  // Under the doors the floor tucks well in behind the skirts; the bumpers
+  // run nearly straight down to their lips.
+  const ends = smooth(1.75, 1.95, Math.abs(x));
+  const wb = Math.max(wsh - lerp(0.1, 0.045, ends), wsh * 0.6);
   const wIn = arch === null ? wb : Math.min(WELL_Z, wb);
-  const wLip = arch === null ? wb : wsh - 0.022;
+  // Over the wheels the arch lip flares a little proud of the flank.
+  const wLip = arch === null ? wb : wsh + 0.005;
+  const wRock = arch === null ? wsh - 0.02 : wsh + 0.002;
   const ysh = clamp(shoulderY(x), ya + 0.03, yTop - 0.008);
   const ybl = clamp(beltY(x), ysh + 0.004, yTop - 0.004);
   const wbl = wsh - beltInset(x);
   const yre = clamp(roofEdgeY(x), ybl + 0.002, yTop - 0.002);
   const wre = Math.min(roofEdgeW(x), wbl - 0.003);
-  return [
+  // The hood's raised centre: near-level between two lengthwise creases,
+  // falling away outboard of them to the fender line.
+  const hood = smooth(0.62, 0.78, x) * (1 - smooth(1.98, 2.06, x));
+  const c = [
     [0, yb],
     [wIn, yb],
     [wIn, ya],
     [wLip, ya],
-    [wsh - 0.018, ya + Math.min(0.09, (ysh - ya) * 0.35)],
+    [wRock, ya + Math.min(0.09, (ysh - ya) * 0.35)],
     [wsh, ysh],
     [wbl, ybl],
     [wre, yre],
-    [wre * 0.55, yTop - (yTop - yre) * 0.22],
+    [wre * lerp(0.55, 0.5, hood), yTop - (yTop - yre) * lerp(0.22, 0.05, hood)],
     [0, yTop],
   ];
+  if (hood > 0) {
+    c.tension = TENSION.slice();
+    c.tension[8] = lerp(1, 0.3, hood);
+  }
+  return c;
 }
 
-// Tangent scale per control point: below 1 tightens the curve into a crease
-// (the shoulder's tornado line, the beltline, the arch lip).
-const TENSION = [1, 0.2, 0.2, 0.3, 0.8, 0.45, 0.55, 0.8, 1, 1];
+// Tangent scale per control point: below 1 tightens the curve into a crease.
+// The tornado line (shoulder) and the side-skirt crease (rocker) are sharp, so
+// the doors between them read flat, as they do on a Mk7; the beltline and
+// arch lip are firm; the roof stays round.
+const TENSION = [1, 0.2, 0.2, 0.3, 0.35, 0.15, 0.45, 0.8, 1, 1];
 
 const cache = new Map();
 function cachedControls(x) {
@@ -230,8 +259,9 @@ export function sectionPoint(ctrl, t) {
   const l0 = len(p0, p1);
   const l1 = len(p1, p2);
   const l2 = len(p2, p3);
-  const k1 = (l1 / (l0 + l1)) * TENSION[i];
-  const k2 = (l1 / (l1 + l2)) * TENSION[Math.min(i + 1, n)];
+  const ten = ctrl.tension || TENSION;
+  const k1 = (l1 / (l0 + l1)) * ten[i];
+  const k2 = (l1 / (l1 + l2)) * ten[Math.min(i + 1, n)];
   const m1 = [(p2[0] - p0[0]) * k1, (p2[1] - p0[1]) * k1];
   const m2 = [(p3[0] - p1[0]) * k2, (p3[1] - p1[1]) * k2];
   const s2 = s * s;
@@ -262,6 +292,7 @@ export function stations(extra = []) {
   for (let x = DIM.rear; x < DIM.front; x += 0.03) xs.push(x);
   for (let x = DIM.front - 0.12; x < DIM.front; x += 0.004) xs.push(x);
   for (let x = DIM.rear; x < DIM.rear + 0.12; x += 0.004) xs.push(x);
+  for (let k = 1; k < 10; k++) xs.push(DIM.front - k * 0.0015, DIM.rear + k * 0.0015);
   for (const ax of [DIM.axle, -DIM.axle]) {
     for (let dx = -DIM.archR; dx <= DIM.archR; dx += 0.012) xs.push(ax + dx);
     for (const side of [-1, 1]) {

@@ -77,7 +77,7 @@ test("sections stay in order from floor to roof", () => {
 
 test("the lights and intakes land on the nose and tail", () => {
   for (const [y, z] of [
-    [0.665, 0.44], [0.81, 0.64], [0.8, 0.83], [0.245, 0.42], [0.47, 0.77], [0.2, 0.8],
+    [0.67, 0.43], [0.815, 0.62], [0.78, 0.848], [0.245, 0.42], [0.5, 0.7], [0.45, 0.79], [0.2, 0.8],
   ]) {
     assert.ok(endX(y, z, 1) > 1.9, `nose at (${y}, ${z})`);
   }

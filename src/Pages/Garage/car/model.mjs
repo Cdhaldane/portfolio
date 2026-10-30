@@ -36,7 +36,7 @@ import { DIM, T, T_TOP, bodyPoint, centreTop, endX, sideZ, stations, topY } from
  *
  * It's this car, not a showroom one: the turquoise wrap, six-spoke wheels,
  * the vented forged hood with sky blue flake, black tips, the finned diffuser,
- * rain visors, dark tint and the stickers. Stickers are meshes with
+ * rain visors, dark tint and the quarter-glass stickers. Stickers are meshes with
  * userData.sticker, a text layout the scene paints onto a canvas. Plates carry
  * the province, never the number, and nothing here carries the VIN.
  */
@@ -418,6 +418,13 @@ function dome(r, h, x, y, dir) {
   return g;
 }
 
+/** An annulus as a Shape with a hole, for chrome bezels. */
+function bezel(cz, cy, r0, r1, n = 28) {
+  const s = new Shape(circle(cz, cy, r1, n).map(([a, b]) => new Vector2(a, b)));
+  s.holes.push(new Path(circle(cz, cy, r0, n).map(([a, b]) => new Vector2(a, b))));
+  return s;
+}
+
 function circle(cz, cy, r, n = 20) {
   return Array.from({ length: n }, (_, i) => {
     const a = (i / n) * Math.PI * 2;
@@ -431,8 +438,6 @@ function circle(cz, cy, r, n = 20) {
 // canvas height, x of its width. Fonts are generic families, not the real
 // logotypes, so the stickers read as this car's without copying anyone's artwork.
 const STICKER = {
-  errors: { w: 1024, h: 256, lines: [{ text: "ERRORS", y: 0.52, size: 0.78, style: "italic 900", max: 0.72 }] },
-  member: { w: 1024, h: 128, lines: [{ text: "AL9NT MEMBER", y: 0.52, size: 0.86, style: "900", max: 0.94 }] },
   sponsors: {
     w: 512,
     h: 704,
@@ -525,7 +530,7 @@ export const X = {
   doorRear: -0.93,
   quarter: -0.985, // the rear door glass's fixed quarter pane starts behind this bar
 };
-const WIN = { lo: T.belt + 0.06, hi: T.roofEdge - 0.2 };
+const WIN = { lo: T.belt + 0.04, hi: T.roofEdge - 0.14 };
 // The rear door glass's trailing edge leans forward as it rises.
 const rearGlassEdge = (t) => lerp(-1.3, -1.1, (t - T.belt) / (T.roofEdge - T.belt));
 // The rear door's shut line climbs the front of the arch, then follows the glass.
@@ -569,7 +574,7 @@ function body() {
   wrap(skin({ x0: X.glassBottom, x1: frameRear, t0: T.belt, t1: 6.86, nt: 10, nx: 40 }));
 
   // Rain visors over both door windows, running down the A-pillar.
-  add(skin({ x0: (t) => rearGlassEdge(t) - 0.01, x1: 0.42, t0: WIN.hi - 0.16, t1: 6.97, nt: 5, nx: 120, offset: 0.015 }), "visor");
+  add(skin({ x0: (t) => rearGlassEdge(t) - 0.01, x1: 0.42, t0: WIN.hi - 0.04, t1: WIN.hi + 0.09, nt: 3, nx: 120, offset: 0.012 }), "visor");
 
   // Hatch: C-pillar wrap, a black frit band, the glass; the tailgate below it.
   wrap(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 6.86, t1: 7.12, nt: 4 }));
@@ -608,11 +613,9 @@ function body() {
   g.add(sticker(sideDecal(fender, { side: 1, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["x", 1], ["y", 1]));
   g.add(sticker(sideDecal(fender, { side: -1, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["x", -1], ["y", 1]));
 
-  // Stickers: ERRORS along the bottom of the windshield, AL9NT MEMBER across
-  // the top of the hatch glass, the sponsor stack on the driver's quarter pane,
-  // Donut on the passenger's. (u runs towards the viewer's right on each side.)
-  g.add(sticker(skin({ x0: 0.45, x1: 0.57, t0: 8.35, t1: T_TOP, nt: 8, offset: -0.0015 }), STICKER.errors, ["z", -1], ["x", -1]));
-  g.add(sticker(skin({ x0: -1.925, x1: -1.862, t0: 7.75, t1: T_TOP, nt: 12, offset: -0.0015 }), STICKER.member, ["z", 1], ["x", 1]));
+  // Stickers: the sponsor stack on the driver's quarter pane, Donut on the
+  // passenger's. (u runs towards the viewer's right on each side.) The
+  // windshield and hatch glass stay clear.
   const pane = { x0: -1.165, x1: X.quarter - 0.03, t0: 6.12, t1: 6.6, nt: 6, nx: 12, offset: -0.0025 };
   g.add(sticker(skin({ ...pane, side: -1 }), STICKER.sponsors, ["x", -1], ["y", 1]));
   g.add(sticker(skin({ ...pane, side: 1 }), STICKER.donut, ["x", 1], ["y", 1]));
@@ -657,9 +660,9 @@ function nose() {
 
   // Upper grille between the lights, its slats, the blacked-out roundel in its
   // chrome ring, and the R on the passenger side.
-  add(endDecal([[-0.4, 0.7], [0.4, 0.7], [0.42, 0.785], [-0.42, 0.785]], 1, { mirror: false, offset: 0.003 }), "gloss");
-  for (const y of [0.722, 0.75]) {
-    add(endDecal([[-0.4, y], [0.4, y], [0.4, y + 0.006], [-0.4, y + 0.006]], 1, { mirror: false, offset: 0.0045 }), "trim");
+  add(endDecal([[-0.43, 0.705], [0.43, 0.705], [0.43, 0.8], [-0.43, 0.8]], 1, { mirror: false, offset: 0.003 }), "gloss");
+  for (const y of [0.73, 0.758]) {
+    add(endDecal([[-0.42, y], [0.42, y], [0.42, y + 0.006], [-0.42, y + 0.006]], 1, { mirror: false, offset: 0.0045 }), "trim");
   }
   const bx = endX(0.735, 0, 1);
   const ring = new TorusGeometry(0.064, 0.006, 8, 40);
@@ -669,11 +672,13 @@ function nose() {
   add(dome(0.062, 0.01, bx + 0.008, 0.735, 1), "gloss");
   g.add(sticker(endDecal([[0.285, 0.708], [0.335, 0.708], [0.335, 0.733], [0.285, 0.733]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
 
-  // Headlights: smoked housing, chrome projector, the LED strip along the bottom.
-  const head = [[0.44, 0.665], [0.44, 0.792], [0.64, 0.81], [0.83, 0.8], [0.82, 0.735], [0.7, 0.665]];
+  // Headlights: wide smoked wedges carrying the grille's line out to the
+  // corners and round them, a chrome projector, the LED strip along the bottom.
+  const head = [[0.43, 0.67], [0.43, 0.8], [0.62, 0.815], [0.8, 0.812], [0.848, 0.78], [0.835, 0.72], [0.7, 0.67]];
   add(endDecal(head, 1, { offset: 0.003, subdiv: 3 }), "lamp");
-  add(endDecal([[0.47, 0.674], [0.7, 0.674], [0.8, 0.727], [0.795, 0.742], [0.69, 0.69], [0.47, 0.69]], 1, { offset: 0.006 }), "drl");
-  add(endDecal(circle(0.6, 0.745, 0.03), 1, { offset: 0.006 }), "chrome");
+  add(endDecal([[0.46, 0.68], [0.7, 0.68], [0.83, 0.725], [0.826, 0.74], [0.69, 0.696], [0.46, 0.696]], 1, { offset: 0.006 }), "drl");
+  add(endDecal(circle(0.63, 0.752, 0.03), 1, { offset: 0.006 }), "trim");
+  add(endDecal(bezel(0.63, 0.752, 0.03, 0.038), 1, { offset: 0.006, subdiv: 1 }), "chrome");
   add(endDecal(head, 1, { offset: 0.009, subdiv: 3 }), "lens");
 
   // Lower bumper: the wide slatted grille, and the side intakes split by two
@@ -682,9 +687,9 @@ function nose() {
   for (const y of [0.29, 0.33, 0.37]) {
     add(endDecal([[-0.44, y], [0.44, y], [0.44, y + 0.007], [-0.44, y + 0.007]], 1, { mirror: false, offset: 0.0045 }), "gloss");
   }
-  add(endDecal([[0.5, 0.45], [0.68, 0.47], [0.77, 0.41], [0.77, 0.27], [0.53, 0.235], [0.47, 0.29]], 1, { offset: 0.003 }), "trim");
-  add(endDecal([[0.49, 0.398], [0.77, 0.405], [0.77, 0.425], [0.49, 0.418]], 1, { offset: 0.006 }), "paint", "wrap");
-  add(endDecal([[0.505, 0.325], [0.77, 0.333], [0.77, 0.352], [0.505, 0.345]], 1, { offset: 0.006 }), "paint", "wrap");
+  add(endDecal([[0.48, 0.47], [0.7, 0.5], [0.79, 0.45], [0.79, 0.27], [0.53, 0.235], [0.46, 0.29]], 1, { offset: 0.003 }), "trim");
+  add(endDecal([[0.47, 0.41], [0.79, 0.418], [0.79, 0.438], [0.47, 0.43]], 1, { offset: 0.006 }), "paint", "wrap");
+  add(endDecal([[0.49, 0.335], [0.79, 0.343], [0.79, 0.362], [0.49, 0.355]], 1, { offset: 0.006 }), "paint", "wrap");
 
   // The plate sits off-centre on the lower grille, on the passenger side.
   g.add(plate(STICKER.plateFront, 1, 0.27, 0.33));
