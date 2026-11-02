@@ -655,11 +655,14 @@ export const X = {
   doorSplit: -0.24,
   doorRear: -0.915,
   quarter: -0.985, // the rear door glass's fixed quarter pane starts behind this bar
+  arch: DIM.axle - DIM.archR - 0.025, // the side skirt runs between the arches, |x| under this
   strut: DIM.axle, // strut tops sit over the front axle
   sail: 0.55, // front of the door glass, behind the mirror
   aBase: 0.82, // where the A-pillar meets the wing
 };
 const WIN = { lo: T.belt + 0.04, hi: T.roofEdge - 0.14 };
+// The doors' bottom edge, on top of the side skirt (about 0.38 off the ground).
+const SILL_T = 4.18;
 // 0 at the beltline, 1 at the roof edge.
 const up = (t) => (t - T.belt) / (T.roofEdge - T.belt);
 // The B-pillar leans back as it rises.
@@ -719,13 +722,20 @@ function body() {
   wrap(skin({ x0: DIM.rear, x1: X.glassBottom, t0: T.belt, t1: T_TOP, nt: 30 }));
   add(skin({ x0: X.glassBottom, x1: X.glassBottom + 0.012, t0: 7.12, t1: T_TOP, nt: 16, offset: 0.0008 }), "trim");
 
-  // Shut lines: doors, hood edge, door bottoms.
+  // Shut lines: doors, hood edge, door bottoms. The doors stop about 0.38
+  // off the ground, on top of the side skirt.
   const line = (geo) => add(geo, "trim");
   for (const x of [X.doorFront, X.doorSplit]) {
-    line(skin({ x0: x - 0.002, x1: x + 0.002, t0: T.rocker, t1: T.belt, nt: 24, offset: 0.0008 }));
+    line(skin({ x0: x - 0.002, x1: x + 0.002, t0: SILL_T, t1: T.belt, nt: 24, offset: 0.0008 }));
   }
-  line(skin({ x0: (t) => rearDoorEdge(t) - 0.002, x1: (t) => rearDoorEdge(t) + 0.002, t0: T.rocker, t1: T.belt, nt: 30, nx: 1, offset: 0.0008 }));
-  line(skin({ x0: rearDoorEdge(T.rocker), x1: X.doorFront, t0: T.rocker - 0.035, t1: T.rocker, nt: 1, offset: 0.0008 }));
+  line(skin({ x0: (t) => rearDoorEdge(t) - 0.002, x1: (t) => rearDoorEdge(t) + 0.002, t0: SILL_T, t1: T.belt, nt: 30, nx: 1, offset: 0.0008 }));
+  line(skin({ x0: rearDoorEdge(SILL_T), x1: X.doorFront, t0: SILL_T - 0.012, t1: SILL_T, nt: 1, offset: 0.0008 }));
+
+  // The R's side skirts between the arches: a body-colour sill standing proud
+  // under the doors, its lip flaring out along the bottom.
+  const skirt = { x0: -X.arch, x1: X.arch, nx: 60 };
+  wrap(slab({ ...skirt, t0: 3.28, t1: SILL_T - 0.03, thick: 0.01, nt: 8 }));
+  wrap(slab({ ...skirt, t0: 3.28, t1: 3.48, thick: 0.02, nt: 3 }));
   line(skin({ x0: X.hoodRear, x1: X.hoodFront + 0.004, t0: T.belt - 0.04, t1: T.belt, nt: 1, offset: 0.0008 }));
 
   // Fuel door, on the passenger side's rear quarter.
@@ -738,13 +748,27 @@ function body() {
   add(skin({ x0: X.roofRear, x1: X.cowl, t0: T.lip, t1: T.belt, nt: 6, offset: 0.02, flip: true }), "interior");
   add(skin({ x0: X.roofRear, x1: X.roofFront, t0: 6.86, t1: T_TOP, nt: 6, offset: 0.03, flip: true }), "interior");
 
-  // Door handles on the shelf just above the tornado line, R badges on the
+  // Door handles on the shelf just above the tornado line: a bar a little
+  // taller at the back, where the seam marks off its end cap. R badges on the
   // front wings.
-  for (const x of [-0.08, -0.98]) {
-    const [, y, z] = bodyPoint(x, T.shoulder + 0.35);
-    const handle = mesh(both(rbox(0.15, 0.028, 0.026, 0.011, x, y, z + 0.004)), "paint", "wrap");
-    handle.name = "handle";
-    g.add(handle);
+  for (const x of [-0.09, -0.99]) {
+    const [, y] = bodyPoint(x, T.shoulder + 0.35);
+    const s = new Shape();
+    s.moveTo(-0.085, -0.015);
+    s.lineTo(0.08, -0.012);
+    s.quadraticCurveTo(0.097, -0.011, 0.097, 0);
+    s.quadraticCurveTo(0.097, 0.011, 0.08, 0.012);
+    s.lineTo(-0.085, 0.015);
+    s.quadraticCurveTo(-0.097, 0.015, -0.097, 0);
+    s.quadraticCurveTo(-0.097, -0.015, -0.085, -0.015);
+    const bar = new ExtrudeGeometry(s, { depth: 0.012, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.005, bevelSegments: 4, curveSegments: 8 });
+    bar.translate(0, 0, 0.004);
+    const seam = rbox(0.0025, 0.033, 0.03, 0.001, -0.058, 0, 0.012);
+    for (const [geo, mat] of [[bar, "paint"], [seam, "gloss"]]) {
+      const m = mesh(onSkin(geo, x, y), mat, mat === "paint" ? "wrap" : undefined);
+      m.name = "handle";
+      g.add(m);
+    }
   }
   const fender = [[0.96, 0.75], [1.02, 0.75], [1.02, 0.775], [0.96, 0.775]];
   g.add(sticker(sideDecal(fender, { side: 1, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["x", 1], ["y", 1]));
