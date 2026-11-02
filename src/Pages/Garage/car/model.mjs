@@ -803,12 +803,31 @@ function hood() {
   // Underside, so the open hood isn't see-through.
   add(skin({ x0: X.hoodRear + 0.02, x1: X.hoodFront - 0.02, t0: T.belt + 0.1, t1: T_TOP, nt: 8, offset: 0.012, flip: true }), "plastic", null);
 
-  const vent = [[1.18, 0.27], [1.45, 0.25], [1.5, 0.47], [1.24, 0.5]];
-  add(topDecal(vent, { offset: 0.002 }), "trim");
-  for (let k = 0; k < 4; k++) {
-    const x = lerp(1.23, 1.44, k / 3);
-    const z = lerp(0.265, 0.485, 0.5) + (x - 1.33) * 0.08;
-    add(both(rbox(0.022, 0.012, 0.19, 0.004, x, topY(x, z) + 0.009, z)), "gloss");
+  // The heat extractors near its back corners: blisters that rise out of the
+  // hood from flush at the front to about 3.5 cm at the back, their tops a
+  // dark louvred grille that shows from the front, closed at the back.
+  const front = { x: 1.42, z0: 0.31, z1: 0.5 };
+  const rear = { x: 1.09, z0: 0.28, z1: 0.6 };
+  const rise = (k) => 0.035 * k ** 1.3;
+  const at = (k, v, up = 1) => {
+    const x = lerp(front.x, rear.x, k);
+    const z = lerp(lerp(front.z0, rear.z0, k), lerp(front.z1, rear.z1, k), v);
+    return [x, topY(x, z) + rise(k) * up, z];
+  };
+  const ks = range(0, 1, 10);
+  const vs = range(0, 1, 8);
+  const piece = (rows, dir) => both(orient(grid(rows, { side: 1 }), dir));
+  add(planarUV(piece(ks.map((k) => vs.map((v) => at(k, v))), [0, 1, 0]), "x", "z", 2.4), "forgedFlake");
+  for (const [v, dir] of [[0, [0, 0, -1]], [1, [0, 0, 1]]]) {
+    add(planarUV(piece([0, 1].map((up) => ks.map((k) => at(k, v, up))), dir), "x", "y", 2.4), "forgedFlake");
+  }
+  add(planarUV(piece([0, 1].map((up) => vs.map((v) => at(1, v, up))), [-1, 0, 0]), "z", "y", 2.4), "forgedFlake");
+  const inset = (k0, k1, v0, v1, mat, out) =>
+    add(lift(piece(range(k0, k1, 6).map((k) => range(v0, v1, 6).map((v) => at(k, v))), [0, 1, 0]), out), mat);
+  inset(0.12, 0.92, 0.1, 0.9, "trim", 0.001);
+  for (let i = 0; i < 5; i++) {
+    const k = lerp(0.2, 0.84, i / 4);
+    inset(k, k + 0.045, 0.12, 0.88, "gloss", 0.004);
   }
   return pivot;
 }
