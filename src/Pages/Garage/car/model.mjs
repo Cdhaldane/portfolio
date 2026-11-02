@@ -352,6 +352,35 @@ function skin({ x0, x1, t0, t1, nt, nx = 40, offset = 0, side = 0, flip = false 
   return lift(grid(rows, { side, flip }), offset);
 }
 
+/**
+ * A raised panel on the +z skin, x0..x1 by t0..t1, standing `thick` proud on
+ * the skin's normal and closed all round; mirrored. For parts that sit over
+ * the skin's edges, like the spoiler's side plates.
+ */
+function slab({ x0, x1, t0, t1, thick, nx = 12, nt = 6 }) {
+  const at = (x, t, o) => {
+    const p = new Vector3(...bodyPoint(x, t));
+    const e = 1e-3;
+    const dx = new Vector3(...bodyPoint(x + e, t)).sub(new Vector3(...bodyPoint(x - e, t)));
+    const dt = new Vector3(...bodyPoint(x, t + e)).sub(new Vector3(...bodyPoint(x, t - e)));
+    const n = dx.cross(dt).normalize();
+    if (n.dot(new Vector3(0, p.y - 0.6, p.z)) < 0) n.negate();
+    return p.addScaledVector(n, o).toArray();
+  };
+  const xs = range(x0, x1, nx);
+  const ts = range(t0, t1, nt);
+  const os = range(0, thick, 1);
+  // Rows run against the columns so each face winds outwards (see grid()).
+  const faces = [
+    grid(ts.map((t) => xs.map((x) => at(x, t, thick))), { side: 1 }),
+    grid(os.map((o) => xs.map((x) => at(x, t0, o))), { side: 1 }),
+    grid(os.slice().reverse().map((o) => xs.map((x) => at(x, t1, o))), { side: 1 }),
+    orient(grid(ts.map((t) => os.map((o) => at(x0, t, o))), { side: 1 }), [-1, 0, 0]),
+    orient(grid(ts.map((t) => os.map((o) => at(x1, t, o))), { side: 1 }), [1, 0, 0]),
+  ];
+  return both(mergeGeometries(faces));
+}
+
 /** Tessellate an outline (array of [a, b] or a Shape with holes) so it can bend to the skin. */
 function flat(outline, subdiv) {
   const shape = outline instanceof Shape ? outline : new Shape(outline.map(([a, b]) => new Vector2(a, b)));
@@ -979,8 +1008,10 @@ function mirror() {
 /* --------------------------------------------------------------- spoiler -- */
 
 /*
- * A big roof wing that overhangs the glass, its trailing corners kicked up
- * into winglets, and fins down the sides of the glass.
+ * A carbon roof extension over the hatch glass: a wing carrying the roof on
+ * past the glass's top edge, small ears kicked up at its trailing corners,
+ * side plates framing the top of the glass, and the third brake light under
+ * its trailing edge.
  */
 function spoiler() {
   const R = X.roofRear;
@@ -993,7 +1024,7 @@ function spoiler() {
     new Vector2(R - 0.1, y0 - 0.08),
     new Vector2(R + 0.02, y0 - 0.04),
   ]);
-  const half = 0.55;
+  const half = 0.58;
   const g = new ExtrudeGeometry(profile, {
     depth: half * 2,
     bevelEnabled: true,
@@ -1016,24 +1047,17 @@ function spoiler() {
 
   const drop = topY(xa, half) - crown;
   const winglet = new Shape([
-    new Vector2(R - 0.04, y0 - 0.016),
+    new Vector2(R - 0.08, y0 - 0.022),
     new Vector2(R - 0.205, y0 - 0.037),
-    new Vector2(R - 0.215, y0 + 0.05),
-    new Vector2(R - 0.165, y0 + 0.042),
+    new Vector2(R - 0.215, y0 + 0.012),
+    new Vector2(R - 0.17, y0 + 0.006),
   ]);
   const wg = new ExtrudeGeometry(winglet, { depth: 0.014, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2 });
   wg.translate(0, drop, half - 0.014);
   out.add(mesh(planarUV(both(wg), "x", "y", 7), "carbon", "spoiler"));
 
-  const fin = new Shape([
-    new Vector2(R + 0.02, 0),
-    new Vector2(R - 0.17, -0.03),
-    new Vector2(R - 0.13, -0.16),
-    new Vector2(R - 0.08, -0.1),
-  ]);
-  const fg = new ExtrudeGeometry(fin, { depth: 0.012, bevelEnabled: false });
-  fg.translate(0, topY(xa, half - 0.02) - 0.03, half - 0.04);
-  out.add(mesh(planarUV(both(fg), "x", "y", 7), "carbon", "spoiler"));
+  out.add(mesh(planarUV(slab({ x0: -1.79, x1: R + 0.04, t0: 6.95, t1: 7.42, thick: 0.022 }), "x", "y", 7), "carbon", "spoiler"));
+  out.add(mesh(rbox(0.014, 0.012, 0.3, 0.004, R - 0.15, y0 - 0.074, 0), "tailLed", "spoiler"));
   return out;
 }
 
