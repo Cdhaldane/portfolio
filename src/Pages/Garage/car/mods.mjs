@@ -120,7 +120,7 @@ export const MODS = [
     note: "Forged carbon shells over both door mirrors.",
     parts: ["mirrors"],
     reveal: null,
-    view: { yaw: 24, pitch: 10, dist: 1.9, target: [0.66, 1.03, 0.92] },
+    view: { yaw: 30, pitch: 10, dist: 1.7, target: [0.6, 1.02, 0.98] },
   },
   {
     id: "wheels",
