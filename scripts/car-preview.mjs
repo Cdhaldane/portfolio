@@ -8,9 +8,11 @@
  * there at its real size, though, which is what a shape check needs.
  *
  *   node scripts/car-preview.mjs [outDir] [--views a,b] [--size 960x560] [--reveal hood|xray|cabin]
+ *                                [--cam yaw,pitch,dist,x,y,z[,fov]]
  *
  * Views are the same yaw/pitch/distance/target rig the page's camera uses;
- * pass a mod id from mods.mjs as a view to frame that mod.
+ * pass a mod id from mods.mjs as a view to frame that mod, or --cam to frame
+ * anything else (written out as cam.png).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -41,7 +43,12 @@ const VIEWS = {
 };
 for (const m of MODS) VIEWS[m.id] = { ...m.view, reveal: m.reveal, parts: m.parts, hide: m.hide };
 
-const names = flag("views", "three,side,front,rear,rear3,top").split(",");
+const camArg = flag("cam");
+if (camArg) {
+  const [yaw, pitch, dist, x, y, z, fov] = camArg.split(",").map(Number);
+  VIEWS.cam = { yaw, pitch, dist, target: [x, y, z], fov };
+}
+const names = flag("views", camArg ? "cam" : "three,side,front,rear,rear3,top").split(",");
 
 // Base colour (linear-ish 0..1), gloss (0..1), alpha.
 const LOOK = {
@@ -59,7 +66,7 @@ const LOOK = {
   trim: [[0.06, 0.06, 0.07], 0.15, 1],
   gloss: [[0.03, 0.03, 0.035], 0.5, 1],
   glass: [[0.05, 0.08, 0.1], 0.6, 0.55],
-  lens: [[0.75, 0.8, 0.85], 0.7, 0.35],
+  lens: [[0.8, 0.85, 0.9], 0.7, 0.1],
   chrome: [[0.75, 0.77, 0.8], 0.9, 1],
   steel: [[0.62, 0.64, 0.67], 0.6, 1],
   tire: [[0.08, 0.08, 0.085], 0, 1],
@@ -99,7 +106,7 @@ function render(view, reveal) {
 
   const w = W * SS;
   const h = H * SS;
-  const cam = new PerspectiveCamera(30, W / H, 0.05, 100);
+  const cam = new PerspectiveCamera(view.fov || 30, W / H, 0.05, 100);
   const { position, target } = cameraFrom(view);
   cam.position.set(...position);
   cam.lookAt(new Vector3(...target));

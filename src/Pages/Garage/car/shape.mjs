@@ -133,19 +133,22 @@ const shoulderW = profile([
 ]);
 
 // Height of the shoulder: the tornado line at about 0.82, from the back of
-// the headlight to the tail light; at each end it drops to the bumper's
-// widest line.
+// the headlight to the tail light. Ahead of the headlight's tip it dives under
+// the lamp to the bumper's widest line (and stops being a crease, see
+// controls()); at the tail it drops the same way.
 const shoulderY = profile([
-  [2.195, 0.38], [2.15, 0.45], [2.1, 0.52], [2.0, 0.62], [1.92, 0.7], [1.84, 0.76], [1.7, 0.785],
-  [1.5, 0.8], [1.0, 0.815], [0, 0.82], [-0.5, 0.823], [-1.0, 0.826], [-1.4, 0.83], [-1.65, 0.832],
+  [2.195, 0.38], [2.15, 0.44], [2.1, 0.47], [2.0, 0.5], [1.9, 0.52], [1.8, 0.545], [1.72, 0.59],
+  [1.667, 0.735], [1.6, 0.79], [1.5, 0.8], [1.0, 0.815], [0, 0.82], [-0.5, 0.823], [-1.0, 0.826], [-1.4, 0.83], [-1.65, 0.832],
   [-1.8, 0.82], [-1.9, 0.78], [-1.97, 0.7], [-2.02, 0.62], [-2.06, 0.56], [-2.081, 0.53],
 ]);
 
-// Beltline: the hood's edge up front, the base of the side glass in the cabin,
-// the foot of the hatch glass at the back.
+// Beltline: the hood's shut line up front (which is the top edge of each
+// headlight, then the top of the wing back to the A-pillar), the base of the
+// side glass in the cabin, the foot of the hatch glass at the back.
 const beltY = profile([
-  [2.195, 0.44], [2.155, 0.62], [2.12, 0.68], [2.067, 0.71], [2.0, 0.745], [1.9, 0.785],
-  [1.8, 0.81], [1.5, 0.865], [1.2, 0.905], [1.03, 0.925], [0.97, 0.935], [0.85, 0.95],
+  [2.195, 0.44], [2.155, 0.62], [2.12, 0.703], [2.07, 0.712], [2.0, 0.727], [1.9, 0.75],
+  [1.8, 0.768], [1.72, 0.779], [1.6, 0.802], [1.5, 0.838], [1.25, 0.885], [1.03, 0.922],
+  [0.97, 0.935], [0.85, 0.95],
   [0.55, 0.962], [0, 0.982], [-0.5, 0.995], [-1.0, 1.0], [-1.3, 1.0], [-1.6, 0.998],
   [-1.75, 0.99], [-1.88, 0.975], [-1.93, 0.94], [-1.975, 0.88], [-2.0, 0.8], [-2.04, 0.66],
   [-2.081, 0.57],
@@ -157,6 +160,23 @@ const beltInset = profile([
   [2.195, 0.03], [2.1, 0.06], [1.9, 0.08], [1.6, 0.088], [1.0, 0.088], [0.5, 0.088], [0, 0.085],
   [-1.0, 0.08], [-1.5, 0.07], [-1.75, 0.058], [-1.9, 0.045], [-2.0, 0.035], [-2.081, 0.03],
 ]);
+
+// The hood's shut line in plan where it runs round the headlights. The lamps
+// take the hood's front corners, so its edge cuts in along their inner side,
+// from the back of each lamp to the end of the grille. (Further back the
+// beltline's inset governs; this only ever narrows it.)
+const hoodEdgeW = profile([
+  [1.55, 0.83], [1.68, 0.805], [1.72, 0.79], [1.76, 0.745], [1.8, 0.695], [1.9, 0.592],
+  [2.0, 0.5], [2.07, 0.468], [2.12, 0.47], [2.195, 0.45],
+]);
+
+// The hood's two creases, in plan and how far they sit under the centreline:
+// from its back corners they run in towards the ends of the grille, a shallow
+// dome between them and the hood falling away outboard to the lamps.
+const creaseW = profile([
+  [1.03, 0.765], [1.2, 0.725], [1.4, 0.68], [1.5, 0.66], [1.8, 0.567], [2.0, 0.5], [2.12, 0.45],
+]);
+const creaseDrop = profile([[1.03, 0.035], [1.5, 0.05], [1.8, 0.04], [2.0, 0.03], [2.12, 0.005]]);
 
 // Top of the side glass: up the A-pillar, along the roof rail, down the
 // C-pillar to the foot of the hatch glass.
@@ -212,12 +232,19 @@ export function controls(x) {
   const wRock = arch === null ? wsh - 0.006 : wsh + 0.002;
   const ysh = clamp(shoulderY(x), ya + 0.03, yTop - 0.008);
   const ybl = clamp(beltY(x), ysh + 0.004, yTop - 0.004);
-  const wbl = wsh - beltInset(x);
-  const yre = clamp(roofEdgeY(x), ybl + 0.002, yTop - 0.002);
-  const wre = Math.min(roofEdgeW(x), wbl - 0.003);
-  // The hood's raised centre: near-level between two lengthwise creases,
-  // falling away outboard of them to the fender line.
-  const hood = smooth(0.97, 1.1, x) * (1 - smooth(2.0, 2.1, x));
+  const wbl = Math.min(wsh - beltInset(x), hoodEdgeW(x));
+  let yre = clamp(roofEdgeY(x), ybl + 0.002, yTop - 0.002);
+  let wre = Math.min(roofEdgeW(x), wbl - 0.003);
+  // Ahead of the windshield the roof edge becomes the hood's crease, and the
+  // crown sits on the dome between the two creases.
+  const hood = smooth(0.97, 1.06, x);
+  if (hood > 0) {
+    const wc = Math.min(creaseW(x), wbl - 0.012);
+    const yc = clamp(yTop - creaseDrop(x), ybl + 0.004, yTop - 0.002);
+    wre = lerp(wre, wc, hood);
+    yre = lerp(yre, yc, hood);
+  }
+  const crown = [wre * lerp(0.62, 0.5, hood), yTop - (yTop - yre) * lerp(0.14, 0.25, hood)];
   const c = [
     [0, yb],
     [wIn, yb],
@@ -227,12 +254,16 @@ export function controls(x) {
     [wsh - 0.012, ysh],
     [wbl, ybl],
     [wre, yre],
-    [wre * lerp(0.62, 0.5, hood), yTop - (yTop - yre) * lerp(0.14, 0.05, hood)],
+    crown,
     [0, yTop],
   ];
-  if (hood > 0) {
+  // The hood's creases are crisp; the tornado line fades out ahead of the
+  // headlight's tip, so the wing rounds smoothly under the lamp.
+  const lamp = smooth(1.6, 1.72, x);
+  if (hood > 0 || lamp > 0) {
     c.tension = TENSION.slice();
-    c.tension[8] = lerp(1, 0.3, hood);
+    c.tension[7] = lerp(TENSION[7], 0.3, hood);
+    c.tension[5] = lerp(TENSION[5], 1, lamp);
   }
   return c;
 }

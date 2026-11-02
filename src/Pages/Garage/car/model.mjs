@@ -11,6 +11,7 @@ import {
   MeshBasicMaterial,
   Path,
   PlaneGeometry,
+  Quaternion,
   Shape,
   ShapeGeometry,
   SphereGeometry,
@@ -21,7 +22,7 @@ import {
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
-import { DIM, T, T_TOP, bodyPoint, centreTop, endX, sideZ, stations, topY } from "./shape.mjs";
+import { DIM, T, T_TOP, bodyPoint, centreTop, endX, profile, sideZ, stations, topY } from "./shape.mjs";
 
 /*
  * Builds the Golf R as a three.js Group. Geometry only: every mesh carries
@@ -376,6 +377,22 @@ function endDecal(outline, dir, { offset = 0.002, mirror = true, subdiv = 2 } = 
   return mirror ? both(g) : g;
 }
 
+/**
+ * A band on the nose (dir 1) or tail (dir -1), |z| <= w and y0..y1 as seen
+ * end-on (w may be a function of y), as a regular grid on the skin. Columns bunch up towards the
+ * ends, where the face turns the corner, so the patch hugs it.
+ */
+function endPatch(w, y0, y1, dir, { offset = 0.002, nz = 48, ny = 6 } = {}) {
+  const half = typeof w === "number" ? () => w : w;
+  const rows = range(y0, y1, ny).map((y) => range(0, Math.PI, nz).map((a) => {
+    const z = -half(y) * Math.cos(a);
+    const x = endX(y, z, dir);
+    if (x === null) DECAL_MISSES.push(["end", dir, y, z]);
+    return [x ?? dir * 2, y, z];
+  }));
+  return lift(orient(grid(rows, { side: 1 }), [dir, 0, 0]), offset);
+}
+
 /** A flat outline drawn in [x, y] from the side, wrapped onto the +z flank; side -1 the -z flank, 0 both. */
 function sideDecal(outline, { offset = 0.002, subdiv = 2, side = 0 } = {}) {
   const g = flat(outline, subdiv);
@@ -389,6 +406,52 @@ function sideDecal(outline, { offset = 0.002, subdiv = 2, side = 0 } = {}) {
   }
   lift(orient(g, [0, 0, 1]), offset);
   return side === 0 ? both(g) : side < 0 ? toRight(g) : g;
+}
+
+/**
+ * A strip of the +z flank between two edges drawn from the side ([x, y]
+ * polylines that start and end together), as a grid wrapped onto the skin: a
+ * lamp's housing or lens, without the slivers a filled outline leaves where
+ * the skin turns a corner. Mirrored to the other side.
+ */
+function sideBand(top, bottom, { offset = 0.002, n = 60, rows = 8 } = {}) {
+  const resample = (pts) => {
+    const d = [0];
+    for (let i = 1; i < pts.length; i++) d.push(d[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+    return range(0, d[d.length - 1], n).map((s) => {
+      let i = 1;
+      while (i < pts.length - 1 && d[i] < s) i++;
+      const k = (s - d[i - 1]) / (d[i] - d[i - 1] || 1);
+      return [lerp(pts[i - 1][0], pts[i][0], k), lerp(pts[i - 1][1], pts[i][1], k)];
+    });
+  };
+  const lo = resample(bottom);
+  const hi = resample(top);
+  const cells = range(0, 1, rows).map((s) =>
+    lo.map((p, i) => {
+      const x = lerp(p[0], hi[i][0], s);
+      const y = lerp(p[1], hi[i][1], s);
+      const z = sideZ(x, y);
+      if (z === null) DECAL_MISSES.push(["side", x, y]);
+      return [x, y, z ?? 0.85];
+    })
+  );
+  return both(lift(orient(grid(cells, { side: 1 }), [0, 0, 1]), offset));
+}
+
+/**
+ * Stand a geometry built facing +z on the +z flank at side-view (x, y), `out`
+ * off the skin and square to it there; mirrored to the other side.
+ */
+function onSkin(g, x, y, out = 0) {
+  const e = 0.004;
+  const z = sideZ(x, y);
+  const dzdx = (sideZ(x + e, y) - sideZ(x - e, y)) / (2 * e);
+  const dzdy = (sideZ(x, y + e) - sideZ(x, y - e)) / (2 * e);
+  const n = new Vector3(-dzdx, -dzdy, 1).normalize();
+  g.applyQuaternion(new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), n));
+  g.translate(x + n.x * out, y + n.y * out, z + n.z * out);
+  return both(g);
 }
 
 /** A flat outline drawn in [x, z] from above, laid onto the hood or roof (and mirrored). */
@@ -426,13 +489,6 @@ function dome(r, h, x, y, dir) {
   g.rotateZ((-dir * Math.PI) / 2);
   g.translate(x - dir * (R - h), y, 0);
   return g;
-}
-
-/** An annulus as a Shape with a hole, for chrome bezels. */
-function bezel(cz, cy, r0, r1, n = 28) {
-  const s = new Shape(circle(cz, cy, r1, n).map(([a, b]) => new Vector2(a, b)));
-  s.holes.push(new Path(circle(cz, cy, r0, n).map(([a, b]) => new Vector2(a, b))));
-  return s;
 }
 
 function circle(cz, cy, r, n = 20) {
@@ -679,31 +735,65 @@ function nose() {
   const g = new Group();
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
-  // Upper grille between the lights, its slats, the blacked-out roundel in its
-  // chrome ring, and the R on the passenger side. (Heights off the blueprint's
-  // front view: grille 0.62-0.70, lights 0.61-0.76.)
-  add(endDecal([[-0.47, 0.618], [0.47, 0.618], [0.47, 0.7], [-0.47, 0.7]], 1, { mirror: false, offset: 0.003 }), "gloss");
-  for (const y of [0.64, 0.665]) {
-    add(endDecal([[-0.46, y], [0.46, y], [0.46, y + 0.006], [-0.46, y + 0.006]], 1, { mirror: false, offset: 0.0045 }), "trim");
+  // Upper grille between the lamps, right under the hood's front edge: three
+  // gloss bars over a dark recess, the blacked-out roundel in its chrome rim
+  // standing proud across them, the R on the passenger side.
+  // Its ends follow the slant of the lamps' inner ends (see below).
+  const hoodLine = (x) => bodyPoint(x, T.belt)[1] - 0.003;
+  const foot = [2.155, 0.607];
+  const brow = [2.118, hoodLine(2.118)];
+  const reach = profile(range(0, 1, 6).map((k) => {
+    const x = lerp(foot[0], brow[0], k);
+    const y = lerp(foot[1], brow[1], k);
+    return [y, sideZ(x, y) - 0.002];
+  }));
+  add(endPatch(reach, 0.605, 0.714, 1, { ny: 10 }), "trim");
+  for (const [y0, y1] of [[0.686, 0.714], [0.655, 0.667], [0.622, 0.634]]) {
+    add(endPatch((y) => reach(y) - 0.002, y0, y1, 1, { offset: 0.0045, ny: 3 }), "gloss");
   }
-  const by = 0.66;
-  const bx = endX(by, 0, 1);
-  const ring = new TorusGeometry(0.062, 0.006, 8, 40);
+  // The roundel stands off the furthest-forward point across its height.
+  const by = 0.655;
+  const bx = Math.max(...range(by - 0.062, by + 0.062, 8).map((y) => endX(y, 0, 1) ?? 0));
+  const ring = new TorusGeometry(0.062, 0.006, 8, 48);
   ring.rotateY(Math.PI / 2);
-  ring.translate(bx + 0.012, by, 0);
+  ring.translate(bx + 0.014, by, 0);
   add(ring, "chrome");
-  add(dome(0.06, 0.01, bx + 0.008, by, 1), "gloss");
-  g.add(sticker(endDecal([[0.285, 0.643], [0.335, 0.643], [0.335, 0.668], [0.285, 0.668]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
+  add(dome(0.06, 0.012, bx + 0.01, by, 1), "gloss");
+  g.add(sticker(endDecal([[0.285, 0.62], [0.335, 0.62], [0.335, 0.645], [0.285, 0.645]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
 
-  // Headlights: from the grille out round the corner and back along the wing,
-  // the outer end higher; a projector at the inner end, the LED strip along
-  // the bottom edge.
-  const head = [[0.43, 0.615], [0.43, 0.7], [0.6, 0.73], [0.79, 0.765], [0.84, 0.745], [0.825, 0.68], [0.62, 0.625]];
-  add(endDecal(head, 1, { offset: 0.003, subdiv: 3 }), "lamp");
-  add(endDecal([[0.45, 0.622], [0.62, 0.632], [0.81, 0.685], [0.808, 0.698], [0.62, 0.646], [0.45, 0.636]], 1, { offset: 0.006 }), "drl");
-  add(endDecal(circle(0.51, 0.668, 0.026), 1, { offset: 0.006 }), "trim");
-  add(endDecal(bezel(0.51, 0.668, 0.026, 0.033), 1, { offset: 0.006, subdiv: 1 }), "chrome");
-  add(endDecal(head, 1, { offset: 0.009, subdiv: 3 }), "lens");
+  // Headlights: long smoked lamps wrapped round the nose's corners, from the
+  // ends of the grille back along the wing to a point, the top edge tucked
+  // under the hood's shut line. Inside: a chrome-framed chamber, the bi-xenon
+  // projector in its chrome bracket, the LED strip along the bottom that turns
+  // up at the back, and the amber marker in the tip (North American spec).
+  // Drawn as seen from the side, off the blueprint, and wrapped onto the skin.
+  // The top edge runs under the hood line to the tip; the bottom edge from the
+  // foot of the slanted inner end, low along the face and rising to the tip.
+  const brim = [];
+  for (let x = brow[0]; x > 1.74; x -= 0.025) brim.push([x, hoodLine(x)]);
+  brim.push([1.733, hoodLine(1.733)], [1.7, 0.762], [1.667, 0.742]);
+  const sill = [foot, [2.13, 0.606], [2.1, 0.605], [2.06, 0.603], [2.0, 0.6], [1.9, 0.612], [1.8, 0.645], [1.726, 0.681], [1.69, 0.715], [1.667, 0.742]];
+  const lamp = (outline, mat, offset, subdiv = 3) => add(sideDecal(outline, { offset, subdiv }), mat);
+  const quad = (pts, hole) => {
+    const s = new Shape(pts.map(([a, b]) => new Vector2(a, b)));
+    if (hole) s.holes.push(new Path(hole.map(([a, b]) => new Vector2(a, b))));
+    return s;
+  };
+  add(sideBand(brim, sill, { offset: 0.0015 }), "lamp");
+  lamp(quad([[2.072, 0.632], [1.985, 0.628], [1.978, 0.716], [2.068, 0.698]], [[2.068, 0.636], [1.989, 0.632], [1.982, 0.712], [2.064, 0.694]]), "chrome", 0.003);
+  // The bracket is a chrome box round the projector: its top face catches the
+  // light, so the frame is deepest along the top.
+  lamp(quad([[1.952, 0.64], [1.8, 0.668], [1.79, 0.756], [1.948, 0.73]], [[1.944, 0.646], [1.807, 0.672], [1.8, 0.738], [1.94, 0.716]]), "chrome", 0.003);
+  lamp(ribbon([[2.145, 0.622], [2.1, 0.623], [2.0, 0.622], [1.9, 0.633], [1.8, 0.662], [1.755, 0.684], [1.735, 0.697]], 0.011), "drl", 0.0035);
+  lamp([[1.735, 0.698], [1.742, 0.758], [1.71, 0.762], [1.676, 0.742], [1.698, 0.716]], "amber", 0.003, 2);
+  // The projector's lens: a shallow cap, under the lamp's cover.
+  const arc = Math.asin(0.029 / 0.1);
+  const lens = new SphereGeometry(0.1, 28, 4, 0, Math.PI * 2, 0, arc);
+  lens.translate(0, -0.1 * Math.cos(arc), 0);
+  lens.rotateX(Math.PI / 2);
+  add(onSkin(lens, 1.875, 0.697, 0.0015), "gloss");
+  add(onSkin(new TorusGeometry(0.031, 0.003, 6, 36), 1.875, 0.697, 0.003), "chrome");
+  add(sideBand(brim, sill, { offset: 0.0065 }), "lens");
 
   // Lower bumper: the wide slatted grille, and the side intakes split by two
   // body-colour blades each.
@@ -730,9 +820,6 @@ function nose() {
   blade.rotateX(Math.PI / 2);
   blade.translate(0, lipY, 0);
   add(blade, "gloss");
-
-  // Amber side markers at the corners (North American spec).
-  add(sideDecal([[1.92, 0.5], [1.99, 0.505], [1.99, 0.522], [1.92, 0.518]], { offset: 0.002, subdiv: 1 }), "amber");
   return g;
 }
 

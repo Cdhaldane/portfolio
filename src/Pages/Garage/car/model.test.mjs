@@ -78,8 +78,9 @@ test("sections stay in order from floor to roof", () => {
 
 test("every light, badge and intake lands on the body", () => {
   assert.deepEqual(misses, [], `${misses.length} decal points fell off the edge`);
-  // The corners of the lights reach round the nose and tail, not off them.
-  for (const [y, z] of [[0.615, 0.43], [0.765, 0.79], [0.745, 0.84], [0.24, 0.55], [0.41, 0.845]]) {
+  // The corners of the intakes and lights reach round the nose and tail, not
+  // off them. (The headlights are drawn from the side; the misses cover them.)
+  for (const [y, z] of [[0.24, 0.55], [0.41, 0.845]]) {
     assert.ok(endX(y, z, 1) > 1.75, `nose at (${y}, ${z})`);
   }
   for (const [y, z] of [[0.955, 0.6], [0.958, 0.74], [0.83, 0.76], [0.3, 0.42], [0.514, 0.16]]) {
@@ -100,6 +101,12 @@ test("the proportions follow the blueprint", () => {
   assert.ok(Math.abs(shoulder - 0.82) < 0.02, `tornado line at ${shoulder}`);
   const nose = controls(2.113)[T.shoulder][0] + 0.012;
   assert.ok(Math.abs(nose - 0.553) < 0.01, `8 cm behind the nose the body is ${nose} half wide`);
+  // The headlights take the hood's front corners: its shut line cuts in along
+  // their inner edge, at the height of their top.
+  for (const [x, z, y] of [[2.0, 0.5, 0.727], [1.9, 0.592, 0.75], [1.8, 0.695, 0.768]]) {
+    const [ze, ye] = controls(x)[T.belt];
+    assert.ok(Math.abs(ze - z) < 0.01 && Math.abs(ye - y) < 0.01, `hood edge at ${x} is (${ze}, ${ye})`);
+  }
 });
 
 test("opening the hood lifts its leading edge", () => {
