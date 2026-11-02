@@ -1238,7 +1238,7 @@ function engine() {
   add(rbox(0.34, 0.36, 0.62, 0.04, 1.35, 0.43, 0.19), "engine"); // block
   add(rbox(0.3, 0.12, 0.6, 0.04, 1.35, 0.67, 0.19), "engine"); // head
   add(rbox(0.15, 0.24, 0.58, 0.04, 1.58, 0.56, 0.19), "plastic"); // intake manifold
-  add(rbox(0.36, 0.3, 0.36, 0.06, 1.33, 0.4, -0.3), "engine"); // DSG
+  add(rbox(0.36, 0.3, 0.36, 0.06, 1.33, 0.35, -0.3), "engine"); // DSG, under the intake
   add(rbox(0.02, 0.18, 0.4, 0.005, 1.15, 0.6, 0.25), "steel"); // turbo heat shield
 
   // The engine cover, over the coils; the scene fades it to show them.
@@ -1255,15 +1255,40 @@ function engine() {
     add(rbox(0.07, 0.03, 0.05, 0.008, 1.35, 0.8, z), "red", "coils");
   }
 
-  // Unitronic carbon airbox; snorkel forward to the slam panel.
-  const box = rbox(0.42, 0.2, 0.32, 0.06, 1.55, 0.64, -0.28);
-  add(planarUV(box, "x", "z", 7), "carbon", "intake");
+  // Unitronic carbon intake: a housing wide and squarish behind the slam
+  // panel on the driver's side, sweeping back and inboard as it narrows into
+  // the round mouth of the inlet hose; its snorkel reaches forward to the
+  // slam panel.
+  const path = new CatmullRomCurve3([[1.68, 0.62, -0.37], [1.56, 0.635, -0.33], [1.44, 0.665, -0.25], [1.37, 0.7, -0.19]].map((q) => new Vector3(...q)));
+  const rings = range(0, 1, 18).map((u) => {
+    const c = path.getPoint(u);
+    const t = path.getTangent(u);
+    const side = new Vector3(-t.z, 0, t.x).normalize();
+    const w = lerp(0.34, 0.09, u ** 1.7) / 2;
+    const h = lerp(0.24, 0.09, u ** 1.7) / 2;
+    const n = lerp(5, 2, u);
+    const ring = range(0, -Math.PI * 2, 32).map((a) => {
+      const pw = (v) => Math.sign(v) * Math.abs(v) ** (2 / n);
+      return c.clone().addScaledVector(side, w * pw(Math.cos(a))).add(new Vector3(0, h * pw(Math.sin(a)), 0)).toArray();
+    });
+    return ring;
+  });
+  // The housing's skin, and a lid closing its front end.
+  const housing = grid(rings, { side: 1 }).toNonIndexed();
+  housing.deleteAttribute("uv");
+  const front = rings[0];
+  const c0 = path.getPoint(0).toArray();
+  const lid = new BufferGeometry();
+  lid.setAttribute("position", new Float32BufferAttribute(front.slice(0, -1).flatMap((q, i) => [...c0, ...q, ...front[i + 1]]), 3));
+  lid.computeVertexNormals();
+  housing.computeVertexNormals();
+  add(planarUV(mergeGeometries([housing, lid]), "x", "z", 7), "carbon", "intake");
   add(planarUV(tube([[1.74, 0.66, -0.34], [1.78, 0.66, -0.34], [1.8, 0.62, -0.32]], 0.04, 16, 12), "x", "z", 7), "carbon", "intake");
 
   // Turbo at the back of the block; the inlet arches from the airbox over to it.
   add(cyl(0.065, 0.065, 0.07, 1.12, 0.55, 0.02, "z", 24), "steel");
   add(cyl(0.055, 0.055, 0.07, 1.12, 0.52, 0.1, "z", 24), "steel");
-  add(tube([[1.42, 0.72, -0.24], [1.28, 0.79, -0.2], [1.14, 0.76, -0.14], [1.06, 0.66, -0.04], [1.1, 0.57, 0.01]], 0.04), "inlet", "inlet");
+  add(tube([[1.39, 0.695, -0.2], [1.3, 0.77, -0.16], [1.16, 0.76, -0.11], [1.07, 0.66, -0.03], [1.1, 0.57, 0.01]], 0.042), "inlet", "inlet");
 
   // Battery behind the airbox, the ECU beside it, the TCU on the gearbox:
   // the last two are the halves of the tune.
