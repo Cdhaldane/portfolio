@@ -827,23 +827,31 @@ function nose() {
   add(onSkin(new TorusGeometry(0.031, 0.003, 6, 36), 1.875, 0.697, 0.003), "chrome");
   add(sideBand(brim, sill, { offset: 0.0065 }), "lens");
 
-  // Lower bumper: the wide slatted grille, and the side intakes split by two
-  // body-colour blades each.
-  add(endDecal([[-0.47, 0.4], [0.47, 0.4], [0.55, 0.24], [-0.55, 0.24]], 1, { mirror: false, offset: 0.004, subdiv: 4 }), "trim");
-  for (const y of [0.28, 0.32, 0.36]) {
-    add(endDecal([[-0.5, y], [0.5, y], [0.5, y + 0.007], [-0.5, y + 0.007]], 1, { mirror: false, offset: 0.0055, subdiv: 3 }), "gloss");
+  // Lower bumper, off the blueprint's front view: the wide grille, its outer
+  // ends raked out towards the bottom, with four slats; the side intakes,
+  // their inner edges raked the same way, each split by one body-colour blade.
+  const mouth = (y) => (y >= 0.385 ? 0.48 + ((0.4 - y) / 0.015) * 0.04 : 0.52 + ((0.385 - y) / 0.13) * 0.07);
+  add(endDecal([[-0.48, 0.4], [0.48, 0.4], [0.52, 0.385], [0.59, 0.255], [-0.59, 0.255], [-0.52, 0.385]], 1, { mirror: false, offset: 0.004, subdiv: 4 }), "trim");
+  for (const y of [0.275, 0.305, 0.335, 0.365]) {
+    const w = mouth(y + 0.007) - 0.008;
+    add(endDecal([[-w, y], [w, y], [w, y + 0.007], [-w, y + 0.007]], 1, { mirror: false, offset: 0.0055, subdiv: 3 }), "gloss");
   }
-  add(endDecal([[0.6, 0.45], [0.79, 0.465], [0.845, 0.41], [0.845, 0.3], [0.66, 0.285], [0.59, 0.33]], 1, { offset: 0.003 }), "trim");
-  add(endDecal([[0.6, 0.405], [0.84, 0.413], [0.84, 0.43], [0.6, 0.423]], 1, { offset: 0.006 }), "paint", "wrap");
-  add(endDecal([[0.61, 0.35], [0.84, 0.357], [0.84, 0.374], [0.61, 0.368]], 1, { offset: 0.006 }), "paint", "wrap");
+  add(endDecal([[0.58, 0.443], [0.838, 0.448], [0.842, 0.29], [0.675, 0.285]], 1, { offset: 0.003, subdiv: 4 }), "trim");
+  add(endDecal([[0.624, 0.36], [0.84, 0.365], [0.84, 0.381], [0.633, 0.376]], 1, { offset: 0.006, subdiv: 3 }), "paint", "wrap");
 
   // The plate sits off-centre on the lower grille, on the passenger side.
   g.add(plate(STICKER.plateFront, 1, 0.27, 0.32));
 
-  // Parking sensors along the bumper bar.
-  for (const z of [0.2, 0.52]) add(endDecal(circle(z, 0.53, 0.012, 14), 1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  // Parking sensors on the bumper bar; the headlight washers' covers under
+  // the lamps; the bumper's seam with the wing, from the lamp's tip down to
+  // the arch.
+  for (const [z, y] of [[0.2, 0.47], [0.55, 0.5]]) add(endDecal(circle(z, y, 0.012, 14), 1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  const washer = roundRect(0.6, 0.505, 0.71, 0.54, 0.014);
+  washer.holes.push(roundRect(0.603, 0.508, 0.707, 0.537, 0.011, new Path()));
+  add(endDecal(washer, 1, { offset: 0.0008, subdiv: 2 }), "trim");
+  add(sideDecal(ribbon([[1.69, 0.712], [1.698, 0.6], [1.7, 0.5], [1.697, 0.41]], 0.004), { offset: 0.0008, subdiv: 1 }), "trim");
 
-  // Splitter lip along the bottom.
+  // The bumper's lip along the bottom, in the wrap.
   const lipY = 0.235;
   const lip = [];
   for (let z = -0.8; z <= 0.8001; z += 0.04) lip.push(new Vector2((endX(lipY, z, 1) ?? 2.1) + 0.018, z));
@@ -851,7 +859,7 @@ function nose() {
   const blade = new ExtrudeGeometry(new Shape(lip), { depth: 0.014, bevelEnabled: false });
   blade.rotateX(Math.PI / 2);
   blade.translate(0, lipY, 0);
-  add(blade, "gloss");
+  add(blade, "paint", "wrap");
   return g;
 }
 
