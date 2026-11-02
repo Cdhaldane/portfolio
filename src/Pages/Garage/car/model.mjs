@@ -955,11 +955,12 @@ function tail() {
   add(dome(0.058, 0.009, bx - 0.006, by, -1), "gloss");
   g.add(sticker(endDecal([[-0.48, 0.71], [-0.42, 0.71], [-0.42, 0.735], [-0.48, 0.735]], -1, { mirror: false, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["z", 1], ["y", 1]));
 
-  // Plate in the bumper's recess under the tailgate, in its frame; parking
-  // sensors; the reflectors low on the corners, wrapping round to the sides.
-  g.add(plate(STICKER.plateRear, -1, 0, 0.53));
-  for (const z of [0.32, 0.62]) add(endDecal(circle(z, 0.57, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
-  add(cornerBand([R(0.615, 0.41), R(0.7, 0.411), R(0.79, 0.413)], [R(0.615, 0.38), R(0.7, 0.381), R(0.79, 0.383)], { xc: -1.55, rows: 2, out: [-1, 0, 1] }), "tail");
+  // Plate low in the bumper, just over the diffuser, in its frame; parking
+  // sensors level with its top; the black vents low on the corners, wrapping
+  // round to the sides (no reflectors on this car).
+  g.add(plate(STICKER.plateRear, -1, 0, 0.47));
+  for (const z of [0.32, 0.62]) add(endDecal(circle(z, 0.54, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  add(cornerBand([R(0.56, 0.4), R(0.68, 0.402), R(0.78, 0.405)], [R(0.56, 0.382), R(0.68, 0.378), R(0.78, 0.37)], { xc: -1.55, rows: 2, out: [-1, 0, 1] }), "gloss");
 
   // Rear wiper parked across the bottom of the glass.
   add(rbox(0.012, 0.012, 0.34, 0.004, X.glassBottom + 0.012, centreTop(X.glassBottom + 0.012) + 0.012, 0.12), "gloss");
@@ -1098,29 +1099,34 @@ const TIP_R = 0.05;
 function diffuser() {
   const g = new Group();
   const add = (geo, mat = "gloss") => g.add(mesh(geo, mat, "diffuser"));
-  add(endDecal([[-0.42, 0.3], [0.42, 0.3], [0.42, 0.37], [-0.42, 0.37]], -1, { mirror: false, offset: 0.004 }));
-  add(endDecal([[0.66, 0.31], [0.78, 0.32], [0.78, 0.37], [0.66, 0.37]], -1, { offset: 0.004 }));
+  // Gloss black across the bumper's bottom between the corners, under a
+  // blade along its top edge that stands a couple of centimetres proud.
+  add(endPatch(0.7, 0.29, 0.37, -1, { offset: 0.003, ny: 6, nz: 60 }));
+  const top = 0.37;
+  const edge = [];
+  for (let z = -0.7; z <= 0.7001; z += 0.035) edge.push(new Vector2((endX(top, z, -1) ?? -2) - 0.022, z));
+  for (let z = 0.7; z >= -0.7001; z -= 0.035) edge.push(new Vector2((endX(top, z, -1) ?? -2) + 0.03, z));
+  const blade = new ExtrudeGeometry(new Shape(edge), { depth: 0.01, bevelEnabled: false });
+  blade.rotateX(Math.PI / 2);
+  blade.translate(0, top + 0.004, 0);
+  add(blade);
 
   const sheet = (pts, depth) => {
     const s = new ExtrudeGeometry(new Shape(pts.map(([x, y]) => new Vector2(x, y))), { depth, bevelEnabled: false });
     s.translate(0, 0, -depth / 2);
     return s;
   };
-  // Fins and flaps hang off the bumper wherever its skin is at that width.
+  // Six raked fins hang under it, between the pairs of tips, each with a
+  // stripe of the wrap down its trailing edge.
   for (const z of [0.07, 0.19, 0.31]) {
-    const xs = endX(0.3, z, -1) ?? -2.02;
-    const fin = sheet([[xs + 0.09, 0.3], [xs - 0.05, 0.3], [xs - 0.075, 0.17], [xs - 0.04, 0.155]], 0.008);
+    const xs = endX(0.33, z, -1) ?? -2.02;
+    const fin = sheet([[xs + 0.1, 0.33], [xs - 0.035, 0.33], [xs - 0.085, 0.19], [xs - 0.005, 0.18]], 0.008);
     fin.translate(0, 0, z);
     add(both(fin));
-    const tip = sheet([[xs - 0.04, 0.155], [xs - 0.075, 0.17], [xs - 0.07, 0.193], [xs - 0.038, 0.18]], 0.0104);
-    tip.translate(0, 0, z);
-    add(both(tip), "paint");
+    const stripe = sheet([[xs - 0.035, 0.33], [xs - 0.047, 0.33], [xs - 0.097, 0.19], [xs - 0.085, 0.19]], 0.0104);
+    stripe.translate(0, 0, z);
+    add(both(stripe), "paint");
   }
-  const fz = 0.775;
-  const fx = endX(0.32, fz, -1) ?? -1.8;
-  const flap = sheet([[fx + 0.06, 0.31], [fx - 0.09, 0.31], [fx - 0.105, 0.235], [fx + 0.02, 0.22]], 0.01);
-  flap.translate(0, 0, fz);
-  add(both(flap));
   return g;
 }
 
