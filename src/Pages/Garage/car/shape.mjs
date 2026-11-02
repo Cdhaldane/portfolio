@@ -138,8 +138,9 @@ const shoulderW = profile([
 // controls()); at the tail it drops the same way.
 const shoulderY = profile([
   [2.195, 0.38], [2.15, 0.44], [2.1, 0.47], [2.0, 0.5], [1.9, 0.52], [1.8, 0.545], [1.72, 0.59],
-  [1.667, 0.735], [1.6, 0.79], [1.5, 0.8], [1.0, 0.815], [0, 0.82], [-0.5, 0.823], [-1.0, 0.826], [-1.4, 0.83], [-1.65, 0.832],
-  [-1.8, 0.82], [-1.9, 0.78], [-1.97, 0.7], [-2.02, 0.62], [-2.06, 0.56], [-2.081, 0.53],
+  [1.667, 0.735], [1.6, 0.79], [1.5, 0.8], [1.0, 0.815], [0, 0.82], [-0.5, 0.823], [-1.0, 0.826],
+  [-1.4, 0.826], [-1.6, 0.818], [-1.68, 0.807], [-1.8, 0.795], [-1.9, 0.765], [-1.97, 0.7],
+  [-2.02, 0.62], [-2.06, 0.56], [-2.081, 0.53],
 ]);
 
 // Beltline: the hood's shut line up front (which is the top edge of each
@@ -406,6 +407,29 @@ export function endX(y, z, dir) {
     else b = m;
   }
   return (a + b) / 2;
+}
+
+/**
+ * Where a ray in plan from (xc, y, 0), heading (dx, dz), leaves the body:
+ * [x, y, z], or null. For wrapping things round the corners, where looking
+ * end-on or side-on both go edge-on to the skin.
+ */
+export function radialPoint(xc, y, dx, dz) {
+  const l = Math.hypot(dx, dz);
+  const inside = (s) => {
+    const x = xc + (dx / l) * s;
+    return x < DIM.front && x > DIM.rear && insideSection(x, y, (dz / l) * s);
+  };
+  if (!inside(0)) return null;
+  let a = 0;
+  let b = 2.5;
+  for (let i = 0; i < 24; i++) {
+    const m = (a + b) / 2;
+    if (inside(m)) a = m;
+    else b = m;
+  }
+  const s = (a + b) / 2;
+  return [xc + (dx / l) * s, y, (dz / l) * s];
 }
 
 /** Height of the centreline silhouette at x. */

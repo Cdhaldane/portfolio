@@ -22,7 +22,7 @@ import {
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
-import { DIM, T, T_TOP, bodyPoint, centreTop, endX, profile, sideZ, stations, topY } from "./shape.mjs";
+import { DIM, T, T_TOP, bodyPoint, centreTop, endX, profile, radialPoint, sideZ, stations, topY } from "./shape.mjs";
 
 /*
  * Builds the Golf R as a three.js Group. Geometry only: every mesh carries
@@ -47,7 +47,7 @@ const PLACEHOLDER = new MeshBasicMaterial();
 /** Material keys that make up the body and what's glued to it: what an x-ray fades. */
 export const SHELL = new Set([
   "paint", "under", "trim", "gloss", "glass", "tint", "visor", "lens", "lamp", "chrome", "forged",
-  "forgedFlake", "carbon", "tail", "tailLed", "drl", "amber", "interior", "leather", "mirror", "plastic",
+  "forgedFlake", "carbon", "tail", "tailLed", "reverse", "drl", "amber", "interior", "leather", "mirror", "plastic",
   "sticker", "sensor",
 ]);
 
@@ -440,6 +440,38 @@ function sideBand(top, bottom, { offset = 0.002, n = 60, rows = 8 } = {}) {
 }
 
 /**
+ * A band on the skin between two edges given as matching [x, y, z] key points
+ * (top[i] across from bottom[i]), wrapped round a corner: every point is
+ * pushed out to the skin along a ray in plan from (xc, 0). `k` keeps part of
+ * its run, in key positions (fractions allowed), and `s` part of its height,
+ * so the pieces inside a lamp line up with its outline. Mirrored.
+ */
+function cornerBand(top, bottom, { xc, offset = 0.002, k = [0, top.length - 1], s = [0, 1], rows = 8, per = 0.008, out = [0, 0, 1] }) {
+  const at = (pts, kk) => {
+    const i = Math.min(Math.floor(kk), pts.length - 2);
+    return pts[i].map((v, c) => lerp(v, pts[i + 1][c], kk - i));
+  };
+  const ks = [k[0]];
+  for (let i = 0; i < top.length - 1; i++) {
+    const len = (new Vector3(...top[i]).distanceTo(new Vector3(...top[i + 1])) + new Vector3(...bottom[i]).distanceTo(new Vector3(...bottom[i + 1]))) / 2;
+    const m = Math.max(1, Math.ceil(len / per));
+    for (let j = 0; j < m; j++) if (i + j / m > k[0] + 1e-6 && i + j / m < k[1] - 1e-6) ks.push(i + j / m);
+  }
+  ks.push(k[1]);
+  const cells = range(s[0], s[1], rows).map((sv) =>
+    ks.map((kk) => {
+      const a = at(bottom, kk);
+      const b = at(top, kk);
+      const p = a.map((v, c) => lerp(v, b[c], sv));
+      const q = radialPoint(xc, p[1], p[0] - xc, p[2]);
+      if (q === null) DECAL_MISSES.push(["corner", ...p]);
+      return q ?? p;
+    })
+  );
+  return both(lift(orient(grid(cells, { side: 1 }), out), offset));
+}
+
+/**
  * Stand a geometry built facing +z on the +z flank at side-view (x, y), `out`
  * off the skin and square to it there; mirrored to the other side.
  */
@@ -827,32 +859,47 @@ function tail() {
   const g = new Group();
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
-  // Tail lights: big wedges under the glass that run forward along the flank
-  // to a point, with the R's L-shaped LED. (Off the blueprint: 0.82-0.96 high,
-  // z 0.32 out to the corner, forward to x -1.65.)
-  // The face-on half stops where the corner turns; the flank half takes over
-  // from there and sits a hair further out, so the two never fight.
-  const lamp = [[0.32, 0.85], [0.32, 0.93], [0.6, 0.955], [0.74, 0.958], [0.76, 0.9], [0.76, 0.83], [0.62, 0.83], [0.48, 0.842]];
-  add(endDecal(lamp, -1, { offset: 0.003, subdiv: 3 }), "tail");
-  add(endDecal([[0.38, 0.885], [0.74, 0.9], [0.74, 0.911], [0.38, 0.897]], -1, { offset: 0.006 }), "tailLed");
-  add(endDecal([[0.725, 0.85], [0.74, 0.85], [0.74, 0.93], [0.725, 0.93]], -1, { offset: 0.006 }), "tailLed");
-  add(sideDecal([[-1.9, 0.822], [-1.66, 0.822], [-1.64, 0.842], [-1.72, 0.93], [-1.78, 0.952], [-1.9, 0.945]], { offset: 0.0045, subdiv: 3 }), "tail");
-  add(sideDecal([[-1.9, 0.885], [-1.7, 0.885], [-1.7, 0.895], [-1.9, 0.897]], { offset: 0.0075, subdiv: 1 }), "tailLed");
+  // Tail lights: smoked LED wedges wrapped round the rear corners, off the
+  // blueprint's rear, side and top views. The tailgate's shut line splits each
+  // in two: the inner piece on the tailgate, ending in a point, and the outer
+  // round the corner and forward along the flank, its raked front edge coming
+  // down to a point where the tornado line runs into it. Inside each piece a
+  // bright LED loop round a darker centre, and the pale reverse strip along the
+  // bottom. Edges are key points end-on (R) and side-on (F), matched top to
+  // bottom.
+  const R = (z, y) => [endX(y, z, -1), y, z];
+  const F = (x, y) => [x, y, sideZ(x, y)];
+  const top = [R(0.33, 0.857), R(0.365, 0.918), R(0.48, 0.931), R(0.587, 0.941), R(0.69, 0.943), F(-1.86, 0.956), F(-1.774, 0.962), F(-1.727, 0.883), F(-1.679, 0.804)];
+  const bottom = [R(0.33, 0.857), R(0.4, 0.827), R(0.48, 0.818), R(0.587, 0.808), R(0.69, 0.804), F(-1.86, 0.805), F(-1.774, 0.805), F(-1.727, 0.805), F(-1.679, 0.804)];
+  const SPLIT = 3; // the key where the tailgate's shut line cuts each lamp in two
+  const band = (mat, offset, k, s = [0, 1]) => add(cornerBand(top, bottom, { xc: -1.55, offset, k, s, out: [-1, 0, 1] }), mat);
+  band("tail", 0.002, [0, 8]);
+  band("reverse", 0.0035, [0.55, 7.75], [0.07, 0.22]);
+  for (const [k0, k1] of [[0.7, SPLIT - 0.12], [SPLIT + 0.12, 7.35]]) {
+    band("tailLed", 0.0035, [k0, k1], [0.32, 0.4]);
+    band("tailLed", 0.0035, [k0, k1], [0.8, 0.88]);
+    band("tailLed", 0.0035, [k0, k0 + 0.1], [0.32, 0.88]);
+    band("tailLed", 0.0035, [k1 - 0.1, k1], [0.32, 0.88]);
+  }
+  band("gloss", 0.004, [SPLIT - 0.03, SPLIT + 0.03]);
 
-  // Tailgate: its shut line, the blacked-out roundel, the R lower left.
-  const gate = ribbon([[-0.32, 0.85], [-0.335, 0.74], [-0.3, 0.685], [0, 0.675], [0.3, 0.685], [0.335, 0.74], [0.32, 0.85]], 0.005);
-  add(endDecal(gate, -1, { mirror: false, offset: 0.0008, subdiv: 1 }), "trim");
+  // Tailgate: its shut line down from the lamps' split and across above the
+  // plate, and up the hatch's sides to the glass; the blacked-out roundel
+  // between the lamps; the R low on the driver's side.
+  const side = [[0.587, 0.806], [0.585, 0.78], [0.575, 0.72], [0.555, 0.675], [0.51, 0.64], [0.44, 0.627], [0.2, 0.62]];
+  const gate = ribbon([...side.map(([z, y]) => [-z, y]), [0, 0.619], ...side.slice().reverse()], 0.005);
+  add(endDecal(gate, -1, { mirror: false, offset: 0.0008, subdiv: 2 }), "trim");
+  add(endDecal(ribbon([[0.587, 0.943], [0.6, 0.968], [0.618, 0.99]], 0.005), -1, { offset: 0.0008, subdiv: 1 }), "trim");
   const by = 0.89;
   const bx = endX(by, 0, -1);
   add(dome(0.058, 0.009, bx - 0.006, by, -1), "gloss");
   g.add(sticker(endDecal([[-0.48, 0.71], [-0.42, 0.71], [-0.42, 0.735], [-0.48, 0.735]], -1, { mirror: false, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["z", 1], ["y", 1]));
 
-  // Plate in the bumper's recess, in its frame; parking sensors; reflectors;
-  // side markers.
-  g.add(plate(STICKER.plateRear, -1, 0, 0.59));
-  for (const z of [0.32, 0.62]) add(endDecal(circle(z, 0.6, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
-  add(endDecal([[0.6, 0.41], [0.82, 0.41], [0.82, 0.445], [0.6, 0.445]], -1, { offset: 0.003 }), "tail");
-  add(sideDecal([[-2.0, 0.47], [-1.93, 0.475], [-1.93, 0.495], [-2.0, 0.49]], { offset: 0.002, subdiv: 1 }), "tail");
+  // Plate in the bumper's recess under the tailgate, in its frame; parking
+  // sensors; the reflectors low on the corners, wrapping round to the sides.
+  g.add(plate(STICKER.plateRear, -1, 0, 0.53));
+  for (const z of [0.32, 0.62]) add(endDecal(circle(z, 0.57, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  add(cornerBand([R(0.615, 0.41), R(0.7, 0.411), R(0.79, 0.413)], [R(0.615, 0.38), R(0.7, 0.381), R(0.79, 0.383)], { xc: -1.55, rows: 2, out: [-1, 0, 1] }), "tail");
 
   // Rear wiper parked across the bottom of the glass.
   add(rbox(0.012, 0.012, 0.34, 0.004, X.glassBottom + 0.012, centreTop(X.glassBottom + 0.012) + 0.012, 0.12), "gloss");
