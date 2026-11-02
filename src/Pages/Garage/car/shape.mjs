@@ -273,7 +273,7 @@ export function controls(x) {
 // The tornado line (shoulder) is firm and the shelf above it rolls in to the
 // beltline; the doors below stand almost upright to the skirt; the roof is
 // round across.
-const TENSION = [1, 0.2, 0.2, 0.3, 0.6, 0.35, 0.45, 0.8, 1, 1];
+const TENSION = [1, 0.2, 0.2, 0.3, 0.6, 0.12, 0.45, 0.8, 1, 1];
 
 const cache = new Map();
 function cachedControls(x) {

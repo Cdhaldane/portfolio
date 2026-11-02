@@ -819,9 +819,11 @@ function nose() {
   const g = new Group();
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
-  // Upper grille between the lamps, right under the hood's front edge: three
-  // gloss bars over a dark recess, the blacked-out roundel in its chrome rim
-  // standing proud across them, the R on the passenger side.
+  // Upper grille between the lamps, right under the hood's front edge: two
+  // gloss bars and the R's satin chrome bar along the bottom, which lines up
+  // with the lamps' LED strips, over a dark recess. The blacked-out roundel
+  // in its chrome rim stands proud low on it, dropping onto the bumper; the R
+  // sits on the middle bar, on the passenger side.
   // Its ends follow the slant of the lamps' inner ends (see below).
   const hoodLine = (x) => bodyPoint(x, T.belt)[1] - 0.003;
   const foot = [2.155, 0.607];
@@ -832,18 +834,19 @@ function nose() {
     return [y, sideZ(x, y) - 0.002];
   }));
   add(endPatch(reach, 0.605, 0.714, 1, { ny: 10 }), "trim");
-  for (const [y0, y1] of [[0.686, 0.714], [0.655, 0.667], [0.622, 0.634]]) {
+  for (const [y0, y1] of [[0.686, 0.714], [0.655, 0.667]]) {
     add(endPatch((y) => reach(y) - 0.002, y0, y1, 1, { offset: 0.0045, ny: 3 }), "gloss");
   }
+  add(endPatch(reach, 0.617, 0.629, 1, { offset: 0.0045, ny: 3 }), "chrome");
   // The roundel stands off the furthest-forward point across its height.
-  const by = 0.655;
+  const by = 0.64;
   const bx = Math.max(...range(by - 0.062, by + 0.062, 8).map((y) => endX(y, 0, 1) ?? 0));
   const ring = new TorusGeometry(0.062, 0.006, 8, 48);
   ring.rotateY(Math.PI / 2);
   ring.translate(bx + 0.014, by, 0);
   add(ring, "chrome");
   add(dome(0.06, 0.012, bx + 0.01, by, 1), "gloss");
-  g.add(sticker(endDecal([[0.285, 0.62], [0.335, 0.62], [0.335, 0.645], [0.285, 0.645]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
+  g.add(sticker(endDecal([[0.33, 0.65], [0.38, 0.65], [0.38, 0.672], [0.33, 0.672]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
 
   // Headlights: long smoked lamps wrapped round the nose's corners, from the
   // ends of the grille back along the wing to a point, the top edge tucked
