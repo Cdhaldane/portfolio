@@ -806,11 +806,32 @@ function body() {
   g.add(sticker(skin({ ...pane, side: -1 }), STICKER.sponsors, ["x", -1], ["y", 1]));
   g.add(sticker(skin({ ...pane, side: 1 }), STICKER.donut, ["x", 1], ["y", 1]));
 
-  // Shark-fin aerial at the back of the roof.
-  const fin = new SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2);
-  fin.scale(0.085, 0.055, 0.025);
-  fin.translate(-1.4, topY(-1.4, 0) - 0.004, 0);
-  add(fin, "gloss");
+  // Shark-fin aerial on the roof, well ahead of the spoiler: a low rounded
+  // pod its whole length, and a thin blade rising out of its back half to a
+  // point. Sections along it, sat on the roof's crown, pinched in where the
+  // blade stands above the pod.
+  const fin = { x0: -1.22, len: 0.16 };
+  add(grid(range(0, 1, 40).map((u) => {
+    const x = fin.x0 - u * fin.len;
+    const round = Math.sqrt(Math.max(0.01, Math.sin(Math.PI * u)));
+    const pod = 0.026 * round;
+    const blade = u < 0.45 ? 0 : u < 0.93 ? 0.074 * ((u - 0.45) / 0.48) ** 1.15 : 0.074 * Math.max(0, 1 - (u - 0.93) / 0.06) ** 0.6;
+    const h = Math.max(pod, blade);
+    const k = h > 0 ? (h - pod) / h : 0;
+    const w = 0.034 * round;
+    return range(0, Math.PI / 2, 12).map((a) => [x, topY(x, 0) - 0.003 + h * Math.sin(a), w * Math.cos(a) ** (1 + 1.6 * k)]);
+  })), "gloss");
+
+  // Wipers parked along the foot of the windshield, both pivoting on the
+  // passenger side and lying towards the driver's, one above the other.
+  for (const [zp, z1, xb] of [[0.56, -0.06, 0.885], [0.07, -0.56, 0.93]]) {
+    const blade = range(zp - 0.04, z1, 16).map((z) => new Vector3(xb, topY(xb, z) + 0.012, z));
+    add(tube(blade.map((v) => v.toArray()), 0.007, 32, 6), "gloss");
+    const pivot = new Vector3(X.cowl + 0.025, topY(X.cowl + 0.025, zp) + 0.01, zp);
+    const tip = blade[blade.length - 3].clone().add(new Vector3(0, 0.012, 0));
+    add(tube([pivot.toArray(), pivot.clone().lerp(tip, 0.3).add(new Vector3(0, 0.012, 0)).toArray(), tip.toArray()], 0.006, 24, 6), "gloss");
+    add(cyl(0.018, 0.02, 0.022, pivot.x, pivot.y, pivot.z, "y", 16), "gloss");
+  }
   return g;
 }
 
