@@ -258,6 +258,7 @@ function materials(renderer) {
     tail: phys("#7d0b10", 0.12, { emissive: "#ff1f1f", emissiveIntensity: 0.18, clearcoat: 1 }),
     tailLed: std("#ff3b30", 0.4, 0, { emissive: "#ff3b30", emissiveIntensity: 2 }),
     reverse: phys("#b9b4b4", 0.12, { clearcoat: 1 }),
+    screen: std("#0a0e13", 0.15, 0, { emissive: "#123049", emissiveIntensity: 0.5 }),
     drl: std("#ffffff", 0.3, 0, { emissive: "#eaf4ff", emissiveIntensity: 1.8 }),
     amber: std("#ff9a1a", 0.3, 0, { emissive: "#ff8a00", emissiveIntensity: 0.4 }),
     engine: std("#5b5f65", 0.45, 0.55),

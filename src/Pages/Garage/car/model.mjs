@@ -46,7 +46,7 @@ const PLACEHOLDER = new MeshBasicMaterial();
 /** Material keys that make up the body and what's glued to it: what an x-ray fades. */
 export const SHELL = new Set([
   "paint", "under", "trim", "gloss", "glass", "tint", "visor", "lens", "lamp", "chrome", "forged",
-  "forgedFlake", "carbon", "tail", "tailLed", "reverse", "drl", "amber", "interior", "leather", "mirror", "plastic",
+  "forgedFlake", "carbon", "tail", "tailLed", "reverse", "drl", "amber", "screen", "interior", "leather", "mirror", "plastic",
   "sticker", "sensor",
 ]);
 
@@ -1317,34 +1317,99 @@ function steeringWheel() {
 function interior() {
   const g = new Group();
   const add = (geo, mat) => g.add(mesh(geo, mat));
-  add(rbox(0.46, 0.22, 1.42, 0.06, 0.6, 0.87, 0), "interior"); // dash
-  add(rbox(0.2, 0.08, 0.3, 0.03, 0.42, 0.99, WHEEL.z), "interior"); // binnacle
-  add(rbox(0.9, 0.22, 0.2, 0.04, 0.05, 0.5, 0), "interior"); // console
-  add(cyl(0.025, 0.03, 0.3, 0.36, 0.88, WHEEL.z, "x", 12), "interior"); // column
-  const seatBack = (w, h, d, dz) => {
-    const b = rbox(w, h, d, 0.04, 0, 0.3, dz);
-    b.rotateZ(0.22);
-    return b;
+  const merge = (...gs) => mergeGeometries(gs.map((x) => (x.index ? x.toNonIndexed() : x)));
+
+  // Dash, with the centre stack standing out of it down to the console: the
+  // touchscreen, the vents over it, the climate panel's three knobs. Chrome
+  // rings round the outer vents, a chrome strip across the passenger side.
+  // All of it faces the cabin (-x).
+  add(rbox(0.46, 0.22, 1.42, 0.06, 0.6, 0.87, 0), "interior");
+  add(rbox(0.27, 0.4, 0.27, 0.03, 0.47, 0.75, 0), "interior");
+  add(rbox(0.36, 0.22, 0.2, 0.04, 0.05, 0.5, 0), "interior"); // console
+  add(rbox(0.3, 0.08, 0.17, 0.03, -0.2, 0.64, 0), "leather"); // armrest
+  const face = (w, h, x, y, z) => {
+    const f = new PlaneGeometry(w, h);
+    f.rotateY(-Math.PI / 2);
+    f.translate(x, y, z);
+    return f;
+  };
+  add(face(0.215, 0.13, 0.334, 0.82, 0), "gloss");
+  add(face(0.18, 0.1, 0.333, 0.82, 0.01), "screen");
+  for (const z of [-0.06, 0.06]) add(face(0.095, 0.04, 0.334, 0.915, z), "gloss");
+  add(face(0.215, 0.07, 0.334, 0.7, 0), "gloss");
+  for (const z of [-0.07, 0, 0.07]) {
+    add(cyl(0.019, 0.019, 0.02, 0.33, 0.7, z, "x", 20), "gloss");
+    const knob = new TorusGeometry(0.019, 0.003, 6, 24);
+    knob.rotateY(Math.PI / 2);
+    knob.translate(0.32, 0.7, z);
+    add(knob, "chrome");
+  }
+  for (const z of [-0.6, 0.6]) {
+    add(face(0.12, 0.065, 0.368, 0.9, z), "gloss");
+    const rim = new Shape();
+    roundRect(-0.07, -0.042, 0.07, 0.042, 0.03, rim);
+    rim.holes.push(roundRect(-0.06, -0.032, 0.06, 0.032, 0.024, new Path()));
+    const ring = new ShapeGeometry(rim, 6);
+    ring.rotateY(-Math.PI / 2);
+    ring.translate(0.367, 0.9, z);
+    add(ring, "chrome");
+  }
+  add(rbox(0.006, 0.008, 0.5, 0.003, 0.368, 0.855, 0.42), "chrome");
+
+  // The cluster's cowl over two chrome-ringed dials, behind the wheel.
+  add(rbox(0.18, 0.13, 0.36, 0.04, 0.45, 0.98, WHEEL.z), "interior");
+  for (const dz of [-0.085, 0.085]) {
+    add(face(0.09, 0.09, 0.359, 0.97, WHEEL.z + dz), "gloss");
+    const dial = new TorusGeometry(0.045, 0.0035, 6, 32);
+    dial.rotateY(Math.PI / 2);
+    dial.translate(0.357, 0.97, WHEEL.z + dz);
+    add(dial, "chrome");
+  }
+  add(cyl(0.025, 0.03, 0.18, 0.31, 0.89, WHEEL.z, "x", 12), "interior"); // column
+
+  // The DSG lever in its boot on the console.
+  add(cyl(0.032, 0.042, 0.03, 0.06, 0.625, 0, "y", 16), "leather");
+  const knob = new SphereGeometry(1, 20, 14);
+  knob.scale(0.03, 0.045, 0.026);
+  knob.translate(0.06, 0.675, 0);
+  add(knob, "leather");
+  add(cyl(0.02, 0.024, 0.008, 0.06, 0.718, 0, "y", 16), "chrome");
+
+  // The R's sport seats: a quilted centre between big side bolsters, the
+  // headrest separate on its posts, the R stitched into the backrest.
+  // Built facing +x with the back's foot at the origin, then reclined.
+  const RECLINE = 0.3;
+  const place = (geo, x, y, z) => {
+    geo.rotateZ(RECLINE);
+    geo.translate(x, y, z);
+    return geo;
   };
   for (const z of [0.37, -0.37]) {
-    add(rbox(0.5, 0.12, 0.42, 0.05, -0.45, 0.42, z), "leather");
-    for (const s of [1, -1]) add(rbox(0.46, 0.1, 0.08, 0.035, -0.45, 0.48, z + s * 0.22), "leather");
-    const back = seatBack(0.12, 0.62, 0.4, 0);
-    back.translate(-0.72, 0.47, z);
-    add(back, "leather");
-    for (const s of [1, -1]) {
-      const bolster = seatBack(0.18, 0.5, 0.08, s * 0.22);
-      bolster.translate(-0.7, 0.43, z);
-      add(bolster, "leather");
-    }
-    add(rbox(0.1, 0.16, 0.26, 0.04, -0.86, 1.13, z), "leather");
+    add(merge(
+      rbox(0.48, 0.09, 0.34, 0.04, -0.03, 0.44, z),
+      rbox(0.46, 0.12, 0.08, 0.035, -0.03, 0.47, z + 0.21),
+      rbox(0.46, 0.12, 0.08, 0.035, -0.03, 0.47, z - 0.21),
+    ), "leather");
+    add(place(merge(
+      rbox(0.1, 0.58, 0.32, 0.04, -0.06, 0.3, 0),
+      rbox(0.17, 0.48, 0.09, 0.04, -0.02, 0.27, 0.205),
+      rbox(0.17, 0.48, 0.09, 0.04, -0.02, 0.27, -0.205),
+      rbox(0.1, 0.17, 0.26, 0.045, -0.07, 0.75, 0),
+      cyl(0.006, 0.006, 0.08, -0.07, 0.62, 0.07, "y", 8),
+      cyl(0.006, 0.006, 0.08, -0.07, 0.62, -0.07, "y", 8),
+    ), -0.27, 0.47, z), "leather");
+    const logo = new PlaneGeometry(0.075, 0.06);
+    logo.rotateY(Math.PI / 2);
+    logo.translate(-0.008, 0.5, 0);
+    g.add(sticker(place(logo, -0.27, 0.47, z), STICKER.badgeR, ["z", -1], ["y", 1]));
   }
-  add(rbox(0.5, 0.14, 1.14, 0.05, -1.3, 0.44, 0), "leather"); // rear bench
-  const rb = rbox(0.12, 0.56, 1.14, 0.05, 0, 0, 0);
-  rb.rotateZ(0.24);
-  rb.translate(-1.55, 0.78, 0);
+
+  // The rear bench and its three headrests.
+  add(rbox(0.46, 0.13, 1.12, 0.05, -0.93, 0.45, 0), "leather");
+  const rb = merge(rbox(0.12, 0.56, 1.12, 0.05, -0.06, 0.28, 0), ...[-0.4, 0, 0.4].map((dz) => rbox(0.09, 0.13, dz ? 0.24 : 0.2, 0.035, -0.07, 0.65, dz)));
+  rb.rotateZ(0.38);
+  rb.translate(-1.13, 0.5, 0);
   add(rb, "leather");
-  for (const z of [-0.4, 0, 0.4]) add(rbox(0.09, 0.12, z ? 0.24 : 0.2, 0.035, -1.66, 1.08, z), "leather");
   return g;
 }
 
