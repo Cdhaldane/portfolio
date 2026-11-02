@@ -1282,32 +1282,36 @@ function lathe(points, segments = 48) {
   return g;
 }
 
-/** One straight, wide spoke: deeper at the hub than at the rim, so the face is dished. */
+/**
+ * One straight, wide, flat-faced spoke, deeper at the hub than at the rim so
+ * the face is dished, and a foot that flares into the rim.
+ */
 function spoke(angle, w) {
   const r0 = 0.068;
-  const r1 = RIM_R - 0.008;
-  const h0 = 0.03;
-  const h1 = 0.021;
-  const f0 = w / 2 - 0.072;
-  const f1 = w / 2 - 0.024;
+  const r1 = RIM_R - 0.03;
+  const r2 = RIM_R - 0.01;
+  const f = (r) => w / 2 - 0.072 + ((r - r0) / (r2 - r0)) * 0.062;
   const d = 0.03;
-  const g = block([
-    [-h0, r0, f0],
-    [h0, r0, f0],
-    [h1, r1, f1],
-    [-h1, r1, f1],
-    [-h0, r0, f0 - d],
-    [h0, r0, f0 - d],
-    [h1, r1, f1 - d],
-    [-h1, r1, f1 - d],
-  ]);
+  const piece = (ra, rb, ha, hb) =>
+    block([
+      [-ha, ra, f(ra)],
+      [ha, ra, f(ra)],
+      [hb, rb, f(rb)],
+      [-hb, rb, f(rb)],
+      [-ha, ra, f(ra) - d],
+      [ha, ra, f(ra) - d],
+      [hb, rb, f(rb) - d],
+      [-hb, rb, f(rb) - d],
+    ]);
+  const g = mergeGeometries([piece(r0, r1, 0.036, 0.026), piece(r1, r2, 0.026, 0.036)]);
   g.rotateZ(angle);
   return g;
 }
 
 /*
- * Superspeed six-spoke in gloss black: machined notches where each spoke
- * meets the lip, gold lug nuts round a black cap, on Firehawk Indy 500s.
+ * Superspeed six-spoke in gloss black: wide flat spokes, milled slots in the
+ * lip either side of each one's foot, bronze lug nuts round a black cap, on
+ * Firehawk Indy 500s.
  */
 function wheel() {
   const w = DIM.tireW;
@@ -1350,9 +1354,12 @@ function wheel() {
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2;
     add(spoke(a, w), "wheel");
-    const notch = rbox(0.03, 0.007, 0.01, 0.001, 0, RIM_R - 0.013, w / 2 - 0.02, 1);
-    notch.rotateZ(a);
-    add(notch, "machined");
+    // The milled slots in the lip either side of each spoke's foot.
+    for (const side of [-1, 1]) {
+      const notch = rbox(0.026, 0.007, 0.006, 0.002, 0, RIM_R - 0.016, w / 2 - 0.006, 1);
+      notch.rotateZ(a + side * 0.24);
+      add(notch, "machined");
+    }
   }
   add(cyl(0.075, 0.08, 0.04, 0, 0, w / 2 - 0.065, "z", 30), "wheel");
   for (let i = 0; i < 5; i++) {
