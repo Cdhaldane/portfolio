@@ -533,19 +533,6 @@ function onSkin(g, x, y, out = 0) {
   return both(g);
 }
 
-/** A flat outline drawn in [x, z] from above, laid onto the hood or roof (and mirrored). */
-function topDecal(outline, { offset = 0.002, subdiv = 2, mirror = true } = {}) {
-  const g = flat(outline, subdiv);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i);
-    const z = p.getY(i);
-    p.setXYZ(i, x, topY(x, z), z);
-  }
-  lift(orient(g, [0, 1, 0]), offset);
-  return mirror ? both(g) : g;
-}
-
 /** Close the skin at the very nose or tail with a fan across the last section. */
 function cap(x, dir) {
   const ring = range(0, T_TOP, 90).map((t) => bodyPoint(x, t));
