@@ -50,6 +50,13 @@ export const SHELL = new Set([
   "sticker", "sensor",
 ]);
 
+/**
+ * Decal vertices that found no body to land on, as [kind, a, b]. A light or
+ * badge drawn past the edge of the surface ends up here instead of floating;
+ * the tests hold it empty.
+ */
+export const DECAL_MISSES = [];
+
 /** Lowered: the body sits this much nearer the wheels than a stock Golf R. */
 export const RIDE_DROP = 0.03;
 
@@ -362,6 +369,7 @@ function endDecal(outline, dir, { offset = 0.002, mirror = true, subdiv = 2 } = 
     const z = p.getX(i);
     const y = p.getY(i);
     const x = endX(y, z, dir);
+    if (x === null) DECAL_MISSES.push(["end", dir, y, z]);
     p.setXYZ(i, x === null ? (dir > 0 ? 2.0 : -1.95) : x, y, z);
   }
   lift(orient(g, [dir, 0, 0]), offset);
@@ -375,7 +383,9 @@ function sideDecal(outline, { offset = 0.002, subdiv = 2, side = 0 } = {}) {
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i);
     const y = p.getY(i);
-    p.setXYZ(i, x, y, sideZ(x, y) ?? 0.85);
+    const z = sideZ(x, y);
+    if (z === null) DECAL_MISSES.push(["side", x, y]);
+    p.setXYZ(i, x, y, z ?? 0.85);
   }
   lift(orient(g, [0, 0, 1]), offset);
   return side === 0 ? both(g) : side < 0 ? toRight(g) : g;
@@ -516,25 +526,33 @@ function plate(spec, dir, cz, cy, w = 0.305, h = 0.152) {
 
 /* --------------------------------------------------------------- landmarks -- */
 
+// Measured off the blueprint: the windshield's foot is well forward, over the
+// back of the front wheel; the roof runs long to the spoiler.
 export const X = {
-  hoodRear: 0.7,
-  hoodFront: 2.04,
-  cowl: 0.62,
-  roofFront: -0.2,
-  roofRear: -1.8,
-  glassBottom: -1.982,
-  bFront: -0.37,
-  bRear: -0.45,
-  doorFront: 0.86,
-  doorSplit: -0.41,
-  doorRear: -0.93,
+  hoodRear: 1.03,
+  hoodFront: 2.12,
+  cowl: 0.97, // the windshield's foot on the centreline
+  roofFront: 0.0, // the windshield header
+  roofRear: -1.66, // the roof ends and the hatch glass begins, under the spoiler
+  glassBottom: -1.88,
+  doorFront: 0.875,
+  doorSplit: -0.24,
+  doorRear: -0.915,
   quarter: -0.985, // the rear door glass's fixed quarter pane starts behind this bar
+  strut: DIM.axle, // strut tops sit over the front axle
+  sail: 0.55, // front of the door glass, behind the mirror
+  aBase: 0.82, // where the A-pillar meets the wing
 };
 const WIN = { lo: T.belt + 0.04, hi: T.roofEdge - 0.14 };
+// 0 at the beltline, 1 at the roof edge.
+const up = (t) => (t - T.belt) / (T.roofEdge - T.belt);
+// The B-pillar leans back as it rises.
+const bFront = (t) => lerp(-0.2, -0.27, up(t));
+const bRear = (t) => lerp(-0.33, -0.4, up(t));
 // The rear door glass's trailing edge leans forward as it rises.
-const rearGlassEdge = (t) => lerp(-1.3, -1.1, (t - T.belt) / (T.roofEdge - T.belt));
+const rearGlassEdge = (t) => lerp(-1.29, -1.16, up(t));
 // The rear door's shut line climbs the front of the arch, then follows the glass.
-const rearDoorEdge = (t) => (t < 4.7 ? X.doorRear : lerp(X.doorRear, -1.31, (t - 4.7) / (T.belt - 4.7)));
+const rearDoorEdge = (t) => (t < 4.7 ? X.doorRear : lerp(X.doorRear, -1.28, (t - 4.7) / (T.belt - 4.7)));
 
 /* ------------------------------------------------------------------- body -- */
 
@@ -562,19 +580,21 @@ function body() {
 
   // Side glass, tinted dark, in black frames; the B-pillar; the quarter-pane
   // bar in the rear door; the C-pillar in paint.
-  add(skin({ x0: X.bFront, x1: 0.6, t0: WIN.lo, t1: WIN.hi, nt: 10, offset: -0.004 }), "tint");
-  add(skin({ x0: rearGlassEdge, x1: X.bRear, t0: WIN.lo, t1: WIN.hi, nt: 10, offset: -0.004 }), "tint");
+  add(skin({ x0: bFront, x1: X.sail, t0: WIN.lo, t1: WIN.hi, nt: 10, nx: 30, offset: -0.004 }), "tint");
+  add(skin({ x0: rearGlassEdge, x1: bRear, t0: WIN.lo, t1: WIN.hi, nt: 10, nx: 40, offset: -0.004 }), "tint");
   const frameRear = (t) => rearGlassEdge(t) - 0.018;
-  add(skin({ x0: frameRear, x1: X.cowl, t0: T.belt, t1: WIN.lo, nt: 2, nx: 120, offset: -0.001 }), "trim");
-  add(skin({ x0: frameRear, x1: X.cowl, t0: WIN.hi, t1: 6.86, nt: 2, nx: 160, offset: -0.001 }), "trim");
-  add(skin({ x0: X.bRear, x1: X.bFront, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 4, offset: -0.001 }), "gloss");
+  add(skin({ x0: frameRear, x1: X.aBase, t0: T.belt, t1: WIN.lo, nt: 2, nx: 120, offset: -0.001 }), "trim");
+  add(skin({ x0: frameRear, x1: X.aBase, t0: WIN.hi, t1: 6.86, nt: 2, nx: 160, offset: -0.001 }), "trim");
+  add(skin({ x0: bRear, x1: bFront, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 4, offset: -0.001 }), "gloss");
   add(skin({ x0: X.quarter - 0.022, x1: X.quarter, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 2, offset: -0.0015 }), "gloss");
-  add(skin({ x0: 0.6, x1: X.cowl, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 4, offset: -0.001 }), "trim");
+  // The black sail behind the mirror, then the A-pillar's foot in paint.
+  add(skin({ x0: X.sail, x1: X.aBase, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 8, offset: -0.001 }), "trim");
+  wrap(skin({ x0: X.aBase, x1: X.cowl, t0: T.belt, t1: 6.86, nt: 8, nx: 12 }));
   add(skin({ x0: frameRear, x1: rearGlassEdge, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 3, offset: -0.001 }), "trim");
   wrap(skin({ x0: X.glassBottom, x1: frameRear, t0: T.belt, t1: 6.86, nt: 10, nx: 40 }));
 
   // Rain visors over both door windows, running down the A-pillar.
-  add(skin({ x0: (t) => rearGlassEdge(t) - 0.01, x1: 0.42, t0: WIN.hi - 0.04, t1: WIN.hi + 0.09, nt: 3, nx: 120, offset: 0.012 }), "visor");
+  add(skin({ x0: (t) => rearGlassEdge(t) - 0.01, x1: X.sail + 0.08, t0: WIN.hi - 0.04, t1: WIN.hi + 0.09, nt: 3, nx: 120, offset: 0.012 }), "visor");
 
   // Hatch: C-pillar wrap, a black frit band, the glass; the tailgate below it.
   wrap(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 6.86, t1: 7.12, nt: 4 }));
@@ -602,14 +622,15 @@ function body() {
   add(skin({ x0: X.roofRear, x1: X.cowl, t0: T.lip, t1: T.belt, nt: 6, offset: 0.02, flip: true }), "interior");
   add(skin({ x0: X.roofRear, x1: X.roofFront, t0: 6.86, t1: T_TOP, nt: 6, offset: 0.03, flip: true }), "interior");
 
-  // Door handles on the shoulder, R badges on the front wings.
-  for (const x of [-0.16, -1.04]) {
-    const [, y, z] = bodyPoint(x, T.shoulder - 0.12);
+  // Door handles on the shelf just above the tornado line, R badges on the
+  // front wings.
+  for (const x of [-0.08, -0.98]) {
+    const [, y, z] = bodyPoint(x, T.shoulder + 0.35);
     const handle = mesh(both(rbox(0.15, 0.028, 0.026, 0.011, x, y, z + 0.004)), "paint", "wrap");
     handle.name = "handle";
     g.add(handle);
   }
-  const fender = [[0.9, 0.772], [0.958, 0.772], [0.958, 0.8], [0.9, 0.8]];
+  const fender = [[0.96, 0.75], [1.02, 0.75], [1.02, 0.775], [0.96, 0.775]];
   g.add(sticker(sideDecal(fender, { side: 1, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["x", 1], ["y", 1]));
   g.add(sticker(sideDecal(fender, { side: -1, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["x", -1], ["y", 1]));
 
@@ -623,7 +644,7 @@ function body() {
   // Shark-fin aerial at the back of the roof.
   const fin = new SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2);
   fin.scale(0.085, 0.055, 0.025);
-  fin.translate(-1.58, topY(-1.58, 0) - 0.004, 0);
+  fin.translate(-1.4, topY(-1.4, 0) - 0.004, 0);
   add(fin, "gloss");
   return g;
 }
@@ -642,11 +663,11 @@ function hood() {
   // Underside, so the open hood isn't see-through.
   add(skin({ x0: X.hoodRear + 0.02, x1: X.hoodFront - 0.02, t0: T.belt + 0.1, t1: T_TOP, nt: 8, offset: 0.012, flip: true }), "plastic", null);
 
-  const vent = [[0.93, 0.27], [1.2, 0.25], [1.25, 0.47], [0.99, 0.5]];
+  const vent = [[1.18, 0.27], [1.45, 0.25], [1.5, 0.47], [1.24, 0.5]];
   add(topDecal(vent, { offset: 0.002 }), "trim");
   for (let k = 0; k < 4; k++) {
-    const x = lerp(0.98, 1.19, k / 3);
-    const z = lerp(0.265, 0.485, 0.5) + (x - 1.08) * 0.08;
+    const x = lerp(1.23, 1.44, k / 3);
+    const z = lerp(0.265, 0.485, 0.5) + (x - 1.33) * 0.08;
     add(both(rbox(0.022, 0.012, 0.19, 0.004, x, topY(x, z) + 0.009, z)), "gloss");
   }
   return pivot;
@@ -659,58 +680,59 @@ function nose() {
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
   // Upper grille between the lights, its slats, the blacked-out roundel in its
-  // chrome ring, and the R on the passenger side.
-  add(endDecal([[-0.43, 0.705], [0.43, 0.705], [0.43, 0.8], [-0.43, 0.8]], 1, { mirror: false, offset: 0.003 }), "gloss");
-  for (const y of [0.73, 0.758]) {
-    add(endDecal([[-0.42, y], [0.42, y], [0.42, y + 0.006], [-0.42, y + 0.006]], 1, { mirror: false, offset: 0.0045 }), "trim");
+  // chrome ring, and the R on the passenger side. (Heights off the blueprint's
+  // front view: grille 0.62-0.70, lights 0.61-0.76.)
+  add(endDecal([[-0.47, 0.618], [0.47, 0.618], [0.47, 0.7], [-0.47, 0.7]], 1, { mirror: false, offset: 0.003 }), "gloss");
+  for (const y of [0.64, 0.665]) {
+    add(endDecal([[-0.46, y], [0.46, y], [0.46, y + 0.006], [-0.46, y + 0.006]], 1, { mirror: false, offset: 0.0045 }), "trim");
   }
-  const bx = endX(0.735, 0, 1);
-  const ring = new TorusGeometry(0.064, 0.006, 8, 40);
+  const by = 0.66;
+  const bx = endX(by, 0, 1);
+  const ring = new TorusGeometry(0.062, 0.006, 8, 40);
   ring.rotateY(Math.PI / 2);
-  ring.translate(bx + 0.012, 0.735, 0);
+  ring.translate(bx + 0.012, by, 0);
   add(ring, "chrome");
-  add(dome(0.062, 0.01, bx + 0.008, 0.735, 1), "gloss");
-  g.add(sticker(endDecal([[0.285, 0.708], [0.335, 0.708], [0.335, 0.733], [0.285, 0.733]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
+  add(dome(0.06, 0.01, bx + 0.008, by, 1), "gloss");
+  g.add(sticker(endDecal([[0.285, 0.643], [0.335, 0.643], [0.335, 0.668], [0.285, 0.668]], 1, { mirror: false, offset: 0.006, subdiv: 1 }), STICKER.badgeR, ["z", -1], ["y", 1]));
 
-  // Headlights: wide smoked wedges carrying the grille's line out to the
-  // corners and round them, a chrome projector, the LED strip along the bottom.
-  const head = [[0.43, 0.67], [0.43, 0.8], [0.62, 0.815], [0.8, 0.812], [0.848, 0.78], [0.835, 0.72], [0.7, 0.67]];
+  // Headlights: from the grille out round the corner and back along the wing,
+  // the outer end higher; a projector at the inner end, the LED strip along
+  // the bottom edge.
+  const head = [[0.43, 0.615], [0.43, 0.7], [0.6, 0.73], [0.79, 0.765], [0.84, 0.745], [0.825, 0.68], [0.62, 0.625]];
   add(endDecal(head, 1, { offset: 0.003, subdiv: 3 }), "lamp");
-  add(endDecal([[0.46, 0.68], [0.7, 0.68], [0.83, 0.725], [0.826, 0.74], [0.69, 0.696], [0.46, 0.696]], 1, { offset: 0.006 }), "drl");
-  add(endDecal(circle(0.63, 0.752, 0.03), 1, { offset: 0.006 }), "trim");
-  add(endDecal(bezel(0.63, 0.752, 0.03, 0.038), 1, { offset: 0.006, subdiv: 1 }), "chrome");
+  add(endDecal([[0.45, 0.622], [0.62, 0.632], [0.81, 0.685], [0.808, 0.698], [0.62, 0.646], [0.45, 0.636]], 1, { offset: 0.006 }), "drl");
+  add(endDecal(circle(0.51, 0.668, 0.026), 1, { offset: 0.006 }), "trim");
+  add(endDecal(bezel(0.51, 0.668, 0.026, 0.033), 1, { offset: 0.006, subdiv: 1 }), "chrome");
   add(endDecal(head, 1, { offset: 0.009, subdiv: 3 }), "lens");
 
   // Lower bumper: the wide slatted grille, and the side intakes split by two
   // body-colour blades each.
-  add(endDecal([[-0.42, 0.405], [0.42, 0.405], [0.46, 0.235], [-0.46, 0.235]], 1, { mirror: false, offset: 0.003 }), "trim");
-  for (const y of [0.29, 0.33, 0.37]) {
-    add(endDecal([[-0.44, y], [0.44, y], [0.44, y + 0.007], [-0.44, y + 0.007]], 1, { mirror: false, offset: 0.0045 }), "gloss");
+  add(endDecal([[-0.47, 0.4], [0.47, 0.4], [0.55, 0.24], [-0.55, 0.24]], 1, { mirror: false, offset: 0.004, subdiv: 4 }), "trim");
+  for (const y of [0.28, 0.32, 0.36]) {
+    add(endDecal([[-0.5, y], [0.5, y], [0.5, y + 0.007], [-0.5, y + 0.007]], 1, { mirror: false, offset: 0.0055, subdiv: 3 }), "gloss");
   }
-  add(endDecal([[0.48, 0.47], [0.7, 0.5], [0.79, 0.45], [0.79, 0.27], [0.53, 0.235], [0.46, 0.29]], 1, { offset: 0.003 }), "trim");
-  add(endDecal([[0.47, 0.41], [0.79, 0.418], [0.79, 0.438], [0.47, 0.43]], 1, { offset: 0.006 }), "paint", "wrap");
-  add(endDecal([[0.49, 0.335], [0.79, 0.343], [0.79, 0.362], [0.49, 0.355]], 1, { offset: 0.006 }), "paint", "wrap");
+  add(endDecal([[0.6, 0.45], [0.79, 0.465], [0.845, 0.41], [0.845, 0.3], [0.66, 0.285], [0.59, 0.33]], 1, { offset: 0.003 }), "trim");
+  add(endDecal([[0.6, 0.405], [0.84, 0.413], [0.84, 0.43], [0.6, 0.423]], 1, { offset: 0.006 }), "paint", "wrap");
+  add(endDecal([[0.61, 0.35], [0.84, 0.357], [0.84, 0.374], [0.61, 0.368]], 1, { offset: 0.006 }), "paint", "wrap");
 
   // The plate sits off-centre on the lower grille, on the passenger side.
-  g.add(plate(STICKER.plateFront, 1, 0.27, 0.33));
+  g.add(plate(STICKER.plateFront, 1, 0.27, 0.32));
 
   // Parking sensors along the bumper bar.
-  for (const z of [0.2, 0.52]) add(endDecal(circle(z, 0.49, 0.012, 14), 1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  for (const z of [0.2, 0.52]) add(endDecal(circle(z, 0.53, 0.012, 14), 1, { offset: 0.0025, subdiv: 1 }), "sensor");
 
   // Splitter lip along the bottom.
+  const lipY = 0.235;
   const lip = [];
-  for (let z = -0.8; z <= 0.8001; z += 0.04) {
-    const x = endX(0.2, z, 1) ?? 2.1;
-    lip.push(new Vector2(x + 0.018, z));
-  }
-  for (let z = 0.8; z >= -0.8001; z -= 0.04) lip.push(new Vector2((endX(0.2, z, 1) ?? 2.1) - 0.05, z));
+  for (let z = -0.8; z <= 0.8001; z += 0.04) lip.push(new Vector2((endX(lipY, z, 1) ?? 2.1) + 0.018, z));
+  for (let z = 0.8; z >= -0.8001; z -= 0.04) lip.push(new Vector2((endX(lipY, z, 1) ?? 2.1) - 0.05, z));
   const blade = new ExtrudeGeometry(new Shape(lip), { depth: 0.014, bevelEnabled: false });
   blade.rotateX(Math.PI / 2);
-  blade.translate(0, 0.2, 0);
+  blade.translate(0, lipY, 0);
   add(blade, "gloss");
 
   // Amber side markers at the corners (North American spec).
-  add(sideDecal([[1.97, 0.5], [2.06, 0.505], [2.06, 0.525], [1.97, 0.52]], { offset: 0.002, subdiv: 1 }), "amber");
+  add(sideDecal([[1.92, 0.5], [1.99, 0.505], [1.99, 0.522], [1.92, 0.518]], { offset: 0.002, subdiv: 1 }), "amber");
   return g;
 }
 
@@ -718,31 +740,35 @@ function tail() {
   const g = new Group();
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
-  // Tail lights: big wedges under the glass that wrap a long way round the
-  // flank, with the R's L-shaped LED.
-  const lamp = [[0.3, 0.892], [0.3, 0.962], [0.6, 0.983], [0.84, 0.978], [0.852, 0.858], [0.66, 0.852], [0.48, 0.872]];
+  // Tail lights: big wedges under the glass that run forward along the flank
+  // to a point, with the R's L-shaped LED. (Off the blueprint: 0.82-0.96 high,
+  // z 0.32 out to the corner, forward to x -1.65.)
+  // The face-on half stops where the corner turns; the flank half takes over
+  // from there and sits a hair further out, so the two never fight.
+  const lamp = [[0.32, 0.85], [0.32, 0.93], [0.6, 0.955], [0.74, 0.958], [0.76, 0.9], [0.76, 0.83], [0.62, 0.83], [0.48, 0.842]];
   add(endDecal(lamp, -1, { offset: 0.003, subdiv: 3 }), "tail");
-  add(endDecal([[0.38, 0.928], [0.8, 0.94], [0.8, 0.951], [0.38, 0.939]], -1, { offset: 0.006 }), "tailLed");
-  add(endDecal([[0.785, 0.875], [0.8, 0.875], [0.8, 0.951], [0.785, 0.951]], -1, { offset: 0.006 }), "tailLed");
-  add(sideDecal([[-1.972, 0.853], [-1.87, 0.87], [-1.75, 0.918], [-1.785, 0.95], [-1.972, 0.985]], { offset: 0.003, subdiv: 3 }), "tail");
-  add(sideDecal([[-1.965, 0.928], [-1.8, 0.932], [-1.8, 0.942], [-1.965, 0.94]], { offset: 0.006, subdiv: 1 }), "tailLed");
+  add(endDecal([[0.38, 0.885], [0.74, 0.9], [0.74, 0.911], [0.38, 0.897]], -1, { offset: 0.006 }), "tailLed");
+  add(endDecal([[0.725, 0.85], [0.74, 0.85], [0.74, 0.93], [0.725, 0.93]], -1, { offset: 0.006 }), "tailLed");
+  add(sideDecal([[-1.9, 0.822], [-1.66, 0.822], [-1.64, 0.842], [-1.72, 0.93], [-1.78, 0.952], [-1.9, 0.945]], { offset: 0.0045, subdiv: 3 }), "tail");
+  add(sideDecal([[-1.9, 0.885], [-1.7, 0.885], [-1.7, 0.895], [-1.9, 0.897]], { offset: 0.0075, subdiv: 1 }), "tailLed");
 
   // Tailgate: its shut line, the blacked-out roundel, the R lower left.
-  const gate = ribbon([[-0.32, 0.86], [-0.335, 0.72], [-0.3, 0.655], [0, 0.645], [0.3, 0.655], [0.335, 0.72], [0.32, 0.86]], 0.005);
+  const gate = ribbon([[-0.32, 0.85], [-0.335, 0.74], [-0.3, 0.685], [0, 0.675], [0.3, 0.685], [0.335, 0.74], [0.32, 0.85]], 0.005);
   add(endDecal(gate, -1, { mirror: false, offset: 0.0008, subdiv: 1 }), "trim");
-  const bx = endX(0.86, 0, -1);
-  add(dome(0.058, 0.009, bx - 0.006, 0.86, -1), "gloss");
-  g.add(sticker(endDecal([[-0.25, 0.695], [-0.2, 0.695], [-0.2, 0.72], [-0.25, 0.72]], -1, { mirror: false, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["z", 1], ["y", 1]));
+  const by = 0.89;
+  const bx = endX(by, 0, -1);
+  add(dome(0.058, 0.009, bx - 0.006, by, -1), "gloss");
+  g.add(sticker(endDecal([[-0.48, 0.71], [-0.42, 0.71], [-0.42, 0.735], [-0.48, 0.735]], -1, { mirror: false, offset: 0.002, subdiv: 1 }), STICKER.badgeR, ["z", 1], ["y", 1]));
 
-  // Plate on the bumper, in its frame; parking sensors; reflectors; side markers.
-  g.add(plate(STICKER.plateRear, -1, 0, 0.525));
-  for (const z of [0.3, 0.62]) add(endDecal(circle(z, 0.6, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
-  add(endDecal([[0.6, 0.42], [0.8, 0.42], [0.8, 0.436], [0.6, 0.436]], -1, { offset: 0.003 }), "tail");
-  add(sideDecal([[-2.04, 0.47], [-1.96, 0.475], [-1.96, 0.495], [-2.04, 0.49]], { offset: 0.002, subdiv: 1 }), "tail");
+  // Plate in the bumper's recess, in its frame; parking sensors; reflectors;
+  // side markers.
+  g.add(plate(STICKER.plateRear, -1, 0, 0.59));
+  for (const z of [0.32, 0.62]) add(endDecal(circle(z, 0.6, 0.012, 14), -1, { offset: 0.0025, subdiv: 1 }), "sensor");
+  add(endDecal([[0.6, 0.41], [0.82, 0.41], [0.82, 0.445], [0.6, 0.445]], -1, { offset: 0.003 }), "tail");
+  add(sideDecal([[-2.0, 0.47], [-1.93, 0.475], [-1.93, 0.495], [-2.0, 0.49]], { offset: 0.002, subdiv: 1 }), "tail");
 
   // Rear wiper parked across the bottom of the glass.
-  const wiper = rbox(0.012, 0.012, 0.34, 0.004, -1.966, 1.045, 0.12);
-  add(wiper, "gloss");
+  add(rbox(0.012, 0.012, 0.34, 0.004, X.glassBottom + 0.012, centreTop(X.glassBottom + 0.012) + 0.012, 0.12), "gloss");
   return g;
 }
 
@@ -750,8 +776,8 @@ function tail() {
 
 function mirror() {
   const g = new Group();
-  const [, by, bz] = bodyPoint(0.5, T.belt);
-  const cx = 0.47;
+  const [, by, bz] = bodyPoint(0.68, T.belt);
+  const cx = 0.66;
   const cy = by + 0.075;
   const cz = bz + 0.085;
   // Cap: the front half of a squashed ellipsoid, in forged carbon.
@@ -775,16 +801,17 @@ function mirror() {
  * into winglets, and fins down the sides of the glass.
  */
 function spoiler() {
-  const xa = X.roofRear + 0.06;
+  const R = X.roofRear;
+  const xa = R + 0.08;
   const y0 = centreTop(xa);
   const profile = new Shape([
     new Vector2(xa, y0 - 0.004),
-    new Vector2(-2.0, y0 - 0.032),
-    new Vector2(-2.01, y0 - 0.052),
-    new Vector2(-1.9, y0 - 0.075),
-    new Vector2(X.roofRear - 0.02, y0 - 0.04),
+    new Vector2(R - 0.2, y0 - 0.035),
+    new Vector2(R - 0.21, y0 - 0.055),
+    new Vector2(R - 0.1, y0 - 0.08),
+    new Vector2(R + 0.02, y0 - 0.04),
   ]);
-  const half = 0.57;
+  const half = 0.55;
   const g = new ExtrudeGeometry(profile, {
     depth: half * 2,
     bevelEnabled: true,
@@ -807,20 +834,20 @@ function spoiler() {
 
   const drop = topY(xa, half) - crown;
   const winglet = new Shape([
-    new Vector2(-1.84, y0 - 0.016),
-    new Vector2(-2.005, y0 - 0.034),
-    new Vector2(-2.015, y0 + 0.05),
-    new Vector2(-1.965, y0 + 0.042),
+    new Vector2(R - 0.04, y0 - 0.016),
+    new Vector2(R - 0.205, y0 - 0.037),
+    new Vector2(R - 0.215, y0 + 0.05),
+    new Vector2(R - 0.165, y0 + 0.042),
   ]);
   const wg = new ExtrudeGeometry(winglet, { depth: 0.014, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2 });
   wg.translate(0, drop, half - 0.014);
   out.add(mesh(planarUV(both(wg), "x", "y", 7), "carbon", "spoiler"));
 
   const fin = new Shape([
-    new Vector2(X.roofRear + 0.02, 0),
-    new Vector2(-1.97, -0.03),
-    new Vector2(-1.93, -0.16),
-    new Vector2(-1.88, -0.1),
+    new Vector2(R + 0.02, 0),
+    new Vector2(R - 0.17, -0.03),
+    new Vector2(R - 0.13, -0.16),
+    new Vector2(R - 0.08, -0.1),
   ]);
   const fg = new ExtrudeGeometry(fin, { depth: 0.012, bevelEnabled: false });
   fg.translate(0, topY(xa, half - 0.02) - 0.03, half - 0.04);
@@ -842,23 +869,27 @@ function diffuser() {
   const g = new Group();
   const add = (geo, mat = "gloss") => g.add(mesh(geo, mat, "diffuser"));
   add(endDecal([[-0.42, 0.3], [0.42, 0.3], [0.42, 0.37], [-0.42, 0.37]], -1, { mirror: false, offset: 0.004 }));
-  add(endDecal([[0.68, 0.3], [0.8, 0.31], [0.8, 0.37], [0.68, 0.37]], -1, { offset: 0.004 }));
+  add(endDecal([[0.66, 0.31], [0.78, 0.32], [0.78, 0.37], [0.66, 0.37]], -1, { offset: 0.004 }));
 
   const sheet = (pts, depth) => {
     const s = new ExtrudeGeometry(new Shape(pts.map(([x, y]) => new Vector2(x, y))), { depth, bevelEnabled: false });
     s.translate(0, 0, -depth / 2);
     return s;
   };
+  // Fins and flaps hang off the bumper wherever its skin is at that width.
   for (const z of [0.07, 0.19, 0.31]) {
-    const fin = sheet([[-1.93, 0.3], [-2.08, 0.3], [-2.105, 0.17], [-2.07, 0.155]], 0.008);
+    const xs = endX(0.3, z, -1) ?? -2.02;
+    const fin = sheet([[xs + 0.09, 0.3], [xs - 0.05, 0.3], [xs - 0.075, 0.17], [xs - 0.04, 0.155]], 0.008);
     fin.translate(0, 0, z);
     add(both(fin));
-    const tip = sheet([[-2.07, 0.155], [-2.105, 0.17], [-2.1, 0.193], [-2.068, 0.18]], 0.0104);
+    const tip = sheet([[xs - 0.04, 0.155], [xs - 0.075, 0.17], [xs - 0.07, 0.193], [xs - 0.038, 0.18]], 0.0104);
     tip.translate(0, 0, z);
     add(both(tip), "paint");
   }
-  const flap = sheet([[-1.88, 0.31], [-2.03, 0.31], [-2.045, 0.235], [-1.92, 0.22]], 0.01);
-  flap.translate(0, 0, 0.775);
+  const fz = 0.775;
+  const fx = endX(0.32, fz, -1) ?? -1.8;
+  const flap = sheet([[fx + 0.06, 0.31], [fx - 0.09, 0.31], [fx - 0.105, 0.235], [fx + 0.02, 0.22]], 0.01);
+  flap.translate(0, 0, fz);
   add(both(flap));
   return g;
 }
@@ -867,16 +898,17 @@ function exhaust() {
   const g = new Group();
   const add = (geo, mat = "steel") => g.add(mesh(geo, mat, "exhaust"));
   // From the downpipe's flange back down the tunnel, over the axle, into the silencer.
-  add(tube([[0.38, 0.19, 0], [0, 0.19, 0.02], [-0.6, 0.2, 0.02], [-1.1, 0.24, 0], [-1.45, 0.25, 0]], 0.032));
-  add(cyl(0.065, 0.065, 0.42, -0.45, 0.2, 0.02, "x"));
+  add(tube([[0.38 + BAY_X, 0.19, 0], [0, 0.19, 0.02], [-0.6, 0.2, 0.02], [-1.1, 0.24, 0], [-1.45, 0.25, 0]], 0.032));
+  add(cyl(0.06, 0.06, 0.42, -0.45, 0.22, 0.02, "x"));
   add(cyl(0.085, 0.085, 0.86, -1.72, 0.27, 0, "z"));
+  // Each pair's mouths line up a few centimetres proud of the bumper.
+  const x0 = Math.min(...TIPS_Z.map((z) => endX(TIP_Y, z, -1) ?? -2.02)) - 0.05;
   for (const z of TIPS_Z) {
     for (const s of [1, -1]) {
-      add(tube([[-1.72, 0.27, s * (z - 0.06)], [-1.86, 0.29, s * z], [-1.995, TIP_Y, s * z]], 0.028, 12, 10));
-      // Black tips, well proud of the bumper, with a dark throat.
-      const x0 = -2.115;
-      add(cyl(TIP_R, TIP_R, 0.12, x0 + 0.06, TIP_Y, s * z, "x", 32, true), "tip");
-      add(cyl(TIP_R - 0.007, TIP_R - 0.007, 0.12, x0 + 0.06, TIP_Y, s * z, "x", 32, true), "trim");
+      add(tube([[-1.72, 0.27, s * (z - 0.06)], [-1.84, 0.29, s * z], [x0 + 0.12, TIP_Y, s * z]], 0.028, 12, 10));
+      // Black tips with a dark throat.
+      add(cyl(TIP_R, TIP_R, 0.14, x0 + 0.07, TIP_Y, s * z, "x", 32, true), "tip");
+      add(cyl(TIP_R - 0.007, TIP_R - 0.007, 0.14, x0 + 0.07, TIP_Y, s * z, "x", 32, true), "trim");
       const lipRing = new TorusGeometry(TIP_R - 0.0035, 0.0035, 8, 32);
       lipRing.rotateY(Math.PI / 2);
       lipRing.translate(x0, TIP_Y, s * z);
@@ -897,8 +929,8 @@ function engine() {
   const g = new Group();
   const add = (geo, mat, part) => g.add(mesh(geo, mat, part));
 
-  add(rbox(0.07, 0.42, 1.12, 0.02, 1.93, 0.46, 0), "plastic"); // radiator support
-  add(rbox(0.16, 0.025, 1.0, 0.008, 1.88, 0.695, 0), "plastic"); // slam-panel cover
+  add(rbox(0.07, 0.42, 1.0, 0.02, 1.8, 0.46, 0), "plastic"); // radiator support
+  add(rbox(0.14, 0.025, 0.9, 0.008, 1.76, 0.695, 0), "plastic"); // slam-panel cover
   add(rbox(0.34, 0.36, 0.62, 0.04, 1.35, 0.43, 0.19), "engine"); // block
   add(rbox(0.3, 0.12, 0.6, 0.04, 1.35, 0.67, 0.19), "engine"); // head
   add(rbox(0.15, 0.24, 0.58, 0.04, 1.58, 0.56, 0.19), "plastic"); // intake manifold
@@ -922,7 +954,7 @@ function engine() {
   // Unitronic carbon airbox; snorkel forward to the slam panel.
   const box = rbox(0.42, 0.2, 0.32, 0.06, 1.55, 0.64, -0.28);
   add(planarUV(box, "x", "z", 7), "carbon", "intake");
-  add(planarUV(tube([[1.74, 0.66, -0.34], [1.84, 0.66, -0.34], [1.88, 0.62, -0.32]], 0.04, 16, 12), "x", "z", 7), "carbon", "intake");
+  add(planarUV(tube([[1.74, 0.66, -0.34], [1.78, 0.66, -0.34], [1.8, 0.62, -0.32]], 0.04, 16, 12), "x", "z", 7), "carbon", "intake");
 
   // Turbo at the back of the block; the inlet arches from the airbox over to it.
   add(cyl(0.065, 0.065, 0.07, 1.12, 0.55, 0.02, "z", 24), "steel");
@@ -943,7 +975,7 @@ function engine() {
   add(cyl(0.028, 0.028, 0.03, 1.72, 0.665, 0.47), "blue");
 
   // Strut tops and the scuttle panel.
-  for (const z of [0.5, -0.5]) add(cyl(0.07, 0.07, 0.06, 1.3, 0.76, z), "plastic");
+  for (const z of [0.5, -0.5]) add(cyl(0.07, 0.07, 0.06, X.strut - BAY_X, 0.78, z), "plastic");
   add(rbox(0.06, 0.12, 1.2, 0.02, 0.76, 0.84, 0), "plastic");
   return g;
 }
@@ -963,7 +995,7 @@ function downpipe() {
 
 /* --------------------------------------------------------------- interior -- */
 
-const WHEEL = { x: 0.1, y: 0.94, z: -0.37, r: 0.18, tilt: -0.38 };
+const WHEEL = { x: 0.2, y: 0.94, z: -0.37, r: 0.18, tilt: -0.38 };
 
 function steeringWheel() {
   const g = new Group();
@@ -1002,10 +1034,10 @@ function steeringWheel() {
 function interior() {
   const g = new Group();
   const add = (geo, mat) => g.add(mesh(geo, mat));
-  add(rbox(0.42, 0.22, 1.42, 0.06, 0.4, 0.86, 0), "interior"); // dash
-  add(rbox(0.2, 0.08, 0.3, 0.03, 0.26, 0.98, WHEEL.z), "interior"); // binnacle
-  add(rbox(0.8, 0.22, 0.2, 0.04, -0.05, 0.5, 0), "interior"); // console
-  add(cyl(0.025, 0.03, 0.3, 0.22, 0.88, WHEEL.z, "x", 12), "interior"); // column
+  add(rbox(0.46, 0.22, 1.42, 0.06, 0.6, 0.87, 0), "interior"); // dash
+  add(rbox(0.2, 0.08, 0.3, 0.03, 0.42, 0.99, WHEEL.z), "interior"); // binnacle
+  add(rbox(0.9, 0.22, 0.2, 0.04, 0.05, 0.5, 0), "interior"); // console
+  add(cyl(0.025, 0.03, 0.3, 0.36, 0.88, WHEEL.z, "x", 12), "interior"); // column
   const seatBack = (w, h, d, dz) => {
     const b = rbox(w, h, d, 0.04, 0, 0.3, dz);
     b.rotateZ(0.22);
@@ -1138,17 +1170,26 @@ function wheel() {
 
 export const HOOD_OPEN = 0.95; // radians
 
+// The engine bay is laid out in its own block (engine(), downpipe()) and
+// seated this far forward, between the firewall behind the cowl and the
+// radiator; parts that belong to the body (strut tops) subtract it back out.
+export const BAY_X = 0.15;
+
 /**
  * The whole car. userData.openHood(k) swings the hood, k 0..1; parts are
  * tagged for the scene to light up. The body rides RIDE_DROP below its stock
  * height over the wheels.
  */
 export function buildCar() {
+  DECAL_MISSES.length = 0;
   const car = new Group();
   car.name = "golf-r";
   const chassis = new Group();
   chassis.position.y = -RIDE_DROP;
-  chassis.add(body(), nose(), tail(), mirror(), spoiler(), diffuser(), exhaust(), downpipe(), engine(), interior());
+  const bay = new Group();
+  bay.position.x = BAY_X;
+  bay.add(engine(), downpipe());
+  chassis.add(body(), nose(), tail(), mirror(), spoiler(), diffuser(), exhaust(), bay, interior());
   const hinge = hood();
   chassis.add(hinge, steeringWheel());
   car.add(chassis);

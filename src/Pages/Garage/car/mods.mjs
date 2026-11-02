@@ -39,7 +39,7 @@ export const MODS = [
     note: "A wider pipe straight off the turbo, with a high-flow cat in place of the factory one.",
     parts: ["downpipe"],
     reveal: "xray",
-    view: { yaw: 142, pitch: 16, dist: 2.7, target: [0.8, 0.34, 0.05] },
+    view: { yaw: 142, pitch: 16, dist: 2.7, target: [0.95, 0.34, 0.05] },
   },
   {
     id: "inlet",
@@ -49,7 +49,7 @@ export const MODS = [
     note: "Replaces the factory plastic pipe between the air filter and the turbo.",
     parts: ["inlet"],
     reveal: "hood",
-    view: { yaw: 308, pitch: 46, dist: 2.7, target: [1.25, 0.68, -0.05] },
+    view: { yaw: 308, pitch: 46, dist: 2.7, target: [1.4, 0.7, -0.05] },
   },
   {
     id: "intake",
@@ -59,7 +59,7 @@ export const MODS = [
     note: "A carbon fibre airbox and cone filter feeding the turbo.",
     parts: ["intake"],
     reveal: "hood",
-    view: { yaw: 322, pitch: 44, dist: 2.6, target: [1.45, 0.66, -0.3] },
+    view: { yaw: 322, pitch: 44, dist: 2.6, target: [1.6, 0.68, -0.3] },
   },
   {
     id: "coils",
@@ -70,7 +70,7 @@ export const MODS = [
     parts: ["coils"],
     reveal: "hood",
     hide: ["cover"],
-    view: { yaw: 12, pitch: 52, dist: 2.3, target: [1.36, 0.74, 0.22] },
+    view: { yaw: 12, pitch: 52, dist: 2.3, target: [1.51, 0.76, 0.22] },
   },
   {
     id: "tune",
@@ -80,7 +80,7 @@ export const MODS = [
     note: "Equilibrium Tuning maps for the engine and the DSG, flashed with the Accessport.",
     parts: ["tune"],
     reveal: "hood",
-    view: { yaw: 298, pitch: 40, dist: 2.9, target: [1.1, 0.64, -0.45] },
+    view: { yaw: 298, pitch: 40, dist: 2.9, target: [1.25, 0.66, -0.45] },
   },
   {
     id: "hood",
@@ -90,7 +90,7 @@ export const MODS = [
     note: "The whole hood in forged carbon flecked with sky blue, with two louvred heat extractors.",
     parts: ["hood"],
     reveal: null,
-    view: { yaw: 22, pitch: 30, dist: 4.4, target: [1.3, 0.78, 0] },
+    view: { yaw: 22, pitch: 30, dist: 4.4, target: [1.55, 0.82, 0] },
   },
   {
     id: "spoiler",
@@ -100,7 +100,7 @@ export const MODS = [
     note: "A big roof wing over the hatch glass, its corners kicked up into winglets.",
     parts: ["spoiler"],
     reveal: null,
-    view: { yaw: 208, pitch: 26, dist: 3.7, target: [-1.8, 1.25, 0] },
+    view: { yaw: 208, pitch: 26, dist: 3.7, target: [-1.72, 1.28, 0] },
   },
   {
     id: "diffuser",
@@ -120,7 +120,7 @@ export const MODS = [
     note: "Forged carbon shells over both door mirrors.",
     parts: ["mirrors"],
     reveal: null,
-    view: { yaw: 24, pitch: 10, dist: 1.9, target: [0.47, 1.03, 0.92] },
+    view: { yaw: 24, pitch: 10, dist: 1.9, target: [0.66, 1.03, 0.92] },
   },
   {
     id: "wheels",
@@ -150,7 +150,7 @@ export const MODS = [
     note: "A forged carbon rim top and bottom, leather where your hands sit.",
     parts: ["steering"],
     reveal: "cabin",
-    view: { yaw: 260, pitch: 15, dist: 1.5, target: [0.08, 0.92, -0.37] },
+    view: { yaw: 260, pitch: 15, dist: 1.5, target: [0.2, 0.92, -0.37] },
   },
   {
     id: "paddles",
@@ -160,7 +160,7 @@ export const MODS = [
     note: "Longer carbon paddles that click onto the DSG's shifters with magnets.",
     parts: ["paddles"],
     reveal: "cabin",
-    view: { yaw: 260, pitch: 12, dist: 1.5, target: [0.12, 0.92, -0.37] },
+    view: { yaw: 260, pitch: 12, dist: 1.5, target: [0.24, 0.92, -0.37] },
   },
 ];
 

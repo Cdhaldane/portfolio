@@ -2,12 +2,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Box3, Vector3 } from "three";
-import { RIDE_DROP, buildCar } from "./model.mjs";
+import { DECAL_MISSES, RIDE_DROP, X, buildCar } from "./model.mjs";
 import { AREAS, MODS, OVERVIEW, cameraFrom } from "./mods.mjs";
-import { DIM, T, controls, endX, stations } from "./shape.mjs";
+import { DIM, T, centreTop, controls, endX, stations } from "./shape.mjs";
 
 const car = buildCar();
 car.updateMatrixWorld(true);
+const misses = DECAL_MISSES.slice();
 
 const meshes = [];
 car.traverse((o) => o.isMesh && meshes.push(o));
@@ -75,17 +76,30 @@ test("sections stay in order from floor to roof", () => {
   }
 });
 
-test("the lights and intakes land on the nose and tail", () => {
-  for (const [y, z] of [
-    [0.67, 0.43], [0.815, 0.62], [0.78, 0.848], [0.245, 0.42], [0.5, 0.7], [0.45, 0.79], [0.2, 0.8],
-  ]) {
-    assert.ok(endX(y, z, 1) > 1.9, `nose at (${y}, ${z})`);
+test("every light, badge and intake lands on the body", () => {
+  assert.deepEqual(misses, [], `${misses.length} decal points fell off the edge`);
+  // The corners of the lights reach round the nose and tail, not off them.
+  for (const [y, z] of [[0.615, 0.43], [0.765, 0.79], [0.745, 0.84], [0.24, 0.55], [0.41, 0.845]]) {
+    assert.ok(endX(y, z, 1) > 1.75, `nose at (${y}, ${z})`);
   }
-  for (const [y, z] of [
-    [0.983, 0.6], [0.978, 0.84], [0.858, 0.852], [0.3, 0.42], [0.3, 0.8], [0.45, 0.16], [0.6, 0.16],
-  ]) {
-    assert.ok(endX(y, z, -1) < -1.9, `tail at (${y}, ${z})`);
+  for (const [y, z] of [[0.955, 0.6], [0.958, 0.74], [0.83, 0.76], [0.3, 0.42], [0.514, 0.16]]) {
+    assert.ok(endX(y, z, -1) < -1.75, `tail at (${y}, ${z})`);
   }
+});
+
+// Measured off an orthographic Mk7 Golf R blueprint. These are the
+// proportions that make it read as a Golf; they held the shape wrong before.
+test("the proportions follow the blueprint", () => {
+  assert.ok(X.cowl > DIM.axle - DIM.archR && X.cowl < DIM.axle, "the windshield's foot sits over the front wheel");
+  assert.ok(Math.abs(centreTop(X.cowl) - 1.0) < 0.02, `windshield foot at ${centreTop(X.cowl)}`);
+  assert.ok(Math.abs(centreTop(X.roofFront) - 1.41) < 0.02, `windshield header at ${centreTop(X.roofFront)}`);
+  assert.ok(Math.abs(centreTop(-0.5) - 1.436) < 0.003, "the roof is flat at 1.436 over the B-pillar");
+  assert.ok(Math.abs(centreTop(X.roofRear) - 1.36) < 0.02, `roof ends at ${centreTop(X.roofRear)}`);
+  assert.ok(Math.abs(centreTop(2.11) - 0.715) < 0.02, `hood nose at ${centreTop(2.11)}`);
+  const shoulder = controls(0)[T.shoulder][1];
+  assert.ok(Math.abs(shoulder - 0.82) < 0.02, `tornado line at ${shoulder}`);
+  const nose = controls(2.113)[T.shoulder][0] + 0.012;
+  assert.ok(Math.abs(nose - 0.553) < 0.01, `8 cm behind the nose the body is ${nose} half wide`);
 });
 
 test("opening the hood lifts its leading edge", () => {
