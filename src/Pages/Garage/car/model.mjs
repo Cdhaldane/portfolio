@@ -1,7 +1,6 @@
 import {
   BufferGeometry,
   CatmullRomCurve3,
-  CircleGeometry,
   CylinderGeometry,
   ExtrudeGeometry,
   Float32BufferAttribute,
@@ -918,21 +917,62 @@ function tail() {
 
 function mirror() {
   const g = new Group();
-  const [, by, bz] = bodyPoint(0.68, T.belt);
-  const cx = 0.66;
-  const cy = by + 0.075;
-  const cz = bz + 0.085;
-  // Cap: the front half of a squashed ellipsoid, in forged carbon.
-  const cap = new SphereGeometry(1, 32, 16, Math.PI / 2, Math.PI);
-  cap.scale(0.075, 0.07, 0.11);
-  cap.translate(cx, cy, cz);
-  g.add(mesh(both(planarUV(cap, "z", "y", 3)), "forged", "mirrors"));
-  const back = new CircleGeometry(1, 32);
-  back.rotateY(-Math.PI / 2);
-  back.scale(1, 0.07, 0.11);
-  back.translate(cx - 0.001, cy, cz);
-  g.add(mesh(both(back), "mirror"));
-  g.add(mesh(both(rbox(0.07, 0.03, 0.1, 0.01, cx + 0.01, cy - 0.05, bz + 0.04)), "trim"));
+  const add = (geo, mat, part) => g.add(mesh(both(geo), mat, part));
+  // On the door at the window's front corner. Seen from behind the housing is
+  // a rounded wedge, low at the door and tall at the outer end; its shell
+  // domes forward from the glass, shallower towards the swept outer end. The
+  // car is 2027 wide across them.
+  const [, by, bz] = bodyPoint(0.62, T.belt);
+  const xb = 0.56; // the glass
+  const z0 = bz + 0.03;
+  const y0 = by + 0.02;
+  const glass = new CatmullRomCurve3(
+    [[0, 0.02], [0.004, 0.07], [0.03, 0.095], [0.1, 0.118], [0.165, 0.132], [0.195, 0.12], [0.206, 0.085],
+      [0.198, 0.035], [0.18, 0.01], [0.12, 0.002], [0.04, 0], [0.008, 0.004]].map(([u, v]) => new Vector3(z0 + u, y0 + v, 0)),
+    true,
+    "centripetal"
+  ).getSpacedPoints(64);
+  const c = glass.reduce((s, p) => s.add(p), new Vector3()).divideScalar(glass.length);
+  const depth = 0.1;
+  // Each ring pulls the outline in towards its centre and forward; the outer
+  // end comes forward later, so it reads swept back.
+  const shell = (a0, a1, rings, grow = 0) =>
+    grid(
+      range(a0, a1, rings).map((a) =>
+        glass.map((p) => {
+          const w = 1 - 0.7 * Math.max(0, (p.x - z0) / 0.206) ** 1.5;
+          const k = Math.cos(a) * (1 + grow);
+          const f = Math.sin(a) * (w + (1 - w) * Math.sin(a) ** 4);
+          return [xb + depth * f * (1 + grow), c.y + (p.y - c.y) * k, c.x + (p.x - c.x) * k];
+        })
+      ),
+      { side: 1 }
+    );
+  add(planarUV(orient(shell(0, Math.PI / 2, 14), [1, 0, 0]), "z", "y", 3), "forged", "mirrors");
+  // The turn signal along the lower front edge.
+  const lower = glass.filter((p) => p.y < y0 + 0.03 && p.x > z0 + 0.03 && p.x < z0 + 0.18);
+  if (lower.length > 2) {
+    const strip = grid(
+      range(0.2, 0.42, 3).map((a) => lower.map((p) => {
+        const k = Math.cos(a) * 1.01;
+        return [xb + depth * Math.sin(a) * 1.01, c.y + (p.y - c.y) * k, c.x + (p.x - c.x) * k];
+      })),
+      { side: 1 }
+    );
+    add(orient(strip, [1, -0.5, 0]), "chrome");
+  }
+  // The glass, in its black rim; the arm and the base on the door.
+  const outline = (inset) => new Shape(glass.map((p) => new Vector2(c.x + (p.x - c.x) * inset, c.y + (p.y - c.y) * inset)));
+  const face = (inset, x) => {
+    const f = new ShapeGeometry(outline(inset), 2);
+    f.rotateY(-Math.PI / 2);
+    f.translate(x, 0, 0);
+    return orient(f, [-1, 0, 0]);
+  };
+  add(face(1, xb), "trim");
+  add(face(0.9, xb - 0.002), "mirror");
+  add(rbox(0.06, 0.025, 0.07, 0.008, xb + 0.045, y0 + 0.005, bz + 0.03), "trim");
+  add(rbox(0.12, 0.05, 0.022, 0.01, 0.63, by + 0.02, bz + 0.004), "trim");
   return g;
 }
 
