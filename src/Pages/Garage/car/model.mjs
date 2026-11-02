@@ -262,6 +262,25 @@ function roundRect(x0, y0, x1, y1, r, into = new Shape()) {
   return into;
 }
 
+/** A polygon with every corner rounded off by r, as a Shape (or a hole Path). */
+function roundPoly(points, r, into = new Shape()) {
+  const n = points.length;
+  const cut = (a, b) => {
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const k = Math.min(r, l / 2) / l;
+    return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+  };
+  points.forEach((p, i) => {
+    const a = cut(p, points[(i + n - 1) % n]);
+    const b = cut(p, points[(i + 1) % n]);
+    if (i === 0) into.moveTo(...a);
+    else into.lineTo(...a);
+    into.quadraticCurveTo(p[0], p[1], ...b);
+  });
+  into.closePath();
+  return into;
+}
+
 /** A polyline thickened into a ribbon outline, for shut lines. */
 function ribbon(points, width) {
   const left = [];
@@ -670,8 +689,12 @@ const bFront = (t) => lerp(-0.2, -0.27, up(t));
 const bRear = (t) => lerp(-0.33, -0.4, up(t));
 // The rear door glass's trailing edge leans forward as it rises.
 const rearGlassEdge = (t) => lerp(-1.29, -1.16, up(t));
-// The rear door's shut line climbs the front of the arch, then follows the glass.
-const rearDoorEdge = (t) => (t < 4.7 ? X.doorRear : lerp(X.doorRear, -1.28, (t - 4.7) / (T.belt - 4.7)));
+// The rear door's shut line, off the 5-door blueprint: from just ahead of
+// the arch at the sill, one long diagonal up to the foot of the quarter glass.
+const rearDoorEdgeAt = profile([
+  [0.38, X.doorRear], [0.45, -0.922], [0.5, -0.945], [0.6, -0.99], [0.7, -1.05], [0.8, -1.12], [0.9, -1.2], [1.0, -1.28],
+]);
+const rearDoorEdge = (t) => rearDoorEdgeAt(bodyPoint(-1.1, t)[1]);
 
 /* ------------------------------------------------------------------- body -- */
 
@@ -738,9 +761,11 @@ function body() {
   wrap(slab({ ...skirt, t0: 3.28, t1: 3.48, thick: 0.02, nt: 3 }));
   line(skin({ x0: X.hoodRear, x1: X.hoodFront + 0.004, t0: T.belt - 0.04, t1: T.belt, nt: 1, offset: 0.0008 }));
 
-  // Fuel door, on the passenger side's rear quarter.
-  const door = roundRect(-1.63, 0.79, -1.42, 0.925, 0.035);
-  door.holes.push(roundRect(-1.627, 0.793, -1.423, 0.922, 0.032, new Path()));
+  // Fuel door, on the passenger side's rear quarter, its front edge raked
+  // parallel to the rear door's shut line.
+  const flap = (d) => [[-1.43 - d, 0.775 + d], [-1.67 + d, 0.775 + d], [-1.67 + d, 0.915 - d], [-1.52 - d * 0.6, 0.915 - d]];
+  const door = roundPoly(flap(0), 0.035);
+  door.holes.push(roundPoly(flap(0.003), 0.032, new Path()));
   line(sideDecal(door, { side: 1, offset: 0.0008, subdiv: 1 }));
 
   // Liners: the inside of the cabin is dark, not body colour. (Flipped, so a
