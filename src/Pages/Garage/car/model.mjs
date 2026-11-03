@@ -403,14 +403,22 @@ function surfaceNormals(g, params, offset) {
     const [x, t] = params[i % m];
     const a = bodyPoint(x - e, t);
     const b = bodyPoint(x + e, t);
-    const c = bodyPoint(x, Math.max(0, t - e));
-    const d = bodyPoint(x, Math.min(T_TOP, t + e));
     sx.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
-    st.set(d[0] - c[0], d[1] - c[1], d[2] - c[2]);
-    v.crossVectors(sx, st);
-    if (v.lengthSq() < 1e-16) v.set(n.getX(i), n.getY(i), n.getZ(i));
-    v.normalize();
-    if (p.getZ(i) < 0 || (p.getZ(i) === 0 && i >= m)) v.z = -v.z; // the mirrored half
+    // Where a section's tangent vanishes at a control point, step wider
+    // across t before giving up on the surface's own normal.
+    for (const h of [e, 0.004, 0.02]) {
+      const c = bodyPoint(x, Math.max(0, t - h));
+      const d = bodyPoint(x, Math.min(T_TOP, t + h));
+      st.set(d[0] - c[0], d[1] - c[1], d[2] - c[2]);
+      v.crossVectors(sx, st);
+      if (v.lengthSq() > 1e-12 * (h / e) ** 2) break;
+    }
+    if (v.lengthSq() < 1e-16) {
+      v.set(n.getX(i), n.getY(i), n.getZ(i)); // the grid's averaged normal, already per half
+    } else {
+      v.normalize();
+      if (p.getZ(i) < 0 || (p.getZ(i) === 0 && i >= m)) v.z = -v.z; // the mirrored half
+    }
     if (v.x * n.getX(i) + v.y * n.getY(i) + v.z * n.getZ(i) < 0) v.negate(); // grid's winding knows out from in
     n.setXYZ(i, v.x, v.y, v.z);
     if (offset) p.setXYZ(i, p.getX(i) + v.x * offset, p.getY(i) + v.y * offset, p.getZ(i) + v.z * offset);
