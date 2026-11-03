@@ -120,16 +120,19 @@ const bottom = profile([
 // Half width in plan (the widest point of each section). Both ends are round
 // in plan, the nose more than the tail; the front wings are the widest point.
 const shoulderW = profile([
-  [2.195, 0.04], [2.1935, 0.2], [2.189, 0.25], [2.183, 0.31], [2.172, 0.386], [2.16, 0.438],
-  [2.148, 0.478], [2.137, 0.51], [2.125, 0.536], [2.113, 0.553], [2.09, 0.596], [2.067, 0.631],
-  [2.043, 0.665], [2.02, 0.688], [1.997, 0.711], [1.974, 0.734], [1.95, 0.751], [1.92, 0.777],
-  [1.898, 0.795], [1.875, 0.809], [1.851, 0.823], [1.828, 0.838], [1.805, 0.849], [1.781, 0.861],
-  [1.758, 0.872], [1.735, 0.878], [1.7, 0.887], [1.3, 0.895], [0.97, 0.895], [0.89, 0.884],
-  [0.8, 0.878], [0, 0.878], [-0.4, 0.872], [-0.7, 0.864], [-1.0, 0.864], [-1.15, 0.866],
-  [-1.4, 0.861], [-1.6, 0.855], [-1.662, 0.852], [-1.69, 0.844], [-1.72, 0.838], [-1.75, 0.826],
-  [-1.78, 0.809], [-1.81, 0.79], [-1.84, 0.77], [-1.87, 0.746], [-1.9, 0.725], [-1.93, 0.694],
-  [-1.96, 0.659], [-1.99, 0.613], [-2.017, 0.55], [-2.04, 0.481], [-2.058, 0.406], [-2.069, 0.273],
-  [-2.075, 0.167], [-2.081, 0.04],
+  [2.195, 0.04], [2.189, 0.2534], [2.179, 0.3396], [2.169, 0.3988], [2.159, 0.4403], [2.149, 0.4739], [2.139, 0.5021],
+  [2.129, 0.5251], [2.109, 0.5614], [2.089, 0.5962], [2.069, 0.6277], [2.049, 0.6554], [2.029, 0.6786], [2.009, 0.6991],
+  [1.989, 0.7185], [1.969, 0.7364], [1.949, 0.7527], [1.929, 0.7691], [1.889, 0.7996], [1.849, 0.8245], [1.809, 0.8469],
+  [1.769, 0.8658], [1.729, 0.8793], [1.649, 0.8896], [1.569, 0.8925], [1.489, 0.8941], [1.409, 0.8948], [1.329, 0.895],
+  [1.249, 0.895], [1.169, 0.895], [1.089, 0.895], [1.009, 0.895], [0.969, 0.8941], [0.929, 0.89], [0.889, 0.8844],
+  [0.849, 0.8805], [0.809, 0.8785], [0.729, 0.878], [0.649, 0.878], [0.569, 0.878], [0.489, 0.878], [0.409, 0.878],
+  [0.329, 0.878], [0.249, 0.878], [0.169, 0.878], [0.089, 0.878], [0.009, 0.878], [-0.071, 0.8777], [-0.151, 0.8768],
+  [-0.231, 0.8755], [-0.311, 0.8739], [-0.391, 0.8722], [-0.471, 0.87], [-0.551, 0.8672], [-0.631, 0.8649], [-0.711, 0.864],
+  [-0.791, 0.864], [-0.871, 0.864], [-0.951, 0.864], [-1.031, 0.8643], [-1.111, 0.8656], [-1.191, 0.8657], [-1.271, 0.8643],
+  [-1.351, 0.8623], [-1.431, 0.8602], [-1.511, 0.8579], [-1.591, 0.8553], [-1.631, 0.8537], [-1.671, 0.8486], [-1.711, 0.8391],
+  [-1.731, 0.8326], [-1.751, 0.8241], [-1.791, 0.8018], [-1.871, 0.746], [-1.891, 0.7305], [-1.911, 0.713], [-1.931, 0.6924],
+  [-1.951, 0.6693], [-1.971, 0.6425], [-1.981, 0.6269], [-1.991, 0.609], [-2.001, 0.5882], [-2.011, 0.5646], [-2.021, 0.5384],
+  [-2.031, 0.5095], [-2.041, 0.4782], [-2.051, 0.442], [-2.061, 0.3752], [-2.071, 0.2397], [-2.081, 0.04],
 ]);
 
 // Height of the shoulder: the tornado line at about 0.82, from the back of
@@ -217,6 +220,11 @@ export function archTop(x) {
  */
 export const WELL_Z = 0.6;
 
+// How far inboard of the widest point the tornado line sits. The blueprint's
+// front view has the body already narrowing above 0.7 m, so the flank leans in
+// a little below the line and the shelf a lot above it.
+const SHOULDER_IN = 0.022;
+
 export function controls(x) {
   const yTop = top(x);
   const yb = Math.min(bottom(x), yTop - 0.05);
@@ -228,10 +236,25 @@ export function controls(x) {
   const ends = smooth(1.75, 1.95, Math.abs(x));
   const wb = Math.max(wsh - lerp(0.1, 0.045, ends), wsh * 0.6);
   const wIn = arch === null ? wb : Math.min(WELL_Z, wb);
-  // Over the wheels the arch lip flares a little proud of the flank.
-  const wLip = arch === null ? wb : wsh + 0.005;
-  const wRock = arch === null ? wsh - 0.006 : wsh + 0.002;
+  // Round each arch the rocker rides a ring 7 cm outside the opening, which
+  // meets the doors' rocker height where it ends, so the flank above it runs
+  // on unbroken past the arches. Over the wheels the lip sits just inside the
+  // flank (the flare, in surface(), stands it out); beside them, inside the
+  // ring, it comes most of the way out from under the floor, so the flank
+  // turns under gently there instead of scooping in.
+  const R = DIM.archR + 0.07;
+  let ring = 0;
+  for (const ax of [DIM.axle, -DIM.axle]) {
+    const dx = Math.abs(x - ax);
+    if (dx < R) ring = Math.max(ring, Math.sqrt(R * R - dx * dx));
+  }
+  const near = smooth(0, 0.05, ring);
+  const wLip = arch === null ? lerp(wb, wsh - 0.028, near) : wsh - 0.008;
   const ysh = clamp(shoulderY(x), ya + 0.03, yTop - 0.008);
+  const yRock = Math.max(ya + 0.02, Math.min(yb + 0.12 + ring, ysh - 0.025));
+  // Where the rocker rides up near the crease (over the arches), the wing
+  // above leans in to the tornado line instead of standing out to it.
+  const wRock = wsh - lerp(0.007, 0.02, smooth(ysh - 0.15, ysh - 0.03, yRock));
   const ybl = clamp(beltY(x), ysh + 0.004, yTop - 0.004);
   const wbl = Math.min(wsh - beltInset(x), hoodEdgeW(x));
   let yre = clamp(roofEdgeY(x), ybl + 0.002, yTop - 0.002);
@@ -251,8 +274,8 @@ export function controls(x) {
     [wIn, yb],
     [wIn, ya],
     [wLip, ya],
-    [wRock, ya + Math.min(0.12, (ysh - ya) * 0.3)],
-    [wsh - 0.012, ysh],
+    [wRock, yRock],
+    [wsh - SHOULDER_IN, ysh],
     [wbl, ybl],
     [wre, yre],
     crown,
@@ -329,9 +352,33 @@ export function sectionPoint(ctrl, t) {
   ];
 }
 
+/*
+ * The wheel arches' flares: a band round each opening standing out from the
+ * flank, ending in a crisp line about 7 cm out from the opening, as the
+ * blueprint draws it (it runs down to the sill at either end). Only on the
+ * flank, between the arch lip and the tornado line.
+ */
+const FLARE = { out: 0.008, band: 0.075 };
+function flare(x, y, t) {
+  const tw = smooth(2.85, 3.0, t) * (1 - smooth(4.55, 4.95, t));
+  if (tw === 0) return 0;
+  let f = 0;
+  for (const ax of [DIM.axle, -DIM.axle]) {
+    const s = (Math.hypot(x - ax, Math.max(0, y - DIM.archY)) - DIM.archR) / FLARE.band;
+    if (s < 1) f = Math.max(f, FLARE.out * (1 - Math.max(0, s) ** 3));
+  }
+  return f * tw;
+}
+
+/** The skin's half-section at x, t: [z, y], with the flares. */
+export function surface(x, t) {
+  const [z, y] = sectionPoint(cachedControls(x), t);
+  return [z + flare(x, y, t), y];
+}
+
 /** S(x, t) on the +z side: [x, y, z]. */
 export function bodyPoint(x, t) {
-  const [z, y] = sectionPoint(cachedControls(x), t);
+  const [z, y] = surface(x, t);
   return [x, y, z];
 }
 
@@ -359,11 +406,10 @@ export function stations(extra = []) {
 
 /** Outermost z of the +z side at height y on station x, or null if the section doesn't reach y. */
 export function sideZ(x, y, t0 = T.lip, t1 = T.roofEdge) {
-  const ctrl = cachedControls(x);
   let best = null;
-  let prev = sectionPoint(ctrl, t0);
+  let prev = surface(x, t0);
   for (let t = t0 + 0.02; t <= t1 + 1e-9; t += 0.02) {
-    const p = sectionPoint(ctrl, t);
+    const p = surface(x, t);
     if ((prev[1] - y) * (p[1] - y) <= 0 && prev[1] !== p[1]) {
       const z = prev[0] + ((y - prev[1]) / (p[1] - prev[1])) * (p[0] - prev[0]);
       if (best === null || z > best) best = z;
@@ -375,12 +421,11 @@ export function sideZ(x, y, t0 = T.lip, t1 = T.roofEdge) {
 
 /** Is (y, z) inside the full section at x? */
 function insideSection(x, y, z) {
-  const ctrl = cachedControls(x);
   const az = Math.abs(z);
   let inside = false;
-  let prev = sectionPoint(ctrl, 0);
+  let prev = surface(x, 0);
   for (let t = 0.08; t <= T_TOP + 1e-9; t += 0.08) {
-    const p = sectionPoint(ctrl, t);
+    const p = surface(x, t);
     // Ray from (az, y) towards +z: count crossings of the half-section.
     if ((prev[1] > y) !== (p[1] > y)) {
       const zc = prev[0] + ((y - prev[1]) / (p[1] - prev[1])) * (p[0] - prev[0]);
@@ -437,15 +482,14 @@ export const centreTop = top;
 
 /** Height of the upper surface (roof, hood, glass) at (x, z), searching from the roof edge in. */
 export function topY(x, z, t0 = T.belt) {
-  const ctrl = cachedControls(x);
   const az = Math.abs(z);
-  let prev = sectionPoint(ctrl, t0);
+  let prev = surface(x, t0);
   for (let t = t0 + 0.02; t <= T_TOP + 1e-9; t += 0.02) {
-    const p = sectionPoint(ctrl, t);
+    const p = surface(x, t);
     if ((prev[0] - az) * (p[0] - az) <= 0 && prev[0] !== p[0]) {
       return prev[1] + ((az - prev[0]) / (p[0] - prev[0])) * (p[1] - prev[1]);
     }
     prev = p;
   }
-  return ctrl[ctrl.length - 1][1];
+  return surface(x, T_TOP)[1];
 }

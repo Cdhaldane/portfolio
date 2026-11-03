@@ -351,6 +351,12 @@ function grid(rows, { side = 0, flip = false } = {}) {
 
 const STATIONS = stations();
 
+// The skin's creases (tornado line, the hood's creases). Rows bunch up
+// either side of them, so vertex normals only blend across a few millimetres
+// and the light breaks along the line instead of smearing over a whole row.
+const CREASES = [T.shoulder, T.roofEdge];
+const CREASE_ROWS = [0.006, 0.018, 0.04, 0.075];
+
 /*
  * A patch of the skin between x0..x1 and t0..t1. x0/x1 may be functions of t
  * for slanted edges (x is then sampled evenly); fixed edges reuse the shared
@@ -359,6 +365,12 @@ const STATIONS = stations();
  */
 function skin({ x0, x1, t0, t1, nt, nx = 40, offset = 0, side = 0, flip = false }) {
   const ts = range(t0, t1, nt || Math.max(2, Math.ceil((t1 - t0) * 10)));
+  for (const c of CREASES) {
+    if (c <= t0 || c >= t1) continue;
+    for (const d of [0, ...CREASE_ROWS, ...CREASE_ROWS.map((v) => -v)]) if (c + d > t0 && c + d < t1) ts.push(c + d);
+  }
+  ts.sort((a, b) => a - b);
+  for (let i = ts.length - 1; i > 0; i--) if (ts[i] - ts[i - 1] < 0.003) ts.splice(i, 1);
   let rows;
   if (typeof x0 === "number" && typeof x1 === "number") {
     const xs = [x0, ...STATIONS.filter((x) => x > x0 + 1e-4 && x < x1 - 1e-4), x1];
@@ -661,7 +673,7 @@ export const X = {
   doorSplit: -0.24,
   doorRear: -0.915,
   quarter: -0.985, // the rear door glass's fixed quarter pane starts behind this bar
-  arch: DIM.axle - DIM.archR - 0.025, // the side skirt runs between the arches, |x| under this
+  arch: DIM.axle - DIM.archR - 0.006, // the side skirt runs between the arches, |x| under this
   strut: DIM.axle, // strut tops sit over the front axle
   sail: 0.55, // front of the door glass, behind the mirror
   aBase: 0.82, // where the A-pillar meets the wing

@@ -8,11 +8,13 @@
  * there at its real size, though, which is what a shape check needs.
  *
  *   node scripts/car-preview.mjs [outDir] [--views a,b] [--size 960x560] [--reveal hood|xray|cabin]
- *                                [--cam yaw,pitch,dist,x,y,z[,fov]]
+ *                                [--cam yaw,pitch,dist,x,y,z[,fov]] [--zebra]
  *
  * Views are the same yaw/pitch/distance/target rig the page's camera uses;
  * pass a mod id from mods.mjs as a view to frame that mod, or --cam to frame
- * anything else (written out as cam.png).
+ * anything else (written out as cam.png). --zebra paints the body in
+ * reflected stripes, as designers check surfaces: a crease kinks the
+ * stripes, a smooth panel keeps them flowing.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -190,9 +192,16 @@ function render(view, reveal) {
   }
 
   const toCam = new Vector3();
+  const zebra = args.includes("--zebra");
   const shadePixel = (look, world, n) => {
     toCam.copy(cam.position).sub(world).normalize();
     if (n.dot(toCam) < 0) n.negate();
+    if (zebra && look === LOOK.paint) {
+      // Stripes of the reflection's elevation: horizontal light tubes.
+      const r = n.clone().multiplyScalar(2 * n.dot(toCam)).sub(toCam);
+      const band = Math.sin(Math.asin(Math.max(-1, Math.min(1, r.y))) * 40) > 0 ? 0.92 : 0.08;
+      return [band, band, band * 0.95 + 0.04];
+    }
     const [base, gloss] = look;
     const d1 = Math.max(0, n.dot(L1));
     const d2 = Math.max(0, n.dot(L2));
