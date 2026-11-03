@@ -358,7 +358,7 @@ export function sectionPoint(ctrl, t) {
  * blueprint draws it (it runs down to the sill at either end). Only on the
  * flank, between the arch lip and the tornado line.
  */
-const FLARE = { out: 0.008, band: 0.075 };
+const FLARE = { out: 0.005, band: 0.075 };
 function flare(x, y, t) {
   const tw = smooth(2.85, 3.0, t) * (1 - smooth(4.55, 4.95, t));
   if (tw === 0) return 0;

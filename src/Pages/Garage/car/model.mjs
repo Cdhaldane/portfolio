@@ -386,10 +386,13 @@ function skin({ x0, x1, t0, t1, nt, nx = 40, offset = 0, side = 0, flip = false 
 /**
  * A raised panel on the +z skin, x0..x1 by t0..t1, standing `thick` proud on
  * the skin's normal and closed all round; mirrored. For parts that sit over
- * the skin's edges, like the spoiler's side plates.
+ * the skin's edges, like the spoiler's side plates. With `taper`, it thins
+ * to nothing over that length at each end, blending into the skin.
  */
-function slab({ x0, x1, t0, t1, thick, nx = 12, nt = 6 }) {
+function slab({ x0, x1, t0, t1, thick, nx = 12, nt = 6, taper = 0 }) {
+  const ease = (x) => (taper ? Math.min(1, Math.max(0, Math.min(x - x0, x1 - x) / taper)) ** 0.5 : 1);
   const at = (x, t, o) => {
+    o *= ease(x);
     const p = new Vector3(...bodyPoint(x, t));
     const e = 1e-3;
     const dx = new Vector3(...bodyPoint(x + e, t)).sub(new Vector3(...bodyPoint(x - e, t)));
@@ -755,9 +758,9 @@ function body() {
 
   // The R's side skirts between the arches: a body-colour sill standing proud
   // under the doors, its lip flaring out along the bottom.
-  const skirt = { x0: -X.arch, x1: X.arch, nx: 60 };
-  wrap(slab({ ...skirt, t0: 3.28, t1: SILL_T - 0.03, thick: 0.01, nt: 8 }));
-  wrap(slab({ ...skirt, t0: 3.28, t1: 3.48, thick: 0.02, nt: 3 }));
+  const skirt = { x0: -X.arch, x1: X.arch, nx: 90 };
+  wrap(slab({ ...skirt, t0: 3.28, t1: SILL_T - 0.03, thick: 0.01, nt: 8, taper: 0.08 }));
+  wrap(slab({ ...skirt, t0: 3.28, t1: 3.48, thick: 0.02, nt: 3, taper: 0.08 }));
   line(skin({ x0: X.hoodRear, x1: X.hoodFront + 0.004, t0: T.belt - 0.04, t1: T.belt, nt: 1, offset: 0.0008 }));
 
   // Fuel door, on the passenger side's rear quarter, its front edge raked

@@ -51,7 +51,7 @@ test("the body is a Golf R's size", () => {
   const size = body.getSize(new Vector3());
   assert.ok(Math.abs(size.x - 4.276) < 0.02, `length ${size.x}`);
   assert.ok(size.y < 1.44 && size.y > 1.2, `height above the sills ${size.y}`);
-  assert.ok(size.z < 1.81 && size.z > 1.76, `width ${size.z}`);
+  assert.ok(size.z < 1.795 && size.z > 1.78, `width ${size.z}`); // 1790 across the arch flares
   assert.ok(body.max.y <= 1.44, `roof at ${body.max.y}`);
 });
 
