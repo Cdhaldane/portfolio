@@ -371,16 +371,53 @@ function skin({ x0, x1, t0, t1, nt, nx = 40, offset = 0, side = 0, flip = false 
   }
   ts.sort((a, b) => a - b);
   for (let i = ts.length - 1; i > 0; i--) if (ts[i] - ts[i - 1] < 0.003) ts.splice(i, 1);
-  let rows;
+  let params;
   if (typeof x0 === "number" && typeof x1 === "number") {
     const xs = [x0, ...STATIONS.filter((x) => x > x0 + 1e-4 && x < x1 - 1e-4), x1];
-    rows = ts.map((t) => xs.map((x) => bodyPoint(x, t)));
+    params = ts.map((t) => xs.map((x) => [x, t]));
   } else {
     const f0 = typeof x0 === "number" ? () => x0 : x0;
     const f1 = typeof x1 === "number" ? () => x1 : x1;
-    rows = ts.map((t) => range(f0(t), f1(t), nx).map((x) => bodyPoint(x, t)));
+    params = ts.map((t) => range(f0(t), f1(t), nx).map((x) => [x, t]));
   }
-  return lift(grid(rows, { side, flip }), offset);
+  const g = grid(params.map((row) => row.map(([x, t]) => bodyPoint(x, t))), { side, flip });
+  surfaceNormals(g, params.flat(), offset);
+  return g;
+}
+
+/*
+ * Replace a skin grid's averaged normals with the surface's own, from S(x, t)'s
+ * derivatives, so patches that meet along a seam shade as one surface and
+ * creases shade as sharp as they are. Then move it `offset` along them. Where
+ * the section collapses (no tangent across t) the averaged normal stays.
+ */
+function surfaceNormals(g, params, offset) {
+  const p = g.attributes.position;
+  const n = g.attributes.normal;
+  const e = 1e-4;
+  const sx = new Vector3();
+  const st = new Vector3();
+  const v = new Vector3();
+  const m = params.length;
+  for (let i = 0; i < p.count; i++) {
+    const [x, t] = params[i % m];
+    const a = bodyPoint(x - e, t);
+    const b = bodyPoint(x + e, t);
+    const c = bodyPoint(x, Math.max(0, t - e));
+    const d = bodyPoint(x, Math.min(T_TOP, t + e));
+    sx.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    st.set(d[0] - c[0], d[1] - c[1], d[2] - c[2]);
+    v.crossVectors(sx, st);
+    if (v.lengthSq() < 1e-16) v.set(n.getX(i), n.getY(i), n.getZ(i));
+    v.normalize();
+    if (p.getZ(i) < 0 || (p.getZ(i) === 0 && i >= m)) v.z = -v.z; // the mirrored half
+    if (v.x * n.getX(i) + v.y * n.getY(i) + v.z * n.getZ(i) < 0) v.negate(); // grid's winding knows out from in
+    n.setXYZ(i, v.x, v.y, v.z);
+    if (offset) p.setXYZ(i, p.getX(i) + v.x * offset, p.getY(i) + v.y * offset, p.getZ(i) + v.z * offset);
+  }
+  n.needsUpdate = true;
+  p.needsUpdate = true;
+  return g;
 }
 
 /**

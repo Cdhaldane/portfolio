@@ -196,7 +196,7 @@ function render(view, reveal) {
   const shadePixel = (look, world, n) => {
     toCam.copy(cam.position).sub(world).normalize();
     if (n.dot(toCam) < 0) n.negate();
-    if (zebra && look === LOOK.paint) {
+    if (zebra && (look === LOOK.paint || look === LOOK.forgedFlake)) {
       // Stripes of the reflection's elevation: horizontal light tubes.
       const r = n.clone().multiplyScalar(2 * n.dot(toCam)).sub(toCam);
       const band = Math.sin(Math.asin(Math.max(-1, Math.min(1, r.y))) * 40) > 0 ? 0.92 : 0.08;
