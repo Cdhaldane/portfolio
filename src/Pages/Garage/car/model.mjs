@@ -772,13 +772,13 @@ function body() {
   add(skin({ x0: X.sail, x1: X.aBase, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 8, offset: -0.001 }), "trim");
   wrap(skin({ x0: X.aBase, x1: X.cowl, t0: T.belt, t1: 6.86, nt: 8, nx: 12 }));
   add(skin({ x0: frameRear, x1: rearGlassEdge, t0: WIN.lo, t1: WIN.hi, nt: 8, nx: 3, offset: -0.001 }), "trim");
-  wrap(skin({ x0: X.glassBottom, x1: frameRear, t0: T.belt, t1: 6.86, nt: 10, nx: 40 }));
+  wrap(skin({ x0: X.glassBottom, x1: frameRear, t0: T.belt, t1: 6.86, nt: 24, nx: 100 }));
 
   // Rain visors over both door windows, running down the A-pillar.
   add(skin({ x0: (t) => rearGlassEdge(t) - 0.01, x1: X.sail + 0.08, t0: WIN.hi - 0.04, t1: WIN.hi + 0.09, nt: 3, nx: 120, offset: 0.012 }), "visor");
 
   // Hatch: C-pillar wrap, a black frit band, the glass; the tailgate below it.
-  wrap(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 6.86, t1: 7.12, nt: 4 }));
+  wrap(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 6.86, t1: 7.12, nt: 8 }));
   add(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 7.12, t1: 7.32, nt: 3, offset: -0.001 }), "trim");
   add(skin({ x0: X.glassBottom, x1: X.roofRear, t0: 7.32, t1: T_TOP, nt: 22, offset: -0.003 }), "tint");
   wrap(skin({ x0: DIM.rear, x1: X.glassBottom, t0: T.belt, t1: T_TOP, nt: 30 }));

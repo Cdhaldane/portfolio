@@ -288,10 +288,11 @@ export function controls(x) {
     yre = lerp(yre, yc, hood);
   }
   let crown = [wre * lerp(0.62, 0.5, hood), yTop - (yTop - yre) * lerp(0.14, 0.25, hood)];
-  // Ahead of the hood's front edge the sections shrink into the nose. Left
-  // flat-topped, their corner would slide in and down across the bumper's
-  // face as a V; there the top rounds into a quarter ellipse instead.
-  const face = smooth(2.115, 2.16, x);
+  // Ahead of the hood's front edge the sections shrink into the nose, and
+  // behind the hatch glass into the tail. Left flat-topped, their corner
+  // would slide in and down across the bumper's or tailgate's face as a V;
+  // there the top rounds into a quarter ellipse instead.
+  const face = Math.max(smooth(2.115, 2.16, x), smooth(-1.9, -1.96, x));
   if (face > 0) {
     const h = yTop - ybl;
     const ell = (a) => [wbl * Math.cos(a), ybl + h * Math.sin(a)];
@@ -317,12 +318,15 @@ export function controls(x) {
   // hood its creases (and the beltline point) run on down across the
   // bumper's face as the nose narrows, where the car has none, so they ease
   // off there and the face stays smooth.
+  // Behind the side glass the beltline has no window to edge, so the shelf
+  // runs on up into the C-pillar without a fold.
   const lamp = smooth(1.6, 1.72, x);
-  if (hood > 0 || lamp > 0) {
+  const pillar = smooth(-1.22, -1.4, x);
+  if (hood > 0 || lamp > 0 || pillar > 0) {
     c.tension = TENSION.slice();
     c.tension[7] = lerp(TENSION[7], lerp(0.15, 1, face), hood);
     c.tension[5] = lerp(TENSION[5], 1, lamp);
-    c.tension[6] = lerp(TENSION[6], 1, face);
+    c.tension[6] = lerp(TENSION[6], 1, Math.max(face, pillar));
   }
   return c;
 }
