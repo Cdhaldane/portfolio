@@ -29,16 +29,16 @@ test("a receipt read sends every photo first, then the known items", async () =>
     { image: "AAAA", mediaType: "image/jpeg" },
     { image: "BBBB", mediaType: "image/png" },
   ];
-  const out = await C.readReceipt(photos, [{ id: 7, name: "Milk 2%" }], { client });
+  const out = await C.readReceipt(photos, [{ id: 7, name: "Milk 2%" }], "2026-11-05", { client });
   assert.equal(out.store, "No Frills");
 
   const [params] = client.calls;
-  assert.equal(params.model, "claude-opus-5-5");
+  assert.equal(params.model, "claude-haiku-5-5");
   assert.equal(params.output_config.effort, "medium");
   assert.equal(params.output_config.format.type, "json_schema");
-  assert.deepEqual(params.betas, ["server-side-fallback-2026-07-01"]);
-  assert.equal(params.fallbacks, "default");
-  assert.equal("thinking" in params, false, "Opus 5.5 thinks adaptively; never disable it");
+  assert.equal("fallbacks" in params, false, "Haiku has no server-side fallback");
+  assert.equal("betas" in params, false);
+  assert.equal("thinking" in params, false, "Haiku 5.5 thinks adaptively by default; leave it on");
   assert.equal("temperature" in params, false);
 
   const content = params.messages[0].content;
@@ -53,11 +53,29 @@ test("a receipt read sends every photo first, then the known items", async () =>
   assert.match(prompt, /These 2 phone photos are one grocery receipt/);
   assert.match(prompt, /never count a line twice/);
   assert.match(prompt, /^7 \| Milk 2%$/m);
+  assert.match(prompt, /Today is 2026-11-05/, "the date settles day/month order");
+});
+
+test("PANTRY_MODEL swaps the model, and a bigger one gets the refusal fallback", async () => {
+  const path = require.resolve("./pantry-claude");
+  process.env.PANTRY_MODEL = "claude-opus-5-5";
+  delete require.cache[path];
+  try {
+    const client = fakeClient(answer({ recipes: [] }));
+    await require("./pantry-claude").suggestRecipes([], "", "2026-11-05", { client });
+    const [params] = client.calls;
+    assert.equal(params.model, "claude-opus-5-5");
+    assert.deepEqual(params.betas, ["server-side-fallback-2026-07-01"]);
+    assert.equal(params.fallbacks, "default");
+  } finally {
+    delete process.env.PANTRY_MODEL;
+    delete require.cache[path];
+  }
 });
 
 test("the receipt schema is strict enough for structured outputs", () => {
   const client = fakeClient(answer({ store: null, purchasedOn: null, totalCents: null, lines: [] }));
-  return C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], [], { client }).then(() => {
+  return C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], [], "2026-11-05", { client }).then(() => {
     const schema = client.calls[0].output_config.format.schema;
     const line = schema.properties.lines.items;
     assert.equal(schema.additionalProperties, false);
@@ -89,7 +107,7 @@ test("refusals, truncation and junk become a 422 the page can show", async () =>
     { stop_reason: "end_turn", content: [{ type: "text", text: "not json" }] },
   ]) {
     await assert.rejects(
-      C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], [], { client: fakeClient(reply) }),
+      C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], [], "2026-11-05", { client: fakeClient(reply) }),
       (err) => err.status === 422 && /receipt/.test(err.payload.error)
     );
   }
@@ -100,7 +118,7 @@ test("no API key means a 503 with a code, before any call", async () => {
   delete process.env.ANTHROPIC_API_KEY;
   try {
     await assert.rejects(
-      C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], []),
+      C.readReceipt([{ image: "AAAA", mediaType: "image/jpeg" }], [], "2026-11-05"),
       (err) => err.status === 503 && err.payload.code === "claude_unconfigured"
     );
   } finally {

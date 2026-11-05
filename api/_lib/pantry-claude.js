@@ -21,7 +21,15 @@ if (!process.env.ANTHROPIC_API_KEY) {
   }
 }
 
-const MODEL = "claude-opus-5-5";
+// Haiku 5.5: a receipt is transcription plus a little judgment, and at
+// $0.10 / $0.50 per million tokens it costs a fortieth of Opus 5.5.
+// PANTRY_MODEL swaps in a bigger model if its reads aren't good enough.
+const MODEL = process.env.PANTRY_MODEL || "claude-haiku-5-5";
+// Haiku has no server-side fallback. On a bigger model, a policy decline
+// (very unlikely here) reruns on a fallback model instead of failing.
+const FALLBACK = /haiku/.test(MODEL)
+  ? {}
+  : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" };
 // Known items sent with a receipt, so the model can match "NN 2% MLK 4L" to
 // the "Milk 2%" already on the shelf. Plenty for a household.
 const MAX_KNOWN = 400;
@@ -122,7 +130,7 @@ const RECIPE_SCHEMA = {
   },
 };
 
-function receiptPrompt(known, photoCount) {
+function receiptPrompt(known, photoCount, today) {
   const intro =
     photoCount > 1
       ? `These ${photoCount} phone photos are one grocery receipt, in order from top to bottom. A long receipt is split across them and the photos may overlap, so never count a line twice.`
@@ -143,7 +151,7 @@ Read every purchased line and turn it into a pantry item:
 - shelfDays: roughly how many days it stays good at home from purchase, where it's kept: milk 10, sliced bread 5, bananas 5, raw chicken 2, canned goods 730. Null for things that don't spoil, like dish soap.
 - keep: false for lines that aren't stock: bag fees, deposits, bottle returns, gift cards, lottery. True otherwise.
 
-Fold a discount or coupon line into the item it applies to instead of listing it. Also give the store name, the purchase date as YYYY-MM-DD and the receipt's total in cents, each null if it isn't visible. Never invent a line you can't see. If a description is only partly legible, keep what you can read in raw and give your best plain name. If the photos aren't a receipt, return no lines.
+Fold a discount or coupon line into the item it applies to instead of listing it. Also give the store name, the purchase date as YYYY-MM-DD and the receipt's total in cents, each null if it isn't visible. Today is ${today}, and the shopping was almost always in the last few days: when a printed date could be read two ways ("11/03/26" is March 11 or November 3), pick the reading on or just before today, never one in the future. Never invent a line you can't see. If a description is only partly legible, keep what you can read in raw and give your best plain name. If the photos aren't a receipt, return no lines.
 
 Known items (id | name):
 ${table}`;
@@ -198,10 +206,7 @@ async function structuredCall({ content, schema, effort, label }, opts = {}) {
       model: MODEL,
       max_tokens: 16000,
       output_config: { effort, format: { type: "json_schema", schema } },
-      // A policy decline (very unlikely here) reruns on a fallback model
-      // instead of failing the request.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...FALLBACK,
       messages: [{ role: "user", content }],
     });
   } catch (err) {
@@ -230,14 +235,15 @@ async function structuredCall({ content, schema, effort, label }, opts = {}) {
 /**
  * @param {{ image: string, mediaType: string }[]} photos pre-validated, top to bottom
  * @param {{ id: number, name: string }[]} known items to match against
+ * @param {string} today YYYY-MM-DD, to settle day/month order
  */
-function readReceipt(photos, known, opts) {
+function readReceipt(photos, known, today, opts) {
   const content = [
     ...photos.map((p) => ({
       type: "image",
       source: { type: "base64", media_type: p.mediaType, data: p.image },
     })),
-    { type: "text", text: receiptPrompt(known.slice(0, MAX_KNOWN), photos.length) },
+    { type: "text", text: receiptPrompt(known.slice(0, MAX_KNOWN), photos.length, today) },
   ];
   // Expanding receipt shorthand takes a little judgment: medium, not low.
   return structuredCall({ content, schema: RECEIPT_SCHEMA, effort: "medium", label: "receipt" }, opts);

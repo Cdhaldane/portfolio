@@ -109,6 +109,20 @@ function validateImages(body) {
 }
 
 /**
+ * "11/03/26" is March 11 or November 3, and a model can pick either. A
+ * receipt is scanned within days of shopping, so when the month and day can
+ * swap, take the reading nearest today that isn't in the future. An old
+ * receipt can come out wrong; the review screen shows the day to fix.
+ */
+function likelierDay(day, today) {
+  if (!today) return day;
+  const [y, m, d] = day.split("-");
+  const swapped = `${y}-${d}-${m}`;
+  if (m === d || !validDay(swapped) || swapped > today) return day;
+  return day > today || swapped > day ? swapped : day;
+}
+
+/**
  * Claude's read of a receipt, made safe to show. Unknown match ids are
  * dropped (the model can only point at items that exist), and anything
  * malformed falls back to a blank the review screen asks about.
@@ -139,7 +153,8 @@ function sanitizeRead(raw, items, today) {
       },
     ];
   });
-  const day = validDay(src.purchasedOn) && (!today || src.purchasedOn <= today) ? src.purchasedOn : null;
+  const read = validDay(src.purchasedOn) ? likelierDay(src.purchasedOn, today) : null;
+  const day = read && (!today || read <= today) ? read : null;
   return {
     store: str(src.store, 60) || null,
     purchasedOn: day,

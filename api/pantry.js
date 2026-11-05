@@ -166,7 +166,7 @@ async function handleRead(res, sql, userId, body, today) {
     db.listItems(sql, { includeArchived: true }),
     db.listAliases(sql),
   ]);
-  const raw = await readReceipt(photos.value, items.map((i) => ({ id: i.id, name: i.name })));
+  const raw = await readReceipt(photos.value, items.map((i) => ({ id: i.id, name: i.name })), today);
   const read = sanitizeRead(raw, items, today);
   // A match the household confirmed on an earlier receipt beats the model's guess.
   const byId = new Map(items.map((i) => [i.id, i]));

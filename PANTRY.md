@@ -21,7 +21,7 @@ Private: Clerk sign-in plus an allowlist, same as Bowler and Garage. Built
 | One serverless function, all routes | `api/pantry.js` |
 | Out / low / due / use-soon, the kitchen sentence, the digest | `api/_lib/pantry-stock.js` |
 | Validation, receipt planning, Claude-output sanitising | `api/_lib/pantry-normalize.js` |
-| Prompts and Claude calls (Opus 5.5, structured output) | `api/_lib/pantry-claude.js` |
+| Prompts and Claude calls (Haiku 5.5, structured output) | `api/_lib/pantry-claude.js` |
 | Tables (`pantry_*`, same Neon DB) | `api/_lib/pantry-db.js` |
 | Push (digest + "someone marked it out") | `api/_lib/pantry-push.js`, `public/app-sw.js` |
 | Tests | `npm run test:api` (`pantry-*.test.js`), `src/Pages/Pantry/Pantry.smoke.test.jsx` |
@@ -55,10 +55,11 @@ automatically **kept stocked** unless someone says otherwise.
 1. **Photos**: up to four, top to bottom, shrunk to 2000px JPEG on the phone
    (EXIF dropped). Photos are never stored.
 2. **Read** (`action: "read"`): Claude gets the photos plus every known item
-   (id + name) and returns lines: printed text, plain name, which known item
-   it matches, category, where it's kept, packs, size, price, shelf days, and
-   `keep: false` for bag fees and deposits. `sanitizeRead` drops unknown ids
-   and fills blanks. A match the household confirmed on an earlier receipt
+   (id + name) and today's date, and returns lines: printed text, plain name,
+   which known item it matches, category, where it's kept, packs, size, price,
+   shelf days, and `keep: false` for bag fees and deposits. `sanitizeRead`
+   drops unknown ids and fills blanks. A date that reads both ways
+   ("11/03/26") becomes the reading nearest today that isn't in the future. A match the household confirmed on an earlier receipt
    (`pantry_aliases`, keyed by the printed text) beats Claude's guess.
 3. **Review**: every line is editable. Nothing is saved until "Add N to the
    pantry".
@@ -85,14 +86,18 @@ Already set for the other private apps: `POSTGRES_URL`, `CLERK_SECRET_KEY`,
 | `PANTRY_ALLOWED_USER_IDS` | Optional. Narrows the pantry to the household; unset, it uses `BUDGET_ALLOWED_USER_IDS`. A 403 shows the user id to copy in. |
 | `PANTRY_VAPID_PUBLIC_KEY` / `PANTRY_VAPID_PRIVATE_KEY` | Optional. Push keys; unset, Acta's `ACTA_VAPID_*` are used. `npx web-push generate-vapid-keys` |
 | `PANTRY_TZ` | Optional. Defaults to `America/Toronto`. |
+| `PANTRY_MODEL` | Optional. Defaults to `claude-haiku-5-5`. Set `claude-opus-5-5` if receipt reads aren't good enough (about 40× the cost; it also turns on the server-side refusal fallback, which Haiku doesn't have). |
 
 The digest cron (`vercel.json`) calls plain `/api/pantry` at 21:00 UTC (5pm
 Toronto in winter, 4pm in summer); the `CRON_SECRET` bearer is what routes it.
 It only speaks up about things that are newly out, low, due or about to turn.
 
-Cost is two Opus 5.5 calls at most per action, with a per-user cap of 10 per
-10 minutes on each warm instance. Expect roughly 10–20¢ a receipt and about
-the same per round of recipe ideas (an estimate, not measured yet).
+Cost is one Haiku 5.5 call per action, with a per-user cap of 10 per 10
+minutes on each warm instance. Measured 2026-11-05 on a made-up 9-line
+receipt: about $0.001 a receipt (~2,800 tokens in, ~1,700 out, 7–9 s) and
+about $0.0013 per round of four recipes (~12 s). The same calls on Opus 5.5
+would be about 10¢ together. A real phone photo is larger than the test
+image, so expect a little more per receipt.
 
 ## Google Home in the kitchen
 

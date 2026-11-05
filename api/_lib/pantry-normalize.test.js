@@ -59,6 +59,13 @@ test("Claude's read is cleaned before anyone sees it", () => {
   assert.equal(bag.keep, false);
   // A date in the future isn't trusted.
   assert.equal(N.sanitizeRead({ purchasedOn: "2026-12-25", lines: [] }, [], "2026-11-04").purchasedOn, null);
+  // "11/03/26" read day-first is March 11; the receipt was November 3.
+  const dayOf = (purchasedOn) => N.sanitizeRead({ purchasedOn, lines: [] }, [], "2026-11-05").purchasedOn;
+  assert.equal(dayOf("2026-03-11"), "2026-11-03");
+  assert.equal(dayOf("2026-11-03"), "2026-11-03", "the right reading stays");
+  assert.equal(dayOf("2026-12-04"), "2026-04-12", "a future reading swaps when the other isn't");
+  assert.equal(dayOf("2026-10-25"), "2026-10-25", "a day past 12 can't be a month");
+  assert.equal(dayOf("2026-06-06"), "2026-06-06");
   assert.deepEqual(N.sanitizeRead(null, [], "2026-11-04").lines, []);
 });
 
