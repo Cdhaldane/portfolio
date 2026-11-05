@@ -136,7 +136,7 @@ Speaker, on demand or on a schedule:
 
 ```yaml
 rest:
-  - resource: https://charliehaldane.ca/api/pantry?kitchen=YOUR_TOKEN
+  - resource: https://www.charliehaldane.ca/api/pantry?kitchen=YOUR_TOKEN
     scan_interval: 900
     sensor:
       - name: Pantry
