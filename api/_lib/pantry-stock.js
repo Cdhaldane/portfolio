@@ -115,6 +115,21 @@ function joinNames(names, max = 5) {
 
 const byName = (a, b) => a.name.localeCompare(b.name);
 
+// The sentence is read aloud in one go, and the Google text-to-speech a Cast
+// speaker fetches stops at 200 characters.
+const SAY_MAX = 200;
+
+/** Fewer names per list first, then the least urgent sentences go. */
+function fitSay(sentences) {
+  for (const n of [5, 3, 2, 1]) {
+    const say = sentences.map((s) => s(n)).join(" ");
+    if (say.length <= SAY_MAX) return say;
+  }
+  const kept = sentences.map((s) => s(1));
+  while (kept.length > 1 && kept.join(" ").length > SAY_MAX) kept.pop();
+  return kept.join(" ");
+}
+
 /**
  * What the kitchen needs to know, in lists and as one sentence to read aloud.
  * @param {object[]} items items with .status (see withStatus)
@@ -131,15 +146,18 @@ function kitchenSummary(items, extras, today) {
     .sort((a, b) => (a.status.useBy < b.status.useBy ? -1 : a.status.useBy > b.status.useBy ? 1 : byName(a, b)));
   const extraNames = extras.map((e) => e.name);
 
-  const parts = [];
-  if (out.length) parts.push(`You're out of ${joinNames(out.map((i) => spoken(i.name)))}.`);
-  if (low.length) parts.push(`Running low on ${joinNames(low.map((i) => spoken(i.name)))}.`);
-  if (extraNames.length) parts.push(`Also on the list: ${joinNames(extraNames.map(spoken))}.`);
   const fresh = useSoon.filter((i) => !i.status.expired);
   const turning = useSoon.filter((i) => i.status.expired);
-  if (fresh.length) parts.push(`Use the ${joinNames(fresh.map((i) => spoken(i.name)), 3)} soon.`);
-  if (turning.length) parts.push(`Check the ${joinNames(turning.map((i) => spoken(i.name)), 3)}, it may have turned.`);
-  const say = parts.length ? parts.join(" ") : "The pantry's in good shape. Nothing's running low.";
+  const names = (list) => list.map((i) => spoken(i.name));
+  // Most urgent first; each renders with at most n names per list.
+  const sentences = [
+    out.length && ((n) => `You're out of ${joinNames(names(out), n)}.`),
+    low.length && ((n) => `Running low on ${joinNames(names(low), n)}.`),
+    extraNames.length && ((n) => `Also on the list: ${joinNames(extraNames.map(spoken), n)}.`),
+    fresh.length && ((n) => `Use the ${joinNames(names(fresh), Math.min(n, 3))} soon.`),
+    turning.length && ((n) => `Check the ${joinNames(names(turning), Math.min(n, 3))}, it may have turned.`),
+  ].filter(Boolean);
+  const say = sentences.length ? fitSay(sentences) : "The pantry's in good shape. Nothing's running low.";
 
   const brief = (i) => ({ id: i.id, name: i.name, location: i.location, state: i.status.state, useBy: i.status.useBy });
   return {

@@ -127,6 +127,35 @@ test("the kitchen sentence reads naturally", () => {
   assert.equal(S.kitchenSummary([], [], today).say, "The pantry's in good shape. Nothing's running low.");
 });
 
+test("a busy day still fits the speaker's 200 characters, most urgent first", () => {
+  const today = "2026-11-04";
+  const named = (prefix, n, over) =>
+    Array.from({ length: n }, (_, k) => item({ id: `${prefix}${k}`, name: `${prefix} item number ${k + 1}`, ...over }));
+  const items = S.withStatus(
+    [
+      ...named("Out", 8, { qty: 0 }),
+      ...named("Low", 8, { qty: 0.25 }),
+      ...named("Fresh", 4, { qty: 1, shelfDays: 5, lastBoughtOn: "2026-11-01" }),
+    ],
+    today
+  );
+  const extras = Array.from({ length: 6 }, (_, k) => ({ id: k, name: `Extra thing ${k + 1}` }));
+  const { say } = S.kitchenSummary(items, extras, today);
+  assert.ok(say.length <= 200, `${say.length} characters`);
+  assert.match(say, /^You're out of out item number 1 and 7 more\. Running low on low item number 1 and 7 more\./);
+
+  // Even one name each is too long here, so the least urgent sentences go.
+  const long = "Extra-virgin cold-pressed Tuscan olive oil, the big tin";
+  const crowded = S.withStatus(
+    [item({ id: 1, name: long, qty: 0 }), item({ id: 2, name: `${long} too`, qty: 0.25 })],
+    today
+  );
+  const tight = S.kitchenSummary(crowded, [{ id: 1, name: long }, { id: 2, name: "x" }], today).say;
+  assert.ok(tight.length <= 200, `${tight.length} characters`);
+  assert.match(tight, /^You're out of extra-virgin.*Running low on extra-virgin/);
+  assert.doesNotMatch(tight, /Also on the list/);
+});
+
 test("the digest only speaks up about what's new", () => {
   const today = "2026-11-04";
   const items = S.withStatus([item({ id: 1, name: "Milk 2%", qty: 0 }), item({ id: 2, name: "Eggs", qty: 0.25 })], today);
