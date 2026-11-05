@@ -109,7 +109,9 @@ house can use:
 - **Feed**: `GET /api/pantry?kitchen=<token>` returns
   `{ out, low, useSoon, extras, say }`, where `say` is one sentence ready to
   speak ("You're out of milk and eggs. Running low on bread. Use the spinach
-  soon.").
+  soon."). It always fits 200 UTF-8 bytes, what a Cast speaker's
+  text-to-speech takes: fewer names per list first, then the least urgent
+  sentences go.
 - **Display**: `/pantry/kitchen?k=<token>`, a dark, big-type page sized for a
   Nest Hub or a tablet on the fridge. It refreshes every five minutes. Copy the
   link from More → Kitchen display.
@@ -117,7 +119,18 @@ house can use:
 The token is read-only and must stay that way: anyone with the link can see
 the list, nothing more.
 
-### With Home Assistant (recommended)
+### With sovereign-home (what the house runs)
+
+The kitchen speaker is a Google Home Mini, and Charlie's own hub,
+sovereign-home (a separate repo, running on the home PC), already speaks on
+it over Cast. Since 2026-11-05 its `src/pantry.rs` reads the feed
+(`PANTRY_FEED_URL` in its `.env`) and says `say` once a day at
+`PANTRY_ANNOUNCE_AT` (default 17:00) when something is on the list, and on
+demand from the Pantry card on its Nest page (`POST /pantry/say`). It speaks
+only while that PC is on, and "Hey Google, what are we low on?" isn't
+possible this way.
+
+### With Home Assistant (alternative)
 
 Speaker, on demand or on a schedule:
 

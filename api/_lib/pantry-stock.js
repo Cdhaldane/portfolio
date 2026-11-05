@@ -115,18 +115,21 @@ function joinNames(names, max = 5) {
 
 const byName = (a, b) => a.name.localeCompare(b.name);
 
-// The sentence is read aloud in one go, and the Google text-to-speech a Cast
-// speaker fetches stops at 200 characters.
-const SAY_MAX = 200;
+// The sentence is read aloud in one go: the Google text-to-speech a Cast
+// speaker fetches stops at about 200 characters, and the house hub that
+// sends it (sovereign-home) caps it at 200 UTF-8 bytes, so "crème fraîche"
+// counts double where it differs.
+const SAY_MAX_BYTES = 200;
+const fits = (say) => Buffer.byteLength(say, "utf8") <= SAY_MAX_BYTES;
 
 /** Fewer names per list first, then the least urgent sentences go. */
 function fitSay(sentences) {
   for (const n of [5, 3, 2, 1]) {
     const say = sentences.map((s) => s(n)).join(" ");
-    if (say.length <= SAY_MAX) return say;
+    if (fits(say)) return say;
   }
   const kept = sentences.map((s) => s(1));
-  while (kept.length > 1 && kept.join(" ").length > SAY_MAX) kept.pop();
+  while (kept.length > 1 && !fits(kept.join(" "))) kept.pop();
   return kept.join(" ");
 }
 

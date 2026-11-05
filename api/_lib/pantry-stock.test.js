@@ -127,7 +127,7 @@ test("the kitchen sentence reads naturally", () => {
   assert.equal(S.kitchenSummary([], [], today).say, "The pantry's in good shape. Nothing's running low.");
 });
 
-test("a busy day still fits the speaker's 200 characters, most urgent first", () => {
+test("a busy day still fits the speaker's 200 bytes, most urgent first", () => {
   const today = "2026-11-04";
   const named = (prefix, n, over) =>
     Array.from({ length: n }, (_, k) => item({ id: `${prefix}${k}`, name: `${prefix} item number ${k + 1}`, ...over }));
@@ -154,6 +154,14 @@ test("a busy day still fits the speaker's 200 characters, most urgent first", ()
   assert.ok(tight.length <= 200, `${tight.length} characters`);
   assert.match(tight, /^You're out of extra-virgin.*Running low on extra-virgin/);
   assert.doesNotMatch(tight, /Also on the list/);
+
+  // The hub counts UTF-8 bytes: accents take two each.
+  const french = S.withStatus(
+    Array.from({ length: 9 }, (_, k) => item({ id: k, name: `Crème fraîche à l'érable ${k + 1}`, qty: 0 })),
+    today
+  );
+  const bytes = Buffer.byteLength(S.kitchenSummary(french, [], today).say, "utf8");
+  assert.ok(bytes <= 200, `${bytes} bytes`);
 });
 
 test("the digest only speaks up about what's new", () => {
