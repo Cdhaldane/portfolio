@@ -1,0 +1,34 @@
+{
+  "name": "Pantry",
+  "short_name": "Pantry",
+  "description": "What's in the kitchen, what's running low, and what to cook.",
+  "id": "/pantry",
+  "start_url": "/pantry",
+  "scope": "/pantry",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#11140f",
+  "theme_color": "#11140f",
+  "categories": ["food", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Shopping list",
+      "short_name": "List",
+      "description": "What's out, low or due",
+      "url": "/pantry?tab=list",
+      "icons": [{ "src": "/pantry-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "What to cook",
+      "short_name": "Cook",
+      "description": "Recipe ideas from what's on the shelf",
+      "url": "/pantry?tab=cook",
+      "icons": [{ "src": "/pantry-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "icons": [
+    { "src": "/pantry-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pantry-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pantry-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

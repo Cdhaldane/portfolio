@@ -11,7 +11,7 @@
 // Share > Add to Home Screen steps instead (InstallButton.jsx).
 
 // Keep in sync with the app shells in scripts/app-shells.mjs.
-export const APP_SCOPES = ["/dashboard", "/budgetter", "/bowler", "/garage", "/acta"];
+export const APP_SCOPES = ["/dashboard", "/budgetter", "/bowler", "/garage", "/pantry", "/acta"];
 
 let held = null; // { event, scope }
 const listeners = new Set();

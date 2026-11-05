@@ -1,0 +1,91 @@
+/* Sign-in screen for /pantry: a hand-written tape label on a linen shelf. */
+.ptg {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background:
+    radial-gradient(60% 40% at 15% 10%, rgba(111, 154, 94, 0.2), transparent 70%),
+    radial-gradient(50% 40% at 90% 90%, rgba(255, 93, 59, 0.12), transparent 70%),
+    #f3eee3;
+  color: #1c2119;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+[data-theme="dark"] .ptg {
+  background:
+    radial-gradient(60% 40% at 15% 10%, rgba(111, 154, 94, 0.16), transparent 70%),
+    radial-gradient(50% 40% at 90% 90%, rgba(255, 93, 59, 0.08), transparent 70%),
+    #11140f;
+  color: #eef2e9;
+}
+.ptg-inner {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  max-width: 440px;
+  text-align: center;
+}
+.ptg-label {
+  margin: 0 0 8px;
+  padding: 6px 30px 2px;
+  background: #f6e7b8;
+  color: #2a2418;
+  font-family: "Kalam", "Caveat Brush", cursive;
+  font-weight: 400;
+  font-size: clamp(2.8rem, 11vw, 4.4rem);
+  line-height: 1.1;
+  transform: rotate(-2.5deg);
+  box-shadow: 0 10px 24px -14px rgba(42, 36, 24, 0.55);
+  /* torn tape ends */
+  clip-path: polygon(0 6%, 3% 0, 97% 4%, 100% 0, 98% 52%, 100% 100%, 4% 96%, 0 100%, 2% 48%);
+  animation: ptg-stick 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ptg-stick {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) rotate(-8deg) scale(1.06);
+  }
+}
+.ptg-sub {
+  margin: 0;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+.ptg-card {
+  max-width: 420px;
+  margin: 0;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(255, 252, 245, 0.75);
+  line-height: 1.5;
+}
+[data-theme="dark"] .ptg-card {
+  background: #1c2219;
+}
+.ptg-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #3e6b35;
+  color: #fffcf5;
+  font: 700 0.95rem "Space Grotesk", sans-serif;
+  cursor: pointer;
+}
+[data-theme="dark"] .ptg-install {
+  background: #9fcb8c;
+  color: #11140f;
+}
+.ptg-back {
+  color: inherit;
+  font-weight: 600;
+  opacity: 0.8;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ptg-label {
+    animation: none;
+  }
+}

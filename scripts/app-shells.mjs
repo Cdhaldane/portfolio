@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 // Keep in sync with APP_SCOPES in src/Components/AppIdentity/install.js and
 // the rewrites in vercel.json.
-export const APPS = ["bowler", "dashboard", "acta", "budgetter", "garage"];
+export const APPS = ["bowler", "dashboard", "acta", "budgetter", "garage", "pantry"];
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 

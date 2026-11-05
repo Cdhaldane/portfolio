@@ -1,0 +1,131 @@
+/* ============================================================
+   /pantry/kitchen: the across-the-room display.
+   Sized in vmin so a 1024×600 Nest Hub and a portrait tablet
+   both read from the doorway. Dark by default (it's on all
+   evening); .is-light for daytime screens.
+   ============================================================ */
+.kt {
+  --kt-bg: #0f120d;
+  --kt-ink: #eef2e9;
+  --kt-soft: #9aa591;
+  --kt-line: rgba(238, 242, 233, 0.12);
+  --kt-out: #ff8269;
+  --kt-low: #f2b54f;
+  --kt-soon: #d1a3e6;
+  --kt-extra: #9fcb8c;
+
+  min-height: 100dvh;
+  padding: 4vmin 5vmin;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 3.5vmin;
+  background:
+    radial-gradient(60% 50% at 0% 0%, rgba(111, 154, 94, 0.14), transparent 70%),
+    radial-gradient(50% 50% at 100% 100%, rgba(47, 107, 255, 0.1), transparent 70%),
+    var(--kt-bg);
+  color: var(--kt-ink);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  overflow: hidden;
+}
+.kt.is-light {
+  --kt-bg: #f3eee3;
+  --kt-ink: #1c2119;
+  --kt-soft: #5a6152;
+  --kt-line: rgba(28, 33, 25, 0.12);
+  --kt-out: #c63f2a;
+  --kt-low: #9a5d0a;
+  --kt-soon: #7d4a93;
+  --kt-extra: #3e6b35;
+}
+
+.kt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.kt-time {
+  margin: 0;
+  font: 500 clamp(2.4rem, 11vmin, 7rem) / 0.95 "IBM Plex Mono", monospace;
+  letter-spacing: -0.04em;
+}
+.kt-date {
+  margin: 0.6vmin 0 0;
+  color: var(--kt-soft);
+  font-size: clamp(0.9rem, 3vmin, 1.6rem);
+}
+.kt-label {
+  margin: 0;
+  padding: 0.5vmin 2.4vmin 0.1vmin;
+  background: #f6e7b8;
+  color: #2a2418;
+  font: 400 clamp(1.2rem, 4.4vmin, 2.6rem) / 1.15 "Kalam", cursive;
+  transform: rotate(-3deg);
+  clip-path: polygon(0 6%, 3% 0, 97% 4%, 100% 0, 98% 52%, 100% 100%, 4% 96%, 0 100%, 2% 48%);
+}
+
+.kt-say {
+  margin: 0;
+  max-width: 28ch;
+  font-size: clamp(1.4rem, 6vmin, 3.6rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  animation: kt-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.kt-say.is-quiet {
+  color: var(--kt-soft);
+}
+@keyframes kt-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5vmin);
+  }
+}
+
+.kt-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22vmin), 1fr));
+  gap: 3vmin;
+  align-content: start;
+}
+.kt-col h2 {
+  margin: 0 0 1.4vmin;
+  padding-bottom: 1vmin;
+  border-bottom: 0.4vmin solid currentColor;
+  font-size: clamp(0.85rem, 2.6vmin, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.kt-col h2 span {
+  font-family: "IBM Plex Mono", monospace;
+  opacity: 0.7;
+}
+.kt-col.is-out h2 { color: var(--kt-out); }
+.kt-col.is-low h2 { color: var(--kt-low); }
+.kt-col.is-soon h2 { color: var(--kt-soon); }
+.kt-col.is-extra h2 { color: var(--kt-extra); }
+.kt-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.8vmin;
+  font-size: clamp(1rem, 3.4vmin, 2rem);
+  font-weight: 500;
+}
+.kt-more {
+  color: var(--kt-soft);
+}
+.kt-foot {
+  margin: 0;
+  color: var(--kt-soft);
+  font: 400 clamp(0.7rem, 2vmin, 1rem) "IBM Plex Mono", monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kt-say {
+    animation: none;
+  }
+}

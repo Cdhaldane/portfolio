@@ -62,6 +62,11 @@ const BowlerLane = lazy(() => import("./Pages/Bowler/LaneMode"));
 // ...and for the private /garage car log (datalogs, work log, service).
 const GarageGate = lazy(() => import("./Pages/Garage/GarageGate"));
 const Garage = lazy(() => import("./Pages/Garage/Garage"));
+// ...and for the private /pantry kitchen (receipts, stock, list, recipes).
+// Its kitchen display sits outside the gate: it signs in with a token.
+const PantryGate = lazy(() => import("./Pages/Pantry/PantryGate"));
+const Pantry = lazy(() => import("./Pages/Pantry/Pantry"));
+const PantryKitchen = lazy(() => import("./Pages/Pantry/Kitchen"));
 // Public daily history lessons (/acta). Its desk loads Clerk on its own.
 const Acta = lazy(() => import("./Pages/Acta/Acta"));
 // Dev-only design preview (mock data, no auth) — dead-code eliminated from
@@ -123,6 +128,10 @@ const App = () => {
             </Route>
             <Route path="/garage" element={<GarageGate />}>
               <Route index element={<Garage />} />
+            </Route>
+            <Route path="/pantry/kitchen" element={<PantryKitchen />} />
+            <Route path="/pantry" element={<PantryGate />}>
+              <Route index element={<Pantry />} />
             </Route>
             <Route path="/acta/*" element={<Acta />} />
             {BudgetPreview && (

@@ -1,4 +1,5 @@
-/* Home-screen app service worker, shared by /dashboard and /bowler.
+/* Home-screen app service worker, shared by the app surfaces (/dashboard,
+ * /bowler, /garage, /budgetter, /pantry).
  *
  * Registered once per surface with that surface's scope (AppIdentity does it),
  * so each installed app gets its own worker and its own caches. Android Chrome
@@ -7,6 +8,8 @@
  *
  *   navigations in scope   network first, cached shell as fallback
  *   /static/*              cache first (file names are content-hashed)
+ *   push                   shows { title, body, url, tag } from the server;
+ *                          a tap opens url in the app (Pantry's reminders)
  *
  * API calls are left alone: they're signed in and must always be live.
  */
@@ -81,3 +84,43 @@ async function cacheFirst(req, cacheName) {
   if (res && res.ok) await cache.put(req, res.clone());
   return res;
 }
+
+// ---------------------------------------------------------------------------
+// Push. The payload names its own icon and badge; a tap focuses the app's
+// open window (navigating it to the payload's url) or opens one.
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (_) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || APP.charAt(0).toUpperCase() + APP.slice(1);
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "",
+      tag: data.tag,
+      icon: data.icon || `/${APP}-icon-192.png`,
+      badge: data.badge,
+      data: { url: data.url || SHELL_URL },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || SHELL_URL;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of windows) {
+        if (new URL(client.url).pathname.startsWith(SHELL_URL) && "focus" in client) {
+          await client.focus();
+          return "navigate" in client ? client.navigate(url) : undefined;
+        }
+      }
+      return self.clients.openWindow(url);
+    })()
+  );
+});
