@@ -9,7 +9,7 @@
 // Frame-by-frame games are checked and scored by the page's own engine
 // (src/Pages/Bowler/scoring.js, CommonJS so it can be required here), so a
 // score can never mean one thing on the page and another in the database.
-const { checkGame, scoreGame } = require("../../src/Pages/Bowler/scoring");
+const { FRAMES, PINS, checkGame, playFrame, scoreGame } = require("../../src/Pages/Bowler/scoring");
 
 // The two tracked bowlers. Keys are the stored ids (and the URL-ish short
 // names used on the page); values are the display names on the recap screen.
@@ -339,6 +339,102 @@ function sanitizeParse(raw) {
   return { team, bowlers, readable: bowlers.length > 0 };
 }
 
+// ---------------------------------------------------------------------------
+// The overhead screen, frame by frame. The model transcribes each ball's
+// mark exactly as printed; turning marks into pin counts happens here, with
+// the page's own rules, so a misread can't become an impossible game.
+
+/**
+ * One frame's printed marks as a count-only frame ({ rolls, standing: null }),
+ * or null when the marks can't be a real frame. X only counts on a full
+ * rack, except after a first-ball gutter, where some screens print X for
+ * what is really a spare.
+ */
+function marksToFrame(marks) {
+  if (!Array.isArray(marks) || marks.length === 0 || marks.length > 3) return null;
+  const rolls = [];
+  let up = PINS;
+  let fresh = true;
+  for (const raw of marks) {
+    const m = typeof raw === "string" ? raw.trim().toUpperCase() : "";
+    let down;
+    if (m === "X") {
+      if (!fresh && up !== PINS) return null;
+      down = up;
+    } else if (m === "/") {
+      if (fresh) return null;
+      down = up;
+    } else if (m === "-" || m === "G" || m === "F") {
+      down = 0;
+    } else if (/^[0-9]$/.test(m)) {
+      down = Number(m);
+    } else {
+      return null;
+    }
+    if (down > up) return null;
+    rolls.push(down);
+    up -= down;
+    fresh = up === 0;
+    if (fresh) up = PINS;
+  }
+  return { rolls, standing: null };
+}
+
+/**
+ * One bowler's read: finished frames only, cut at the first frame that
+ * doesn't make sense, scored by the page's engine and checked against the
+ * running totals the screen printed.
+ */
+function readGame(rawFrames) {
+  const list = Array.isArray(rawFrames) ? rawFrames.slice(0, FRAMES) : [];
+  const frames = [];
+  const printed = [];
+  let problem = null;
+  for (let i = 0; i < list.length; i += 1) {
+    const raw = list[i] || {};
+    if (Array.isArray(raw.marks) && raw.marks.length === 0) break; // not bowled yet
+    const frame = marksToFrame(raw.marks);
+    const next = frame && frames.concat([frame]);
+    if (!next || !checkGame(next, { partial: true }).ok) {
+      problem = `Frame ${i + 1} didn't read cleanly, so the read stops before it.`;
+      break;
+    }
+    if (playFrame(frame, i).next !== null) {
+      // The frame being bowled when the photo was taken. Anything after it
+      // is a misread.
+      if (i < list.length - 1) problem = `Frame ${i + 1} looks unfinished, so the read stops before it.`;
+      break;
+    }
+    frames.push(frame);
+    printed.push(Number.isInteger(raw.running) ? raw.running : null);
+  }
+  const scored = scoreGame(frames);
+  const mismatch = printed.some((p, i) => p !== null && scored.running[i] !== null && p !== scored.running[i]);
+  return { frames, score: scored.total, complete: scored.complete, mismatch, problem };
+}
+
+/**
+ * Normalize the model's read of an overhead score screen. Never throws.
+ * Bowlers whose frames can't be read at all stay in the list (empty) so the
+ * page can say so instead of silently dropping them.
+ */
+function sanitizeFrames(raw) {
+  const rows = raw && Array.isArray(raw.bowlers) ? raw.bowlers.slice(0, 12) : [];
+  const bowlers = rows
+    .filter((r) => r && typeof r.name === "string" && r.name.trim())
+    .map((r) => {
+      const game = readGame(r.frames);
+      const total = Number.isInteger(r.total) ? r.total : null;
+      return {
+        name: r.name.trim().slice(0, 40),
+        key: matchBowler(r.name),
+        ...game,
+        mismatch: game.mismatch || (game.complete && total !== null && total !== game.score),
+      };
+    });
+  return { bowlers, readable: bowlers.some((b) => b.frames.length > 0) };
+}
+
 module.exports = {
   BOWLERS,
   BOWLER_KEYS,
@@ -356,4 +452,6 @@ module.exports = {
   validateImage,
   matchBowler,
   sanitizeParse,
+  marksToFrame,
+  sanitizeFrames,
 };

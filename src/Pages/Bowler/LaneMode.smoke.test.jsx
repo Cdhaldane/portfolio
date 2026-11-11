@@ -1,15 +1,19 @@
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import LaneMode from "./LaneMode";
-import { loadSeries, saveNight } from "./api";
+import { loadSeries, readScreen, saveNight } from "./api";
 
 // Clerk hands back the same getToken every render; so must the mock, or
 // the load effect re-runs on every render.
 const mockAuth = { getToken: async () => "token" };
 jest.mock("@clerk/clerk-react", () => ({ useAuth: () => mockAuth }));
-jest.mock("./api", () => ({ loadSeries: jest.fn(), saveNight: jest.fn() }));
+jest.mock("./api", () => ({ loadSeries: jest.fn(), saveNight: jest.fn(), readScreen: jest.fn() }));
+// jsdom has no canvas or createImageBitmap; the shrink step is image.js's own business.
+jest.mock("./image", () => ({
+  prepareScoreboardPhoto: async () => ({ image: "AAAA", mediaType: "image/jpeg", previewUrl: "blob:screen" }),
+}));
 
 async function renderLane() {
   const view = render(
@@ -108,6 +112,68 @@ test("a finished night saves with its frames and heads back to the page", async 
   expect(payload.entries[0].frames[2]).toBeNull();
   expect(screen.getByText("Back on the Bowler page")).toBeInTheDocument();
   expect(window.localStorage.getItem("bowler-lane-v1")).toBeNull();
+});
+
+test("live help: what the game needs, and your record on the leave in front of you", async () => {
+  const missedTen = { rolls: [9, 0], standing: [[10], [10]] };
+  loadSeries.mockResolvedValue({
+    ok: true,
+    balls: [],
+    series: [
+      {
+        id: 1,
+        bowler: "cha",
+        bowledOn: "2026-10-06",
+        games: [90, 150, 150],
+        balls: [null, null, null],
+        lanes: [null, null, null],
+        frames: [Array.from({ length: 10 }, () => missedTen), null, null],
+      },
+    ],
+  });
+  await renderLane();
+  const needs = screen.getByRole("list", { name: "What this game needs" });
+  expect(within(needs).getByText("Average 130")).toBeInTheDocument();
+  expect(within(needs).getByText("131 to go")).toBeInTheDocument();
+  expect(within(needs).getByText("Best game 150")).toBeInTheDocument();
+
+  tap("Pin 10");
+  tap("9 down");
+  expect(screen.getByText(/Your 10 pin:/)).toBeInTheDocument();
+  expect(screen.getByText("0 of 10")).toBeInTheDocument();
+});
+
+test("reading the overhead screen fills the game, and live scoring carries on", async () => {
+  readScreen.mockResolvedValue({
+    ok: true,
+    read: {
+      readable: true,
+      bowlers: [
+        {
+          name: "CHARLIE",
+          key: "cha",
+          frames: Array.from({ length: 4 }, () => ({ rolls: [10], standing: null })),
+          score: 60,
+          complete: false,
+          mismatch: false,
+          problem: null,
+        },
+      ],
+    },
+  });
+  await renderLane();
+  const photo = new File(["x"], "screen.jpg", { type: "image/jpeg" });
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText(/Read the screen/), { target: { files: [photo] } });
+  });
+  expect(screen.getByText(/through frame 4/)).toBeInTheDocument();
+  expect(screen.getByLabelText("Who is CHARLIE?")).toHaveValue("cha");
+
+  tap(/Use for game 1/);
+  expect(screen.getByText("Frame 5 · ball 1")).toBeInTheDocument();
+  expect(screen.getByText("From the screen: Charlie 4 frames")).toBeInTheDocument();
+  strikes(1);
+  expect(screen.getByText("Frame 6 · ball 1")).toBeInTheDocument();
 });
 
 test("a failed save keeps the night on the phone", async () => {

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth, UserButton } from "@clerk/clerk-react";
 import InstallButton from "../../Components/AppIdentity/InstallButton";
-import { loadSeries } from "./api";
+import { loadSeries, writeRecap } from "./api";
 import { BOWLERS } from "./bowlers";
 import { badges, bowlerStats, headToHead, nights, trendPoints } from "./stats";
 import { frameStats } from "./frameStats";
+import { boardStats, lanePairs } from "./lanePlay";
 import { celebrationFor, milestones, tonightsLine, totals } from "./insights";
 import { ALL_TIME, inSeason, seasonList, seasonSummary } from "./seasons";
 import {
@@ -31,6 +32,8 @@ import EntryPanel from "./parts/EntryPanel";
 import BowlerCards from "./parts/BowlerCards";
 import HeadToHead from "./parts/HeadToHead";
 import FrameStats from "./parts/FrameStats";
+import LanePlay from "./parts/LanePlay";
+import LeagueBell from "./parts/LeagueBell";
 import TrendChart from "./parts/TrendChart";
 import TrophyShelf from "./parts/TrophyShelf";
 import History from "./parts/History";
@@ -62,13 +65,22 @@ import "./parts/balls.css";
  * The ball bag rides along with the scores: every game can point at the
  * ball it was thrown with, and the page's bowling-ball motion (the return
  * rail, the gutter progress ball, the lane) shows off the hottest one.
+ *
+ * After every save the page asks for that night's recap (Claude's two
+ * lines on it) without waiting on it; it lands in the wrap card and on the
+ * night's score sheet. The bell in the header is the league-night reminder.
  */
 const TOAST_MS = 3200;
+// Longer messages (a reminder that can't switch on, say) stay up longer.
+const toastMs = (text) => Math.max(TOAST_MS, text.length * 60);
 
 const Bowler = () => {
   const { getToken } = useAuth();
   const [series, setSeries] = useState(null);
   const [balls, setBalls] = useState([]);
+  const [recaps, setRecaps] = useState(() => new Map());
+  const [league, setLeague] = useState(null);
+  const [push, setPush] = useState(null);
   const [bagRequest, setBagRequest] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -88,6 +100,9 @@ const Bowler = () => {
     if (result.ok) {
       setSeries(result.series);
       setBalls(result.balls);
+      setRecaps(new Map(result.recaps.map((r) => [r.bowledOn, r])));
+      setLeague(result.league);
+      setPush(result.push);
       setLoadError(null);
     } else {
       setLoadError(result.error);
@@ -101,17 +116,27 @@ const Bowler = () => {
 
   useEffect(() => {
     if (!toast) return undefined;
-    const t = setTimeout(() => setToast(null), TOAST_MS);
+    const t = setTimeout(() => setToast(null), toastMs(toast.text));
     return () => clearTimeout(t);
   }, [toast]);
 
   const unlock = useCallback(
     (id) => {
       const secret = SECRETS.find((s) => s.id === id);
-      if (!found.includes(id)) setToast(`Secret trophy: ${secret.label}`);
+      if (!found.includes(id)) setToast({ icon: "fa-trophy", text: `Secret trophy: ${secret.label}` });
       discover(id);
     },
     [found, discover]
+  );
+
+  /** Ask for a night's recap; the server reuses one while the night is unchanged. */
+  const requestRecap = useCallback(
+    async (date) => {
+      const result = await writeRecap(getToken, date);
+      if (result.ok) setRecaps((m) => new Map(m).set(date, result.recap));
+      return result;
+    },
+    [getToken]
   );
 
   useKeySequence(DUDE, () => {
@@ -133,6 +158,8 @@ const Bowler = () => {
     () => ({
       stats: Object.fromEntries(BOWLERS.map((b) => [b.key, bowlerStats(scoped, b.key)])),
       frames: Object.fromEntries(BOWLERS.map((b) => [b.key, frameStats(scoped, b.key)])),
+      boards: Object.fromEntries(BOWLERS.map((b) => [b.key, boardStats(scoped, b.key)])),
+      lanes: Object.fromEntries(BOWLERS.map((b) => [b.key, lanePairs(scoped, b.key)])),
       trophies: Object.fromEntries(BOWLERS.map((b) => [b.key, badges(all, b.key)])),
       h2h: headToHead(scoped),
       trend: trendPoints(scoped),
@@ -183,8 +210,9 @@ const Bowler = () => {
       celebrate(entries);
       await refresh();
       setWrapDate(bowledOn);
+      requestRecap(bowledOn); // lands when it lands; a failure just leaves the button
     },
-    [refresh, celebrate]
+    [refresh, celebrate, requestRecap]
   );
 
   // Back from the lane screen with a fresh save: the same celebration and
@@ -199,7 +227,8 @@ const Bowler = () => {
     navigate(location.pathname, { replace: true, state: null });
     celebrate(entries);
     setWrapDate(bowledOn);
-  }, [series, celebrate, navigate, location.pathname]);
+    requestRecap(bowledOn);
+  }, [series, celebrate, navigate, location.pathname, requestRecap]);
 
   const onEdit = useCallback(
     (night) => {
@@ -234,6 +263,7 @@ const Bowler = () => {
             <i className={`fa-solid ${soundOn ? "fa-volume-high" : "fa-volume-xmark"}`} aria-hidden="true" />
             <span className="sr-only">Sound effects</span>
           </button>
+          {push && <LeagueBell getToken={getToken} push={push} league={league} onMessage={setToast} />}
           <UserButton />
         </div>
       </header>
@@ -324,6 +354,7 @@ const Bowler = () => {
           )}
           <HeadToHead loading={loading} h2h={derived.h2h} stats={derived.stats} />
           {!loading && <FrameStats frames={derived.frames} stats={derived.stats} />}
+          {!loading && <LanePlay boards={derived.boards} lanes={derived.lanes} />}
           <TrendChart loading={loading} points={derived.trend} />
           {!loading && <Heatmap series={scoped} />}
           {!loading && (
@@ -349,6 +380,8 @@ const Bowler = () => {
           <History
             nights={derived.nights}
             ballsById={ballsById}
+            recaps={recaps}
+            onRecap={requestRecap}
             getToken={getToken}
             onEdit={onEdit}
             onWrap={setWrapDate}
@@ -359,10 +392,15 @@ const Bowler = () => {
 
       <GutterBall ball={showBall} seed={ballSeed(showBall)} />
       <StrikeBurst trigger={celebration.id} variant={celebration.variant} />
-      <WrapCard date={wrapDate} series={all} onClose={() => setWrapDate(null)} />
+      <WrapCard
+        date={wrapDate}
+        series={all}
+        recap={wrapDate ? recaps.get(wrapDate) || null : null}
+        onClose={() => setWrapDate(null)}
+      />
       {toast && (
         <p className="bw-toast" role="status">
-          <i className="fa-solid fa-trophy" aria-hidden="true" /> {toast}
+          <i className={`fa-solid ${toast.icon}`} aria-hidden="true" /> {toast.text}
         </p>
       )}
     </div>

@@ -1,7 +1,12 @@
-// Reads a bowling-alley recap screen photo with Claude vision and returns
-// the raw structured read. NOT an endpoint. The caller always runs the
-// result through sanitizeParse() and the user always reviews it before
-// anything is saved, so a misread costs a correction, never bad data.
+// Reads bowling-alley screen photos with Claude vision and returns the raw
+// structured read. NOT an endpoint. The caller always runs the result
+// through bowler-normalize.js (sanitizeParse / sanitizeFrames) and the user
+// always reviews it before anything is saved, so a misread costs a
+// correction, never bad data.
+//
+// Two screens:
+//   readScoreboard  the league recap sheet: three game totals per bowler
+//   readFrames      the overhead score screen: one game, ball by ball
 //
 // Env: ANTHROPIC_API_KEY (server-side only). Unset → 503, and the page falls
 // back to typing scores in.
@@ -14,15 +19,15 @@ if (!process.env.ANTHROPIC_API_KEY) {
       path: require("path").resolve(__dirname, "../../.env.local"),
     });
   } catch (_) {
-    /* dotenv/file missing — readScoreboard degrades to a 503 below */
+    /* dotenv/file missing — the reads degrade to a 503 below */
   }
 }
 
-const MODEL = "claude-opus-5";
+const MODEL = "claude-opus-5-5";
 
 const nullableInt = { anyOf: [{ type: "integer" }, { type: "null" }] };
 
-const SCHEMA = {
+const RECAP_SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: ["team", "bowlers"],
@@ -44,7 +49,7 @@ const SCHEMA = {
   },
 };
 
-const PROMPT = `This is a phone photo of a bowling alley scoreboard showing a league recap sheet (often a TV screen, possibly at an angle, with glare).
+const RECAP_PROMPT = `This is a phone photo of a bowling alley scoreboard showing a league recap sheet (often a TV screen, possibly at an angle, with glare).
 
 Extract every bowler row:
 - name: exactly as printed
@@ -53,6 +58,53 @@ Extract every bowler row:
 
 Ignore team rows such as Pins, +HDCP and Totals, and ignore empty rows. Set team to the team name if one is shown, else null. If this is not a bowling scoreboard, return an empty bowlers array.`;
 
+// Every mark a scoring screen prints for one ball. Splits are usually a
+// circled or coloured number; the number is all we need.
+const MARKS = ["X", "/", "-", "G", "F", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+const FRAMES_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["bowlers"],
+  properties: {
+    bowlers: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "frames", "total"],
+        properties: {
+          name: { type: "string" },
+          frames: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["marks", "running"],
+              properties: {
+                marks: { type: "array", items: { type: "string", enum: MARKS } },
+                running: nullableInt,
+              },
+            },
+          },
+          total: nullableInt,
+        },
+      },
+    },
+  },
+};
+
+const FRAMES_PROMPT = `This is a phone photo of a bowling alley's overhead scoring screen, showing one game frame by frame for one or more bowlers (possibly at an angle, with glare).
+
+For every bowler row:
+- name: exactly as printed.
+- frames: one entry per frame that has at least one ball in it, starting at frame 1, in order. Leave out frames nobody has bowled yet.
+  - marks: each ball in that frame as printed: "X" for a strike, "/" for a spare, "-" for a miss or gutter, "F" for a foul, otherwise the number of pins. A split is usually shown as a circled or coloured number; give just the number. The 10th frame can have up to three marks.
+  - running: the cumulative score printed under that frame, or null if it's blank or you can't read it.
+- total: the bowler's game total if the screen shows one, else null.
+
+Never guess a mark. If you can't read a frame with confidence, stop that bowler's frames just before it. Ignore handicap, average and team total rows. If this isn't a bowling score screen, return an empty bowlers array.`;
+
 let client;
 function getClient() {
   if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -60,12 +112,11 @@ function getClient() {
 }
 
 /**
- * @param {{ image: string, mediaType: string }} photo base64 image, pre-validated
- * @returns {Promise<object>} the model's JSON (unsanitized)
- * @throws {HttpError} 503 unconfigured, 422 unreadable, 502 upstream failure
+ * One structured vision call. `opts.client` is for tests.
+ * @throws {HttpError} 503 unconfigured, 422 unreadable, 429 busy, 502 upstream failure
  */
-async function readScoreboard({ image, mediaType }) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+async function readPhoto({ image, mediaType }, prompt, schema, opts = {}) {
+  if (!opts.client && !process.env.ANTHROPIC_API_KEY) {
     throw new HttpError(503, {
       error: "Photo reading isn't set up yet. Type the scores in instead.",
       code: "vision_unconfigured",
@@ -74,13 +125,13 @@ async function readScoreboard({ image, mediaType }) {
 
   let response;
   try {
-    response = await getClient().beta.messages.create({
+    response = await (opts.client || getClient()).beta.messages.create({
       model: MODEL,
       max_tokens: 16000,
       // A plain transcription job: low effort keeps it quick and cheap.
       output_config: {
         effort: "low",
-        format: { type: "json_schema", schema: SCHEMA },
+        format: { type: "json_schema", schema },
       },
       // Route a (very unlikely) policy decline to a fallback model instead
       // of failing the read.
@@ -91,7 +142,7 @@ async function readScoreboard({ image, mediaType }) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: image } },
-            { type: "text", text: PROMPT },
+            { type: "text", text: prompt },
           ],
         },
       ],
@@ -119,4 +170,10 @@ async function readScoreboard({ image, mediaType }) {
   }
 }
 
-module.exports = { readScoreboard };
+/** The league recap sheet. Returns the model's JSON (unsanitized). */
+const readScoreboard = (photo, opts) => readPhoto(photo, RECAP_PROMPT, RECAP_SCHEMA, opts);
+
+/** The overhead score screen, ball by ball. Returns the model's JSON (unsanitized). */
+const readFrames = (photo, opts) => readPhoto(photo, FRAMES_PROMPT, FRAMES_SCHEMA, opts);
+
+module.exports = { MODEL, MARKS, readScoreboard, readFrames };

@@ -30,8 +30,10 @@ import {
   storeDraft,
   withDefaultBalls,
 } from "./laneDraft";
+import { bookFor, needsFor, oddsFor } from "./laneHelp";
 import PinDeck from "./parts/PinDeck";
 import Scorecard from "./parts/Scorecard";
+import ScreenReader from "./parts/ScreenReader";
 import { BallSelect } from "./parts/BallPicker";
 import "./Bowler.css";
 import "./parts/balls.css";
@@ -47,6 +49,11 @@ import "./LaneMode.css";
  * once the games are done. Tapping a finished frame on the card re-enters
  * it: frames 1-9 each get a fresh rack, so redoing one never breaks the
  * rest, only the totals move.
+ *
+ * Help while you bowl (laneHelp.js): your record on the leave in front of
+ * you, and what the game still needs to beat your average, your best and
+ * the other bowler. "Read the screen" fills a game from a photo of the
+ * alley's overhead screen instead of tapping it in.
  */
 const EMPTY_FRAME = { rolls: [], standing: [] };
 const DETAILS_PREF = "bowler-lane-details";
@@ -181,6 +188,12 @@ const LaneMode = () => {
   const best = maxScore(game.frames);
   const ready = draftToSave(draft);
   const groups = pickerGroups(bag, who, game.ball ? [Number(game.ball)] : []);
+  const book = useMemo(() => bookFor(series, draft, who), [series, draft, who]);
+  const odds = at && !at.rack.fresh ? oddsFor(book, at.rack.pins) : null;
+  const needs =
+    framed && !score.complete
+      ? needsFor({ series, draft, bowler: who, game: gi, score: score.total, best })
+      : [];
 
   const patchGame = (patch) =>
     setDraft((d) => {
@@ -274,6 +287,30 @@ const LaneMode = () => {
     if (old.target !== undefined) setTarget(old.target);
     setSaid("");
     clearBall();
+  }
+
+  // A game read off the overhead screen, per bowler: { cha: Frame[], ... }.
+  function applyScreen(read) {
+    setDraft((d) => {
+      const bowlers = { ...d.bowlers };
+      Object.entries(read).forEach(([key, frames]) => {
+        bowlers[key] = {
+          games: bowlers[key].games.map((g, i) =>
+            i === gi ? { ...g, mode: "frames", frames, score: "" } : g
+          ),
+        };
+      });
+      return { ...d, bowlers };
+    });
+    setRedo(null);
+    setPocket(null);
+    setActual("");
+    clearBall();
+    const what = Object.entries(read).map(
+      ([key, frames]) =>
+        `${BOWLER_BY_KEY[key].name} ${frames.length === 10 ? "all ten frames" : `${frames.length} frames`}`
+    );
+    setSaid(`From the screen: ${what.join(", ")}`);
   }
 
   const toggleDetails = () =>
@@ -432,6 +469,20 @@ const LaneMode = () => {
             </p>
           </div>
 
+          {needs.length > 0 && (
+            <ul className="bw-lm-needs" aria-label="What this game needs">
+              {needs.map((n) => (
+                <li key={n.id} className={`is-${n.state}`}>
+                  <span>{n.label}</span>
+                  <b>
+                    {n.state === "done" && <i className="fa-solid fa-check" aria-hidden="true" />}
+                    {n.state === "done" ? "beaten" : n.state === "gone" ? "out of reach" : `${n.need} to go`}
+                  </b>
+                </li>
+              ))}
+            </ul>
+          )}
+
           {over ? (
             <div className="bw-lm-over">
               <p>
@@ -475,6 +526,23 @@ const LaneMode = () => {
                   said || (fresh ? "Tap any pins left standing" : "Tap the pins still up")
                 )}
               </p>
+              {odds && (
+                <p className="bw-lm-odds">
+                  {odds.chances ? (
+                    <>
+                      Your {odds.name}: <b>{odds.made} of {odds.chances}</b> made
+                      <span className="bw-lm-odds-pct">{Math.round(odds.pct)}%</span>
+                    </>
+                  ) : (
+                    <>First {odds.name} on the books.</>
+                  )}
+                  {odds.split && book.split.chances > 0 && (
+                    <small>
+                      Splits overall: {book.split.made} of {book.split.chances}
+                    </small>
+                  )}
+                </p>
+              )}
 
               <div className="bw-lm-actions">
                 <button type="button" className="bw-lm-act" onClick={() => record(at.rack.pins)}>
@@ -519,6 +587,7 @@ const LaneMode = () => {
                     <i className="fa-solid fa-keyboard" aria-hidden="true" /> Just the score
                   </button>
                 )}
+                {!redo && <ScreenReader getToken={getToken} game={gi} draft={draft} onApply={applyScreen} />}
               </div>
 
               {details && at.roll === 0 && (

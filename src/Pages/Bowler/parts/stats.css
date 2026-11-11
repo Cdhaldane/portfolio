@@ -543,6 +543,55 @@
   gap: 4px 16px;
   margin-top: 10px;
 }
+.bw-night-actions .bw-link:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---- a night's recap: Claude's two lines, like the PA after the last frame ---- */
+.bw-recap {
+  position: relative;
+  margin: 10px 0 0;
+  padding: 10px 14px 12px 42px;
+  border-radius: 12px;
+  background: var(--bw-surface);
+  animation: bw-recap-in 520ms var(--bw-ease) both;
+}
+.bw-recap::before {
+  content: "\201C";
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  font: 400 2rem/1 "Bungee", sans-serif;
+  color: var(--bw-accent);
+}
+.bw-recap p {
+  margin: 0;
+}
+.bw-recap .bw-recap-head {
+  margin-bottom: 3px;
+  font: 700 0.98rem "Space Grotesk", sans-serif;
+}
+.bw-recap p + p {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--bw-ink-soft);
+}
+.bw-recap--wrap {
+  margin-top: 14px;
+}
+@keyframes bw-recap-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-recap {
+    animation: none;
+  }
+}
 
 @keyframes bw-draw {
   to { stroke-dashoffset: 0; }

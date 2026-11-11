@@ -17,6 +17,12 @@
 //   { frames: [Frame[] | null x3], lanes: [number | null x3] }
 // When a game has frames they're the source of truth: g1..g3 are rewritten
 // from them on every save and recomputed from them on every read.
+//
+// bowl_recaps holds Claude's write-up of a night, keyed by date, with the
+// `basis` (a hash of the night) it was written from: once the night is
+// edited the hashes differ and the old recap is no longer served.
+// bowl_push is the phones that get the league-night reminder, and
+// bowl_meta is small JSON state (the day the last reminder went out).
 const { getSql } = require("./budget-db");
 const { detailOf, readDetail } = require("./bowler-normalize");
 
@@ -63,20 +69,45 @@ async function ensureBowlTables(sql) {
         ADD COLUMN IF NOT EXISTS ball3 INTEGER REFERENCES bowl_balls(id) ON DELETE SET NULL
     `,
     sql`ALTER TABLE bowl_series ADD COLUMN IF NOT EXISTS detail JSONB`,
+    sql`
+      CREATE TABLE IF NOT EXISTS bowl_recaps (
+        bowled_on   DATE PRIMARY KEY,
+        headline    TEXT NOT NULL,
+        story       TEXT NOT NULL,
+        basis       TEXT NOT NULL,
+        model       TEXT NOT NULL,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `,
+    sql`
+      CREATE TABLE IF NOT EXISTS bowl_push (
+        endpoint    TEXT PRIMARY KEY,
+        keys        JSONB NOT NULL,
+        user_id     TEXT NOT NULL,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `,
+    sql`
+      CREATE TABLE IF NOT EXISTS bowl_meta (
+        key         TEXT PRIMARY KEY,
+        value       JSONB NOT NULL,
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `,
   ]);
   ensured = true;
 }
+
+// DATE comes back as a JS Date at UTC midnight; ship the plain day.
+const dayOf = (value) =>
+  value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10);
 
 function toApi(row) {
   const { games, frames, lanes } = readDetail(row.detail, [row.g1, row.g2, row.g3]);
   return {
     id: row.id,
     bowler: row.bowler,
-    // DATE comes back as a JS Date at UTC midnight; ship the plain day.
-    bowledOn:
-      row.bowled_on instanceof Date
-        ? row.bowled_on.toISOString().slice(0, 10)
-        : String(row.bowled_on).slice(0, 10),
+    bowledOn: dayOf(row.bowled_on),
     games,
     balls: [row.ball1 ?? null, row.ball2 ?? null, row.ball3 ?? null],
     lanes,
@@ -178,6 +209,58 @@ async function deleteBall(sql, id) {
   return rows.length > 0;
 }
 
+// ---- recaps ----
+
+async function listRecaps(sql) {
+  const rows = await sql`SELECT bowled_on, headline, story, basis FROM bowl_recaps`;
+  return rows.map((r) => ({
+    bowledOn: dayOf(r.bowled_on),
+    headline: r.headline,
+    story: r.story,
+    basis: r.basis,
+  }));
+}
+
+async function saveRecap(sql, bowledOn, { headline, story, basis, model }) {
+  await sql`
+    INSERT INTO bowl_recaps (bowled_on, headline, story, basis, model)
+    VALUES (${bowledOn}, ${headline}, ${story}, ${basis}, ${model})
+    ON CONFLICT (bowled_on) DO UPDATE
+       SET headline = EXCLUDED.headline, story = EXCLUDED.story, basis = EXCLUDED.basis,
+           model = EXCLUDED.model, created_at = now()
+  `;
+}
+
+// ---- reminder phones + small state ----
+
+async function savePush(sql, userId, sub) {
+  await sql`
+    INSERT INTO bowl_push (endpoint, keys, user_id)
+    VALUES (${sub.endpoint}, ${JSON.stringify(sub.keys)}::jsonb, ${userId})
+    ON CONFLICT (endpoint) DO UPDATE SET keys = EXCLUDED.keys, user_id = EXCLUDED.user_id
+  `;
+}
+
+async function deletePush(sql, endpoint) {
+  await sql`DELETE FROM bowl_push WHERE endpoint = ${endpoint}`;
+}
+
+async function listPush(sql) {
+  return sql`SELECT endpoint, keys, user_id AS "userId" FROM bowl_push`;
+}
+
+async function getMeta(sql, key) {
+  const rows = await sql`SELECT value FROM bowl_meta WHERE key = ${key}`;
+  return rows[0] ? rows[0].value : null;
+}
+
+async function setMeta(sql, key, value) {
+  await sql`
+    INSERT INTO bowl_meta (key, value) VALUES (${key}, ${JSON.stringify(value)}::jsonb)
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+  `;
+}
+
 module.exports = {
   getSql,
   ensureBowlTables,
@@ -188,4 +271,11 @@ module.exports = {
   listBalls,
   saveBall,
   deleteBall,
+  listRecaps,
+  saveRecap,
+  savePush,
+  deletePush,
+  listPush,
+  getMeta,
+  setMeta,
 };

@@ -497,16 +497,20 @@
   align-items: center;
   gap: 10px;
   margin: 0;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 32px));
   padding: 12px 20px;
-  border-radius: 999px;
+  border-radius: 22px;
   background: var(--bw-ink);
   color: var(--bw-card);
   font-weight: 700;
+  line-height: 1.35;
   box-shadow: var(--bw-shadow);
   transform: translateX(-50%);
   animation: bw-toast 400ms var(--bw-ease) both;
 }
-.bw-toast .fa-trophy {
+.bw-toast > i {
+  flex: none;
   color: var(--bw-accent);
 }
 

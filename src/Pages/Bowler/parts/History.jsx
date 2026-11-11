@@ -12,6 +12,8 @@ import Scorecard from "./Scorecard";
  * reloads the night into the entry form; delete is a two-tap confirm.
  * Tagged nights list the ball(s) each bowler threw under the scores, and
  * nights scored frame by frame open up (full width) into their cards.
+ * A night's recap (Claude's two lines on it) sits under the scores; one
+ * that's missing, or retired by an edit, can be asked for again.
  */
 const PAGE = 6;
 
@@ -77,11 +79,19 @@ const BallLine = ({ night, ballsById }) => {
   );
 };
 
-const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) => {
+export const Recap = ({ recap, className = "" }) => (
+  <div className={`bw-recap ${className}`}>
+    <p className="bw-recap-head">{recap.headline}</p>
+    <p>{recap.story}</p>
+  </div>
+);
+
+const NightSheet = ({ night, ballsById, recap, onRecap, getToken, onEdit, onWrap, onDeleted }) => {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
+  const [writing, setWriting] = useState(false);
   const present = BOWLERS.map((b) => night.rows[b.key]).filter(Boolean);
   const source = ["lane", "photo"].find((src) => present.some((r) => r.source === src)) || "manual";
   const [sourceIcon, sourceLabel] = SOURCES[source];
@@ -100,6 +110,14 @@ const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) =
       setConfirming(false);
     }
     onDeleted();
+  }
+
+  async function askRecap() {
+    setWriting(true);
+    setError(null);
+    const result = await onRecap(night.date);
+    setWriting(false);
+    if (!result.ok) setError(result.error);
   }
 
   return (
@@ -133,6 +151,7 @@ const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) =
       </table>
       <BallLine night={night} ballsById={ballsById} />
       {note && <p className="bw-night-note">{note}</p>}
+      {recap && <Recap recap={recap} />}
       {open && <NightFrames night={night} />}
       {error && (
         <p className="bw-error" role="alert">
@@ -148,6 +167,15 @@ const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) =
         <button type="button" className="bw-link" onClick={() => onWrap(night.date)}>
           <i className="fa-solid fa-image" aria-hidden="true" /> Wrap card
         </button>
+        {!recap && (
+          <button type="button" className="bw-link" disabled={writing} onClick={askRecap}>
+            <i
+              className={`fa-solid ${writing ? "fa-spinner fa-spin" : "fa-microphone-lines"}`}
+              aria-hidden="true"
+            />{" "}
+            {writing ? "Writing" : "Recap"}
+          </button>
+        )}
         <button type="button" className="bw-link" onClick={() => onEdit(night)}>
           <i className="fa-solid fa-pen" aria-hidden="true" /> Edit
         </button>
@@ -173,7 +201,19 @@ const NightSheet = ({ night, ballsById, getToken, onEdit, onWrap, onDeleted }) =
   );
 };
 
-const History = ({ nights, ballsById, getToken, onEdit, onWrap, onDeleted }) => {
+const NO_RECAPS = new Map();
+const noRecap = async () => ({ ok: false, error: "Recaps aren't available here." });
+
+const History = ({
+  nights,
+  ballsById,
+  recaps = NO_RECAPS,
+  onRecap = noRecap,
+  getToken,
+  onEdit,
+  onWrap,
+  onDeleted,
+}) => {
   const [showAll, setShowAll] = useState(false);
   if (!nights.length) return null;
   const visible = showAll ? nights : nights.slice(0, PAGE);
@@ -189,6 +229,8 @@ const History = ({ nights, ballsById, getToken, onEdit, onWrap, onDeleted }) => 
             key={n.date}
             night={n}
             ballsById={ballsById}
+            recap={recaps.get(n.date) || null}
+            onRecap={onRecap}
             getToken={getToken}
             onEdit={onEdit}
             onWrap={onWrap}

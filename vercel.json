@@ -5,11 +5,13 @@
   "crons": [
     { "path": "/api/budget/reminders", "schedule": "0 12 * * *" },
     { "path": "/api/acta/cron", "schedule": "0 11 * * *" },
-    { "path": "/api/pantry", "schedule": "0 21 * * *" }
+    { "path": "/api/pantry", "schedule": "0 21 * * *" },
+    { "path": "/api/bowler", "schedule": "0 20 * * *" }
   ],
   "functions": {
     "api/acta/*.js": { "maxDuration": 300 },
-    "api/pantry.js": { "maxDuration": 120 }
+    "api/pantry.js": { "maxDuration": 120 },
+    "api/bowler.js": { "maxDuration": 120 }
   },
   "rewrites": [
     { "source": "/hymn", "destination": "/hymn/index.html" },

@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { formatNight } from "../bowlers";
 import { wrapFacts } from "../insights";
 import { drawWrapCard } from "../wrapCanvas";
+import { Recap } from "./History";
 
 /*
  * The night's wrap card in a native <dialog> (focus trap + Esc for free).
  * Share uses the phone's share sheet when it can take files, otherwise the
- * PNG downloads. The plain-text lines can be copied too.
+ * PNG downloads. The plain-text lines can be copied too, with the night's
+ * recap once Claude has written it (it lands a moment after a save).
  */
-const WrapCard = ({ date, series, onClose }) => {
+const WrapCard = ({ date, series, recap, onClose }) => {
   const dialogRef = useRef(null);
   const [blob, setBlob] = useState(null);
   const [url, setUrl] = useState(null);
@@ -48,13 +50,15 @@ const WrapCard = ({ date, series, onClose }) => {
   }, [date, factsKey]);
 
   const filename = date ? `bowler-${date}.png` : "bowler.png";
+  const shareText = () =>
+    [...facts.lines, ...(recap ? ["", `${recap.headline}: ${recap.story}`] : [])].join("\n");
 
   async function share() {
     if (!blob) return;
     const file = new File([blob], filename, { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], text: facts.lines.join("\n") });
+        await navigator.share({ files: [file], text: shareText() });
         return;
       } catch (err) {
         if (err && err.name === "AbortError") return; // user closed the sheet
@@ -68,7 +72,7 @@ const WrapCard = ({ date, series, onClose }) => {
 
   async function copyText() {
     try {
-      await navigator.clipboard.writeText(facts.lines.join("\n"));
+      await navigator.clipboard.writeText(shareText());
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -98,6 +102,7 @@ const WrapCard = ({ date, series, onClose }) => {
               <span className="bw-skel bw-wrap-skel" aria-label="Drawing the card" />
             )}
           </div>
+          <div aria-live="polite">{recap && <Recap recap={recap} className="bw-recap--wrap" />}</div>
           <div className="bw-actions">
             <button type="button" className="bw-btn bw-btn--primary" disabled={!blob} onClick={share}>
               <i className="fa-solid fa-share-nodes" aria-hidden="true" /> Share

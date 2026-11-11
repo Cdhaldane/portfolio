@@ -114,6 +114,17 @@ export function frameStats(series, bowler, { topLeaves = 6 } = {}) {
   return { ...stats, totalGames: rows.reduce((n, r) => n + r.games.length, 0) };
 }
 
+/**
+ * Every leave faced across these games (each a frame list), for the lane
+ * screen's "your record on this leave":
+ *   { leaves: Map("3-6-10" → { made, chances, pct, split }), split, single }
+ */
+export function leaveBook(games) {
+  const t = tally(games);
+  const leaves = new Map([...t.leaves].map(([key, l]) => [key, { ...rate(l), split: l.split }]));
+  return { leaves, split: rate(t.split), single: rate(t.single) };
+}
+
 /** Frame stats for one bowler's night (one series row). */
 export function nightFrameStats(row, { topLeaves = 3 } = {}) {
   return { ...summarize(tally(framedGames(row)), topLeaves), totalGames: row.games.length };
