@@ -86,16 +86,18 @@ describe("scoreGame", () => {
 describe("checkGame", () => {
   test("accepts a complete game with pins and details", () => {
     const frames = G("X X X X X X X X X XXX");
-    frames[0] = { rolls: [7, 2], standing: [[10, 3, 6], [10]], target: 12, actual: 10, pocket: false };
+    frames[0] = { rolls: [7, 2], standing: [[10, 3, 6], [10]], target: 12, hook: 7, pocket: false };
+    frames[1] = { rolls: [10], standing: null, target: 12, actual: 10 }; // a line from before the picture
     const r = checkGame(frames);
     expect(r.ok).toBe(true);
     expect(r.value[0]).toEqual({
       rolls: [7, 2],
       standing: [[3, 6, 10], [10]],
       target: 12,
-      actual: 10,
+      hook: 7,
       pocket: false,
     });
+    expect(r.value[1]).toEqual({ rolls: [10], standing: null, target: 12, actual: 10 });
   });
 
   test.each([
@@ -152,6 +154,7 @@ describe("checkFrame pin rules", () => {
   test("boards are 1-39", () => {
     expect(checkFrame({ rolls: [10], target: 40 }, 0).ok).toBe(false);
     expect(checkFrame({ rolls: [10], actual: 0 }, 0).ok).toBe(false);
+    expect(checkFrame({ rolls: [10], hook: 1.5 }, 0).ok).toBe(false);
     expect(checkFrame({ rolls: [10], target: "15", actual: "" }, 0).value).toEqual({
       rolls: [10],
       standing: null,

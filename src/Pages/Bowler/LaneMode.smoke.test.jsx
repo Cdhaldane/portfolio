@@ -176,6 +176,33 @@ test("reading the overhead screen fills the game, and live scoring carries on", 
   expect(screen.getByText("Frame 6 · ball 1")).toBeInTheDocument();
 });
 
+test("aim & hook: mark the line on the lane and it goes with the first ball", async () => {
+  await renderLane();
+  tap(/Aim & hook/);
+  expect(screen.getByRole("img", { name: /Your line on the lane: nothing marked yet/ })).toBeInTheDocument();
+
+  tap("Move where you aimed one board left"); // nothing marked: starts on the 2nd arrow
+  expect(screen.getByText("board 10 · 2nd arrow")).toBeInTheDocument();
+  tap("Move where you aimed one board left"); // right-handed, so left is deeper
+  expect(screen.getByText("board 11 · 1 left of the 2nd arrow")).toBeInTheDocument();
+  tap("Move where it hooked one board right"); // starts four boards outside the aim
+  expect(screen.getByText("board 7")).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: /aimed at board 11.*hooked at board 7/ })).toBeInTheDocument();
+  tap("Hit");
+  strikes(1);
+
+  const saved = JSON.parse(window.localStorage.getItem("bowler-lane-v1")).bowlers.cha.games[0].frames[0];
+  expect(saved).toMatchObject({ rolls: [10], target: 11, hook: 7, pocket: true });
+  // The aim carries over to the next frame; the hook starts fresh.
+  expect(screen.getByText("board 11 · 1 left of the 2nd arrow")).toBeInTheDocument();
+  expect(screen.getByText("tap the lane where it turned")).toBeInTheDocument();
+
+  tap("Lefty");
+  expect(screen.getByRole("button", { name: /Lefty/ })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByText("board 11 · 1 right of the 2nd arrow")).toBeInTheDocument();
+  expect(JSON.parse(window.localStorage.getItem("bowler-hand-v1"))).toEqual({ cha: "L" });
+});
+
 test("a failed save keeps the night on the phone", async () => {
   saveNight.mockResolvedValue({ ok: false, error: "You look offline. Try again." });
   await renderLane();

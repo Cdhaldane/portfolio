@@ -1,9 +1,10 @@
-import { boardStats, lanePairs, leanText } from "./lanePlay";
+import { RECENT, lanePairs, lineStats } from "./lanePlay";
 
-// A strike frame and an open one, with the boards noted (or not).
-const X = (target, actual) => ({ rolls: [10], standing: null, target, actual });
-const O = (target, actual) => ({ rolls: [7, 2], standing: null, target, actual });
+// First balls with their line marked (or not).
+const X = (aim, hook) => ({ rolls: [10], standing: null, target: aim, hook });
+const O = (aim, hook) => ({ rolls: [7, 2], standing: null, target: aim, hook });
 const plain = { rolls: [9, 0], standing: null };
+const crossed = { rolls: [10], standing: null, target: 12, actual: 10 }; // from before the picture
 
 const game = (...noted) => [...noted, ...Array.from({ length: 10 - noted.length }, () => plain)];
 
@@ -17,52 +18,57 @@ const row = (bowler, bowledOn, games, extra = {}) => ({
   ...extra,
 });
 
-describe("boardStats", () => {
-  // Charlie: on target 3 times (2 strikes), inside by 3 twice, outside by 6 once.
+describe("lineStats", () => {
   const series = [
     row("cha", "2026-10-06", [150, 150, 150], {
-      frames: [game(X(12, 12), X(12, 13), O(12, 11), O(12, 15)), game(O(12, 15), O(10, 4)), null],
+      frames: [game(X(10, 6), X(10, 5), O(10, 9), O(10, 6), crossed), game(X(10, 7), O(12, 8), O(12, 3)), null],
     }),
     row("van", "2026-10-06", [150, 150, 150]),
   ];
 
-  test("counts only first balls with both boards", () => {
-    const s = boardStats(series, "cha");
-    expect(s.throws).toBe(6);
-    expect(s.onTarget).toEqual({ made: 3, chances: 6, pct: 50 });
-    expect(s.strikeNear).toEqual({ made: 2, chances: 3, pct: 66.7 });
-    expect(s.strikeFar).toEqual({ made: 0, chances: 3, pct: 0 });
+  test("counts first balls with both an aim and a hook", () => {
+    const s = lineStats(series, "cha");
+    expect(s.throws).toBe(7);
+    expect(s.strike).toEqual({ made: 3, chances: 7, pct: 42.9 });
+    expect(s.recent[0]).toEqual({ aim: 10, hook: 6, strike: true });
   });
 
-  test("the miss chart clamps its ends and the lean averages the misses", () => {
-    const s = boardStats(series, "cha");
-    // bins: -4+ .. +4+  →  -6 lands in the first, then -1, 0, +1, and +3 twice
-    expect(s.bins).toEqual([1, 0, 0, 1, 1, 1, 0, 2, 0]);
-    expect(s.lean).toBe(0); // (0 + 1 - 1 + 3 + 3 - 6) / 6: the big outside miss cancels the rest
-    expect(s.spread).toBe(2.3); // 14 / 6
+  test("aims are the most-used first, with where they hook on average", () => {
+    const [top, next] = lineStats(series, "cha").aims;
+    expect(top).toEqual({ board: 10, throws: 5, strike: { made: 3, chances: 5, pct: 60 }, hook: 6.6 });
+    expect(next).toEqual({ board: 12, throws: 2, strike: { made: 0, chances: 2, pct: 0 }, hook: 5.5 });
   });
 
-  test("targets are the most-used boards first", () => {
-    const [top, next] = boardStats(series, "cha").targets;
-    expect(top).toEqual({ board: 12, throws: 5, strike: { made: 2, chances: 5, pct: 40 }, lean: 1.2 });
-    expect(next.board).toBe(10);
+  test("the strike zone is the three boards where hooking strikes most", () => {
+    // Hooks of 5-7: 6 X, 5 X, 6 open, 7 X. Hooks of 4-6 strike 2 of 3; of 6-8, 2 of 4.
+    expect(lineStats(series, "cha").zone).toEqual({
+      from: 5,
+      to: 7,
+      throws: 4,
+      strike: { made: 3, chances: 4, pct: 75 },
+    });
   });
 
-  test("a bowler with nothing noted gets empty, not zero", () => {
-    const s = boardStats(series, "van");
+  test("the chart keeps only the latest lines", () => {
+    const tens = [game(...Array(10).fill(X(10, 6))), game(...Array(10).fill(X(10, 6))), game(...Array(10).fill(X(10, 6)))];
+    const many = [
+      row("cha", "2026-10-13", [300, 300, 300], { frames: tens }),
+      row("cha", "2026-10-06", [150, 150, 150], { frames: [game(...Array(10).fill(O(15, 9))), null, null] }),
+    ];
+    const s = lineStats(many, "cha");
+    expect(s.throws).toBe(40);
+    expect(s.recent).toHaveLength(RECENT);
+    expect(s.recent.filter((l) => l.aim === 15)).toHaveLength(0); // the older night dropped off
+  });
+
+  test("a bowler with nothing marked gets empty, not zero", () => {
+    const s = lineStats(series, "van");
     expect(s.throws).toBe(0);
-    expect(s.onTarget.pct).toBeNull();
-    expect(s.lean).toBeNull();
-    expect(s.bins.every((n) => n === 0)).toBe(true);
-    expect(s.targets).toEqual([]);
+    expect(s.strike.pct).toBeNull();
+    expect(s.recent).toEqual([]);
+    expect(s.aims).toEqual([]);
+    expect(s.zone).toBeNull();
   });
-});
-
-test("leanText says which way the misses go", () => {
-  expect(leanText(null)).toBeNull();
-  expect(leanText(0.3)).toBe("Right on your line, on average.");
-  expect(leanText(1)).toBe("Misses inside by a board on average.");
-  expect(leanText(-2.5)).toBe("Misses outside by 2.5 boards on average.");
 });
 
 describe("lanePairs", () => {

@@ -1,17 +1,17 @@
-// Lane play for /bowler: where the first ball actually goes, from the
-// target and crossed-at boards noted on the lane screen, and how each lane
-// pair treats you. Pure; nothing mutates its input.
+// Lane play for /bowler: the lines your first ball takes, from the aim and
+// hook boards tapped on the lane picture while scoring live, and how each
+// lane pair treats you. Pure; nothing mutates its input.
 //
-// Boards count from the bowler's own gutter (scoring.js), so a positive
-// miss is "inside" (deeper, toward the middle) and a negative one
-// "outside" (toward your gutter) for righties and lefties alike.
+// Boards count from the bowler's own gutter (scoring.js), so "aimed at 10,
+// hooked at 6" is the same line for a right- or a left-hander. Frames noted
+// before the picture (a target and a crossed-at board, no hook) don't draw.
 import { framedGames } from "./frameStats";
 import { seriesFor } from "./stats";
 
-/** Within this many boards counts as hitting your target. */
-export const NEAR = 1;
-/** The miss chart runs -SPREAD..+SPREAD; its end bins hold everything past them. */
-export const SPREAD = 4;
+/** The chart draws this many of the latest lines. */
+export const RECENT = 30;
+/** A hook zone needs this many first balls before it can be the strike zone. */
+export const MIN_ZONE = 3;
 /** A lane pair needs this many games before it can be your best or toughest. */
 export const MIN_PAIR_GAMES = 2;
 
@@ -24,72 +24,69 @@ const rate = (made, chances) => ({
 });
 const strikeRate = (list) => rate(list.filter((t) => t.strike).length, list.length);
 
-/** Every first ball with both boards noted: { target, miss, strike }. */
-function throwsOf(series, bowler) {
-  const throws = [];
+/** Every first ball with an aim and a hook, oldest first: { aim, hook, strike }. */
+function linesOf(series, bowler) {
+  const lines = [];
   seriesFor(series, bowler).forEach((row) =>
     framedGames(row).forEach((frames) =>
       frames.forEach((f) => {
-        if (Number.isInteger(f.target) && Number.isInteger(f.actual)) {
-          throws.push({ target: f.target, miss: f.actual - f.target, strike: f.rolls[0] === 10 });
+        if (Number.isInteger(f.target) && Number.isInteger(f.hook)) {
+          lines.push({ aim: f.target, hook: f.hook, strike: f.rolls[0] === 10 });
         }
       })
     )
   );
-  return throws;
+  return lines;
 }
 
 /**
- * First-ball accuracy for one bowler:
- *   throws        how many first balls had both boards noted
- *   onTarget      { made, chances, pct } within NEAR boards
- *   lean          the average miss in boards (+ inside, - outside), or null
- *   spread        the average miss either way, or null
- *   bins          counts for misses -SPREAD..+SPREAD (ends include beyond)
- *   strikeNear    strike rate when on target
- *   strikeFar     strike rate when not
- *   targets       the three most-used target boards: { board, throws, strike, lean }
+ * The three boards around which hooking strikes most often (at least
+ * MIN_ZONE balls and one strike in it): { from, to, throws, strike }.
  */
-export function boardStats(series, bowler) {
-  const throws = throwsOf(series, bowler);
-  const bins = Array.from({ length: SPREAD * 2 + 1 }, () => 0);
-  throws.forEach((t) => {
-    bins[Math.max(-SPREAD, Math.min(SPREAD, t.miss)) + SPREAD] += 1;
+function strikeZone(lines) {
+  const centres = [...new Set(lines.map((l) => l.hook))].sort((a, b) => a - b);
+  let best = null;
+  centres.forEach((c) => {
+    const near = lines.filter((l) => Math.abs(l.hook - c) <= 1);
+    const strike = strikeRate(near);
+    if (near.length < MIN_ZONE || !strike.made) return;
+    if (!best || strike.pct > best.strike.pct || (strike.pct === best.strike.pct && near.length > best.throws)) {
+      const hooks = near.map((l) => l.hook);
+      best = { from: Math.min(...hooks), to: Math.max(...hooks), throws: near.length, strike };
+    }
   });
+  return best;
+}
 
-  const byTarget = new Map();
-  throws.forEach((t) => byTarget.set(t.target, [...(byTarget.get(t.target) || []), t]));
-  const targets = [...byTarget]
+/**
+ * First-ball lines for one bowler:
+ *   throws   first balls with both an aim and a hook marked
+ *   strike   the strike rate over them
+ *   recent   the latest RECENT lines, oldest first, for the chart
+ *   aims     the three most-used aims: { board, throws, strike, hook },
+ *            hook being where the ball turned on average from that aim
+ *   zone     where hooking strikes most: { from, to, throws, strike }, or null
+ */
+export function lineStats(series, bowler) {
+  const lines = linesOf(series, bowler);
+  const byAim = new Map();
+  lines.forEach((l) => byAim.set(l.aim, [...(byAim.get(l.aim) || []), l]));
+  const aims = [...byAim]
     .map(([board, list]) => ({
       board,
       throws: list.length,
       strike: strikeRate(list),
-      lean: round1(mean(list.map((t) => t.miss))),
+      hook: round1(mean(list.map((l) => l.hook))),
     }))
     .sort((a, b) => b.throws - a.throws || a.board - b.board)
     .slice(0, 3);
-
-  const near = throws.filter((t) => Math.abs(t.miss) <= NEAR);
-  const lean = mean(throws.map((t) => t.miss));
-  const spread = mean(throws.map((t) => Math.abs(t.miss)));
   return {
-    throws: throws.length,
-    onTarget: rate(near.length, throws.length),
-    lean: lean === null ? null : round1(lean),
-    spread: spread === null ? null : round1(spread),
-    bins,
-    strikeNear: strikeRate(near),
-    strikeFar: strikeRate(throws.filter((t) => Math.abs(t.miss) > NEAR)),
-    targets,
+    throws: lines.length,
+    strike: strikeRate(lines),
+    recent: lines.slice(-RECENT),
+    aims,
+    zone: strikeZone(lines),
   };
-}
-
-/** The miss pattern in words, or null without throws. */
-export function leanText(lean) {
-  if (lean === null) return null;
-  if (Math.abs(lean) < 0.5) return "Right on your line, on average.";
-  const boards = Math.abs(lean) === 1 ? "a board" : `${Math.abs(lean)} boards`;
-  return lean > 0 ? `Misses inside by ${boards} on average.` : `Misses outside by ${boards} on average.`;
 }
 
 /**

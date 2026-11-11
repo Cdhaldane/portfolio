@@ -6,7 +6,7 @@ import { loadSeries, writeRecap } from "./api";
 import { BOWLERS } from "./bowlers";
 import { badges, bowlerStats, headToHead, nights, trendPoints } from "./stats";
 import { frameStats } from "./frameStats";
-import { boardStats, lanePairs } from "./lanePlay";
+import { lanePairs, lineStats } from "./lanePlay";
 import { celebrationFor, milestones, tonightsLine, totals } from "./insights";
 import { ALL_TIME, inSeason, seasonList, seasonSummary } from "./seasons";
 import {
@@ -158,7 +158,7 @@ const Bowler = () => {
     () => ({
       stats: Object.fromEntries(BOWLERS.map((b) => [b.key, bowlerStats(scoped, b.key)])),
       frames: Object.fromEntries(BOWLERS.map((b) => [b.key, frameStats(scoped, b.key)])),
-      boards: Object.fromEntries(BOWLERS.map((b) => [b.key, boardStats(scoped, b.key)])),
+      lines: Object.fromEntries(BOWLERS.map((b) => [b.key, lineStats(scoped, b.key)])),
       lanes: Object.fromEntries(BOWLERS.map((b) => [b.key, lanePairs(scoped, b.key)])),
       trophies: Object.fromEntries(BOWLERS.map((b) => [b.key, badges(all, b.key)])),
       h2h: headToHead(scoped),
@@ -354,7 +354,7 @@ const Bowler = () => {
           )}
           <HeadToHead loading={loading} h2h={derived.h2h} stats={derived.stats} />
           {!loading && <FrameStats frames={derived.frames} stats={derived.stats} />}
-          {!loading && <LanePlay boards={derived.boards} lanes={derived.lanes} />}
+          {!loading && <LanePlay lines={derived.lines} lanes={derived.lanes} />}
           <TrendChart loading={loading} points={derived.trend} />
           {!loading && <Heatmap series={scoped} />}
           {!loading && (

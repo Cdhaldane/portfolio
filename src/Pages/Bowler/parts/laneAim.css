@@ -1,0 +1,197 @@
+/* ---- "Aim & hook" on the lane page ---- */
+.bw-la {
+  --line: var(--bw-cha);
+  display: grid;
+  gap: 12px;
+}
+.bw-la--van {
+  --line: var(--bw-van);
+}
+.bw-la-fig {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.bw-la-svg {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  border-radius: 12px;
+  box-shadow: var(--bw-shadow);
+  cursor: crosshair;
+  /* vertical swipes still scroll the page; sideways ones drag a mark */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* the two rows a tap lands in */
+.bw-la-band {
+  fill: var(--line);
+  opacity: 0.07;
+  transition: opacity 300ms var(--bw-ease);
+}
+.bw-la-band.is-open {
+  opacity: 0.16;
+}
+.bw-la-hint {
+  fill: #2b1d16;
+  opacity: 0.75;
+  font: 600 9px "Space Grotesk", sans-serif;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+  pointer-events: none;
+}
+[data-theme="dark"] .bw-la-hint {
+  fill: #f5ecdc;
+}
+
+/* the ball's line: draws itself on from the foul line to the pocket */
+.bw-la-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: bw-la-draw 560ms var(--bw-ease) both;
+  pointer-events: none;
+}
+.bw-la-svg.is-dragging .bw-la-line {
+  animation: none;
+}
+@keyframes bw-la-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+.bw-la-mark {
+  animation: bw-la-pop 360ms var(--bw-ease) both;
+  pointer-events: none;
+}
+@keyframes bw-la-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+.bw-la-halo {
+  fill: var(--bw-card);
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.bw-la-dot {
+  fill: var(--line);
+}
+.bw-la-mark--hook .bw-la-halo {
+  fill: var(--line);
+}
+.bw-la-mark--hook .bw-la-dot {
+  fill: var(--bw-card);
+}
+.bw-la-tag {
+  fill: var(--bw-ink);
+  paint-order: stroke;
+  stroke: var(--bw-card);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  font: 700 8.5px "Space Grotesk", sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.bw-la-pocket circle {
+  fill: none;
+  stroke-width: 2.2;
+}
+.bw-la-pocket.is-hit circle {
+  stroke: var(--bw-good);
+}
+.bw-la-pocket.is-miss circle {
+  stroke: var(--bw-bad);
+  stroke-dasharray: 3 2.4;
+}
+.bw-la-pocket {
+  animation: bw-la-pop 360ms var(--bw-ease) 300ms both;
+}
+
+.bw-la-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  width: min(100%, 320px);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--bw-ink-soft);
+}
+.bw-la-flip[aria-pressed="true"] {
+  color: var(--bw-ink);
+  font-weight: 700;
+}
+
+/* the two readings, each nudgeable a board at a time */
+.bw-la-reads {
+  display: grid;
+  gap: 6px;
+}
+.bw-la-read {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  background: var(--bw-surface);
+}
+.bw-la-read-key {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+.bw-la-read--hook .bw-la-read-key {
+  background: var(--line);
+}
+.bw-la-read p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+.bw-la-read b {
+  font-family: "Space Grotesk", sans-serif;
+}
+.bw-la-read.is-empty span {
+  color: var(--bw-ink-soft);
+}
+.bw-la-nudge {
+  display: flex;
+  gap: 4px;
+}
+.bw-la-nudge button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bw-card);
+  color: var(--bw-ink);
+  box-shadow: inset 0 0 0 1px var(--bw-line);
+  cursor: pointer;
+}
+.bw-la-nudge button:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-la-line,
+  .bw-la-mark,
+  .bw-la-pocket {
+    animation: none;
+  }
+  .bw-la-band {
+    transition: none;
+  }
+}

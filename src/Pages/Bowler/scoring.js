@@ -9,11 +9,14 @@
 //
 // A frame:
 //   { rolls: [7, 2], standing: [[3, 6, 10], [10]] | null,
-//     target?: 12, actual?: 10, pocket?: true }
+//     target?: 10, hook?: 6, pocket?: true }
 // `standing` is the pins still up after each roll, 1-10 with the 1 pin at
 // the front and 7-10 the back row, left to right. Null means only the
-// counts were recorded. `target` / `actual` are boards (1-39, counted from
-// the bowler's own gutter); `pocket` is whether the first ball hit it.
+// counts were recorded. The first ball's line is boards (1-39, counted from
+// the bowler's own gutter): `target` where it was aimed at the arrows,
+// `hook` where it turned for the pins. `actual` (where it crossed the
+// arrows) is from before the lane picture and still validates. `pocket`
+// is whether the first ball hit it.
 
 const FRAMES = 10;
 const PINS = 10;
@@ -126,14 +129,12 @@ function checkFrame(raw, index) {
   const walk = playFrame(frame, index);
   if (walk.error) return { ok: false, error: walk.error };
 
-  ["target", "actual"].forEach((field) => {
+  const boards = ["target", "hook", "actual"];
+  boards.forEach((field) => {
     const v = raw[field];
     if (v !== undefined && v !== null && v !== "") frame[field] = Number(v);
   });
-  if (
-    (frame.target !== undefined && !isBoard(frame.target)) ||
-    (frame.actual !== undefined && !isBoard(frame.actual))
-  ) {
+  if (boards.some((field) => frame[field] !== undefined && !isBoard(frame[field]))) {
     return { ok: false, error: `${where}: boards run from ${MIN_BOARD} to ${MAX_BOARD}.` };
   }
   if (typeof raw.pocket === "boolean") frame.pocket = raw.pocket;

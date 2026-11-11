@@ -1,0 +1,20 @@
+/* ---- the lane picture (LaneBed), shared by the aim picker and Lane play ---- */
+.bw-bed-gutter { fill: #3a2a20; }
+.bw-bed-wood { fill: #edcb91; }
+.bw-bed-seam { fill: rgba(120, 72, 24, 0.22); }
+.bw-bed-deck { fill: rgba(255, 255, 255, 0.22); }
+.bw-bed-approach { fill: rgba(43, 29, 22, 0.08); }
+.bw-bed-foul { stroke: #2b1d16; stroke-width: 1.6; }
+.bw-bed-mark { fill: #2b1d16; opacity: 0.6; }
+.bw-bed-pin { fill: #fbf8f2; stroke: rgba(0, 0, 0, 0.2); stroke-width: 0.6; }
+.bw-bed-neck { fill: none; stroke: #d23f35; stroke-width: 1.1; }
+
+[data-theme="dark"] .bw-bed-gutter { fill: #0f0c15; }
+[data-theme="dark"] .bw-bed-wood { fill: #221b30; }
+[data-theme="dark"] .bw-bed-seam { fill: rgba(150, 110, 255, 0.22); }
+[data-theme="dark"] .bw-bed-deck { fill: rgba(255, 255, 255, 0.04); }
+[data-theme="dark"] .bw-bed-approach { fill: rgba(0, 0, 0, 0.25); }
+[data-theme="dark"] .bw-bed-foul { stroke: #ff5fa2; }
+[data-theme="dark"] .bw-bed-mark { fill: #f2b84b; opacity: 0.9; }
+[data-theme="dark"] .bw-bed-pin { fill: #f5ecdc; }
+[data-theme="dark"] .bw-bed-neck { stroke: #ff5fa2; }

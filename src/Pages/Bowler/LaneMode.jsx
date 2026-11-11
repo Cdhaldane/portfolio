@@ -7,8 +7,6 @@ import { BOWLERS, BOWLER_BY_KEY, GAMES, formatNight, todayLocal } from "./bowler
 import { lastBalls, pickerGroups } from "./balls";
 import { nights } from "./stats";
 import {
-  MAX_BOARD,
-  MIN_BOARD,
   addRoll,
   addRollToFrame,
   isSplit,
@@ -31,9 +29,12 @@ import {
   withDefaultBalls,
 } from "./laneDraft";
 import { bookFor, needsFor, oddsFor } from "./laneHelp";
+import { useHand } from "./hand";
 import PinDeck from "./parts/PinDeck";
 import Scorecard from "./parts/Scorecard";
 import ScreenReader from "./parts/ScreenReader";
+// After Scorecard, like the main page, so the shared stylesheets keep one order.
+import LaneAim from "./parts/LaneAim";
 import { BallSelect } from "./parts/BallPicker";
 import "./Bowler.css";
 import "./parts/balls.css";
@@ -54,6 +55,11 @@ import "./LaneMode.css";
  * you, and what the game still needs to beat your average, your best and
  * the other bowler. "Read the screen" fills a game from a photo of the
  * alley's overhead screen instead of tapping it in.
+ *
+ * "Aim & hook" (parts/LaneAim.jsx) notes the first ball's line on a picture
+ * of the lane: where you aimed, where it hooked, and whether it found the
+ * pocket. It's saved with the next first ball; the aim carries over from
+ * frame to frame, the hook and pocket start fresh.
  */
 const EMPTY_FRAME = { rolls: [], standing: [] };
 const DETAILS_PREF = "bowler-lane-details";
@@ -82,41 +88,6 @@ const writePref = (on) => {
   }
 };
 
-const clampBoard = (n) => Math.min(MAX_BOARD, Math.max(MIN_BOARD, n));
-
-const Board = ({ id, label, value, start, onChange }) => (
-  <div className="bw-lm-board">
-    <label htmlFor={id}>{label}</label>
-    <div className="bw-lm-stepper">
-      <button
-        type="button"
-        aria-label={`${label}: one board left`}
-        onClick={() => onChange(value === "" ? start : clampBoard(value - 1))}
-      >
-        <i className="fa-solid fa-minus" aria-hidden="true" />
-      </button>
-      <input
-        id={id}
-        inputMode="numeric"
-        autoComplete="off"
-        placeholder="-"
-        value={value}
-        onChange={(e) => {
-          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-          onChange(digits === "" ? "" : clampBoard(Number(digits)));
-        }}
-      />
-      <button
-        type="button"
-        aria-label={`${label}: one board right`}
-        onClick={() => onChange(value === "" ? start : clampBoard(value + 1))}
-      >
-        <i className="fa-solid fa-plus" aria-hidden="true" />
-      </button>
-    </div>
-  </div>
-);
-
 const LaneMode = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
@@ -127,8 +98,8 @@ const LaneMode = () => {
   const [loadError, setLoadError] = useState(null);
   const [standing, setStanding] = useState([]); // pins tapped as still up
   const [pocket, setPocket] = useState(null); // first-ball details for this frame
-  const [target, setTarget] = useState(""); //   (the target carries over)
-  const [actual, setActual] = useState("");
+  const [target, setTarget] = useState(""); //   (the aim carries over)
+  const [hook, setHook] = useState("");
   const [redo, setRedo] = useState(null); // { frame, work } while re-entering a frame
   const [offer, setOffer] = useState(null); // a saved night waiting on "replace the draft?"
   const [said, setSaid] = useState("");
@@ -176,6 +147,7 @@ const LaneMode = () => {
 
   const who = draft.active.bowler;
   const gi = draft.active.game;
+  const [hand, flipHand] = useHand(who);
   const game = draft.bowlers[who].games[gi];
   const framed = game.mode === "frames";
   const work = redo ? playFrame(redo.work, redo.frame) : null;
@@ -212,7 +184,7 @@ const LaneMode = () => {
     setDraft((d) => ({ ...d, active: { bowler, game: index } }));
     setRedo(null);
     setPocket(null);
-    setActual("");
+    setHook("");
     setSaid("");
     clearBall();
   };
@@ -224,7 +196,7 @@ const LaneMode = () => {
     const extra = {};
     if (pocket !== null) extra.pocket = pocket;
     if (target !== "") extra.target = target;
-    if (actual !== "") extra.actual = actual;
+    if (hook !== "") extra.hook = hook;
     return extra;
   }
 
@@ -262,7 +234,7 @@ const LaneMode = () => {
     }
     if (at.roll === 0) {
       setPocket(null);
-      setActual("");
+      setHook("");
     }
     clearBall();
     announce(left);
@@ -283,7 +255,7 @@ const LaneMode = () => {
     const old = game.frames[index];
     setRedo({ frame: index, work: EMPTY_FRAME });
     setPocket(typeof old.pocket === "boolean" ? old.pocket : null);
-    setActual(old.actual ?? "");
+    setHook(old.hook ?? "");
     if (old.target !== undefined) setTarget(old.target);
     setSaid("");
     clearBall();
@@ -304,7 +276,7 @@ const LaneMode = () => {
     });
     setRedo(null);
     setPocket(null);
-    setActual("");
+    setHook("");
     clearBall();
     const what = Object.entries(read).map(
       ([key, frames]) =>
@@ -579,7 +551,7 @@ const LaneMode = () => {
                 </button>
                 {at.roll === 0 && (
                   <button type="button" className="bw-link" aria-expanded={details} onClick={toggleDetails}>
-                    <i className="fa-solid fa-sliders" aria-hidden="true" /> Boards & pocket
+                    <i className="fa-solid fa-bezier-curve" aria-hidden="true" /> Aim & hook
                   </button>
                 )}
                 {!redo && !game.frames.length && (
@@ -592,6 +564,16 @@ const LaneMode = () => {
 
               {details && at.roll === 0 && (
                 <div className="bw-lm-details">
+                  <LaneAim
+                    bowler={who}
+                    aim={target}
+                    hook={hook}
+                    pocket={pocket}
+                    hand={hand}
+                    onAim={setTarget}
+                    onHook={setHook}
+                    onFlip={flipHand}
+                  />
                   <div className="bw-lm-pocket" role="group" aria-label="Did the first ball hit the pocket?">
                     <span>Pocket</span>
                     <button
@@ -609,14 +591,6 @@ const LaneMode = () => {
                       Missed
                     </button>
                   </div>
-                  <Board id="bw-lm-target" label="Target board" value={target} start={10} onChange={setTarget} />
-                  <Board
-                    id="bw-lm-actual"
-                    label="Crossed at"
-                    value={actual}
-                    start={target === "" ? 10 : target}
-                    onChange={setActual}
-                  />
                 </div>
               )}
             </>
