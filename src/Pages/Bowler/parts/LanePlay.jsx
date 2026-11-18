@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Reveal from "../../../Components/Reveal/Reveal";
 import { BOWLERS } from "../bowlers";
 import { handOf } from "../hand";
-import { BOARD, HEIGHT, HOOK_Y, WIDTH, aimName, boardX, linePath } from "../laneLine";
+import { BOARD, HEIGHT, HOOK_BAND, HOOK_Y, WIDTH, aimName, boardX, linePath } from "../laneLine";
 import LaneBed from "./LaneBed";
 import "./lanePlay.css";
 
@@ -41,9 +41,9 @@ const LinesChart = ({ lines, hand, name }) => {
         {zone && (
           <rect
             x={zoneX}
-            y={HOOK_Y - 16}
+            y={HOOK_Y - HOOK_BAND}
             width={(zone.to - zone.from + 1) * BOARD}
-            height={32}
+            height={HOOK_BAND * 2}
             rx="4"
             className="bw-lp-zone"
           />

@@ -219,3 +219,54 @@ test("a failed save keeps the night on the phone", async () => {
   expect(screen.getByText(/You look offline/)).toBeInTheDocument();
   expect(JSON.parse(window.localStorage.getItem("bowler-lane-v1")).bowlers.cha.games[2].score).toBe("150");
 });
+
+test("spare line: after a leave, how to pick it up, and only then", async () => {
+  await renderLane();
+  expect(screen.queryByRole("button", { name: /Spare line/ })).not.toBeInTheDocument();
+  tap("Pin 10");
+  tap("9 down");
+
+  expect(screen.getByRole("heading", { name: "10 pin" })).toBeInTheDocument();
+  expect(screen.getByText(/^Cross from the left: lay it down near board 3\d and roll it straight at the 10\.$/)).toBeInTheDocument();
+  expect(screen.getByText(/^Board 2\d · .*5th arrow$/)).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: /The line for the 10 pin/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Spare line/ })).toHaveAttribute("aria-expanded", "true");
+
+  tap("Spare");
+  expect(screen.getByText("Frame 2 · ball 1")).toBeInTheDocument();
+  expect(screen.queryByText(/Cross from the left/)).not.toBeInTheDocument();
+});
+
+test("spare line: a split you can't make says pick one off", async () => {
+  await renderLane();
+  tap("Pin 7");
+  tap("Pin 10");
+  tap("8 down");
+  expect(screen.getByRole("heading", { name: /^Pick off the (7|10)$/ })).toBeInTheDocument();
+  expect(screen.getByText(/The 7-10 is next to impossible/)).toBeInTheDocument();
+});
+
+test("spare line: closing it sticks, on this phone", async () => {
+  const first = await renderLane();
+  tap("Pin 10");
+  tap("9 down");
+  tap(/Spare line/);
+  expect(screen.queryByRole("heading", { name: "10 pin" })).not.toBeInTheDocument();
+  expect(window.localStorage.getItem("bowler-lane-spare")).toBe("0");
+
+  first.unmount();
+  await renderLane();
+  expect(screen.getByText("Frame 1 · ball 2")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Spare line/ })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("heading", { name: "10 pin" })).not.toBeInTheDocument();
+});
+
+test("spare line: a lefty's boards count from their own gutter", async () => {
+  window.localStorage.setItem("bowler-hand-v1", JSON.stringify({ cha: "L" }));
+  await renderLane();
+  tap("Pin 10");
+  tap("9 down");
+  // Same line on the lane, counted from the other gutter.
+  expect(screen.getByText(/^Cross from the left: lay it down near board [5-8] /)).toBeInTheDocument();
+  expect(screen.getByText(/^Board 1\d · .*3rd arrow$/)).toBeInTheDocument();
+});

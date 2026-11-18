@@ -35,6 +35,7 @@ import Scorecard from "./parts/Scorecard";
 import ScreenReader from "./parts/ScreenReader";
 // After Scorecard, like the main page, so the shared stylesheets keep one order.
 import LaneAim from "./parts/LaneAim";
+import SpareGuide from "./parts/SpareGuide";
 import { BallSelect } from "./parts/BallPicker";
 import "./Bowler.css";
 import "./parts/balls.css";
@@ -60,9 +61,14 @@ import "./LaneMode.css";
  * of the lane: where you aimed, where it hooked, and whether it found the
  * pocket. It's saved with the next first ball; the aim carries over from
  * frame to frame, the hook and pocket start fresh.
+ *
+ * "Spare line" (parts/SpareGuide.jsx) is the ball after a leave: where to
+ * lay it down, what to hit at the arrows and which side of which pin,
+ * played out on the same lane. It's open unless you've closed it.
  */
 const EMPTY_FRAME = { rolls: [], standing: [] };
 const DETAILS_PREF = "bowler-lane-details";
+const SPARE_PREF = "bowler-lane-spare";
 
 const buzz = (pattern) => {
   try {
@@ -72,19 +78,20 @@ const buzz = (pattern) => {
   }
 };
 
-const readPref = () => {
+const readPref = (key, fallback) => {
   try {
-    return window.localStorage.getItem(DETAILS_PREF) === "1";
+    const stored = window.localStorage.getItem(key);
+    return stored === null ? fallback : stored === "1";
   } catch {
-    return false;
+    return fallback;
   }
 };
 
-const writePref = (on) => {
+const writePref = (key, on) => {
   try {
-    window.localStorage.setItem(DETAILS_PREF, on ? "1" : "0");
+    window.localStorage.setItem(key, on ? "1" : "0");
   } catch {
-    /* falls back to closed next time */
+    /* falls back to the default next time */
   }
 };
 
@@ -104,7 +111,8 @@ const LaneMode = () => {
   const [offer, setOffer] = useState(null); // a saved night waiting on "replace the draft?"
   const [said, setSaid] = useState("");
   const [flash, setFlash] = useState(null);
-  const [details, setDetails] = useState(readPref);
+  const [details, setDetails] = useState(() => readPref(DETAILS_PREF, false));
+  const [spareHelp, setSpareHelp] = useState(() => readPref(SPARE_PREF, true));
   const [error, setError] = useState(null); // { at: "lane" | "save", text }
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
@@ -155,6 +163,7 @@ const LaneMode = () => {
     ? { frame: redo.frame, roll: work.shots.length, rack: work.next }
     : nextRoll(game.frames);
   const fresh = Boolean(at && at.rack.fresh);
+  const spareLeave = at && !fresh && at.rack.pins && at.rack.pins.length ? at.rack.pins : null;
   const leave = standing.slice().sort((a, b) => a - b);
   const score = scoreGame(game.frames);
   const best = maxScore(game.frames);
@@ -287,7 +296,12 @@ const LaneMode = () => {
 
   const toggleDetails = () =>
     setDetails((on) => {
-      writePref(!on);
+      writePref(DETAILS_PREF, !on);
+      return !on;
+    });
+  const toggleSpare = () =>
+    setSpareHelp((on) => {
+      writePref(SPARE_PREF, !on);
       return !on;
     });
 
@@ -554,6 +568,11 @@ const LaneMode = () => {
                     <i className="fa-solid fa-bezier-curve" aria-hidden="true" /> Aim & hook
                   </button>
                 )}
+                {spareLeave && (
+                  <button type="button" className="bw-link" aria-expanded={spareHelp} onClick={toggleSpare}>
+                    <i className="fa-solid fa-route" aria-hidden="true" /> Spare line
+                  </button>
+                )}
                 {!redo && !game.frames.length && (
                   <button type="button" className="bw-link" onClick={() => patchGame({ mode: "score", score: "" })}>
                     <i className="fa-solid fa-keyboard" aria-hidden="true" /> Just the score
@@ -591,6 +610,12 @@ const LaneMode = () => {
                       Missed
                     </button>
                   </div>
+                </div>
+              )}
+
+              {spareHelp && spareLeave && (
+                <div className="bw-lm-details">
+                  <SpareGuide leave={spareLeave} bowler={who} hand={hand} />
                 </div>
               )}
             </>

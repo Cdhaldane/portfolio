@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import {
+  ARROW_PEAK,
   ARROW_Y,
   GUTTER,
   HEIGHT,
+  HOOK_BAND,
   HOOK_Y,
-  PIN_Y,
   POCKET,
+  POCKET_Y,
   WIDTH,
   aimName,
   arrowY,
@@ -47,9 +49,9 @@ const Mark = ({ x, y, kind, label }) => {
   return (
     <g transform={`translate(${x} ${y})`}>
       <g className={`bw-la-mark bw-la-mark--${kind}`}>
-        <circle r="9" className="bw-la-halo" />
-        <circle r="4.2" className="bw-la-dot" />
-        <text x={side * 13} y="3.4" textAnchor={side > 0 ? "start" : "end"} className="bw-la-tag">
+        <circle r="10" className="bw-la-halo" />
+        <circle r="4.6" className="bw-la-dot" />
+        <text x={side * 15} y="3.6" textAnchor={side > 0 ? "start" : "end"} className="bw-la-tag">
           {label}
         </text>
       </g>
@@ -161,6 +163,7 @@ const LaneAim = ({ bowler, aim, hook, pocket, hand, onAim, onHook, onFlip }) => 
           ref={svgRef}
           className={`bw-la-svg ${dragging ? "is-dragging" : ""}`}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          style={{ "--bw-lane-ar": WIDTH / HEIGHT }}
           role="img"
           aria-label={`Your line on the lane: ${summary}.`}
           onPointerDown={down}
@@ -173,25 +176,25 @@ const LaneAim = ({ bowler, aim, hook, pocket, hand, onAim, onHook, onFlip }) => 
           {/* where each tap lands: the arrows row and the breakpoint row */}
           <rect
             x={GUTTER}
-            y={ARROW_Y - 26}
+            y={ARROW_Y - ARROW_PEAK - 22}
             width={WIDTH - GUTTER * 2}
-            height={36}
+            height={ARROW_PEAK + 38}
             className={`bw-la-band ${hasAim ? "" : "is-open"}`}
           />
           <rect
             x={GUTTER}
-            y={HOOK_Y - 18}
+            y={HOOK_Y - HOOK_BAND}
             width={WIDTH - GUTTER * 2}
-            height={36}
+            height={HOOK_BAND * 2}
             className={`bw-la-band ${hasHook ? "" : "is-open"}`}
           />
           {!hasAim && (
-            <text x={WIDTH / 2} y={ARROW_Y + 18} className="bw-la-hint">
+            <text x={WIDTH / 2} y={ARROW_Y + 30} className="bw-la-hint">
               tap where you aimed
             </text>
           )}
           {!hasHook && (
-            <text x={WIDTH / 2} y={HOOK_Y + 3.5} className="bw-la-hint">
+            <text x={WIDTH / 2} y={HOOK_Y + 4} className="bw-la-hint">
               tap where it hooked
             </text>
           )}
@@ -201,9 +204,9 @@ const LaneAim = ({ bowler, aim, hook, pocket, hand, onAim, onHook, onFlip }) => 
           )}
           {hasAim && hasHook && pocket !== null && (
             // The CSS pop is a transform, so it sits inside the placed group.
-            <g key={`pocket-${pocket}`} transform={`translate(${pocketX} ${PIN_Y + 7})`}>
+            <g key={`pocket-${pocket}`} transform={`translate(${pocketX} ${POCKET_Y})`}>
               <g className={`bw-la-pocket ${pocket ? "is-hit" : "is-miss"}`}>
-                <circle r="8" />
+                <circle r="12" />
               </g>
             </g>
           )}

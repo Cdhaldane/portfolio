@@ -1,0 +1,120 @@
+/* ---- "Spare line" on the lane page ---- */
+.bw-sg {
+  --line: var(--bw-cha);
+  display: grid;
+  grid-template-columns: minmax(0, 128px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.bw-sg--van {
+  --line: var(--bw-van);
+}
+.bw-sg-fig {
+  margin: 0;
+}
+.bw-sg-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: var(--bw-shadow);
+}
+
+.bw-sg-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+}
+.bw-sg-ring {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3;
+  opacity: 0;
+}
+.bw-sg-ball circle {
+  fill: var(--line);
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1;
+}
+.bw-sg-ball .bw-sg-hole {
+  fill: rgba(0, 0, 0, 0.45);
+  stroke: none;
+}
+.bw-sg-mark {
+  fill: var(--bw-accent);
+  paint-order: stroke;
+  stroke: #2b1d16;
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  font: 400 34px "Bungee", sans-serif;
+  text-anchor: middle;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.5) rotate(-8deg);
+  transition:
+    opacity 220ms var(--bw-ease),
+    transform 420ms var(--bw-ease);
+  pointer-events: none;
+}
+.bw-sg-mark.is-on {
+  opacity: 1;
+  transform: scale(1) rotate(-6deg);
+}
+.bw-sg.is-split .bw-sg-mark {
+  font-size: 28px;
+}
+
+.bw-sg-words {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.bw-sg-words p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.bw-sg-eyebrow {
+  font: 600 0.7rem "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--line);
+}
+.bw-sg.is-split .bw-sg-eyebrow {
+  color: var(--bw-bad);
+}
+.bw-sg-title {
+  margin: 0;
+  font: 400 1.4rem "Bungee", sans-serif;
+  line-height: 1.1;
+}
+.bw-sg-words .bw-sg-aim {
+  justify-self: start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--bw-card);
+  font: 700 0.82rem "Space Grotesk", sans-serif;
+}
+.bw-sg-words .bw-sg-room {
+  font-size: 0.8rem;
+  color: var(--bw-ink-soft);
+}
+.bw-sg-replay {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-sg-mark {
+    transition: none;
+  }
+  .bw-sg-replay {
+    display: none;
+  }
+}

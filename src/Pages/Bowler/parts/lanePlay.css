@@ -82,7 +82,7 @@
 /* the lines chart: the first balls drawn on the lane, beside the numbers */
 .bw-lp-first {
   display: grid;
-  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
   align-items: start;
   gap: 18px;
 }
@@ -101,7 +101,7 @@
 .bw-lp-path {
   fill: none;
   stroke: var(--bw-ink);
-  stroke-width: 1.6;
+  stroke-width: 2.6;
   stroke-linecap: round;
   opacity: 0.22;
   stroke-dasharray: 1;
@@ -110,7 +110,7 @@
 }
 .bw-lp-path.is-strike {
   stroke: var(--bar);
-  stroke-width: 2.4;
+  stroke-width: 3.6;
   opacity: 0.85;
 }
 .bw-lp:not(.is-in) .bw-lp-path {
@@ -298,7 +298,7 @@
     grid-template-columns: 1fr;
   }
   .bw-lp-first {
-    grid-template-columns: minmax(0, 170px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 130px) minmax(0, 1fr);
   }
   .bw-lp-pairs li {
     grid-template-columns: auto minmax(0, 1fr) 2.6em;
@@ -314,7 +314,7 @@
   }
   .bw-lp-lane {
     justify-self: center;
-    width: min(100%, 240px);
+    width: min(100%, 170px);
   }
 }
 

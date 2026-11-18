@@ -15,7 +15,10 @@
 }
 .bw-la-svg {
   display: block;
-  width: min(100%, 320px);
+  /* A lane is long and narrow: as wide as fits, but never taller than most
+     of the screen, so the arrows and the breakpoint are both in view. */
+  width: min(100%, 290px);
+  width: min(100%, 290px, calc(76svh * var(--bw-lane-ar, 0.38)));
   height: auto;
   border-radius: 12px;
   box-shadow: var(--bw-shadow);
@@ -39,7 +42,7 @@
 .bw-la-hint {
   fill: #2b1d16;
   opacity: 0.75;
-  font: 600 9px "Space Grotesk", sans-serif;
+  font: 600 11px "Space Grotesk", sans-serif;
   letter-spacing: 0.04em;
   text-anchor: middle;
   pointer-events: none;
@@ -52,7 +55,7 @@
 .bw-la-line {
   fill: none;
   stroke: var(--line);
-  stroke-width: 3.2;
+  stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
@@ -98,20 +101,20 @@
   stroke: var(--bw-card);
   stroke-width: 3px;
   stroke-linejoin: round;
-  font: 700 8.5px "Space Grotesk", sans-serif;
+  font: 700 10px "Space Grotesk", sans-serif;
   letter-spacing: 0.08em;
 }
 
 .bw-la-pocket circle {
   fill: none;
-  stroke-width: 2.2;
+  stroke-width: 2.6;
 }
 .bw-la-pocket.is-hit circle {
   stroke: var(--bw-good);
 }
 .bw-la-pocket.is-miss circle {
   stroke: var(--bw-bad);
-  stroke-dasharray: 3 2.4;
+  stroke-dasharray: 4 3;
 }
 .bw-la-pocket {
   animation: bw-la-pop 360ms var(--bw-ease) 300ms both;
@@ -123,7 +126,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px 12px;
-  width: min(100%, 320px);
+  width: min(100%, 360px);
   font-size: 0.78rem;
   line-height: 1.4;
   color: var(--bw-ink-soft);
