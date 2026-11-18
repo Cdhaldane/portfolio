@@ -28,7 +28,7 @@ import {
   storeDraft,
   withDefaultBalls,
 } from "./laneDraft";
-import { bookFor, needsFor, oddsFor } from "./laneHelp";
+import { bookFor, curveFor, needsFor, oddsFor } from "./laneHelp";
 import { useHand } from "./hand";
 import PinDeck from "./parts/PinDeck";
 import Scorecard from "./parts/Scorecard";
@@ -64,6 +64,7 @@ import "./LaneMode.css";
  *
  * "Spare line" (parts/SpareGuide.jsx) is the ball after a leave: where to
  * lay it down, what to hit at the arrows and which side of which pin,
+ * bent to the bowler's own curve (read off their marked first balls) and
  * played out on the same lane. It's open unless you've closed it.
  */
 const EMPTY_FRAME = { rolls: [], standing: [] };
@@ -171,6 +172,7 @@ const LaneMode = () => {
   const groups = pickerGroups(bag, who, game.ball ? [Number(game.ball)] : []);
   const book = useMemo(() => bookFor(series, draft, who), [series, draft, who]);
   const odds = at && !at.rack.fresh ? oddsFor(book, at.rack.pins) : null;
+  const curve = useMemo(() => curveFor(series, draft, who), [series, draft, who]);
   const needs =
     framed && !score.complete
       ? needsFor({ series, draft, bowler: who, game: gi, score: score.total, best })
@@ -615,7 +617,13 @@ const LaneMode = () => {
 
               {spareHelp && spareLeave && (
                 <div className="bw-lm-details">
-                  <SpareGuide leave={spareLeave} bowler={who} hand={hand} />
+                  <SpareGuide
+                    leave={spareLeave}
+                    bowler={who}
+                    hand={hand}
+                    curve={curve}
+                    bothWays={Boolean(BOWLER_BY_KEY[who].curvesBothWays)}
+                  />
                 </div>
               )}
             </>

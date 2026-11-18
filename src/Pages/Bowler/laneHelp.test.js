@@ -1,5 +1,6 @@
 import { blankDraft } from "./laneDraft";
-import { bookFor, leaveName, needsFor, oddsFor } from "./laneHelp";
+import { bookFor, curveFor, leaveName, needsFor, oddsFor } from "./laneHelp";
+import { bendOf } from "./spareLine";
 
 const s = (rolls, standing) => ({ rolls, standing });
 const MADE_10 = s([9, 1], [[10], []]);
@@ -77,5 +78,23 @@ describe("needsFor", () => {
 
   test("no history and no finished rival game means nothing to chase", () => {
     expect(needsFor({ series: null, draft: blankDraft("2026-10-13"), bowler: "cha", game: 1, score: 0, best: 300 })).toEqual([]);
+  });
+});
+
+describe("your curve", () => {
+  const marked = (target, hook) => ({ ...s([10], [[]]), target, hook });
+
+  test("is read off the first balls you've marked, saved and tonight's, by the median", () => {
+    const series = [row("cha", "2026-10-06", [90, 90, 90], [fill([marked(10, 6), marked(10, 6), MADE_10]), null, null])];
+    const draft = blankDraft("2026-10-20");
+    // Tonight one wild one: the median shrugs it off.
+    draft.bowlers.cha.games[0].frames = [marked(20, 20)];
+    expect(curveFor(series, draft, "cha")).toBeCloseTo(bendOf(10, 6));
+  });
+
+  test("is no curve at all until you've marked one, and is yours alone", () => {
+    const series = [row("cha", "2026-10-06", [90, 90, 90], [fill([marked(10, 6)]), null, null])];
+    expect(curveFor([], blankDraft("2026-10-20"), "cha")).toBeNull();
+    expect(curveFor(series, blankDraft("2026-10-20"), "van")).toBeNull();
   });
 });

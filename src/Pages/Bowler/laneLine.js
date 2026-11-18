@@ -17,7 +17,7 @@
 // 7 ft, arrows 13-16 ft, the breakpoint row at 40 ft, the head pin at 60.
 // laneX / laneY map real inches (spareLine.js) onto it.
 import { MAX_BOARD, MIN_BOARD } from "./scoring";
-import { BALL_R, HEAD_IN, IN_PER_BOARD, PIN_R, ROW_IN, arrowsIn, pinAt } from "./spareLine";
+import { BALL_R, HEAD_IN, IN_PER_BOARD, KICKBACK_IN, LANE_IN, PIN_R, POCKET, ROW_IN, arrowsIn, pinAt } from "./spareLine";
 
 export const BOARD = 6; // viewBox units per board
 export const GUTTER = 12;
@@ -34,8 +34,17 @@ const DECK_FROM = HEAD_IN - 8; // the deck's scale takes over just short of the 
 export const DECK_Y = PIN_Y + 8 * DECK;
 const ALONG = (FOUL_Y - DECK_Y) / DECK_FROM; // units per inch along the lane
 
-/** A spot on the real lane (inches: x left of the middle, y past the foul line) in the picture. */
-export const laneX = (x) => WIDTH / 2 - x * ACROSS;
+/**
+ * A spot on the real lane (inches: x left of the middle, y past the foul
+ * line) in the picture. The gutters are drawn narrower than their real
+ * 9.25 in, so past the lane's edge x squeezes in to put the kickbacks at
+ * the picture's edges.
+ */
+export function laneX(x) {
+  const edge = LANE_IN / 2;
+  const out = Math.abs(x) <= edge ? Math.abs(x) * ACROSS : edge * ACROSS + ((Math.abs(x) - edge) / (KICKBACK_IN - edge)) * GUTTER;
+  return WIDTH / 2 - Math.sign(x) * out;
+}
 export const laneY = (y) => (y >= DECK_FROM ? PIN_Y - (y - HEAD_IN) * DECK : FOUL_Y - y * ALONG);
 
 export const PIN_RADIUS = PIN_R * ACROSS;
@@ -45,7 +54,7 @@ export const ARROW_Y = Math.round(laneY(arrowsIn(5))); // the outside arrows; th
 export const ARROW_PEAK = ARROW_Y - Math.round(laneY(arrowsIn(20))); //   middle arrow, this much further out
 export const HOOK_Y = Math.round(laneY(40 * 12)); // the breakpoint row
 export const HOOK_BAND = 34; // half the height of the row a hook tap lands in
-export const POCKET = 17.5; // the 1-3 pocket (1-2 for a lefty)
+export { POCKET }; // the 1-3 pocket's board (1-2 for a lefty)
 export const POCKET_Y = Math.round(laneY(HEAD_IN - 6)); // the ball's centre as it meets the head pin
 
 export const ARROWS = [5, 10, 15, 20, 25, 30, 35];

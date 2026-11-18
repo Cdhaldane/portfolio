@@ -1,4 +1,4 @@
-import { HEAD_IN, LANE_IN, pinAt } from "./spareLine";
+import { HEAD_IN, KICKBACK_IN, LANE_IN, pinAt } from "./spareLine";
 import {
   ARROW_Y,
   BALL_RADIUS,
@@ -135,4 +135,11 @@ test("the picture is continuous where the pin deck's scale takes over", () => {
   expect(Math.abs(near - far)).toBeLessThan(0.01);
   expect(laneY(0)).toBe(FOUL_Y);
   expect(laneY(pinAt(1).y)).toBe(PIN_Y);
+});
+
+test("past the lane's edge the gutter squeezes in, so a pin off the kickback meets the picture's edge", () => {
+  expect(laneX(KICKBACK_IN)).toBeCloseTo(0);
+  expect(laneX(-KICKBACK_IN)).toBeCloseTo(WIDTH);
+  expect(laneX(LANE_IN / 2)).toBeCloseTo(GUTTER);
+  expect(laneX(LANE_IN / 2 + 1)).toBeLessThan(GUTTER);
 });

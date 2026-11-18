@@ -1,6 +1,7 @@
-// The two tracked bowlers. Keys match the API's stored ids.
+// The two tracked bowlers. Keys match the API's stored ids. `curvesBothWays`:
+// can bend it against their natural hook too, so the spare line may ask for it.
 export const BOWLERS = [
-  { key: "cha", name: "Charlie", short: "CHA" },
+  { key: "cha", name: "Charlie", short: "CHA", curvesBothWays: true },
   { key: "van", name: "Vanessa", short: "VAN" },
 ];
 

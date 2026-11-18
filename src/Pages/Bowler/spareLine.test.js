@@ -1,21 +1,33 @@
-import { boardOf, roll, spareLine } from "./spareLine";
+import { IN_PER_BOARD, KICKBACK_IN, bendOf, boardOf, pinAt, roll, spareLine } from "./spareLine";
 
 const MIRROR = { 1: 1, 2: 3, 3: 2, 4: 6, 5: 5, 6: 4, 7: 10, 8: 9, 9: 8, 10: 7 };
 const mirror = (pins) => pins.map((p) => MIRROR[p]).sort((a, b) => a - b);
-const downed = (plan) => roll(plan.leave, plan.x0, plan.slope).map((h) => h.pin);
+const downed = (plan) => roll(plan.leave, plan, plan.lively).map((h) => h.pin);
+const HOOK = bendOf(10, 6) * IN_PER_BOARD; // aimed at the 2nd arrow, broke at 6: a big right-hander's hook
 
 // Every leave a second ball can face: any 1 to 9 of the ten pins.
 const LEAVES = [];
 for (let mask = 1; mask < 1023; mask += 1) {
   LEAVES.push([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((_, i) => mask & (1 << i)));
 }
+const converts = (plan) => {
+  expect(plan).not.toBeNull();
+  expect(downed(plan).sort((a, b) => a - b)).toEqual(plan.leave);
+  expect(plan.laydown).toBeGreaterThanOrEqual(5);
+  expect(plan.laydown).toBeLessThanOrEqual(35);
+};
+
+test("a hook is read off a marked first ball: how far it came back into the pocket", () => {
+  // Aimed at board 10, hooked at 6: the skid line runs out to ~3 by the pins, the pocket's 17.5.
+  expect(bendOf(10, 6)).toBeCloseTo(14.6, 1);
+  // Straight through the arrows into the pocket: no hook at all.
+  expect(bendOf(17.5, 17.5)).toBeCloseTo(0);
+});
 
 test("corner pins are shot cross-lane: the 10 from the left, the 7 from the right", () => {
   const ten = spareLine([10]);
-  expect(ten.make).toBe(true);
   expect(ten.from).toBe("left");
   expect(ten.laydown).toBeGreaterThan(28);
-  // Across the lane: it crosses the arrows left of the middle, heading right.
   expect(ten.target).toBeGreaterThan(20);
   expect(ten.target).toBeLessThan(ten.laydown);
 
@@ -34,67 +46,91 @@ test("the head pin and the 5 are straight up the middle", () => {
   });
 });
 
-test("the bucket is a spare with room to spare", () => {
+test("the bucket goes with room to spare", () => {
   const plan = spareLine([2, 4, 5, 8]);
-  expect(plan.make).toBe(true);
   expect(plan.key).toBe(2);
   expect(plan.room).toBeGreaterThan(5);
-  expect(downed(plan).sort((a, b) => a - b)).toEqual([2, 4, 5, 8]);
+  converts(plan);
 });
 
 test("baby splits slide the front pin into the corner", () => {
   const threeTen = spareLine([3, 10]);
-  expect(threeTen.make).toBe(true);
   expect(threeTen.key).toBe(3);
   expect(threeTen.hit).toMatch(/left/); // catch the 3's left side, it goes right
   expect(threeTen.hits.find((h) => h.pin === 10).by).toBe(3);
 
   const twoSeven = spareLine([2, 7]);
-  expect(twoSeven.make).toBe(true);
   expect(twoSeven.hit).toMatch(/right/);
   expect(twoSeven.hits.find((h) => h.pin === 7).by).toBe(2);
 });
 
-test("the 5-10 is a thin hit on the 5's left side, and tight", () => {
-  const plan = spareLine([5, 10]);
-  expect(plan.make).toBe(true);
-  expect(plan.key).toBe(5);
+test("the 2-10 is makeable: clip the 2's left side and it takes the 10", () => {
+  const plan = spareLine([2, 10]);
+  expect(plan.key).toBe(2);
   expect(plan.hit).toBe("thin-left");
-  expect(plan.room).toBeLessThan(2);
+  expect(plan.hits.find((h) => h.pin === 10).by).toBe(2);
+  expect(plan.lively).toBe(1);
 });
 
-test("the big splits say pick one off", () => {
-  [[7, 10], [4, 6], [4, 6, 7, 10]].forEach((leave) => {
-    const plan = spareLine(leave);
-    expect(plan.make).toBe(false);
-    expect(plan.take.length).toBeLessThan(leave.length);
-    expect(plan.room).toBeGreaterThanOrEqual(2);
-  });
-  // 6-7-10: take the two that go together.
-  expect(spareLine([6, 7, 10]).take).toEqual([6, 10]);
-});
-
-test("every leave gets a line that knocks down what it goes for, from on the lane", () => {
-  LEAVES.forEach((leave) => {
-    const plan = spareLine(leave);
-    expect(plan).not.toBeNull();
-    const down = downed(plan);
-    plan.take.forEach((pin) => expect(down).toContain(pin));
-    if (plan.make) expect(plan.take).toEqual(leave);
-    expect(plan.laydown).toBeGreaterThanOrEqual(5);
-    expect(plan.laydown).toBeLessThanOrEqual(35);
-    expect(plan.leave).toContain(plan.key);
+test("the 7-10 goes off the kickback: a pin flies into the side wall and back across", () => {
+  [spareLine([7, 10]), spareLine([7, 10], { hook: HOOK, bothWays: true })].forEach((plan) => {
+    converts(plan);
+    const [first, second] = plan.hits;
+    expect(second.by).toBe(first.pin);
+    // The first pin flew further than the wall before it took the other one.
+    expect(second.gone).toBeGreaterThan(KICKBACK_IN - Math.abs(pinAt(first.pin).x));
   });
 });
 
-test("a leave and its mirror image get mirror-image lines", () => {
-  LEAVES.filter((leave) => leave.length <= 4).forEach((leave) => {
-    const plan = spareLine(leave);
-    const other = spareLine(mirror(leave));
-    expect(other.make).toBe(plan.make);
-    if (!plan.make) return; // a pick-off can break a tie either way
-    expect(other.laydown).toBeCloseTo(40 - plan.laydown, 0);
-    expect(other.target).toBeCloseTo(40 - plan.target, 0);
+test("every leave gets a line that makes it, never one for the count", () => {
+  LEAVES.forEach((leave) => converts(spareLine(leave)));
+});
+
+test("with a hook, every small leave still gets a line that makes it", () => {
+  LEAVES.filter((leave) => leave.length <= 3).forEach((leave) => {
+    const plan = spareLine(leave, { hook: HOOK, bothWays: true });
+    converts(plan);
+    expect(Math.abs(plan.hookShare)).toBeLessThanOrEqual(1);
+  });
+});
+
+test("your hook bends the line: it plays further right, and comes back left into the pins", () => {
+  [[3], [6], [3, 6, 10], [2, 4, 5, 8]].forEach((leave) => {
+    const straight = spareLine(leave);
+    const hooked = spareLine(leave, { hook: HOOK });
+    if (hooked.hook === 0) return; // took the hook off for this one
+    expect(hooked.hook).toBeGreaterThan(0); // a right-hander's comes back left
+    expect(hooked.breakpoint).toBeLessThan(straight.breakpoint);
+    converts(hooked);
+  });
+  // The single 3 keeps a hook on it.
+  expect(spareLine([3], { hook: HOOK }).hook).toBeGreaterThan(0);
+});
+
+test("where a big hook can't reach the corner, it takes hook off", () => {
+  const plan = spareLine([10], { hook: HOOK });
+  expect(plan.hookShare).toBeLessThan(1);
+  expect(plan.hookShare).toBeGreaterThanOrEqual(0);
+  converts(plan);
+});
+
+test("curving it the other way is only on the table for a bowler who can", () => {
+  const leave = [1, 6, 7];
+  expect(spareLine(leave, { hook: HOOK, bothWays: true }).hookShare).toBeLessThan(0);
+  expect(spareLine(leave, { hook: HOOK }).hookShare).toBeGreaterThanOrEqual(0);
+});
+
+test("a leave and its mirror image get mirror-image lines, hook and all", () => {
+  LEAVES.filter((leave) => leave.length <= 3).forEach((leave) => {
+    [0, HOOK].forEach((hook) => {
+      // A straight ball at a leave that's its own mirror (7-10) can go either way.
+      if (!hook && mirror(leave).join() === leave.join()) return;
+      const plan = spareLine(leave, { hook });
+      const other = spareLine(mirror(leave), { hook: -hook });
+      expect(other.hookShare).toBe(plan.hookShare);
+      expect(other.laydown).toBeCloseTo(40 - plan.laydown, 0);
+      expect(other.target).toBeCloseTo(40 - plan.target, 0);
+    });
   });
 });
 

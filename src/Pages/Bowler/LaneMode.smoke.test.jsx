@@ -226,7 +226,7 @@ test("spare line: after a leave, how to pick it up, and only then", async () => 
   tap("Pin 10");
   tap("9 down");
 
-  expect(screen.getByRole("heading", { name: "10 pin" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "10 pin" })).toBeInTheDocument();
   expect(screen.getByText(/^Cross from the left: lay it down near board 3\d and roll it straight at the 10\.$/)).toBeInTheDocument();
   expect(screen.getByText(/^Board 2\d · .*5th arrow$/)).toBeInTheDocument();
   expect(screen.getByRole("img", { name: /The line for the 10 pin/ })).toBeInTheDocument();
@@ -237,13 +237,43 @@ test("spare line: after a leave, how to pick it up, and only then", async () => 
   expect(screen.queryByText(/Cross from the left/)).not.toBeInTheDocument();
 });
 
-test("spare line: a split you can't make says pick one off", async () => {
+test("spare line: a split gets the way to make it, never one for the count", async () => {
   await renderLane();
   tap("Pin 7");
   tap("Pin 10");
   tap("8 down");
-  expect(screen.getByRole("heading", { name: /^Pick off the (7|10)$/ })).toBeInTheDocument();
-  expect(screen.getByText(/The 7-10 is next to impossible/)).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "7-10" })).toBeInTheDocument();
+  expect(screen.getByText("Split", { selector: ".bw-sg-eyebrow" })).toBeInTheDocument();
+  expect(screen.getByText(/throw it with speed so the pins fly/)).toBeInTheDocument();
+  // Off the kickback: one corner pin takes the other.
+  expect(screen.getByText(/ The (7|10) takes the (7|10)\.$/)).toBeInTheDocument();
+  expect(screen.queryByText(/pick off|for the count|impossible/i)).not.toBeInTheDocument();
+});
+
+test("spare line: it bends with your hook, read off the first balls you've marked", async () => {
+  const marked = { rolls: [10], standing: [[]], target: 10, hook: 6 };
+  loadSeries.mockResolvedValue({
+    ok: true,
+    balls: [],
+    series: [
+      {
+        id: 1,
+        bowler: "cha",
+        bowledOn: "2026-10-06",
+        games: [300, 150, 150],
+        balls: [null, null, null],
+        lanes: [null, null, null],
+        frames: [[...Array.from({ length: 9 }, () => marked), { rolls: [10, 10, 10], standing: [[], [], []] }], null, null],
+      },
+    ],
+  });
+  await renderLane();
+  tap("Pin 7");
+  tap("9 down");
+  expect(await screen.findByRole("heading", { name: "7 pin" })).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Your hook: lay it down near board \d+, out to board \d+ at the breakpoint, and let it come back into the 7\.$/)
+  ).toBeInTheDocument();
 });
 
 test("spare line: closing it sticks, on this phone", async () => {
@@ -267,6 +297,6 @@ test("spare line: a lefty's boards count from their own gutter", async () => {
   tap("Pin 10");
   tap("9 down");
   // Same line on the lane, counted from the other gutter.
-  expect(screen.getByText(/^Cross from the left: lay it down near board [5-8] /)).toBeInTheDocument();
+  expect(await screen.findByText(/^Cross from the left: lay it down near board [5-8] /)).toBeInTheDocument();
   expect(screen.getByText(/^Board 1\d · .*3rd arrow$/)).toBeInTheDocument();
 });

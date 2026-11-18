@@ -9,6 +9,7 @@ import { BOWLERS } from "./bowlers";
 import { framedGames, leaveBook, leaveKey } from "./frameStats";
 import { seriesFor } from "./stats";
 import { gameDone, gameTotal } from "./laneDraft";
+import { bendOf } from "./spareLine";
 
 const before = (series, draft, bowler) =>
   seriesFor(series || [], bowler).filter((r) => r.bowledOn !== draft.bowledOn);
@@ -24,6 +25,25 @@ export function gamesFor(series, draft, bowler) {
 
 /** The book of every leave this bowler has faced (see frameStats.leaveBook). */
 export const bookFor = (series, draft, bowler) => leaveBook(gamesFor(series, draft, bowler));
+
+/**
+ * A bowler's curve, from the first balls they've marked with an aim and a
+ * hook: the median number of boards the ball comes back between the
+ * breakpoint and the pins (spareLine.bendOf), counted toward their far
+ * side. Null until they've marked one.
+ */
+export function curveFor(series, draft, bowler) {
+  const bends = [];
+  gamesFor(series, draft, bowler).forEach((frames) =>
+    frames.forEach((f) => {
+      if (Number.isInteger(f.target) && Number.isInteger(f.hook)) bends.push(bendOf(f.target, f.hook));
+    })
+  );
+  if (!bends.length) return null;
+  bends.sort((a, b) => a - b);
+  const mid = Math.floor(bends.length / 2);
+  return bends.length % 2 ? bends[mid] : (bends[mid - 1] + bends[mid]) / 2;
+}
 
 export const leaveName = (pins) => (pins.length === 1 ? `${pins[0]} pin` : pins.join("-"));
 
